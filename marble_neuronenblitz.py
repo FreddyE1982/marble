@@ -315,11 +315,25 @@ class Neuronenblitz:
         )
         return output_value, error, path
 
-    def train(self, examples, epochs=1):
+    def train(self, examples, epochs=1, iteration_callback=None):
+        """Train for a number of epochs.
+
+        Parameters
+        ----------
+        examples : list of tuples
+            Training data as ``(input, target)`` pairs.
+        epochs : int
+            Number of epochs to train for.
+        iteration_callback : callable, optional
+            Function invoked after each training example. Receives the current
+            ``(input, target)`` tuple.
+        """
         for epoch in range(epochs):
             epoch_errors = []
             for input_val, target_val in examples:
                 output, error, _ = self.train_example(input_val, target_val)
+                if iteration_callback is not None:
+                    iteration_callback((input_val, target_val))
                 epoch_errors.append(
                     abs(error) if isinstance(error, (int, float)) else 0
                 )
