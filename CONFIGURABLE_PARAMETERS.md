@@ -201,6 +201,11 @@ Each entry is listed under its section heading.
 - color_scheme
 - show_neuron_ids
 - dpi
+## metrics_dashboard
+- enabled
+- host
+- port
+- update_interval
 
 ## lobe_manager
 - attention_increase_factor

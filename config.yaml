@@ -192,3 +192,8 @@ metrics_visualizer:
   color_scheme: "default"
   show_neuron_ids: false
   dpi: 100
+metrics_dashboard:
+  enabled: false
+  host: "localhost"
+  port: 8050
+  update_interval: 1000

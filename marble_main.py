@@ -18,6 +18,7 @@ class MARBLE:
         remote_client=None,
         torrent_client=None,
         mv_params=None,
+        dashboard_params=None,
     ):
         if converter_model is not None:
             self.core = MarbleConverter.convert(converter_model, mode='sequential', core_params=params, init_from_weights=init_from_weights)
@@ -31,6 +32,16 @@ class MARBLE:
             fig_width=mv_defaults["fig_width"],
             fig_height=mv_defaults["fig_height"],
         )
+        self.metrics_dashboard = None
+        if dashboard_params is not None and dashboard_params.get("enabled", False):
+            from metrics_dashboard import MetricsDashboard
+            self.metrics_dashboard = MetricsDashboard(
+                self.metrics_visualizer,
+                host=dashboard_params.get("host", "localhost"),
+                port=dashboard_params.get("port", 8050),
+                update_interval=dashboard_params.get("update_interval", 1000),
+            )
+            self.metrics_dashboard.start()
         
         dl_level = 6
         if dataloader_params is not None:
