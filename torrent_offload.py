@@ -12,12 +12,13 @@ class BrainTorrentClient:
     Added asynchronous processing with a buffering queue for tasks.
     """
 
-    def __init__(self, client_id: str, tracker: 'BrainTorrentTracker', buffer_size: int = 10):
+    def __init__(self, client_id: str, tracker: 'BrainTorrentTracker', buffer_size: int = 10, heartbeat_interval: int = 30):
         self.client_id = client_id
         self.tracker = tracker
         self.parts: Set[int] = set()
         self.neuronenblitzes: Dict[int, Neuronenblitz] = {}
         self.online = False
+        self.heartbeat_interval = heartbeat_interval
 
         # asynchronous processing state
         self.buffer: Queue = Queue(maxsize=buffer_size)

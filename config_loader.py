@@ -51,7 +51,8 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
     memory_cfg = cfg.get("memory_system", {})
     long_term_path = memory_cfg.get("long_term_path", "long_term_memory.pkl")
     threshold = memory_cfg.get("threshold", 0.5)
-    memory_system = MemorySystem(long_term_path, threshold=threshold)
+    consolidation_interval = memory_cfg.get("consolidation_interval", 10)
+    memory_system = MemorySystem(long_term_path, threshold=threshold, consolidation_interval=consolidation_interval)
 
     # Data compressor
     compressor_cfg = cfg.get("data_compressor", {})
@@ -75,6 +76,7 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
         remote_client = RemoteBrainClient(
             remote_cfg["url"],
             timeout=remote_cfg.get("timeout", 5.0),
+            max_retries=remote_cfg.get("max_retries", 3),
         )
 
     torrent_client = None
@@ -85,6 +87,7 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
             torrent_cfg["client_id"],
             tracker,
             buffer_size=torrent_cfg.get("buffer_size", 10),
+            heartbeat_interval=torrent_cfg.get("heartbeat_interval", 30),
         )
         torrent_client.connect()
 

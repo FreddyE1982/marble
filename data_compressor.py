@@ -11,10 +11,14 @@ class DataCompressor:
     level : int, optional
         Compression level passed to :func:`zlib.compress`. ``0`` disables
         compression while ``9`` yields maximum compression. Defaults to ``6``.
+    compression_enabled : bool, optional
+        When ``False`` no compression or decompression is performed and data is
+        returned unchanged.
     """
 
-    def __init__(self, level: int = 6) -> None:
+    def __init__(self, level: int = 6, compression_enabled: bool = True) -> None:
         self.level = level
+        self.compression_enabled = compression_enabled
 
     @staticmethod
     def bytes_to_bits(data: bytes) -> np.ndarray:
@@ -31,12 +35,16 @@ class DataCompressor:
 
     def compress(self, data: bytes) -> bytes:
         """Compress bytes after converting to a binary representation."""
+        if not self.compression_enabled:
+            return data
         bits = self.bytes_to_bits(data)
         compressed = zlib.compress(bits.tobytes(), self.level)
         return compressed
 
     def decompress(self, compressed: bytes) -> bytes:
         """Decompress and convert the binary representation back to bytes."""
+        if not self.compression_enabled:
+            return compressed
         bits_bytes = zlib.decompress(compressed)
         bits = np.frombuffer(bits_bytes, dtype=np.uint8)
         original_bytes = self.bits_to_bytes(bits)

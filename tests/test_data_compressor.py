@@ -28,3 +28,11 @@ def test_custom_compression_level():
     size_low = len(low.compress(data))
     size_high = len(high.compress(data))
     assert size_high <= size_low
+
+
+def test_compression_toggle():
+    dc = DataCompressor(compression_enabled=False)
+    data = b"abc" * 10
+    compressed = dc.compress(data)
+    assert compressed == data
+    assert dc.decompress(compressed) == data

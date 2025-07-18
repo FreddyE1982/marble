@@ -16,11 +16,13 @@ def test_load_config_defaults():
     assert cfg["core"]["message_passing_alpha"] == 0.5
     assert cfg["core"]["file_tier_path"] == "data/marble_file_tier.dat"
     assert "neuronenblitz" in cfg
+    assert cfg["core"]["init_noise_std"] == 0.0
     assert cfg["brain"]["save_threshold"] == 0.05
     assert cfg["meta_controller"]["history_length"] == 5
     assert cfg["neuromodulatory_system"]["initial"]["emotion"] == "neutral"
     assert cfg["remote_client"]["url"] == "http://localhost:8001"
     assert cfg["remote_client"]["timeout"] == 5.0
+    assert cfg["remote_client"]["max_retries"] == 3
     assert cfg["torrent_client"]["client_id"] == "main"
     assert cfg["torrent_client"]["buffer_size"] == 10
     assert cfg["brain"]["initial_neurogenesis_factor"] == 1.0
@@ -47,9 +49,10 @@ def test_load_config_defaults():
     assert cfg["neuronenblitz"]["struct_weight_multiplier2"] == 1.2
     assert cfg["neuronenblitz"]["attention_decay"] == 0.9
     assert cfg["memory_system"]["threshold"] == 0.5
+    assert cfg["neuronenblitz"]["max_wander_depth"] == 100
+    assert cfg["memory_system"]["consolidation_interval"] == 10
     assert cfg["data_compressor"]["compression_level"] == 6
-
-
+    assert cfg["data_compressor"]["compression_enabled"] is True
 def test_create_marble_from_config():
     marble = create_marble_from_config()
     assert isinstance(marble, MARBLE)
@@ -80,6 +83,8 @@ def test_create_marble_from_config():
     assert marble.brain.memory_system.threshold == 0.5
     assert marble.brain.dream_num_cycles == 10
     assert marble.brain.dream_interval == 5
+    assert marble.brain.auto_save_interval == 5
+    assert marble.neuronenblitz.max_wander_depth == 100
     assert marble.dataloader.compressor.level == 6
     assert marble.core.rep_size == 4
     assert marble.core.params["message_passing_alpha"] == 0.5

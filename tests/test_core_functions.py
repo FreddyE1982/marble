@@ -97,3 +97,14 @@ def test_brain_validate_runs():
     nb.train(examples, epochs=1)
     val_loss = brain.validate(examples)
     assert isinstance(val_loss, float)
+
+
+def test_core_init_noise_std_affects_values():
+    params = minimal_params()
+    params["init_noise_std"] = 1.0
+    core_noisy = Core(params)
+    params["init_noise_std"] = 0.0
+    core_clean = Core(params)
+    values_noisy = [n.value for n in core_noisy.neurons]
+    values_clean = [n.value for n in core_clean.neurons]
+    assert values_noisy != values_clean

@@ -208,10 +208,16 @@ class LongTermMemory:
 class MemorySystem:
     """Hierarchical memory with short- and long-term layers."""
 
-    def __init__(self, long_term_path="long_term_memory.pkl", threshold: float = 0.5):
+    def __init__(
+        self,
+        long_term_path: str = "long_term_memory.pkl",
+        threshold: float = 0.5,
+        consolidation_interval: int = 10,
+    ):
         self.short_term = ShortTermMemory()
         self.long_term = LongTermMemory(long_term_path)
         self.threshold = threshold
+        self.consolidation_interval = consolidation_interval
 
     def consolidate(self):
         for k, v in list(self.short_term.data.items()):
@@ -290,6 +296,9 @@ class Core:
                 params.get('max_iter', 256)
             )
             mandel_cpu = cp.asnumpy(mandel_gpu)
+            noise_std = params.get('init_noise_std', 0.0)
+            if noise_std:
+                mandel_cpu = mandel_cpu + np.random.randn(*mandel_cpu.shape) * noise_std
             for val in mandel_cpu.flatten():
                 self.neurons.append(Neuron(nid, value=float(val), tier='vram', rep_size=self.rep_size))
                 nid += 1

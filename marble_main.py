@@ -29,7 +29,15 @@ class MARBLE:
             'combine_fn': None,
             'loss_fn': None,
             'weight_update_fn': None,
-            'plasticity_threshold': 10.0
+            'plasticity_threshold': 10.0,
+            'max_wander_depth': 100,
+            'learning_rate': 0.01,
+            'structural_plasticity_enabled': True,
+            'backtrack_enabled': True,
+            'loss_scale': 1.0,
+            'exploration_bonus': 0.0,
+            'synapse_potential_cap': 100.0,
+            'attention_update_scale': 1.0,
         }
         if nb_params is not None:
             nb_defaults.update(nb_params)
@@ -52,7 +60,18 @@ class MARBLE:
             'dream_num_cycles': 10,
             'dream_interval': 5,
             'neurogenesis_base_neurons': 5,
-            'neurogenesis_base_synapses': 10
+            'neurogenesis_base_synapses': 10,
+            'auto_save_interval': 5,
+            'auto_firing_enabled': False,
+            'dream_enabled': True,
+            'vram_age_threshold': 300,
+            'ram_age_threshold': 600,
+            'status_display_interval': 0,
+            'neurogenesis_interval': 1,
+            'min_cluster_size': 1,
+            'prune_frequency': 1,
+            'auto_offload': False,
+            'benchmark_enabled': False
         }
         if brain_params is not None:
             brain_defaults.update(brain_params)

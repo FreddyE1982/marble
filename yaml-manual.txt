@@ -29,6 +29,11 @@ core:
   file_tier_path: Path to the file used by the ``FileTier`` for persisting
     modified data. The directory is created automatically if it does not
     exist.
+  init_noise_std: Standard deviation of Gaussian noise added to the initial
+    Mandelbrot values. ``0.0`` keeps deterministic seeds while larger values
+    create varied starting states.
+  default_growth_tier: Preferred tier used when new neurons are created and no
+    tier choice is provided explicitly.
 
 neuronenblitz:
   backtrack_probability: Probability between 0 and 1 that the wandering
@@ -63,6 +68,20 @@ neuronenblitz:
   attention_decay: Fraction by which accumulated type attention scores are
     reduced after each query. Values under ``1.0`` gradually forget old
     preferences.
+  max_wander_depth: Maximum recursion depth allowed in ``dynamic_wander``.
+    Limits exploration of extremely long paths.
+  learning_rate: Scalar applied to weight updates produced by ``weight_update_fn``.
+  structural_plasticity_enabled: When false, ``apply_structural_plasticity`` is
+    skipped entirely.
+  backtrack_enabled: If false, wandering never returns to previously visited
+    neurons regardless of ``backtrack_probability``.
+  loss_scale: Multiplier for training errors before they are applied to weights.
+  exploration_bonus: Additional reward added to rarely used synapses when they
+    are traversed, encouraging exploration.
+  synapse_potential_cap: Upper bound for ``synapse.potential`` to prevent
+    runaway growth.
+  attention_update_scale: Scaling factor applied when updating neuron type
+    attention statistics.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the
@@ -114,6 +133,23 @@ brain:
     exceed, regardless of adjustments.
   cluster_k: Number of clusters created when ``cluster_neurons`` is invoked
     during training.
+  auto_save_interval: Number of epochs between automatic calls to
+    ``save_model``. ``0`` disables periodic saving.
+  auto_firing_enabled: If true the brain starts an auto-firing thread
+    immediately after construction.
+  dream_enabled: Enables background dreaming when ``start_dreaming`` is called.
+  vram_age_threshold: Age in seconds above which neurons in VRAM are considered
+    old when deciding growth tiers.
+  ram_age_threshold: Equivalent threshold for neurons in RAM.
+  status_display_interval: If greater than zero, ``display_live_status`` is
+    invoked every N epochs during training.
+  neurogenesis_interval: Number of epochs between automatic neurogenesis events.
+  min_cluster_size: Minimum number of neurons required to form a cluster.
+  prune_frequency: Number of epochs between automatic pruning operations.
+  auto_offload: When true, ``offload_high_attention`` runs automatically after
+    each training epoch.
+  benchmark_enabled: Enables evaluation through ``BenchmarkManager`` at the end
+    of each epoch.
   tier_decision_params:
     vram_usage_threshold: Fraction of VRAM usage that triggers migration of
       neurons to a lower tier.
@@ -165,6 +201,8 @@ memory_system:
     ``MemorySystem`` stores new entries directly in the long-term layer instead
     of the short-term layer. Typical values range from 0.3 to 0.7 depending on
     how aggressively long-term consolidation should occur.
+  consolidation_interval: Number of operations between calls to
+    ``consolidate``. Larger values delay writes to disk but reduce I/O.
 
 remote_client:
   # Configuration for forwarding parts of the brain to a remote server. When
@@ -173,6 +211,7 @@ remote_client:
   url: Base URL for the remote HTTP brain server.
   timeout: Seconds to wait for remote requests before they are aborted. Values
     between 5 and 30 are typical depending on network latency.
+  max_retries: Number of times a remote operation is retried upon failure.
 
 torrent_client:
   # Enables distribution of brain parts through the tracker network. Each client
@@ -181,6 +220,8 @@ torrent_client:
     unique across participating clients.
   buffer_size: Maximum number of asynchronous tasks queued for a torrent
     client. Larger values allow more parallel requests but use more memory.
+  heartbeat_interval: Seconds between status pings sent to the tracker. Has no
+    effect in the current simplified implementation but reserved for future use.
 
 data_compressor:
   # Controls how strongly the DataCompressor reduces data size before it is
@@ -188,3 +229,5 @@ data_compressor:
   compression_level: Integer from 0 to 9 passed directly to ``zlib.compress``.
     Higher levels yield smaller output but require more CPU time. The default of
     6 balances speed and ratio for general use.
+  compression_enabled: Set to ``false`` to bypass compression entirely. Useful
+    during debugging or when working with already compressed data.
