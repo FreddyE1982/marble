@@ -26,6 +26,8 @@ brain:
   save_dir: "saved_models"
   firing_interval_ms: 500
   initial_neurogenesis_factor: 1.0
+  offload_enabled: false
+  torrent_offload_enabled: false
   tier_decision_params:
     vram_usage_threshold: 0.9
     ram_usage_threshold: 0.9

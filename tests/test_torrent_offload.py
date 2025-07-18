@@ -74,7 +74,7 @@ def test_torrent_offload_dynamic_wander():
     torrent_map = {}
     core = Core(minimal_params())
     nb = Neuronenblitz(core, torrent_client=client_main, torrent_map=torrent_map)
-    brain = Brain(core, nb, DataLoader(), torrent_client=client_main, torrent_map=torrent_map)
+    brain = Brain(core, nb, DataLoader(), torrent_client=client_main, torrent_map=torrent_map, torrent_offload_enabled=True)
     brain.lobe_manager.genesis(range(len(core.neurons)))
     brain.offload_high_attention_torrent(threshold=-1.0)
 

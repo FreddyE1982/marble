@@ -1,0 +1,50 @@
+The configuration YAML controls various aspects of the MARBLE system. The file is structured in a set of top-level sections, each containing parameters for a specific subsystem.
+
+core:
+  xmin, xmax, ymin, ymax: Bounds for the simulated space.
+  width, height: Resolution of the core grid.
+  max_iter: Maximum iterations for Mandelbrot calculations.
+  vram_limit_mb, ram_limit_mb, disk_limit_mb: Resource limits for neuron tiers.
+
+neuronenblitz:
+  backtrack_probability, consolidation_probability,
+  consolidation_strength, route_potential_increase,
+  route_potential_decay, route_visit_decay_interval,
+  alternative_connection_prob, split_probability,
+  merge_tolerance, plasticity_threshold: Parameters that
+  influence neuron routing and plasticity.
+
+brain:
+  save_threshold: Validation loss required before saving a model.
+  max_saved_models: Number of saved checkpoints to keep.
+  save_dir: Directory used to store checkpoints.
+  firing_interval_ms: Interval between automatic firing cycles.
+  initial_neurogenesis_factor: Starting multiplier for neurogenesis.
+  offload_enabled: When true the brain will offload high
+    attention lobes to a remote brain via HTTP.
+  torrent_offload_enabled: When true the brain distributes lobes
+    via the torrent offloading system.
+  tier_decision_params:
+    vram_usage_threshold, ram_usage_threshold: Thresholds used when
+    selecting a growth tier.
+
+formula: Optional formula used when constructing the core.
+formula_num_neurons: Number of neurons used if the formula is provided.
+
+meta_controller:
+  history_length, adjustment, min_threshold, max_threshold: Parameters
+  controlling adaptive thresholding.
+
+neuromodulatory_system:
+  initial: Starting values for arousal, stress, reward and emotion.
+
+memory_system:
+  long_term_path: File path used for persistent storage of memories.
+
+remote_client:
+  url: Base URL of a remote brain server.
+  timeout: Request timeout in seconds.
+
+torrent_client:
+  client_id: Identifier for the torrent client.
+  buffer_size: Maximum tasks buffered for asynchronous processing.

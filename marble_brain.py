@@ -10,7 +10,8 @@ class Brain:
                  max_saved_models=5, save_dir="saved_models", firing_interval_ms=500,
                  neuromodulatory_system=None, meta_controller=None, memory_system=None,
                  remote_client=None, torrent_client=None, torrent_map=None,
-                 tier_decision_params=None, initial_neurogenesis_factor: float = 1.0):
+                 tier_decision_params=None, initial_neurogenesis_factor: float = 1.0,
+                 offload_enabled: bool = False, torrent_offload_enabled: bool = False):
         self.core = core
         self.neuronenblitz = neuronenblitz
         self.dataloader = dataloader
@@ -34,6 +35,8 @@ class Brain:
         self.remote_client = remote_client
         self.torrent_client = torrent_client
         self.torrent_map = torrent_map if torrent_map is not None else {}
+        self.offload_enabled = offload_enabled
+        self.torrent_offload_enabled = torrent_offload_enabled
         self.last_val_loss = None
         self.tier_decision_params = tier_decision_params if tier_decision_params is not None else {
             'vram_usage_threshold': 0.9,
@@ -124,7 +127,10 @@ class Brain:
             self.core.relocate_clusters()
             self.lobe_manager.organize()
             self.lobe_manager.self_attention(val_loss)
-            self.offload_high_attention()
+            if self.offload_enabled:
+                self.offload_high_attention()
+            if self.torrent_offload_enabled:
+                self.offload_high_attention_torrent()
             self.consolidate_memory()
             self.evolve()
         pbar.close()
@@ -278,7 +284,7 @@ class Brain:
         return self.lobe_manager
 
     def offload_high_attention(self, threshold=1.0):
-        if self.remote_client is None:
+        if not self.offload_enabled or self.remote_client is None:
             return
         ids = self.lobe_manager.select_high_attention(threshold)
         if not ids:
@@ -289,7 +295,7 @@ class Brain:
         self.remote_client.offload(subcore)
 
     def offload_high_attention_torrent(self, threshold=1.0):
-        if self.torrent_client is None:
+        if not self.torrent_offload_enabled or self.torrent_client is None:
             return
         ids = self.lobe_manager.select_high_attention(threshold)
         if not ids:

@@ -40,7 +40,9 @@ class MARBLE:
             'save_threshold': 0.05,
             'max_saved_models': 5,
             'save_dir': "saved_models",
-            'firing_interval_ms': 500
+            'firing_interval_ms': 500,
+            'offload_enabled': False,
+            'torrent_offload_enabled': False
         }
         if brain_params is not None:
             brain_defaults.update(brain_params)
