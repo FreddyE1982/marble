@@ -5,7 +5,7 @@ from marble_main import MARBLE
 from neuromodulatory_system import NeuromodulatorySystem
 from meta_parameter_controller import MetaParameterController
 from marble_core import MemorySystem
-from remote_offload import RemoteBrainClient
+from remote_offload import RemoteBrainClient, RemoteBrainServer
 from torrent_offload import BrainTorrentClient, BrainTorrentTracker
 
 DEFAULT_CONFIG_FILE = Path(__file__).resolve().parent / "config.yaml"
@@ -79,6 +79,16 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
             max_retries=remote_cfg.get("max_retries", 3),
         )
 
+    remote_server = None
+    server_cfg = cfg.get("remote_server", {})
+    if isinstance(server_cfg, dict) and server_cfg.get("enabled", False):
+        remote_server = RemoteBrainServer(
+            host=server_cfg.get("host", "localhost"),
+            port=server_cfg.get("port", 8000),
+            remote_url=server_cfg.get("remote_url"),
+        )
+        remote_server.start()
+
     torrent_client = None
     torrent_cfg = cfg.get("torrent_client", {})
     if isinstance(torrent_cfg, dict) and torrent_cfg.get("client_id"):
@@ -91,6 +101,8 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
         )
         torrent_client.connect()
 
+    mv_params = cfg.get("metrics_visualizer", {})
+
     marble = MARBLE(
         core_params,
         formula=formula,
@@ -100,5 +112,8 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
         dataloader_params=dataloader_params,
         remote_client=remote_client,
         torrent_client=torrent_client,
+        mv_params=mv_params,
     )
+    if remote_server is not None:
+        marble.remote_server = remote_server
     return marble

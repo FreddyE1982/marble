@@ -116,3 +116,21 @@ Each entry is listed under its section heading.
 ## formula
 - formula
 - formula_num_neurons
+
+## remote_server
+- enabled
+- host
+- port
+- remote_url
+
+## metrics_visualizer
+- fig_width
+- fig_height
+
+## lobe_manager
+- attention_increase_factor
+- attention_decrease_factor
+
+## brain (additional)
+- loss_growth_threshold
+- dream_cycle_sleep

@@ -5,7 +5,20 @@ from marble_brain import Brain, BenchmarkManager
 from marble_base import MetricsVisualizer
 
 class MARBLE:
-    def __init__(self, params, formula=None, formula_num_neurons=100, converter_model=None, nb_params=None, brain_params=None, dataloader_params=None, init_from_weights=False, remote_client=None, torrent_client=None):
+    def __init__(
+        self,
+        params,
+        formula=None,
+        formula_num_neurons=100,
+        converter_model=None,
+        nb_params=None,
+        brain_params=None,
+        dataloader_params=None,
+        init_from_weights=False,
+        remote_client=None,
+        torrent_client=None,
+        mv_params=None,
+    ):
         if converter_model is not None:
             self.core = MarbleConverter.convert(converter_model, mode='sequential', core_params=params, init_from_weights=init_from_weights)
         else:
@@ -81,7 +94,13 @@ class MARBLE:
                            torrent_map=self.torrent_map,
                            **brain_defaults)
         
-        self.metrics_visualizer = MetricsVisualizer()
+        mv_defaults = {"fig_width": 10, "fig_height": 6}
+        if mv_params is not None:
+            mv_defaults.update(mv_params)
+        self.metrics_visualizer = MetricsVisualizer(
+            fig_width=mv_defaults["fig_width"],
+            fig_height=mv_defaults["fig_height"],
+        )
         self.benchmark_manager = BenchmarkManager(self)
     
     def get_core(self):
