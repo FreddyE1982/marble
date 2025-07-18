@@ -90,16 +90,22 @@ def compute_mandelbrot(xmin, xmax, ymin, ymax, width, height, max_iter=256):
         mandelbrot[mask] = i
     return mandelbrot
 
+from data_compressor import DataCompressor
+
+
 class DataLoader:
+    def __init__(self, compressor: DataCompressor | None = None):
+        self.compressor = compressor if compressor is not None else DataCompressor()
+
     def encode(self, data):
         serialized = pickle.dumps(data)
-        compressed = zlib.compress(serialized)
+        compressed = self.compressor.compress(serialized)
         tensor = np.frombuffer(compressed, dtype=np.uint8)
         return tensor
 
     def decode(self, tensor):
         compressed = tensor.tobytes()
-        serialized = zlib.decompress(compressed)
+        serialized = self.compressor.decompress(compressed)
         data = pickle.loads(serialized)
         return data
 
