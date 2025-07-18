@@ -47,6 +47,8 @@ class Brain:
         cluster_high_threshold: float = 1.0,
         cluster_medium_threshold: float = 0.1,
         dream_synapse_decay: float = 0.995,
+        dream_decay_arousal_scale: float = 0.0,
+        dream_decay_stress_scale: float = 0.0,
         neurogenesis_increase_step: float = 0.1,
         neurogenesis_decrease_step: float = 0.05,
         max_neurogenesis_factor: float = 3.0,
@@ -136,6 +138,8 @@ class Brain:
         self.cluster_high_threshold = cluster_high_threshold
         self.cluster_medium_threshold = cluster_medium_threshold
         self.dream_synapse_decay = dream_synapse_decay
+        self.dream_decay_arousal_scale = dream_decay_arousal_scale
+        self.dream_decay_stress_scale = dream_decay_stress_scale
         self.neurogenesis_increase_step = neurogenesis_increase_step
         self.neurogenesis_decrease_step = neurogenesis_decrease_step
         self.max_neurogenesis_factor = max_neurogenesis_factor
@@ -197,6 +201,16 @@ class Brain:
                 self.neurogenesis_factor - self.neurogenesis_decrease_step,
             )
         self.last_val_loss = val_loss
+
+    def compute_dream_decay(self) -> float:
+        """Return synapse decay factor adjusted by neuromodulatory signals."""
+        ctx = self.neuromodulatory_system.get_context()
+        arousal = ctx.get("arousal", 0.0)
+        stress = ctx.get("stress", 0.0)
+        decay = self.dream_synapse_decay
+        decay *= 1.0 + self.dream_decay_arousal_scale * arousal
+        decay *= 1.0 - self.dream_decay_stress_scale * stress
+        return max(0.0, min(decay, 1.0))
 
     def choose_growth_tier(self):
         status = self.core.get_detailed_status()
@@ -415,7 +429,7 @@ class Brain:
             random_input = random.uniform(0.0, 1.0)
             output, path = self.neuronenblitz.dynamic_wander(random_input)
             for syn in path:
-                syn.weight *= self.dream_synapse_decay
+                syn.weight *= self.compute_dream_decay()
             print(
                 f"Dream cycle {cycle+1}/{num_cycles}: output = {output:.4f}, path length = {len(path)}"
             )

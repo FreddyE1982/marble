@@ -116,6 +116,8 @@ class MARBLE:
             , 'neuron_reservoir_size': 1000
             , 'lobe_decay_rate': 0.98
             , 'super_evolution_mode': False
+            , 'dream_decay_arousal_scale': 0.0
+            , 'dream_decay_stress_scale': 0.0
         }
         if brain_params is not None:
             brain_defaults.update(brain_params)

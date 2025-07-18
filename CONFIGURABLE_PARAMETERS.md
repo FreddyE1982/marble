@@ -114,6 +114,8 @@ Each entry is listed under its section heading.
 - cluster_high_threshold
 - cluster_medium_threshold
 - dream_synapse_decay
+- dream_decay_arousal_scale
+- dream_decay_stress_scale
 - neurogenesis_increase_step
 - neurogenesis_decrease_step
 - max_neurogenesis_factor
