@@ -1,6 +1,7 @@
 from marble_imports import *
 from marble_core import Neuron, Synapse, NEURON_TYPES, perform_message_passing
 from marble_base import MetricsVisualizer
+import threading
 
 
 class Neuronenblitz:
@@ -122,6 +123,16 @@ class Neuronenblitz:
         self.torrent_map = torrent_map if torrent_map is not None else {}
         self.metrics_visualizer = metrics_visualizer
         self.last_message_passing_change = 0.0
+        self.lock = threading.RLock()
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["lock"] = None
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.lock = threading.RLock()
 
     def modulate_plasticity(self, context):
         """Adjust plasticity_threshold based on neuromodulatory context."""
@@ -215,32 +226,33 @@ class Neuronenblitz:
         return final_neuron, final_path
 
     def dynamic_wander(self, input_value):
-        for neuron in self.core.neurons:
-            neuron.value = None
-        candidates = [n for n in self.core.neurons if n.synapses]
-        entry_neuron = (
-            random.choice(candidates)
-            if candidates
-            else random.choice(self.core.neurons)
-        )
-        entry_neuron.value = input_value
-        initial_path = [(entry_neuron, None)]
-        results = self._wander(entry_neuron, initial_path, 1.0)
-        final_neuron, final_path = self._merge_results(results)
-        if not final_path or all(s is None for _, s in final_path):
-            if entry_neuron.synapses:
-                syn = self.weighted_choice(entry_neuron.synapses)
-                next_neuron = self.core.neurons[syn.target]
-                next_neuron.value = self.combine_fn(entry_neuron.value, syn.weight)
-                final_path = [(entry_neuron, None), (next_neuron, syn)]
-            else:
-                final_path = initial_path
-        self.global_activation_count += 1
-        if self.global_activation_count % self.route_visit_decay_interval == 0:
-            for syn in self.core.synapses:
-                syn.potential *= self.route_potential_decay
-        self.apply_structural_plasticity(final_path)
-        return final_neuron.value, [s for (_, s) in final_path if s is not None]
+        with self.lock:
+            for neuron in self.core.neurons:
+                neuron.value = None
+            candidates = [n for n in self.core.neurons if n.synapses]
+            entry_neuron = (
+                random.choice(candidates)
+                if candidates
+                else random.choice(self.core.neurons)
+            )
+            entry_neuron.value = input_value
+            initial_path = [(entry_neuron, None)]
+            results = self._wander(entry_neuron, initial_path, 1.0)
+            final_neuron, final_path = self._merge_results(results)
+            if not final_path or all(s is None for _, s in final_path):
+                if entry_neuron.synapses:
+                    syn = self.weighted_choice(entry_neuron.synapses)
+                    next_neuron = self.core.neurons[syn.target]
+                    next_neuron.value = self.combine_fn(entry_neuron.value, syn.weight)
+                    final_path = [(entry_neuron, None), (next_neuron, syn)]
+                else:
+                    final_path = initial_path
+            self.global_activation_count += 1
+            if self.global_activation_count % self.route_visit_decay_interval == 0:
+                for syn in self.core.synapses:
+                    syn.potential *= self.route_potential_decay
+            self.apply_structural_plasticity(final_path)
+            return final_neuron.value, [s for (_, s) in final_path if s is not None]
 
     def apply_structural_plasticity(self, path):
         ctx = self.last_context
@@ -288,32 +300,33 @@ class Neuronenblitz:
         return best
 
     def train_example(self, input_value, target_value):
-        output_value, path = self.dynamic_wander(input_value)
-        error = self.loss_fn(target_value, output_value)
-        path_length = len(path)
-        for syn in path:
-            source_value = self.core.neurons[syn.source].value
-            delta = self.weight_update_fn(source_value, error, path_length)
-            syn.weight += delta
-            if random.random() < self.consolidation_probability:
-                syn.weight *= self.consolidation_strength
-            score = abs(error) * abs(syn.weight) / max(path_length, 1)
-            self.core.neurons[syn.target].attention_score += score
-        if path:
-            last_neuron = self.core.neurons[path[-1].target]
-            last_neuron.attention_score += abs(error)
-        if path:
-            self.update_attention(path, error)
-        self.training_history.append(
-            {
-                "input": input_value,
-                "target": target_value,
-                "output": output_value,
-                "error": error,
-                "path_length": path_length,
-            }
-        )
-        return output_value, error, path
+        with self.lock:
+            output_value, path = self.dynamic_wander(input_value)
+            error = self.loss_fn(target_value, output_value)
+            path_length = len(path)
+            for syn in path:
+                source_value = self.core.neurons[syn.source].value
+                delta = self.weight_update_fn(source_value, error, path_length)
+                syn.weight += delta
+                if random.random() < self.consolidation_probability:
+                    syn.weight *= self.consolidation_strength
+                score = abs(error) * abs(syn.weight) / max(path_length, 1)
+                self.core.neurons[syn.target].attention_score += score
+            if path:
+                last_neuron = self.core.neurons[path[-1].target]
+                last_neuron.attention_score += abs(error)
+            if path:
+                self.update_attention(path, error)
+            self.training_history.append(
+                {
+                    "input": input_value,
+                    "target": target_value,
+                    "output": output_value,
+                    "error": error,
+                    "path_length": path_length,
+                }
+            )
+            return output_value, error, path
 
     def train(self, examples, epochs=1):
         for epoch in range(epochs):
