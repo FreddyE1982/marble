@@ -23,11 +23,26 @@ class Brain:
         self.saved_model_paths = []
         self.neuromodulatory_system = neuromodulatory_system if neuromodulatory_system is not None else NeuromodulatorySystem()
         self.meta_controller = meta_controller if meta_controller is not None else MetaParameterController()
+        self.neurogenesis_factor = 1.0
+        self.last_val_loss = None
         self.tier_decision_params = {
             'vram_usage_threshold': 0.9,
             'ram_usage_threshold': 0.9
         }
         os.makedirs(self.save_dir, exist_ok=True)
+
+    def update_neurogenesis_factor(self, val_loss):
+        """Adjust neurogenesis factor based on validation loss trends."""
+        if val_loss is None:
+            return
+        if self.last_val_loss is None:
+            self.last_val_loss = val_loss
+            return
+        if val_loss >= self.last_val_loss:
+            self.neurogenesis_factor = min(3.0, self.neurogenesis_factor + 0.1)
+        else:
+            self.neurogenesis_factor = max(1.0, self.neurogenesis_factor - 0.05)
+        self.last_val_loss = val_loss
 
     def choose_growth_tier(self):
         status = self.core.get_detailed_status()
@@ -62,6 +77,7 @@ class Brain:
         """Grow new neurons and synapses based on neuromodulatory context."""
         ctx = self.neuromodulatory_system.get_context()
         factor = 1.0 + max(ctx.get('arousal', 0.0), ctx.get('reward', 0.0))
+        factor *= self.neurogenesis_factor
         num_neurons = int(base_neurons * factor)
         num_synapses = int(base_synapses * factor)
         self.core.expand(num_new_neurons=num_neurons, num_new_synapses=num_synapses)
@@ -79,6 +95,7 @@ class Brain:
             if val_loss is not None:
                 self.meta_controller.record_loss(val_loss)
                 self.meta_controller.adjust(self.neuronenblitz)
+                self.update_neurogenesis_factor(val_loss)
             metrics = {
                 "MeanValLoss": f"{val_loss:.4f}" if val_loss is not None else "N/A",
                 "GlobalActs": self.neuronenblitz.global_activation_count,
@@ -88,8 +105,9 @@ class Brain:
 
             if val_loss is not None and val_loss > 0.1:
                 new_tier = self.choose_growth_tier()
-                self.core.expand(num_new_neurons=10, num_new_synapses=15, 
+                self.core.expand(num_new_neurons=10, num_new_synapses=15,
                                alternative_connection_prob=0.1, target_tier=new_tier)
+                self.perform_neurogenesis()
         pbar.close()
 
     def validate(self, validation_examples):
