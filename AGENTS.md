@@ -19,7 +19,8 @@
    system is, what each value (arousal, stress, reward, emotion) does, the
    allowed range for those values and any other relevant details. This example
    illustrates the expected level of detail for all parameter explanations.
-8. `yaml-manual.txt` must clearly document the purpose and operation of the
+8. `yaml-manual.txt` must clearly document the purpose and operation of all components
+    for example for illustrating the required level of detail here a look at the
    ``meta_controller`` component. This includes explaining how it monitors
    validation losses and adjusts Neuronenblitz plasticity, what role each
    parameter plays (`history_length`, `adjustment`, `min_threshold`,
