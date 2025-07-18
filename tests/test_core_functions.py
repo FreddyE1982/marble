@@ -108,3 +108,9 @@ def test_core_init_noise_std_affects_values():
     values_noisy = [n.value for n in core_noisy.neurons]
     values_clean = [n.value for n in core_clean.neurons]
     assert values_noisy != values_clean
+
+
+def test_simple_mlp_handles_invalid_input():
+    arr = np.array([np.nan, np.inf, -np.inf, 1.0])
+    out = marble_core._simple_mlp(arr)
+    assert np.all(np.isfinite(out))
