@@ -46,9 +46,15 @@ def test_brain_save_and_load(tmp_path):
 def test_metrics_visualizer_update():
     from marble_base import MetricsVisualizer
     mv = MetricsVisualizer()
-    mv.update({'loss': 0.5, 'vram_usage': 0.1})
+    mv.update({'loss': 0.5, 'vram_usage': 0.1, 'arousal': 0.2,
+               'stress': 0.1, 'reward': 0.3,
+               'plasticity_threshold': 5.0,
+               'message_passing_change': 0.05,
+               'compression_ratio': 0.8})
     assert mv.metrics['loss'][-1] == 0.5
     assert mv.metrics['vram_usage'][-1] == 0.1
+    assert mv.metrics['arousal'][-1] == 0.2
+    assert mv.metrics['plasticity_threshold'][-1] == 5.0
 
 
 def test_brain_neuromodulatory_system_integration():
