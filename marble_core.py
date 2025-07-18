@@ -96,6 +96,14 @@ class FileTier(Tier):
             f.write(pickle.dumps(modified_data))
         return modified_data
 
+class RemoteTier(Tier):
+    def __init__(self):
+        super().__init__()
+        self.name = "remote"
+        self.description = "Remote compute tier accessed via HTTP."
+        self.limit_mb = None
+
+
 class Neuron:
     def __init__(self, nid, value=0.0, tier='vram', neuron_type='standard', rep_size=_REP_SIZE):
         self.id = nid
@@ -371,3 +379,34 @@ class Core:
                 if neuron.cluster_id == cid:
                     neuron.tier = new_tier
                     neuron.attention_score = 0.0
+
+    def extract_subcore(self, neuron_ids):
+        params = {
+            "xmin": -2.0,
+            "xmax": 1.0,
+            "ymin": -1.5,
+            "ymax": 1.5,
+            "width": 1,
+            "height": 1,
+            "max_iter": 1,
+            "vram_limit_mb": 0.1,
+            "ram_limit_mb": 0.1,
+            "disk_limit_mb": 0.1,
+        }
+        subcore = Core(params, formula=None, formula_num_neurons=0)
+        subcore.neurons = []
+        subcore.synapses = []
+        id_map = {}
+        for i, nid in enumerate(neuron_ids):
+            n = self.neurons[nid]
+            new_n = Neuron(i, value=n.value, tier=n.tier, neuron_type=n.neuron_type)
+            new_n.representation = n.representation.copy()
+            subcore.neurons.append(new_n)
+            id_map[nid] = i
+        for syn in self.synapses:
+            if syn.source in id_map and syn.target in id_map:
+                ns = Synapse(id_map[syn.source], id_map[syn.target], weight=syn.weight)
+                subcore.neurons[id_map[syn.source]].synapses.append(ns)
+                subcore.synapses.append(ns)
+        return subcore
+

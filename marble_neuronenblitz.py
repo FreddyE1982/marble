@@ -15,7 +15,8 @@ class Neuronenblitz:
                  combine_fn=None,
                  loss_fn=None,
                  weight_update_fn=None,
-                 plasticity_threshold=10.0):
+                 plasticity_threshold=10.0,
+                 remote_client=None):
         self.core = core
         self.backtrack_probability = backtrack_probability
         self.consolidation_probability = consolidation_probability
@@ -36,6 +37,7 @@ class Neuronenblitz:
         self.global_activation_count = 0
         self.last_context = {}
         self.type_attention = {nt: 0.0 for nt in NEURON_TYPES}
+        self.remote_client = remote_client
 
     def modulate_plasticity(self, context):
         """Adjust plasticity_threshold based on neuromodulatory context."""
@@ -71,7 +73,12 @@ class Neuronenblitz:
                 next_neuron.value = transmitted_value
                 new_path = path + [(next_neuron, syn)]
                 new_continue_prob = current_continue_prob * 0.85
-                results.extend(self._wander(next_neuron, new_path, new_continue_prob))
+                if next_neuron.tier == 'remote' and self.remote_client is not None:
+                    remote_out = self.remote_client.process(transmitted_value)
+                    next_neuron.value = remote_out
+                    results.append((next_neuron, new_path))
+                else:
+                    results.extend(self._wander(next_neuron, new_path, new_continue_prob))
         else:
             syn = self.weighted_choice(current_neuron.synapses)
             next_neuron = self.core.neurons[syn.target]
@@ -79,7 +86,12 @@ class Neuronenblitz:
             next_neuron.value = transmitted_value
             new_path = path + [(next_neuron, syn)]
             new_continue_prob = current_continue_prob * 0.85
-            results.extend(self._wander(next_neuron, new_path, new_continue_prob))
+            if next_neuron.tier == 'remote' and self.remote_client is not None:
+                remote_out = self.remote_client.process(transmitted_value)
+                next_neuron.value = remote_out
+                results.append((next_neuron, new_path))
+            else:
+                results.extend(self._wander(next_neuron, new_path, new_continue_prob))
         return results
 
     def _merge_results(self, results):

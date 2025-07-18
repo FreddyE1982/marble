@@ -8,7 +8,8 @@ from marble_lobes import LobeManager
 class Brain:
     def __init__(self, core, neuronenblitz, dataloader, save_threshold=0.05,
                  max_saved_models=5, save_dir="saved_models", firing_interval_ms=500,
-                 neuromodulatory_system=None, meta_controller=None, memory_system=None):
+                 neuromodulatory_system=None, meta_controller=None, memory_system=None,
+                 remote_client=None):
         self.core = core
         self.neuronenblitz = neuronenblitz
         self.dataloader = dataloader
@@ -29,6 +30,7 @@ class Brain:
         self.memory_system = memory_system if memory_system is not None else MemorySystem()
         self.lobe_manager = LobeManager(core)
         self.neurogenesis_factor = 1.0
+        self.remote_client = remote_client
         self.last_val_loss = None
         self.tier_decision_params = {
             'vram_usage_threshold': 0.9,
@@ -119,6 +121,7 @@ class Brain:
             self.core.relocate_clusters()
             self.lobe_manager.organize()
             self.lobe_manager.self_attention(val_loss)
+            self.offload_high_attention()
             self.consolidate_memory()
             self.evolve()
         pbar.close()
@@ -270,6 +273,17 @@ class Brain:
     def get_lobe_manager(self):
         """Return the lobe manager instance."""
         return self.lobe_manager
+
+    def offload_high_attention(self, threshold=1.0):
+        if self.remote_client is None:
+            return
+        ids = self.lobe_manager.select_high_attention(threshold)
+        if not ids:
+            return
+        subcore = self.core.extract_subcore(ids)
+        for nid in ids:
+            self.core.neurons[nid].tier = 'remote'
+        self.remote_client.offload(subcore)
 
     def display_live_status(self, validation_examples):
         status = self.core.get_detailed_status()
