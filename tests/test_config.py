@@ -3,6 +3,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from config_loader import load_config, create_marble_from_config
 from marble_main import MARBLE
 from remote_offload import RemoteBrainClient
+from torrent_offload import BrainTorrentClient
 
 
 def test_load_config_defaults():
@@ -14,6 +15,10 @@ def test_load_config_defaults():
     assert cfg['meta_controller']['history_length'] == 5
     assert cfg['neuromodulatory_system']['initial']['emotion'] == "neutral"
     assert cfg['remote_client']['url'] == "http://localhost:8001"
+    assert cfg['remote_client']['timeout'] == 5.0
+    assert cfg['torrent_client']['client_id'] == 'main'
+    assert cfg['torrent_client']['buffer_size'] == 10
+    assert cfg['brain']['initial_neurogenesis_factor'] == 1.0
 
 
 def test_create_marble_from_config():
@@ -21,3 +26,5 @@ def test_create_marble_from_config():
     assert isinstance(marble, MARBLE)
     assert marble.brain.meta_controller.history_length == 5
     assert isinstance(marble.brain.remote_client, RemoteBrainClient)
+    assert isinstance(marble.brain.torrent_client, BrainTorrentClient)
+    assert marble.brain.neurogenesis_factor == 1.0

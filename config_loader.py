@@ -6,6 +6,7 @@ from neuromodulatory_system import NeuromodulatorySystem
 from meta_parameter_controller import MetaParameterController
 from marble_core import MemorySystem
 from remote_offload import RemoteBrainClient
+from torrent_offload import BrainTorrentClient, BrainTorrentTracker
 
 DEFAULT_CONFIG_FILE = Path(__file__).resolve().parent / "config.yaml"
 
@@ -24,6 +25,7 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
     core_params = cfg.get("core", {})
     nb_params = cfg.get("neuronenblitz", {})
     brain_params = cfg.get("brain", {})
+    initial_neurogenesis_factor = brain_params.pop("initial_neurogenesis_factor", 1.0)
 
     formula = cfg.get("formula")
     formula_num_neurons = cfg.get("formula_num_neurons", 100)
@@ -51,12 +53,27 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
         "neuromodulatory_system": neuromod_system,
         "meta_controller": meta_controller,
         "memory_system": memory_system,
+        "initial_neurogenesis_factor": initial_neurogenesis_factor,
     })
 
     remote_client = None
     remote_cfg = cfg.get("remote_client", {})
     if isinstance(remote_cfg, dict) and remote_cfg.get("url"):
-        remote_client = RemoteBrainClient(remote_cfg["url"])
+        remote_client = RemoteBrainClient(
+            remote_cfg["url"],
+            timeout=remote_cfg.get("timeout", 5.0),
+        )
+
+    torrent_client = None
+    torrent_cfg = cfg.get("torrent_client", {})
+    if isinstance(torrent_cfg, dict) and torrent_cfg.get("client_id"):
+        tracker = BrainTorrentTracker()
+        torrent_client = BrainTorrentClient(
+            torrent_cfg["client_id"],
+            tracker,
+            buffer_size=torrent_cfg.get("buffer_size", 10),
+        )
+        torrent_client.connect()
 
     marble = MARBLE(
         core_params,
@@ -65,5 +82,6 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
         nb_params=nb_params,
         brain_params=brain_params,
         remote_client=remote_client,
+        torrent_client=torrent_client,
     )
     return marble

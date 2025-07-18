@@ -10,7 +10,7 @@ class Brain:
                  max_saved_models=5, save_dir="saved_models", firing_interval_ms=500,
                  neuromodulatory_system=None, meta_controller=None, memory_system=None,
                  remote_client=None, torrent_client=None, torrent_map=None,
-                 tier_decision_params=None):
+                 tier_decision_params=None, initial_neurogenesis_factor: float = 1.0):
         self.core = core
         self.neuronenblitz = neuronenblitz
         self.dataloader = dataloader
@@ -30,7 +30,7 @@ class Brain:
         self.meta_controller = meta_controller if meta_controller is not None else MetaParameterController()
         self.memory_system = memory_system if memory_system is not None else MemorySystem()
         self.lobe_manager = LobeManager(core)
-        self.neurogenesis_factor = 1.0
+        self.neurogenesis_factor = initial_neurogenesis_factor
         self.remote_client = remote_client
         self.torrent_client = torrent_client
         self.torrent_map = torrent_map if torrent_map is not None else {}
