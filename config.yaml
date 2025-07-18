@@ -28,6 +28,9 @@ brain:
   initial_neurogenesis_factor: 1.0
   offload_enabled: false
   torrent_offload_enabled: false
+  mutation_rate: 0.01
+  mutation_strength: 0.05
+  prune_threshold: 0.01
   tier_decision_params:
     vram_usage_threshold: 0.9
     ram_usage_threshold: 0.9

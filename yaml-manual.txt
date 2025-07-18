@@ -55,6 +55,12 @@ brain:
     server for processing.
   torrent_offload_enabled: When true, lobes may be distributed among torrent
     clients using the tracker system.
+  mutation_rate: Fraction of synapses to mutate during each evolutionary step.
+    Higher values introduce more variation but may destabilize learning.
+  mutation_strength: Maximum absolute change applied to a mutated synapse's
+    weight. Typical values range from 0.01 to 0.1.
+  prune_threshold: Synapses with absolute weight below this value are removed
+    during pruning, keeping the network efficient.
   tier_decision_params:
     vram_usage_threshold: Fraction of VRAM usage that triggers migration of
       neurons to a lower tier.
