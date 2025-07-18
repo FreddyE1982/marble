@@ -1,50 +1,99 @@
-The configuration YAML controls various aspects of the MARBLE system. The file is structured in a set of top-level sections, each containing parameters for a specific subsystem.
+The configuration YAML file controls all components of MARBLE.  Each top-level
+section corresponds to a subsystem and exposes parameters that can be tuned to
+alter its behaviour.
 
 core:
-  xmin, xmax, ymin, ymax: Bounds for the simulated space.
-  width, height: Resolution of the core grid.
-  max_iter: Maximum iterations for Mandelbrot calculations.
-  vram_limit_mb, ram_limit_mb, disk_limit_mb: Resource limits for neuron tiers.
+  xmin: Minimum X coordinate for the Mandelbrot seed. Defines the left boundary
+    of the complex plane used when initializing neuron values.
+  xmax: Maximum X coordinate for the seed. Together with ``xmin`` this sets the
+    horizontal span of the initial fractal.
+  ymin: Minimum Y coordinate of the complex plane.
+  ymax: Maximum Y coordinate of the complex plane.
+  width: Horizontal resolution of the seed grid. Larger values produce more
+    neurons but also require additional memory.
+  height: Vertical resolution of the seed grid.
+  max_iter: Number of Mandelbrot iterations to run. A higher count yields more
+    detailed values. Must be greater than zero.
+  vram_limit_mb: Maximum megabytes of GPU memory dedicated to VRAM tiers. If
+    CUDA is unavailable this limit is merged into RAM.
+  ram_limit_mb: Maximum megabytes of system memory used for RAM tiers.
+  disk_limit_mb: Maximum megabytes for disk-based neuron tiers.
 
 neuronenblitz:
-  backtrack_probability, consolidation_probability,
-  consolidation_strength, route_potential_increase,
-  route_potential_decay, route_visit_decay_interval,
-  alternative_connection_prob, split_probability,
-  merge_tolerance, plasticity_threshold: Parameters that
-  influence neuron routing and plasticity.
+  backtrack_probability: Probability between 0 and 1 that the wandering
+    algorithm will revisit a previous neuron when exploring a path.
+  consolidation_probability: Chance between 0 and 1 that an activated synapse
+    will have its potential increased during consolidation.
+  consolidation_strength: Multiplier applied when increasing synapse potential.
+    Values above 1.0 accelerate learning while lower values slow it down.
+  route_potential_increase: Amount added to a synapse's potential when it is
+    traversed during activation.
+  route_potential_decay: Factor applied periodically to reduce potentials of
+    rarely used synapses. Typical range is 0.0–1.0.
+  route_visit_decay_interval: Number of activations between decay steps
+    specified by ``route_potential_decay``.
+  alternative_connection_prob: Probability of creating a new random connection
+    instead of following existing routes. Helps exploration of novel paths.
+  split_probability: Likelihood that a wander branches into multiple paths at a
+    neuron. Must be between 0 and 1.
+  merge_tolerance: Maximum difference allowed between neuron values when merging
+    converging paths. Small values enforce stricter merging behaviour.
+  plasticity_threshold: Minimum potential a synapse must reach before structural
+    changes such as adding or removing connections are applied.
 
 brain:
-  save_threshold: Validation loss required before saving a model.
-  max_saved_models: Number of saved checkpoints to keep.
-  save_dir: Directory used to store checkpoints.
-  firing_interval_ms: Interval between automatic firing cycles.
-  initial_neurogenesis_factor: Starting multiplier for neurogenesis.
-  offload_enabled: When true the brain will offload high
-    attention lobes to a remote brain via HTTP.
-  torrent_offload_enabled: When true the brain distributes lobes
-    via the torrent offloading system.
+  save_threshold: Minimum improvement in validation loss required before the
+    brain writes a new checkpoint to disk.
+  max_saved_models: Upper bound on the number of checkpoint files retained in
+    ``save_dir``.
+  save_dir: Directory where checkpoint files are stored.
+  firing_interval_ms: Milliseconds between automatic firing cycles when
+    auto-fire is active.
+  initial_neurogenesis_factor: Starting multiplier that scales the amount of new
+    neurons grown during neurogenesis.
+  offload_enabled: When true, highly active lobes are sent to a remote brain
+    server for processing.
+  torrent_offload_enabled: When true, lobes may be distributed among torrent
+    clients using the tracker system.
   tier_decision_params:
-    vram_usage_threshold, ram_usage_threshold: Thresholds used when
-    selecting a growth tier.
+    vram_usage_threshold: Fraction of VRAM usage that triggers migration of
+      neurons to a lower tier.
+    ram_usage_threshold: Fraction of RAM usage that triggers migration to disk
+      or file tiers.
 
-formula: Optional formula used when constructing the core.
-formula_num_neurons: Number of neurons used if the formula is provided.
+formula: Mathematical expression used to compute initial neuron values instead
+  of the Mandelbrot seed. If omitted the Mandelbrot algorithm is used.
+formula_num_neurons: Number of neurons created when ``formula`` is provided.
 
 meta_controller:
-  history_length, adjustment, min_threshold, max_threshold: Parameters
-  controlling adaptive thresholding.
+  history_length: Number of recent validation losses tracked before adjusting
+    neuronenblitz plasticity.
+  adjustment: Amount by which the plasticity threshold changes when performance
+    improves or degrades.
+  min_threshold: Lower bound for the plasticity threshold.
+  max_threshold: Upper bound for the plasticity threshold.
 
 neuromodulatory_system:
-  initial: Starting values for arousal, stress, reward and emotion.
+  initial:
+    arousal: Baseline arousal level in the range 0.0–1.0. Higher arousal
+      increases neurogenesis rates.
+    stress: Initial stress level in the range 0.0–1.0. Stress reduces
+      plasticity and slows learning.
+    reward: Starting reward signal in the range 0.0–1.0 that encourages
+      reinforcement of successful pathways.
+    emotion: Starting emotional state for the system. ``"neutral"`` is typical
+      but any descriptive string is allowed.
 
 memory_system:
-  long_term_path: File path used for persistent storage of memories.
+  long_term_path: Path to the file used for persistent long-term storage of
+    memories.
 
 remote_client:
-  url: Base URL of a remote brain server.
-  timeout: Request timeout in seconds.
+  url: Base URL for a remote HTTP brain server used when ``offload_enabled`` is
+    true.
+  timeout: Seconds to wait for remote requests before they are aborted.
 
 torrent_client:
-  client_id: Identifier for the torrent client.
-  buffer_size: Maximum tasks buffered for asynchronous processing.
+  client_id: Identifier used when registering with the torrent tracker.
+  buffer_size: Maximum number of asynchronous tasks queued for a torrent
+    client.
