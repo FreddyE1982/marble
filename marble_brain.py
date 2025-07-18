@@ -3,6 +3,7 @@ from marble_core import Core, TIER_REGISTRY
 from marble_neuronenblitz import Neuronenblitz
 from neuromodulatory_system import NeuromodulatorySystem
 from meta_parameter_controller import MetaParameterController
+from marble_lobes import LobeManager
 
 class Brain:
     def __init__(self, core, neuronenblitz, dataloader, save_threshold=0.05,
@@ -23,6 +24,7 @@ class Brain:
         self.saved_model_paths = []
         self.neuromodulatory_system = neuromodulatory_system if neuromodulatory_system is not None else NeuromodulatorySystem()
         self.meta_controller = meta_controller if meta_controller is not None else MetaParameterController()
+        self.lobe_manager = LobeManager(core)
         self.neurogenesis_factor = 1.0
         self.last_val_loss = None
         self.tier_decision_params = {
@@ -112,6 +114,8 @@ class Brain:
                 self.perform_neurogenesis()
             self.core.cluster_neurons(k=3)
             self.core.relocate_clusters()
+            self.lobe_manager.organize()
+            self.lobe_manager.self_attention(val_loss)
         pbar.close()
 
     def validate(self, validation_examples):
@@ -197,6 +201,10 @@ class Brain:
         if self.dream_thread is not None:
             self.dream_thread.join()
         print("Dreaming stopped.")
+
+    def get_lobe_manager(self):
+        """Return the lobe manager instance."""
+        return self.lobe_manager
 
     def display_live_status(self, validation_examples):
         status = self.core.get_detailed_status()
