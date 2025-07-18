@@ -56,6 +56,26 @@ core:
     create varied starting states.
   default_growth_tier: Preferred tier used when new neurons are created and no
     tier choice is provided explicitly.
+  random_seed: Seed used for random operations in the core. Keeping this fixed
+    ensures reproducible initialization.
+  message_passing_dropout: Fraction of messages dropped during propagation to
+    regularize learning. ``0.0`` disables dropout.
+  representation_activation: Activation function used by the internal MLP for
+    message passing. Typical values are ``"tanh"`` or ``"relu"``.
+  weight_init_mean: Mean of the normal distribution used to initialize
+    synaptic weights.
+  message_passing_beta: Secondary mixing factor controlling how quickly new
+    representations replace old ones when ``alpha`` alone is insufficient.
+  energy_threshold: Minimum energy level required before neurons participate in
+    message passing. Helps filter out inactive units.
+  early_cleanup_enabled: If ``true``, unused neurons are removed before normal
+    cleanup intervals, reducing memory usage.
+  pretraining_epochs: Number of unsupervised epochs to run before regular
+    training begins.
+  min_cluster_k: Smallest number of clusters allowed when ``cluster_neurons``
+    is invoked automatically.
+  cross_tier_migration: When ``true`` neurons may move between tiers even if
+    their age thresholds have not been reached.
 
 neuronenblitz:
   backtrack_probability: Probability between 0 and 1 that the wandering
@@ -124,6 +144,23 @@ neuronenblitz:
     runaway growth.
   attention_update_scale: Scaling factor applied when updating neuron type
     attention statistics.
+  plasticity_modulation: Global multiplier applied to weight updates after
+    neuromodulation. Values above ``1.0`` accelerate structural changes.
+  wander_depth_noise: Standard deviation of random noise added to wander depth
+    calculations, introducing variability into exploration.
+  reward_decay: Factor by which accumulated reward signals diminish each epoch.
+  synapse_prune_interval: Number of epochs between automatic pruning passes
+    removing low-potential synapses.
+  structural_learning_rate: Step size used when modifying synapse weights
+    during structural updates.
+  remote_timeout: Timeout in seconds when waiting for responses from a remote
+    Neuronenblitz instance.
+  gradient_noise_std: Standard deviation of Gaussian noise added to weight
+    gradients before updates are applied.
+  min_learning_rate: Lower bound used when scheduling the learning rate.
+  max_learning_rate: Upper bound allowed for adaptive learning rate schemes.
+  top_k_paths: Number of most promising wander paths retained during
+    exploration.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the
@@ -217,6 +254,23 @@ brain:
       neurons to a lower tier.
     ram_usage_threshold: Fraction of RAM usage that triggers migration to disk
       or file tiers.
+  model_name: Descriptive name used when saving checkpoints.
+  checkpoint_format: Serialization format for checkpoints. ``"pickle"`` is
+    the default but ``"safetensors"`` may be used for faster loading.
+  metrics_history_size: Number of past epochs kept in memory for plotting
+    performance metrics.
+  early_stop_enabled: Enables early stopping logic based on validation loss
+    trends.
+  lobe_sync_interval: Seconds between background synchronization of lobe data
+    when remote syncing is active.
+  cleanup_batch_size: Maximum number of objects removed in one cleanup pass.
+  remote_sync_enabled: When ``true`` brain state is periodically pushed to a
+    remote server.
+  default_activation_function: Activation used when constructing new neurons.
+  neuron_reservoir_size: Capacity of the internal neuron reservoir used when
+    sampling replacements during pruning.
+  lobe_decay_rate: Fraction by which lobe attention decays each epoch without
+    activity.
 
 formula: Mathematical expression used to compute initial neuron values instead
   of the Mandelbrot seed. If omitted the Mandelbrot algorithm is used.
@@ -274,6 +328,14 @@ remote_client:
   timeout: Seconds to wait for remote requests before they are aborted. Values
     between 5 and 30 are typical depending on network latency.
   max_retries: Number of times a remote operation is retried upon failure.
+  auth_token: Optional token sent as an ``Authorization`` header on each
+    request.
+  ssl_verify: Whether HTTPS certificates should be verified. Set to ``false``
+    when using self-signed certificates.
+  connect_retry_interval: Seconds to wait between connection retry attempts.
+  heartbeat_timeout: Maximum time to wait for a heartbeat response when
+    maintaining persistent connections.
+  use_compression: If ``true`` payloads are compressed before transmission.
 
 torrent_client:
   # Enables distribution of brain parts through the tracker network. Each client
@@ -306,12 +368,21 @@ remote_server:
   port: TCP port used by the server.
   remote_url: Optional URL of another remote brain server to which this server
     offloads work.
+  ssl_enabled: Enables HTTPS with the provided certificate and key files.
+  ssl_cert_file: Path to the SSL certificate used when ``ssl_enabled`` is true.
+  ssl_key_file: Path to the private key for the certificate.
+  max_connections: Maximum concurrent connections the server will accept.
 
 metrics_visualizer:
   # Configure the live metrics plot size. These values are passed directly to
   # ``matplotlib`` when creating the figure.
   fig_width: Width of the metrics figure in inches.
   fig_height: Height of the metrics figure in inches.
+  refresh_rate: How often the plot is refreshed in seconds.
+  color_scheme: Name of the Matplotlib style to apply when rendering metrics.
+  show_neuron_ids: If true the plot displays neuron identifiers next to data
+    points.
+  dpi: Resolution of the output figure in dots per inch.
 
 lobe_manager:
   # Parameters controlling how strongly neuron attention is adjusted when the

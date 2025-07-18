@@ -29,6 +29,16 @@ Each entry is listed under its section heading.
 - file_tier_path
 - init_noise_std
 - default_growth_tier
+- random_seed
+- message_passing_dropout
+- representation_activation
+- weight_init_mean
+- message_passing_beta
+- energy_threshold
+- early_cleanup_enabled
+- pretraining_epochs
+- min_cluster_k
+- cross_tier_migration
 
 ## neuronenblitz
 - backtrack_probability
@@ -63,6 +73,16 @@ Each entry is listed under its section heading.
 - exploration_bonus
 - synapse_potential_cap
 - attention_update_scale
+- plasticity_modulation
+- wander_depth_noise
+- reward_decay
+- synapse_prune_interval
+- structural_learning_rate
+- remote_timeout
+- gradient_noise_std
+- min_learning_rate
+- max_learning_rate
+- top_k_paths
 
 ## brain
 - save_threshold
@@ -111,6 +131,16 @@ Each entry is listed under its section heading.
 - benchmark_enabled
 - tier_decision_params.vram_usage_threshold
 - tier_decision_params.ram_usage_threshold
+- model_name
+- checkpoint_format
+- metrics_history_size
+- early_stop_enabled
+- lobe_sync_interval
+- cleanup_batch_size
+- remote_sync_enabled
+- default_activation_function
+- neuron_reservoir_size
+- lobe_decay_rate
 
 ## meta_controller
 - history_length
@@ -133,6 +163,11 @@ Each entry is listed under its section heading.
 - url
 - timeout
 - max_retries
+- auth_token
+- ssl_verify
+- connect_retry_interval
+- heartbeat_timeout
+- use_compression
 
 ## torrent_client
 - client_id
@@ -152,10 +187,18 @@ Each entry is listed under its section heading.
 - host
 - port
 - remote_url
+- ssl_enabled
+- ssl_cert_file
+- ssl_key_file
+- max_connections
 
 ## metrics_visualizer
 - fig_width
 - fig_height
+- refresh_rate
+- color_scheme
+- show_neuron_ids
+- dpi
 
 ## lobe_manager
 - attention_increase_factor

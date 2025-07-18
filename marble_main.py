@@ -105,6 +105,16 @@ class MARBLE:
             'prune_frequency': 1,
             'auto_offload': False,
             'benchmark_enabled': False
+            , 'model_name': 'marble_default'
+            , 'checkpoint_format': 'pickle'
+            , 'metrics_history_size': 100
+            , 'early_stop_enabled': True
+            , 'lobe_sync_interval': 60
+            , 'cleanup_batch_size': 500
+            , 'remote_sync_enabled': False
+            , 'default_activation_function': 'tanh'
+            , 'neuron_reservoir_size': 1000
+            , 'lobe_decay_rate': 0.98
         }
         if brain_params is not None:
             brain_defaults.update(brain_params)
@@ -114,7 +124,11 @@ class MARBLE:
                            torrent_map=self.torrent_map,
                            **brain_defaults)
         
-        mv_defaults = {"fig_width": 10, "fig_height": 6}
+        mv_defaults = {"fig_width": 10, "fig_height": 6,
+                        "refresh_rate": 1,
+                        "color_scheme": "default",
+                        "show_neuron_ids": False,
+                        "dpi": 100}
         if mv_params is not None:
             mv_defaults.update(mv_params)
         self.metrics_visualizer = MetricsVisualizer(
