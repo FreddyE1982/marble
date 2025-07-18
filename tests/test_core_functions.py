@@ -3,6 +3,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import numpy as np
 import random
 from marble_imports import cp
+import marble_core
 from marble_core import compute_mandelbrot, DataLoader, Core
 from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain
@@ -62,6 +63,16 @@ def test_core_expand_assigns_types():
     core.expand(num_new_neurons=3, num_new_synapses=0, neuron_types=['excitatory'])
     types = {n.neuron_type for n in core.neurons[-3:]}
     assert types == {'excitatory'}
+
+
+def test_file_tier_path_configurable(tmp_path):
+    params = minimal_params()
+    custom_path = tmp_path / "tier.dat"
+    params['file_tier_path'] = str(custom_path)
+    original = marble_core.TIER_REGISTRY['file'].file_path
+    core = Core(params)
+    assert marble_core.TIER_REGISTRY['file'].file_path == str(custom_path)
+    marble_core.TIER_REGISTRY['file'].file_path = original
 
 
 def test_neuronenblitz_train_example_updates_history():

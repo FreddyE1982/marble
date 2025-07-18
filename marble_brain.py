@@ -14,7 +14,9 @@ class Brain:
                  offload_enabled: bool = False, torrent_offload_enabled: bool = False,
                  mutation_rate: float = 0.01, mutation_strength: float = 0.05,
                  prune_threshold: float = 0.01,
-                 dream_num_cycles: int = 10, dream_interval: int = 5):
+                 dream_num_cycles: int = 10, dream_interval: int = 5,
+                 neurogenesis_base_neurons: int = 5,
+                 neurogenesis_base_synapses: int = 10):
         self.core = core
         self.neuronenblitz = neuronenblitz
         self.dataloader = dataloader
@@ -42,6 +44,8 @@ class Brain:
         self.torrent_offload_enabled = torrent_offload_enabled
         self.dream_num_cycles = dream_num_cycles
         self.dream_interval = dream_interval
+        self.neurogenesis_base_neurons = neurogenesis_base_neurons
+        self.neurogenesis_base_synapses = neurogenesis_base_synapses
         self.last_val_loss = None
         self.tier_decision_params = tier_decision_params if tier_decision_params is not None else {
             'vram_usage_threshold': 0.9,
@@ -94,8 +98,12 @@ class Brain:
         print(f"[Brain] Growth decision: '{chosen}' tier (VRAM: {vram_usage:.2f}MB/{vram_limit}MB, age: {vram_neuron_age:.1f}s)")
         return chosen
 
-    def perform_neurogenesis(self, base_neurons=5, base_synapses=10):
+    def perform_neurogenesis(self, base_neurons=None, base_synapses=None):
         """Grow new neurons and synapses based on neuromodulatory context."""
+        if base_neurons is None:
+            base_neurons = self.neurogenesis_base_neurons
+        if base_synapses is None:
+            base_synapses = self.neurogenesis_base_synapses
         ctx = self.neuromodulatory_system.get_context()
         factor = 1.0 + max(ctx.get('arousal', 0.0), ctx.get('reward', 0.0))
         factor *= self.neurogenesis_factor

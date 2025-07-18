@@ -243,6 +243,11 @@ class Core:
     def __init__(self, params, formula=None, formula_num_neurons=100):
         print("Initializing MARBLE Core...")
         self.params = params
+        if 'file' in TIER_REGISTRY:
+            fpath = params.get('file_tier_path')
+            if fpath is not None:
+                TIER_REGISTRY['file'].file_path = fpath
+                os.makedirs(os.path.dirname(fpath), exist_ok=True)
         rep_size = params.get('representation_size', _REP_SIZE)
         configure_representation_size(rep_size)
         self.rep_size = rep_size
