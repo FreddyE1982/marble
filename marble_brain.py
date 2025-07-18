@@ -1,5 +1,5 @@
 from marble_imports import *
-from marble_core import Core, TIER_REGISTRY
+from marble_core import Core, TIER_REGISTRY, MemorySystem
 from marble_neuronenblitz import Neuronenblitz
 from neuromodulatory_system import NeuromodulatorySystem
 from meta_parameter_controller import MetaParameterController
@@ -8,7 +8,7 @@ from marble_lobes import LobeManager
 class Brain:
     def __init__(self, core, neuronenblitz, dataloader, save_threshold=0.05,
                  max_saved_models=5, save_dir="saved_models", firing_interval_ms=500,
-                 neuromodulatory_system=None, meta_controller=None):
+                 neuromodulatory_system=None, meta_controller=None, memory_system=None):
         self.core = core
         self.neuronenblitz = neuronenblitz
         self.dataloader = dataloader
@@ -24,6 +24,7 @@ class Brain:
         self.saved_model_paths = []
         self.neuromodulatory_system = neuromodulatory_system if neuromodulatory_system is not None else NeuromodulatorySystem()
         self.meta_controller = meta_controller if meta_controller is not None else MetaParameterController()
+        self.memory_system = memory_system if memory_system is not None else MemorySystem()
         self.lobe_manager = LobeManager(core)
         self.neurogenesis_factor = 1.0
         self.last_val_loss = None
@@ -116,6 +117,7 @@ class Brain:
             self.core.relocate_clusters()
             self.lobe_manager.organize()
             self.lobe_manager.self_attention(val_loss)
+            self.consolidate_memory()
         pbar.close()
 
     def validate(self, validation_examples):
@@ -155,6 +157,21 @@ class Brain:
             self.core = data['core']
             self.neuronenblitz = data['neuronenblitz']
         print(f"Model loaded from {filepath}")
+
+    def store_memory(self, key, value):
+        layer = self.memory_system.choose_layer(
+            self.neuromodulatory_system.get_context()
+        )
+        layer.store(key, value)
+
+    def retrieve_memory(self, key):
+        val = self.memory_system.short_term.retrieve(key)
+        if val is None:
+            val = self.memory_system.long_term.retrieve(key)
+        return val
+
+    def consolidate_memory(self):
+        self.memory_system.consolidate()
 
     def start_auto_firing(self, input_generator=None):
         self.auto_fire_active = True
