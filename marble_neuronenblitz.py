@@ -16,7 +16,9 @@ class Neuronenblitz:
                  loss_fn=None,
                  weight_update_fn=None,
                  plasticity_threshold=10.0,
-                 remote_client=None):
+                 remote_client=None,
+                 torrent_client=None,
+                 torrent_map=None):
         self.core = core
         self.backtrack_probability = backtrack_probability
         self.consolidation_probability = consolidation_probability
@@ -38,6 +40,8 @@ class Neuronenblitz:
         self.last_context = {}
         self.type_attention = {nt: 0.0 for nt in NEURON_TYPES}
         self.remote_client = remote_client
+        self.torrent_client = torrent_client
+        self.torrent_map = torrent_map if torrent_map is not None else {}
 
     def modulate_plasticity(self, context):
         """Adjust plasticity_threshold based on neuromodulatory context."""
@@ -77,6 +81,11 @@ class Neuronenblitz:
                     remote_out = self.remote_client.process(transmitted_value)
                     next_neuron.value = remote_out
                     results.append((next_neuron, new_path))
+                elif next_neuron.tier == 'torrent' and self.torrent_client is not None:
+                    part = self.torrent_map.get(next_neuron.id)
+                    remote_out = self.torrent_client.process(transmitted_value, part)
+                    next_neuron.value = remote_out
+                    results.append((next_neuron, new_path))
                 else:
                     results.extend(self._wander(next_neuron, new_path, new_continue_prob))
         else:
@@ -88,6 +97,11 @@ class Neuronenblitz:
             new_continue_prob = current_continue_prob * 0.85
             if next_neuron.tier == 'remote' and self.remote_client is not None:
                 remote_out = self.remote_client.process(transmitted_value)
+                next_neuron.value = remote_out
+                results.append((next_neuron, new_path))
+            elif next_neuron.tier == 'torrent' and self.torrent_client is not None:
+                part = self.torrent_map.get(next_neuron.id)
+                remote_out = self.torrent_client.process(transmitted_value, part)
                 next_neuron.value = remote_out
                 results.append((next_neuron, new_path))
             else:
