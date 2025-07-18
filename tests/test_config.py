@@ -11,6 +11,7 @@ def test_load_config_defaults():
     assert 'core' in cfg
     assert cfg['core']['width'] == 30
     assert cfg['core']['representation_size'] == 4
+    assert cfg['core']['file_tier_path'] == 'data/marble_file_tier.dat'
     assert 'neuronenblitz' in cfg
     assert cfg['brain']['save_threshold'] == 0.05
     assert cfg['meta_controller']['history_length'] == 5
@@ -27,6 +28,8 @@ def test_load_config_defaults():
     assert cfg['brain']['prune_threshold'] == 0.01
     assert cfg['brain']['dream_num_cycles'] == 10
     assert cfg['brain']['dream_interval'] == 5
+    assert cfg['brain']['neurogenesis_base_neurons'] == 5
+    assert cfg['brain']['neurogenesis_base_synapses'] == 10
     assert cfg['memory_system']['threshold'] == 0.5
     assert cfg['data_compressor']['compression_level'] == 6
 
@@ -38,6 +41,8 @@ def test_create_marble_from_config():
     assert isinstance(marble.brain.remote_client, RemoteBrainClient)
     assert isinstance(marble.brain.torrent_client, BrainTorrentClient)
     assert marble.brain.neurogenesis_factor == 1.0
+    assert marble.brain.neurogenesis_base_neurons == 5
+    assert marble.brain.neurogenesis_base_synapses == 10
     assert marble.brain.offload_enabled is False
     assert marble.brain.torrent_offload_enabled is False
     assert marble.brain.mutation_rate == 0.01

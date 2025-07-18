@@ -10,6 +10,7 @@ core:
   vram_limit_mb: 0.5
   ram_limit_mb: 1.0
   disk_limit_mb: 10
+  file_tier_path: "data/marble_file_tier.dat"
 neuronenblitz:
   backtrack_probability: 0.3
   consolidation_probability: 0.2
@@ -34,6 +35,8 @@ brain:
   prune_threshold: 0.01
   dream_num_cycles: 10
   dream_interval: 5
+  neurogenesis_base_neurons: 5
+  neurogenesis_base_synapses: 10
   tier_decision_params:
     vram_usage_threshold: 0.9
     ram_usage_threshold: 0.9

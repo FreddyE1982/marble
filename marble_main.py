@@ -50,7 +50,9 @@ class MARBLE:
             'mutation_strength': 0.05,
             'prune_threshold': 0.01,
             'dream_num_cycles': 10,
-            'dream_interval': 5
+            'dream_interval': 5,
+            'neurogenesis_base_neurons': 5,
+            'neurogenesis_base_synapses': 10
         }
         if brain_params is not None:
             brain_defaults.update(brain_params)

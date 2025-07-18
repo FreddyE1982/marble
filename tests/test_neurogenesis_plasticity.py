@@ -80,3 +80,13 @@ def test_brain_neurogenesis_returns_type():
     added, _, ntype = brain.perform_neurogenesis(base_neurons=1, base_synapses=0)
     assert added >= 1
     assert ntype == 'excitatory'
+
+
+def test_neurogenesis_uses_default_base_values():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    brain = Brain(core, nb, DataLoader(), neurogenesis_base_neurons=2, neurogenesis_base_synapses=3)
+    added, syns, _ = brain.perform_neurogenesis()
+    assert added >= 2
+    assert syns >= 3

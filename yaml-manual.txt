@@ -21,6 +21,9 @@ core:
     CUDA is unavailable this limit is merged into RAM.
   ram_limit_mb: Maximum megabytes of system memory used for RAM tiers.
   disk_limit_mb: Maximum megabytes for disk-based neuron tiers.
+  file_tier_path: Path to the file used by the ``FileTier`` for persisting
+    modified data. The directory is created automatically if it does not
+    exist.
 
 neuronenblitz:
   backtrack_probability: Probability between 0 and 1 that the wandering
@@ -70,6 +73,11 @@ brain:
   dream_interval: Seconds to wait between consecutive dreaming sessions when
     ``start_dreaming`` runs in the background. Short intervals keep memory
     consolidation frequent but consume more processing time.
+  neurogenesis_base_neurons: Base number of neurons grown during each
+    neurogenesis event when no explicit value is provided to
+    ``perform_neurogenesis``.
+  neurogenesis_base_synapses: Base number of synapses introduced alongside new
+    neurons during neurogenesis when defaults are used.
   tier_decision_params:
     vram_usage_threshold: Fraction of VRAM usage that triggers migration of
       neurons to a lower tier.

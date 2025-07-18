@@ -28,6 +28,8 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
     initial_neurogenesis_factor = brain_params.pop("initial_neurogenesis_factor", 1.0)
     dream_num_cycles = brain_params.pop("dream_num_cycles", 10)
     dream_interval = brain_params.pop("dream_interval", 5)
+    neuro_base_neurons = brain_params.pop("neurogenesis_base_neurons", 5)
+    neuro_base_synapses = brain_params.pop("neurogenesis_base_synapses", 10)
 
     formula = cfg.get("formula")
     formula_num_neurons = cfg.get("formula_num_neurons", 100)
@@ -63,6 +65,8 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
         "initial_neurogenesis_factor": initial_neurogenesis_factor,
         "dream_num_cycles": dream_num_cycles,
         "dream_interval": dream_interval,
+        "neurogenesis_base_neurons": neuro_base_neurons,
+        "neurogenesis_base_synapses": neuro_base_synapses,
     })
 
     remote_client = None
