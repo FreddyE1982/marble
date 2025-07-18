@@ -1,5 +1,6 @@
 from marble_imports import *
 from marble_core import Neuron, Synapse, NEURON_TYPES, perform_message_passing
+from marble_base import MetricsVisualizer
 
 
 class Neuronenblitz:
@@ -54,6 +55,7 @@ class Neuronenblitz:
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
+        metrics_visualizer=None,
     ):
         self.core = core
         self.backtrack_probability = backtrack_probability
@@ -118,6 +120,8 @@ class Neuronenblitz:
         self.remote_client = remote_client
         self.torrent_client = torrent_client
         self.torrent_map = torrent_map if torrent_map is not None else {}
+        self.metrics_visualizer = metrics_visualizer
+        self.last_message_passing_change = 0.0
 
     def modulate_plasticity(self, context):
         """Adjust plasticity_threshold based on neuromodulatory context."""
@@ -330,7 +334,10 @@ class Neuronenblitz:
             self.core.synapses = [
                 s for s in self.core.synapses if abs(s.weight) >= 0.05
             ]
-            perform_message_passing(self.core)
+            change = perform_message_passing(
+                self.core, metrics_visualizer=self.metrics_visualizer
+            )
+            self.last_message_passing_change = change
 
     def get_training_history(self):
         return self.training_history

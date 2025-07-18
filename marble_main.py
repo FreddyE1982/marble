@@ -23,11 +23,22 @@ class MARBLE:
             self.core = MarbleConverter.convert(converter_model, mode='sequential', core_params=params, init_from_weights=init_from_weights)
         else:
             self.core = Core(params, formula, formula_num_neurons)
+
+        mv_defaults = {"fig_width": 10, "fig_height": 6, "refresh_rate": 1, "color_scheme": "default", "show_neuron_ids": False, "dpi": 100}
+        if mv_params is not None:
+            mv_defaults.update(mv_params)
+        self.metrics_visualizer = MetricsVisualizer(
+            fig_width=mv_defaults["fig_width"],
+            fig_height=mv_defaults["fig_height"],
+        )
         
         dl_level = 6
         if dataloader_params is not None:
             dl_level = dataloader_params.get("compression_level", dl_level)
-        self.dataloader = DataLoader(compression_level=dl_level)
+        self.dataloader = DataLoader(
+            compression_level=dl_level,
+            metrics_visualizer=self.metrics_visualizer,
+        )
         
         nb_defaults = {
             'backtrack_probability': 0.3,
@@ -65,10 +76,14 @@ class MARBLE:
         if nb_params is not None:
             nb_defaults.update(nb_params)
         self.torrent_map = {}
-        self.neuronenblitz = Neuronenblitz(self.core, remote_client=remote_client,
-                                           torrent_client=torrent_client,
-                                           torrent_map=self.torrent_map,
-                                           **nb_defaults)
+        self.neuronenblitz = Neuronenblitz(
+            self.core,
+            remote_client=remote_client,
+            torrent_client=torrent_client,
+            torrent_map=self.torrent_map,
+            metrics_visualizer=self.metrics_visualizer,
+            **nb_defaults,
+        )
         
         brain_defaults = {
             'save_threshold': 0.05,
@@ -121,23 +136,17 @@ class MARBLE:
         }
         if brain_params is not None:
             brain_defaults.update(brain_params)
-        self.brain = Brain(self.core, self.neuronenblitz, self.dataloader,
-                           remote_client=remote_client,
-                           torrent_client=torrent_client,
-                           torrent_map=self.torrent_map,
-                           **brain_defaults)
-        
-        mv_defaults = {"fig_width": 10, "fig_height": 6,
-                        "refresh_rate": 1,
-                        "color_scheme": "default",
-                        "show_neuron_ids": False,
-                        "dpi": 100}
-        if mv_params is not None:
-            mv_defaults.update(mv_params)
-        self.metrics_visualizer = MetricsVisualizer(
-            fig_width=mv_defaults["fig_width"],
-            fig_height=mv_defaults["fig_height"],
+        self.brain = Brain(
+            self.core,
+            self.neuronenblitz,
+            self.dataloader,
+            remote_client=remote_client,
+            torrent_client=torrent_client,
+            torrent_map=self.torrent_map,
+            metrics_visualizer=self.metrics_visualizer,
+            **brain_defaults,
         )
+        
         self.benchmark_manager = BenchmarkManager(self)
     
     def get_core(self):

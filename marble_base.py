@@ -79,7 +79,13 @@ class MetricsVisualizer:
             'vram_usage': [],
             'batch_processing_time': [],
             'learning_efficiency': [],
-            'memory_efficiency': []
+            'memory_efficiency': [],
+            'arousal': [],
+            'stress': [],
+            'reward': [],
+            'plasticity_threshold': [],
+            'message_passing_change': [],
+            'compression_ratio': [],
         }
         self.fig_width = fig_width
         self.fig_height = fig_height
@@ -98,8 +104,9 @@ class MetricsVisualizer:
     
     def update(self, new_metrics):
         for key, value in new_metrics.items():
-            if key in self.metrics:
-                self.metrics[key].append(value)
+            if key not in self.metrics:
+                self.metrics[key] = []
+            self.metrics[key].append(value)
         clear_output(wait=True)
         self.plot_metrics()
     
@@ -108,6 +115,12 @@ class MetricsVisualizer:
         self.ax.plot(self.metrics['loss'], 'b-', label='Loss')
         self.ax_twin = self.ax.twinx()
         self.ax_twin.plot(self.metrics['vram_usage'], 'r-', label='VRAM (MB)')
+        if self.metrics['arousal']:
+            self.ax_twin.plot(self.metrics['arousal'], 'g--', label='Arousal')
+        if self.metrics['stress']:
+            self.ax_twin.plot(self.metrics['stress'], 'm--', label='Stress')
+        if self.metrics['reward']:
+            self.ax_twin.plot(self.metrics['reward'], 'c--', label='Reward')
         self.ax.set_xlabel('Batches')
         self.ax.set_title('Training Metrics')
         self.ax.grid(True)

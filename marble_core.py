@@ -1,4 +1,5 @@
 from marble_imports import *
+from marble_base import MetricsVisualizer
 
 # Representation size for GNN-style message passing
 _REP_SIZE = 4
@@ -27,7 +28,11 @@ def _simple_mlp(x: np.ndarray) -> np.ndarray:
     return np.tanh(h @ _W2 + _B2)
 
 
-def perform_message_passing(core, alpha: float | None = None) -> None:
+def perform_message_passing(
+    core,
+    alpha: float | None = None,
+    metrics_visualizer: "MetricsVisualizer | None" = None,
+) -> float:
     """Propagate representations across synapses using attention.
 
     Parameters
@@ -44,6 +49,7 @@ def perform_message_passing(core, alpha: float | None = None) -> None:
         alpha = core.params.get("message_passing_alpha", 0.5)
 
     new_reps = [n.representation.copy() for n in core.neurons]
+    old_reps = [n.representation.copy() for n in core.neurons]
     for target in core.neurons:
         incoming = [s for s in core.synapses if s.target == target.id]
         if not incoming:
@@ -58,6 +64,13 @@ def perform_message_passing(core, alpha: float | None = None) -> None:
         new_reps[target.id] = alpha * target.representation + (1 - alpha) * _simple_mlp(agg)
     for idx, rep in enumerate(new_reps):
         core.neurons[idx].representation = rep
+    diffs = [
+        float(np.linalg.norm(new_reps[i] - old_reps[i])) for i in range(len(new_reps))
+    ]
+    avg_change = float(np.mean(diffs)) if diffs else 0.0
+    if metrics_visualizer is not None:
+        metrics_visualizer.update({"message_passing_change": avg_change})
+    return avg_change
 
 # List of supported neuron types
 NEURON_TYPES = ["standard", "excitatory", "inhibitory", "modulatory"]
@@ -234,30 +247,51 @@ class MemorySystem:
 
 
 class DataLoader:
-    def __init__(self, compressor: DataCompressor | None = None, compression_level: int = 6):
-        self.compressor = compressor if compressor is not None else DataCompressor(level=compression_level)
+    def __init__(
+        self,
+        compressor: DataCompressor | None = None,
+        compression_level: int = 6,
+        metrics_visualizer: "MetricsVisualizer | None" = None,
+    ) -> None:
+        self.compressor = (
+            compressor if compressor is not None else DataCompressor(level=compression_level)
+        )
+        self.metrics_visualizer = metrics_visualizer
 
     def encode(self, data):
         serialized = pickle.dumps(data)
         compressed = self.compressor.compress(serialized)
+        if self.metrics_visualizer is not None:
+            ratio = len(compressed) / max(len(serialized), 1)
+            self.metrics_visualizer.update({"compression_ratio": ratio})
         tensor = np.frombuffer(compressed, dtype=np.uint8)
         return tensor
 
     def decode(self, tensor):
         compressed = tensor.tobytes()
         serialized = self.compressor.decompress(compressed)
+        if self.metrics_visualizer is not None:
+            ratio = len(compressed) / max(len(serialized), 1)
+            self.metrics_visualizer.update({"compression_ratio": ratio})
         data = pickle.loads(serialized)
         return data
 
     def encode_array(self, array: np.ndarray) -> np.ndarray:
         """Encode a NumPy array into a uint8 tensor using compression."""
         compressed = self.compressor.compress_array(array)
+        if self.metrics_visualizer is not None:
+            ratio = len(compressed) / max(array.nbytes, 1)
+            self.metrics_visualizer.update({"compression_ratio": ratio})
         return np.frombuffer(compressed, dtype=np.uint8)
 
     def decode_array(self, tensor: np.ndarray) -> np.ndarray:
         """Decode a tensor created by ``encode_array`` back to a NumPy array."""
         compressed = tensor.tobytes()
-        return self.compressor.decompress_array(compressed)
+        array = self.compressor.decompress_array(compressed)
+        if self.metrics_visualizer is not None:
+            ratio = len(compressed) / max(array.nbytes, 1)
+            self.metrics_visualizer.update({"compression_ratio": ratio})
+        return array
 
 class Core:
     def __init__(self, params, formula=None, formula_num_neurons=100):

@@ -2,6 +2,7 @@ from marble_imports import *
 from marble_core import TIER_REGISTRY, MemorySystem
 from neuromodulatory_system import NeuromodulatorySystem
 from meta_parameter_controller import MetaParameterController
+from marble_base import MetricsVisualizer
 from marble_lobes import LobeManager
 
 
@@ -79,6 +80,7 @@ class Brain:
         neuron_reservoir_size: int = 1000,
         lobe_decay_rate: float = 0.98,
         super_evolution_mode: bool = False,
+        metrics_visualizer=None,
     ):
         self.core = core
         self.neuronenblitz = neuronenblitz
@@ -183,6 +185,7 @@ class Brain:
         self.mutation_strength = mutation_strength
         self.prune_threshold = prune_threshold
         os.makedirs(self.save_dir, exist_ok=True)
+        self.metrics_visualizer = metrics_visualizer
 
     def update_neurogenesis_factor(self, val_loss):
         """Adjust neurogenesis factor based on validation loss trends."""
@@ -292,6 +295,19 @@ class Brain:
                 "VRAM(MB)": f"{self.core.get_usage_by_tier('vram'):.2f}",
             }
             pbar.set_postfix(metrics)
+            if self.metrics_visualizer is not None:
+                ctx = self.neuromodulatory_system.get_context()
+                self.metrics_visualizer.update(
+                    {
+                        "loss": val_loss if val_loss is not None else 0.0,
+                        "vram_usage": self.core.get_usage_by_tier("vram"),
+                        "arousal": ctx.get("arousal", 0.0),
+                        "stress": ctx.get("stress", 0.0),
+                        "reward": ctx.get("reward", 0.0),
+                        "plasticity_threshold": self.neuronenblitz.plasticity_threshold,
+                        "message_passing_change": self.neuronenblitz.last_message_passing_change,
+                    }
+                )
 
             epoch_time = time.time() - start_time
             if self.super_evo_controller is not None:
