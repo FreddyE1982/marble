@@ -24,6 +24,16 @@ core:
   file_tier_path: "data/marble_file_tier.dat"
   init_noise_std: 0.0
   default_growth_tier: "vram"
+  random_seed: 42
+  message_passing_dropout: 0.0
+  representation_activation: "tanh"
+  weight_init_mean: 0.0
+  message_passing_beta: 1.0
+  energy_threshold: 0.5
+  early_cleanup_enabled: false
+  pretraining_epochs: 0
+  min_cluster_k: 2
+  cross_tier_migration: true
 neuronenblitz:
   backtrack_probability: 0.3
   consolidation_probability: 0.2
@@ -57,6 +67,16 @@ neuronenblitz:
   exploration_bonus: 0.0
   synapse_potential_cap: 100.0
   attention_update_scale: 1.0
+  plasticity_modulation: 1.0
+  wander_depth_noise: 0.0
+  reward_decay: 1.0
+  synapse_prune_interval: 10
+  structural_learning_rate: 0.1
+  remote_timeout: 2.0
+  gradient_noise_std: 0.0
+  min_learning_rate: 0.0001
+  max_learning_rate: 0.1
+  top_k_paths: 5
 brain:
   save_threshold: 0.05
   max_saved_models: 5
@@ -107,6 +127,16 @@ brain:
   tier_decision_params:
     vram_usage_threshold: 0.9
     ram_usage_threshold: 0.9
+  model_name: "marble_default"
+  checkpoint_format: "pickle"
+  metrics_history_size: 100
+  early_stop_enabled: true
+  lobe_sync_interval: 60
+  cleanup_batch_size: 500
+  remote_sync_enabled: false
+  default_activation_function: "tanh"
+  neuron_reservoir_size: 1000
+  lobe_decay_rate: 0.98
 lobe_manager:
   attention_increase_factor: 1.05
   attention_decrease_factor: 0.95
@@ -131,6 +161,11 @@ remote_client:
   url: "http://localhost:8001"
   timeout: 5.0
   max_retries: 3
+  auth_token: null
+  ssl_verify: true
+  connect_retry_interval: 5
+  heartbeat_timeout: 10
+  use_compression: true
 torrent_client:
   client_id: "main"
   buffer_size: 10
@@ -143,6 +178,14 @@ remote_server:
   host: "localhost"
   port: 8000
   remote_url: null
+  ssl_enabled: false
+  ssl_cert_file: "server.crt"
+  ssl_key_file: "server.key"
+  max_connections: 100
 metrics_visualizer:
   fig_width: 10
   fig_height: 6
+  refresh_rate: 1
+  color_scheme: "default"
+  show_neuron_ids: false
+  dpi: 100

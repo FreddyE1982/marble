@@ -72,7 +72,8 @@ def download_and_process_tar(url, temp_dir):
     return samples
 
 class MetricsVisualizer:
-    def __init__(self, fig_width=10, fig_height=6):
+    def __init__(self, fig_width=10, fig_height=6, refresh_rate=1,
+                 color_scheme="default", show_neuron_ids=False, dpi=100):
         self.metrics = {
             'loss': [],
             'vram_usage': [],
@@ -82,6 +83,10 @@ class MetricsVisualizer:
         }
         self.fig_width = fig_width
         self.fig_height = fig_height
+        self.refresh_rate = refresh_rate
+        self.color_scheme = color_scheme
+        self.show_neuron_ids = show_neuron_ids
+        self.dpi = dpi
         self.setup_plot()
     
     def setup_plot(self):

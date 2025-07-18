@@ -41,6 +41,16 @@ class Neuronenblitz:
         exploration_bonus=0.0,
         synapse_potential_cap=100.0,
         attention_update_scale=1.0,
+        plasticity_modulation=1.0,
+        wander_depth_noise=0.0,
+        reward_decay=1.0,
+        synapse_prune_interval=10,
+        structural_learning_rate=0.1,
+        remote_timeout=2.0,
+        gradient_noise_std=0.0,
+        min_learning_rate=0.0001,
+        max_learning_rate=0.1,
+        top_k_paths=5,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -78,6 +88,16 @@ class Neuronenblitz:
         self.exploration_bonus = exploration_bonus
         self.synapse_potential_cap = synapse_potential_cap
         self.attention_update_scale = attention_update_scale
+        self.plasticity_modulation = plasticity_modulation
+        self.wander_depth_noise = wander_depth_noise
+        self.reward_decay = reward_decay
+        self.synapse_prune_interval = synapse_prune_interval
+        self.structural_learning_rate = structural_learning_rate
+        self.remote_timeout = remote_timeout
+        self.gradient_noise_std = gradient_noise_std
+        self.min_learning_rate = min_learning_rate
+        self.max_learning_rate = max_learning_rate
+        self.top_k_paths = top_k_paths
 
         self.combine_fn = (
             combine_fn if combine_fn is not None else (lambda x, w: max(x * w, 0))

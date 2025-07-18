@@ -66,6 +66,16 @@ class Brain:
         dream_cycle_sleep: float = 0.1,
         lobe_attention_increase: float = 1.05,
         lobe_attention_decrease: float = 0.95,
+        model_name: str = "marble_default",
+        checkpoint_format: str = "pickle",
+        metrics_history_size: int = 100,
+        early_stop_enabled: bool = True,
+        lobe_sync_interval: int = 60,
+        cleanup_batch_size: int = 500,
+        remote_sync_enabled: bool = False,
+        default_activation_function: str = "tanh",
+        neuron_reservoir_size: int = 1000,
+        lobe_decay_rate: float = 0.98,
     ):
         self.core = core
         self.neuronenblitz = neuronenblitz
@@ -142,6 +152,16 @@ class Brain:
         self.benchmark_enabled = benchmark_enabled
         self.loss_growth_threshold = loss_growth_threshold
         self.dream_cycle_sleep = dream_cycle_sleep
+        self.model_name = model_name
+        self.checkpoint_format = checkpoint_format
+        self.metrics_history_size = metrics_history_size
+        self.early_stop_enabled = early_stop_enabled
+        self.lobe_sync_interval = lobe_sync_interval
+        self.cleanup_batch_size = cleanup_batch_size
+        self.remote_sync_enabled = remote_sync_enabled
+        self.default_activation_function = default_activation_function
+        self.neuron_reservoir_size = neuron_reservoir_size
+        self.lobe_decay_rate = lobe_decay_rate
         self.last_val_loss = None
         self.tier_decision_params = (
             tier_decision_params
