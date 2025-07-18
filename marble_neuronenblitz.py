@@ -137,6 +137,8 @@ class Neuronenblitz:
         initial_path = [(entry_neuron, None)]
         results = self._wander(entry_neuron, initial_path, 1.0)
         final_neuron, final_path = self._merge_results(results)
+        if not final_path:
+            final_path = initial_path
         self.global_activation_count += 1
         if self.global_activation_count % self.route_visit_decay_interval == 0:
             for syn in self.core.synapses:
