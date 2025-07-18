@@ -34,6 +34,7 @@ class Neuronenblitz:
         
         self.training_history = []
         self.global_activation_count = 0
+        self.last_context = {}
 
     def modulate_plasticity(self, context):
         """Adjust plasticity_threshold based on neuromodulatory context."""
@@ -41,6 +42,7 @@ class Neuronenblitz:
         stress = context.get('stress', 0.0)
         adjustment = reward - stress
         self.plasticity_threshold = max(0.5, self.plasticity_threshold - adjustment)
+        self.last_context = context.copy()
 
     def reset_neuron_values(self):
         for neuron in self.core.neurons:
@@ -116,6 +118,8 @@ class Neuronenblitz:
         return final_neuron.value, [s for (_, s) in final_path if s is not None]
 
     def apply_structural_plasticity(self, path):
+        ctx = self.last_context
+        mod = 1.0 + ctx.get('reward', 0.0) - ctx.get('stress', 0.0)
         for (_, syn) in path:
             if syn is not None and syn.potential >= self.plasticity_threshold:
                 source = self.core.neurons[syn.source]
@@ -129,11 +133,11 @@ class Neuronenblitz:
                 new_id = len(self.core.neurons)
                 new_neuron = Neuron(new_id, value=target.value, tier=new_tier)
                 self.core.neurons.append(new_neuron)
-                new_weight1 = syn.weight * 1.5
+                new_weight1 = syn.weight * 1.5 * mod
                 new_syn1 = Synapse(source.id, new_id, weight=new_weight1)
                 source.synapses.append(new_syn1)
                 self.core.synapses.append(new_syn1)
-                new_weight2 = syn.weight * 1.2
+                new_weight2 = syn.weight * 1.2 * mod
                 new_syn2 = Synapse(new_id, target.id, weight=new_weight2)
                 new_neuron.synapses.append(new_syn2)
                 self.core.synapses.append(new_syn2)
