@@ -109,6 +109,16 @@ class DataLoader:
         data = pickle.loads(serialized)
         return data
 
+    def encode_array(self, array: np.ndarray) -> np.ndarray:
+        """Encode a NumPy array into a uint8 tensor using compression."""
+        compressed = self.compressor.compress_array(array)
+        return np.frombuffer(compressed, dtype=np.uint8)
+
+    def decode_array(self, tensor: np.ndarray) -> np.ndarray:
+        """Decode a tensor created by ``encode_array`` back to a NumPy array."""
+        compressed = tensor.tobytes()
+        return self.compressor.decompress_array(compressed)
+
 class Core:
     def __init__(self, params, formula=None, formula_num_neurons=100):
         print("Initializing MARBLE Core...")
