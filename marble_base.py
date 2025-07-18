@@ -1,5 +1,10 @@
 from marble_imports import *
 
+
+def clear_output(wait: bool = True) -> None:
+    """Clear the terminal screen."""
+    os.system('cls' if os.name == 'nt' else 'clear')
+
 def log_metrics(epoch, tar_idx, loss, vram_usage):
     with open('training_log.txt', 'a') as f:
         f.write(f"Epoch {epoch}, Tar {tar_idx}: Loss={loss:.4f}, VRAM={vram_usage:.2f}MB\n")

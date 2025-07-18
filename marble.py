@@ -12,7 +12,6 @@ from tqdm.notebook import tqdm  # For Jupyter-optimized progress bars
 from PIL import Image
 from io import BytesIO
 import matplotlib.pyplot as plt
-from IPython.display import clear_output
 import pickle
 import zlib
 import random
@@ -22,6 +21,11 @@ import threading
 from datetime import datetime
 import cupy as cp
 import torch.nn as nn
+
+
+def clear_output(wait: bool = True) -> None:
+    """Clear the terminal screen."""
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 # -----------------------------------------------------
 # 1. Logging function

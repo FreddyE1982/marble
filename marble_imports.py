@@ -12,7 +12,6 @@ from tqdm.notebook import tqdm
 from PIL import Image
 from io import BytesIO
 import matplotlib.pyplot as plt
-from IPython.display import clear_output
 import pickle
 import zlib
 import random

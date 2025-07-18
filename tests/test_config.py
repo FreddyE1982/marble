@@ -2,6 +2,7 @@ import os, sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from config_loader import load_config, create_marble_from_config
 from marble_main import MARBLE
+from remote_offload import RemoteBrainClient
 
 
 def test_load_config_defaults():
@@ -12,9 +13,11 @@ def test_load_config_defaults():
     assert cfg['brain']['save_threshold'] == 0.05
     assert cfg['meta_controller']['history_length'] == 5
     assert cfg['neuromodulatory_system']['initial']['emotion'] == "neutral"
+    assert cfg['remote_client']['url'] == "http://localhost:8001"
 
 
 def test_create_marble_from_config():
     marble = create_marble_from_config()
     assert isinstance(marble, MARBLE)
     assert marble.brain.meta_controller.history_length == 5
+    assert isinstance(marble.brain.remote_client, RemoteBrainClient)
