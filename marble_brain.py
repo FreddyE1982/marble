@@ -2,9 +2,12 @@ from marble_imports import *
 from marble_core import Core, TIER_REGISTRY
 from marble_neuronenblitz import Neuronenblitz
 from neuromodulatory_system import NeuromodulatorySystem
+from meta_parameter_controller import MetaParameterController
 
 class Brain:
-    def __init__(self, core, neuronenblitz, dataloader, save_threshold=0.05, max_saved_models=5, save_dir="saved_models", firing_interval_ms=500, neuromodulatory_system=None):
+    def __init__(self, core, neuronenblitz, dataloader, save_threshold=0.05,
+                 max_saved_models=5, save_dir="saved_models", firing_interval_ms=500,
+                 neuromodulatory_system=None, meta_controller=None):
         self.core = core
         self.neuronenblitz = neuronenblitz
         self.dataloader = dataloader
@@ -19,6 +22,7 @@ class Brain:
         self.best_validation_loss = float('inf')
         self.saved_model_paths = []
         self.neuromodulatory_system = neuromodulatory_system if neuromodulatory_system is not None else NeuromodulatorySystem()
+        self.meta_controller = meta_controller if meta_controller is not None else MetaParameterController()
         self.tier_decision_params = {
             'vram_usage_threshold': 0.9,
             'ram_usage_threshold': 0.9
@@ -62,6 +66,9 @@ class Brain:
                 val_loss = self.validate(validation_examples)
             else:
                 val_loss = None
+            if val_loss is not None:
+                self.meta_controller.record_loss(val_loss)
+                self.meta_controller.adjust(self.neuronenblitz)
             metrics = {
                 "MeanValLoss": f"{val_loss:.4f}" if val_loss is not None else "N/A",
                 "GlobalActs": self.neuronenblitz.global_activation_count,
