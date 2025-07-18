@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from marble_core import Core, DataLoader
 from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain
+from neuromodulatory_system import NeuromodulatorySystem
 
 from tests.test_core_functions import minimal_params
 
@@ -48,3 +49,13 @@ def test_metrics_visualizer_update():
     mv.update({'loss': 0.5, 'vram_usage': 0.1})
     assert mv.metrics['loss'][-1] == 0.5
     assert mv.metrics['vram_usage'][-1] == 0.1
+
+
+def test_brain_neuromodulatory_system_integration():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    ns = NeuromodulatorySystem()
+    brain = Brain(core, nb, DataLoader(), neuromodulatory_system=ns, save_dir="saved_models")
+    ns.update_signals(arousal=0.2)
+    assert brain.neuromodulatory_system.get_context()['arousal'] == 0.2
