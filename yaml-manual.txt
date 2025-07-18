@@ -66,14 +66,26 @@ formula: Mathematical expression used to compute initial neuron values instead
 formula_num_neurons: Number of neurons created when ``formula`` is provided.
 
 meta_controller:
-  history_length: Number of recent validation losses tracked before adjusting
-    neuronenblitz plasticity.
+  # The meta-controller monitors validation losses and adjusts
+  # ``neuronenblitz.plasticity_threshold`` accordingly. If losses rise the
+  # threshold is lowered so structural changes become less likely. When losses
+  # fall it increases the threshold within the allowed range to encourage more
+  # exploration. This keeps learning stable over long runs.
+  history_length: Number of recent validation losses used for the adjustment.
+    Typical values range from 3 to 20 depending on how quickly adaptation should
+    react.
   adjustment: Amount by which the plasticity threshold changes when performance
-    improves or degrades.
-  min_threshold: Lower bound for the plasticity threshold.
-  max_threshold: Upper bound for the plasticity threshold.
+    improves or degrades. Values between 0.1 and 1.0 are common.
+  min_threshold: Lower bound for the plasticity threshold. Should remain above
+    zero, often around 0.5–5.0.
+  max_threshold: Upper bound for the plasticity threshold. Values around
+    10–50 keep the system from becoming too rigid.
 
 neuromodulatory_system:
+  # Represents the internal state of the brain. Arousal and reward boost
+  # neurogenesis while stress suppresses it. Emotion provides a qualitative tag
+  # that may be used by higher-level modules. Values typically lie between 0.0
+  # and 1.0 and change dynamically during training.
   initial:
     arousal: Baseline arousal level in the range 0.0–1.0. Higher arousal
       increases neurogenesis rates.
@@ -85,15 +97,24 @@ neuromodulatory_system:
       but any descriptive string is allowed.
 
 memory_system:
+  # Provides short-term memory in RAM and long-term memory on disk. The system
+  # consolidates entries from the volatile store into the persistent file when
+  # required.
   long_term_path: Path to the file used for persistent long-term storage of
     memories.
 
 remote_client:
-  url: Base URL for a remote HTTP brain server used when ``offload_enabled`` is
-    true.
-  timeout: Seconds to wait for remote requests before they are aborted.
+  # Configuration for forwarding parts of the brain to a remote server. When
+  # ``offload_enabled`` is true the brain serializes a subcore and sends it to
+  # this endpoint for processing.
+  url: Base URL for the remote HTTP brain server.
+  timeout: Seconds to wait for remote requests before they are aborted. Values
+    between 5 and 30 are typical depending on network latency.
 
 torrent_client:
-  client_id: Identifier used when registering with the torrent tracker.
+  # Enables distribution of brain parts through the tracker network. Each client
+  # processes assigned subcores asynchronously.
+  client_id: Identifier used when registering with the torrent tracker. Must be
+    unique across participating clients.
   buffer_size: Maximum number of asynchronous tasks queued for a torrent
-    client.
+    client. Larger values allow more parallel requests but use more memory.
