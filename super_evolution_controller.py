@@ -35,6 +35,43 @@ class SuperEvolutionController:
         if isinstance(val, (int, float)):
             setattr(obj, attr, val * factor)
 
+    def _apply_factor_recursive(self, obj, factor, seen=None):
+        if seen is None:
+            seen = set()
+        oid = id(obj)
+        if oid in seen:
+            return
+        seen.add(oid)
+
+        if isinstance(obj, dict):
+            for k, v in obj.items():
+                if isinstance(v, (int, float)):
+                    obj[k] = v * factor
+                else:
+                    self._apply_factor_recursive(v, factor, seen)
+            return
+
+        if not hasattr(obj, "__dict__"):
+            return
+
+        for attr in vars(obj):
+            if attr.startswith("_") or attr in (
+                "core",
+                "neuronenblitz",
+                "dataloader",
+                "lobe_manager",
+                "super_evo_controller",
+            ):
+                continue
+            try:
+                val = getattr(obj, attr)
+            except AttributeError:
+                continue
+            if isinstance(val, (int, float)):
+                setattr(obj, attr, val * factor)
+            else:
+                self._apply_factor_recursive(val, factor, seen)
+
     def _adjust_parameters(self, loss, speed, complexity, resources):
         lobes = self.brain.lobe_manager.lobes
         if not lobes:
@@ -57,15 +94,6 @@ class SuperEvolutionController:
                 self.brain.core.params[key] *= factor
                 if hasattr(self.brain.core, key):
                     setattr(self.brain.core, key, self.brain.core.params[key])
-        for attr in vars(self.brain.neuronenblitz):
-            if attr.startswith("_"):
-                continue
-            val = getattr(self.brain.neuronenblitz, attr)
-            if isinstance(val, (int, float)):
-                setattr(self.brain.neuronenblitz, attr, val * factor)
-        for attr in vars(self.brain):
-            if attr.startswith("_") or attr in ("core", "neuronenblitz", "dataloader", "lobe_manager", "super_evo_controller"):
-                continue
-            val = getattr(self.brain, attr)
-            if isinstance(val, (int, float)):
-                setattr(self.brain, attr, val * factor)
+
+        self._apply_factor_recursive(self.brain.neuronenblitz, factor)
+        self._apply_factor_recursive(self.brain, factor)
