@@ -120,6 +120,7 @@ class Brain:
             self.lobe_manager.organize()
             self.lobe_manager.self_attention(val_loss)
             self.consolidate_memory()
+            self.evolve()
         pbar.close()
 
     def validate(self, validation_examples):
@@ -240,6 +241,31 @@ class Brain:
         if self.dream_thread is not None:
             self.dream_thread.join()
         print("Dreaming stopped.")
+
+    def mutate_synapses(self, mutation_rate=0.01, mutation_strength=0.05):
+        """Randomly adjust synapse weights to introduce variation."""
+        mutated = 0
+        for syn in self.core.synapses:
+            if random.random() < mutation_rate:
+                syn.weight += random.uniform(-mutation_strength, mutation_strength)
+                mutated += 1
+        return mutated
+
+    def prune_weak_synapses(self, threshold=0.01):
+        """Remove synapses with very small absolute weights."""
+        pruned = 0
+        self.core.synapses = [s for s in self.core.synapses if abs(s.weight) >= threshold]
+        for neuron in self.core.neurons:
+            before = len(neuron.synapses)
+            neuron.synapses = [s for s in neuron.synapses if abs(s.weight) >= threshold]
+            pruned += before - len(neuron.synapses)
+        return pruned
+
+    def evolve(self, mutation_rate=0.01, mutation_strength=0.05, prune_threshold=0.01):
+        """Apply evolutionary operators like mutation and pruning."""
+        mutated = self.mutate_synapses(mutation_rate, mutation_strength)
+        pruned = self.prune_weak_synapses(prune_threshold)
+        return mutated, pruned
 
     def get_lobe_manager(self):
         """Return the lobe manager instance."""
