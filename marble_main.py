@@ -2,6 +2,7 @@ from marble_imports import *
 from marble_core import Core, DataLoader, TIER_REGISTRY
 from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain, BenchmarkManager
+from marble_autograd import MarbleAutogradLayer
 from marble_base import MetricsVisualizer
 
 class MARBLE:
@@ -19,6 +20,7 @@ class MARBLE:
         torrent_client=None,
         mv_params=None,
         dashboard_params=None,
+        autograd_params=None,
     ):
         if converter_model is not None:
             self.core = MarbleConverter.convert(converter_model, mode='sequential', core_params=params, init_from_weights=init_from_weights)
@@ -157,8 +159,14 @@ class MARBLE:
             metrics_visualizer=self.metrics_visualizer,
             **brain_defaults,
         )
-        
+
         self.benchmark_manager = BenchmarkManager(self)
+
+        self.autograd_layer = None
+        if autograd_params is not None and autograd_params.get("enabled", False):
+            self.autograd_layer = MarbleAutogradLayer(
+                self.brain, learning_rate=autograd_params.get("learning_rate", 0.01)
+            )
     
     def get_core(self):
         return self.core
@@ -174,9 +182,12 @@ class MARBLE:
 
     def get_metrics_visualizer(self):
         return self.metrics_visualizer
-    
+
     def get_benchmark_manager(self):
         return self.benchmark_manager
+
+    def get_autograd_layer(self):
+        return self.autograd_layer
 
 if __name__ == '__main__':
     # Core parameters

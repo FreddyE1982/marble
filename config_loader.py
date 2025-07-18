@@ -60,6 +60,8 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
     compression_level = compressor_cfg.get("compression_level", 6)
     dataloader_params = {"compression_level": compression_level}
 
+    autograd_params = cfg.get("autograd", {})
+
     brain_params.update({
         "neuromodulatory_system": neuromod_system,
         "meta_controller": meta_controller,
@@ -117,6 +119,7 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
         torrent_client=torrent_client,
         mv_params=mv_params,
         dashboard_params=dashboard_params,
+        autograd_params=autograd_params,
     )
     if remote_server is not None:
         marble.remote_server = remote_server

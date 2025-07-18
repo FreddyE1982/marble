@@ -197,3 +197,6 @@ metrics_dashboard:
   host: "localhost"
   port: 8050
   update_interval: 1000
+autograd:
+  enabled: false
+  learning_rate: 0.01

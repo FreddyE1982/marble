@@ -215,3 +215,7 @@ Each entry is listed under its section heading.
 - loss_growth_threshold
 - dream_cycle_sleep
 - super_evolution_mode
+
+## autograd
+- enabled
+- learning_rate
