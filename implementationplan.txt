@@ -88,3 +88,10 @@
  – Emphasize full transparency and transitivity so that every transformation is precisely invertible and traceable.
 
 By following these steps, MARBLE will evolve into a system that not only captures statistical patterns but also deeply understands and adapts to conceptual relationships—all while ensuring data is processed, compressed, and decompressed in a rigorously transparent and transitive manner.
+──────────────────────────── Future Improvements
+────────────────────────────
+• Add the option to integrate with established backends – Using PyTorch’s autograd or JAX’s differentiable programming could enable gradient-based training within MARBLE’s dynamic structure. This would leverage existing optimization algorithms and GPU support.
+
+• Expand documentation – The YAML manual is detailed, but additional high-level guides and diagrams showing data flow would help new contributors. An architectural overview explaining how Neuronenblitz, Brain, and Core interact would be valuable.
+
+• Strengthen testing – Unit tests for the dynamic components (structural plasticity, offload handling) and integration tests across modules would make the system more robust and allow more confident refactoring.
