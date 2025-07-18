@@ -42,6 +42,8 @@ def test_super_evolution_affects_all_parameters():
         brain.meta_controller.adjustment,
         brain.neuromodulatory_system.signals["arousal"],
         brain.memory_system.threshold,
+        brain.dataloader.compressor.level,
+        brain.lobe_manager.attention_increase_factor,
     )
 
     brain.super_evo_controller.record_metrics(0.5, 1.0)
@@ -53,4 +55,6 @@ def test_super_evolution_affects_all_parameters():
     assert brain.meta_controller.adjustment != orig_values[3]
     assert brain.neuromodulatory_system.signals["arousal"] != orig_values[4]
     assert brain.memory_system.threshold != orig_values[5]
+    assert brain.dataloader.compressor.level != orig_values[6]
+    assert brain.lobe_manager.attention_increase_factor != orig_values[7]
 

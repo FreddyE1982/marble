@@ -32,7 +32,7 @@ class SuperEvolutionController:
 
     def _apply_factor(self, obj, attr, factor):
         val = getattr(obj, attr)
-        if isinstance(val, (int, float)):
+        if isinstance(val, (int, float)) and not isinstance(val, bool):
             setattr(obj, attr, val * factor)
 
     def _apply_factor_recursive(self, obj, factor, seen=None):
@@ -58,8 +58,6 @@ class SuperEvolutionController:
             if attr.startswith("_") or attr in (
                 "core",
                 "neuronenblitz",
-                "dataloader",
-                "lobe_manager",
                 "super_evo_controller",
             ):
                 continue
@@ -67,7 +65,7 @@ class SuperEvolutionController:
                 val = getattr(obj, attr)
             except AttributeError:
                 continue
-            if isinstance(val, (int, float)):
+            if isinstance(val, (int, float)) and not isinstance(val, bool):
                 setattr(obj, attr, val * factor)
             else:
                 self._apply_factor_recursive(val, factor, seen)
@@ -90,8 +88,9 @@ class SuperEvolutionController:
         if factor == 1.0:
             return
         for key in list(self.brain.core.params.keys()):
-            if isinstance(self.brain.core.params[key], (int, float)):
-                self.brain.core.params[key] *= factor
+            val = self.brain.core.params[key]
+            if isinstance(val, (int, float)) and not isinstance(val, bool):
+                self.brain.core.params[key] = val * factor
                 if hasattr(self.brain.core, key):
                     setattr(self.brain.core, key, self.brain.core.params[key])
 
