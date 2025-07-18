@@ -304,6 +304,14 @@ class DataLoader:
 class Core:
     def __init__(self, params, formula=None, formula_num_neurons=100):
         print("Initializing MARBLE Core...")
+        seed = params.get("random_seed")
+        if seed is not None:
+            random.seed(seed)
+            np.random.seed(seed)
+            try:
+                cp.random.seed(seed)
+            except Exception:
+                pass
         self.params = params
         if 'file' in TIER_REGISTRY:
             fpath = params.get('file_tier_path')

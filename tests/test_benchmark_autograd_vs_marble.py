@@ -25,7 +25,7 @@ def test_train_marble_returns_floats():
     data = generate_dataset(20)
     train_data = data[:15]
     val_data = data[15:]
-    loss, duration = train_marble(train_data, val_data, epochs=1)
+    loss, duration = train_marble(train_data, val_data, epochs=1, seed=0)
     assert isinstance(loss, float)
     assert isinstance(duration, float)
 
@@ -34,13 +34,13 @@ def test_train_autograd_returns_floats():
     data = generate_dataset(20)
     train_data = data[:15]
     val_data = data[15:]
-    loss, duration = train_autograd(train_data, val_data, epochs=1)
+    loss, duration = train_autograd(train_data, val_data, epochs=1, seed=0)
     assert isinstance(loss, float)
     assert isinstance(duration, float)
 
 
 def test_run_benchmark_structure():
-    results = run_benchmark()
+    results = run_benchmark(seed=0)
     assert "marble" in results and "autograd" in results
     assert set(results["marble"].keys()) == {"loss", "time"}
     assert set(results["autograd"].keys()) == {"loss", "time"}

@@ -1,6 +1,7 @@
 import time
 import numpy as np
 import torch
+import random
 from sklearn.datasets import load_diabetes
 
 from marble_core import Core, DataLoader
@@ -26,9 +27,14 @@ def load_real_dataset(n_samples: int = 100):
     return list(zip(xs.astype(float).tolist(), ys.astype(float).tolist()))
 
 
-def train_marble(train_data, val_data, epochs: int = 10):
+def train_marble(train_data, val_data, epochs: int = 10, seed: int | None = None):
     """Train using the pure MARBLE system."""
     params = minimal_params()
+    if seed is not None:
+        params["random_seed"] = seed
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
     core = Core(params)
     nb = Neuronenblitz(core)
     brain = Brain(core, nb, DataLoader())
@@ -41,9 +47,14 @@ def train_marble(train_data, val_data, epochs: int = 10):
     return val_loss, duration
 
 
-def train_autograd(train_data, val_data, epochs: int = 10, learning_rate: float = 0.01):
+def train_autograd(train_data, val_data, epochs: int = 10, learning_rate: float = 0.01, seed: int | None = None):
     """Train using the autograd pathway."""
     params = minimal_params()
+    if seed is not None:
+        params["random_seed"] = seed
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
     core = Core(params)
     nb = Neuronenblitz(core)
     brain = Brain(core, nb, DataLoader())
@@ -66,14 +77,14 @@ def train_autograd(train_data, val_data, epochs: int = 10, learning_rate: float 
     return val_loss, duration
 
 
-def run_benchmark():
+def run_benchmark(seed: int | None = None):
     """Run both training modes and return their validation losses and durations."""
     data = load_real_dataset()
     train_data = data[:80]
     val_data = data[80:]
 
-    marble_loss, marble_time = train_marble(train_data, val_data, epochs=10)
-    autograd_loss, autograd_time = train_autograd(train_data, val_data, epochs=10)
+    marble_loss, marble_time = train_marble(train_data, val_data, epochs=10, seed=seed)
+    autograd_loss, autograd_time = train_autograd(train_data, val_data, epochs=10, seed=seed)
 
     results = {
         "marble": {"loss": marble_loss, "time": marble_time},

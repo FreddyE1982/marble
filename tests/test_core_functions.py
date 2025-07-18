@@ -23,6 +23,7 @@ def minimal_params():
         'vram_limit_mb': 0.1,
         'ram_limit_mb': 0.1,
         'disk_limit_mb': 0.1,
+        'random_seed': 0,
     }
 
 
