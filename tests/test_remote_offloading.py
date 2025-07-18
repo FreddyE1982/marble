@@ -24,4 +24,34 @@ def test_remote_offload_roundtrip():
 
     out, path = nb.dynamic_wander(0.5)
     assert isinstance(out, float)
+    assert isinstance(server.brain, Brain)
     server.stop()
+
+
+def test_remote_brain_offload_chain():
+    server1 = RemoteBrainServer(port=8002)
+    server1.start()
+    client1 = RemoteBrainClient("http://localhost:8002")
+
+    server2 = RemoteBrainServer(port=8003)
+    server2.start()
+    client2 = RemoteBrainClient("http://localhost:8003")
+
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core, remote_client=client1)
+    brain = Brain(core, nb, DataLoader(), remote_client=client1)
+
+    brain.lobe_manager.genesis(range(len(core.neurons)))
+    brain.offload_high_attention(threshold=-1.0)
+
+    server1.brain.remote_client = client2
+    server1.brain.lobe_manager.genesis(range(len(server1.core.neurons)))
+    server1.brain.offload_high_attention(threshold=-1.0)
+
+    out, _ = nb.dynamic_wander(0.2)
+    assert isinstance(out, float)
+    assert isinstance(server2.brain, Brain)
+
+    server1.stop()
+    server2.stop()
