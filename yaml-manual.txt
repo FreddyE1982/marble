@@ -17,6 +17,11 @@ core:
   representation_size: Length of the representation vector attached to each
     neuron. Larger values allow richer message passing but increase memory and
     computation.
+  message_passing_alpha: Mixing factor between each neuron's existing
+    representation and the update computed from its neighbours during message
+    passing. ``0.0`` relies entirely on new information, while ``1.0`` keeps the
+    original representation unchanged. Typical values range from 0.3 to 0.8
+    depending on how aggressively information should propagate.
   vram_limit_mb: Maximum megabytes of GPU memory dedicated to VRAM tiers. If
     CUDA is unavailable this limit is merged into RAM.
   ram_limit_mb: Maximum megabytes of system memory used for RAM tiers.
