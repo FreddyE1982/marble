@@ -68,6 +68,8 @@ class Neuron:
         self.synapses = []
         self.formula = None
         self.created_at = datetime.now()
+        self.cluster_id = None
+        self.attention_score = 0.0
 
 class Synapse:
     def __init__(self, source, target, weight=1.0):
@@ -234,3 +236,38 @@ class Core:
                 self.synapses.append(syn)
         print(f"Core expanded: {num_new_neurons} new neurons in tier '{target_tier}' and {num_new_synapses} new synapses added.")
         self.check_memory_usage()
+
+    def cluster_neurons(self, k=3):
+        if not self.neurons:
+            return
+        values = np.array([n.value for n in self.neurons], dtype=float)
+        k = min(k, len(values))
+        centers = np.random.choice(values, k, replace=False)
+        for _ in range(5):
+            assignments = [int(np.argmin([abs(v - c) for c in centers])) for v in values]
+            for i in range(k):
+                cluster_vals = [values[j] for j, a in enumerate(assignments) if a == i]
+                if cluster_vals:
+                    centers[i] = sum(cluster_vals) / len(cluster_vals)
+        for idx, neuron in enumerate(self.neurons):
+            neuron.cluster_id = assignments[idx]
+
+    def relocate_clusters(self, high=1.0, medium=0.1):
+        cluster_scores = {}
+        for neuron in self.neurons:
+            cid = neuron.cluster_id
+            if cid is None:
+                continue
+            cluster_scores.setdefault(cid, 0.0)
+            cluster_scores[cid] += neuron.attention_score
+        for cid, score in cluster_scores.items():
+            if score > high:
+                new_tier = 'vram'
+            elif score > medium:
+                new_tier = 'ram'
+            else:
+                new_tier = 'disk'
+            for neuron in self.neurons:
+                if neuron.cluster_id == cid:
+                    neuron.tier = new_tier
+                    neuron.attention_score = 0.0

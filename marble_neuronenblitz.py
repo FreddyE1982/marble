@@ -155,6 +155,11 @@ class Neuronenblitz:
             syn.weight += delta
             if random.random() < self.consolidation_probability:
                 syn.weight *= self.consolidation_strength
+            score = abs(error) * abs(syn.weight) / max(path_length, 1)
+            self.core.neurons[syn.target].attention_score += score
+        if path:
+            last_neuron = self.core.neurons[path[-1].target]
+            last_neuron.attention_score += abs(error)
         self.training_history.append({
             'input': input_value,
             'target': target_value,

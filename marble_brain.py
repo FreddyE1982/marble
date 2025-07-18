@@ -108,6 +108,8 @@ class Brain:
                 self.core.expand(num_new_neurons=10, num_new_synapses=15,
                                alternative_connection_prob=0.1, target_tier=new_tier)
                 self.perform_neurogenesis()
+            self.core.cluster_neurons(k=3)
+            self.core.relocate_clusters()
         pbar.close()
 
     def validate(self, validation_examples):
