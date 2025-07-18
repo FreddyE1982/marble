@@ -23,6 +23,14 @@ class Neuronenblitz:
         struct_weight_multiplier1=1.5,
         struct_weight_multiplier2=1.2,
         attention_decay=0.9,
+        max_wander_depth=100,
+        learning_rate=0.01,
+        structural_plasticity_enabled=True,
+        backtrack_enabled=True,
+        loss_scale=1.0,
+        exploration_bonus=0.0,
+        synapse_potential_cap=100.0,
+        attention_update_scale=1.0,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -42,6 +50,14 @@ class Neuronenblitz:
         self.struct_weight_multiplier1 = struct_weight_multiplier1
         self.struct_weight_multiplier2 = struct_weight_multiplier2
         self.attention_decay = attention_decay
+        self.max_wander_depth = max_wander_depth
+        self.learning_rate = learning_rate
+        self.structural_plasticity_enabled = structural_plasticity_enabled
+        self.backtrack_enabled = backtrack_enabled
+        self.loss_scale = loss_scale
+        self.exploration_bonus = exploration_bonus
+        self.synapse_potential_cap = synapse_potential_cap
+        self.attention_update_scale = attention_update_scale
 
         self.combine_fn = (
             combine_fn if combine_fn is not None else (lambda x, w: max(x * w, 0))

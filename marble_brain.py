@@ -41,6 +41,17 @@ class Brain:
         neurogenesis_decrease_step: float = 0.05,
         max_neurogenesis_factor: float = 3.0,
         cluster_k: int = 3,
+        auto_save_interval: int = 5,
+        auto_firing_enabled: bool = False,
+        dream_enabled: bool = True,
+        vram_age_threshold: int = 300,
+        ram_age_threshold: int = 600,
+        status_display_interval: int = 0,
+        neurogenesis_interval: int = 1,
+        min_cluster_size: int = 1,
+        prune_frequency: int = 1,
+        auto_offload: bool = False,
+        benchmark_enabled: bool = False,
     ):
         self.core = core
         self.neuronenblitz = neuronenblitz
@@ -90,6 +101,17 @@ class Brain:
         self.neurogenesis_decrease_step = neurogenesis_decrease_step
         self.max_neurogenesis_factor = max_neurogenesis_factor
         self.cluster_k = cluster_k
+        self.auto_save_interval = auto_save_interval
+        self.auto_firing_enabled = auto_firing_enabled
+        self.dream_enabled = dream_enabled
+        self.vram_age_threshold = vram_age_threshold
+        self.ram_age_threshold = ram_age_threshold
+        self.status_display_interval = status_display_interval
+        self.neurogenesis_interval = neurogenesis_interval
+        self.min_cluster_size = min_cluster_size
+        self.prune_frequency = prune_frequency
+        self.auto_offload = auto_offload
+        self.benchmark_enabled = benchmark_enabled
         self.last_val_loss = None
         self.tier_decision_params = (
             tier_decision_params
