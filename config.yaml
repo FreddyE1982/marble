@@ -1,0 +1,29 @@
+core:
+  xmin: -2.0
+  xmax: 1.0
+  ymin: -1.5
+  ymax: 1.5
+  width: 30
+  height: 30
+  max_iter: 50
+  vram_limit_mb: 0.5
+  ram_limit_mb: 1.0
+  disk_limit_mb: 10
+neuronenblitz:
+  backtrack_probability: 0.3
+  consolidation_probability: 0.2
+  consolidation_strength: 1.1
+  route_potential_increase: 0.5
+  route_potential_decay: 0.9
+  route_visit_decay_interval: 10
+  alternative_connection_prob: 0.1
+  split_probability: 0.2
+  merge_tolerance: 0.01
+  plasticity_threshold: 10.0
+brain:
+  save_threshold: 0.05
+  max_saved_models: 5
+  save_dir: "saved_models"
+  firing_interval_ms: 500
+formula: "log(1+T)/log(1+I)"
+formula_num_neurons: 100
