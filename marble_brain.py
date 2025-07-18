@@ -11,7 +11,9 @@ class Brain:
                  neuromodulatory_system=None, meta_controller=None, memory_system=None,
                  remote_client=None, torrent_client=None, torrent_map=None,
                  tier_decision_params=None, initial_neurogenesis_factor: float = 1.0,
-                 offload_enabled: bool = False, torrent_offload_enabled: bool = False):
+                 offload_enabled: bool = False, torrent_offload_enabled: bool = False,
+                 mutation_rate: float = 0.01, mutation_strength: float = 0.05,
+                 prune_threshold: float = 0.01):
         self.core = core
         self.neuronenblitz = neuronenblitz
         self.dataloader = dataloader
@@ -42,6 +44,9 @@ class Brain:
             'vram_usage_threshold': 0.9,
             'ram_usage_threshold': 0.9
         }
+        self.mutation_rate = mutation_rate
+        self.mutation_strength = mutation_strength
+        self.prune_threshold = prune_threshold
         os.makedirs(self.save_dir, exist_ok=True)
 
     def update_neurogenesis_factor(self, val_loss):
@@ -275,8 +280,14 @@ class Brain:
             pruned += before - len(neuron.synapses)
         return pruned
 
-    def evolve(self, mutation_rate=0.01, mutation_strength=0.05, prune_threshold=0.01):
+    def evolve(self, mutation_rate=None, mutation_strength=None, prune_threshold=None):
         """Apply evolutionary operators like mutation and pruning."""
+        if mutation_rate is None:
+            mutation_rate = self.mutation_rate
+        if mutation_strength is None:
+            mutation_strength = self.mutation_strength
+        if prune_threshold is None:
+            prune_threshold = self.prune_threshold
         mutated = self.mutate_synapses(mutation_rate, mutation_strength)
         pruned = self.prune_weak_synapses(prune_threshold)
         return mutated, pruned

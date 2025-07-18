@@ -46,3 +46,21 @@ def test_evolve_combines_mutation_and_prune():
     assert mutated == initial_count
     assert pruned == initial_count
     assert len(core.synapses) == 0
+
+
+def test_evolve_uses_config_defaults():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    for syn in core.synapses:
+        syn.weight = 0.0
+    random.seed(0)
+    brain = Brain(core, nb, DataLoader(),
+                  mutation_rate=1.0,
+                  mutation_strength=0.0,
+                  prune_threshold=0.01)
+    initial = len(core.synapses)
+    mutated, pruned = brain.evolve()
+    assert mutated == initial
+    assert pruned == initial
+    assert len(core.synapses) == 0
