@@ -35,6 +35,13 @@ class Neuronenblitz:
         self.training_history = []
         self.global_activation_count = 0
 
+    def modulate_plasticity(self, context):
+        """Adjust plasticity_threshold based on neuromodulatory context."""
+        reward = context.get('reward', 0.0)
+        stress = context.get('stress', 0.0)
+        adjustment = reward - stress
+        self.plasticity_threshold = max(0.5, self.plasticity_threshold - adjustment)
+
     def reset_neuron_values(self):
         for neuron in self.core.neurons:
             neuron.value = None

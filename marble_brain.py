@@ -58,10 +58,20 @@ class Brain:
         print(f"[Brain] Growth decision: '{chosen}' tier (VRAM: {vram_usage:.2f}MB/{vram_limit}MB, age: {vram_neuron_age:.1f}s)")
         return chosen
 
+    def perform_neurogenesis(self, base_neurons=5, base_synapses=10):
+        """Grow new neurons and synapses based on neuromodulatory context."""
+        ctx = self.neuromodulatory_system.get_context()
+        factor = 1.0 + max(ctx.get('arousal', 0.0), ctx.get('reward', 0.0))
+        num_neurons = int(base_neurons * factor)
+        num_synapses = int(base_synapses * factor)
+        self.core.expand(num_new_neurons=num_neurons, num_new_synapses=num_synapses)
+        return num_neurons, num_synapses
+
     def train(self, train_examples, epochs=1, validation_examples=None):
         pbar = tqdm(range(epochs), desc="Epochs", ncols=100)
         for epoch in pbar:
             self.neuronenblitz.train(train_examples, epochs=1)
+            self.neuronenblitz.modulate_plasticity(self.neuromodulatory_system.get_context())
             if validation_examples is not None:
                 val_loss = self.validate(validation_examples)
             else:
