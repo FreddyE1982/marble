@@ -24,6 +24,8 @@ def configure_representation_size(rep_size: int) -> None:
 
 def _simple_mlp(x: np.ndarray) -> np.ndarray:
     """Tiny MLP with one hidden layer and tanh activations."""
+    # Handle potential NaNs or infinities to avoid runtime warnings
+    x = np.nan_to_num(x, nan=0.0, posinf=0.0, neginf=0.0)
     h = np.tanh(x @ _W1 + _B1)
     return np.tanh(h @ _W2 + _B2)
 
@@ -57,7 +59,9 @@ def perform_message_passing(
         neigh_reps = [core.neurons[s.source].representation * s.weight for s in incoming]
         if not neigh_reps:
             continue
-        dots = np.array([float(np.dot(target.representation, nr)) for nr in neigh_reps])
+        target_rep = np.nan_to_num(target.representation, nan=0.0, posinf=0.0, neginf=0.0)
+        neigh_reps = [np.nan_to_num(nr, nan=0.0, posinf=0.0, neginf=0.0) for nr in neigh_reps]
+        dots = np.array([float(np.dot(target_rep, nr)) for nr in neigh_reps])
         shifted = np.clip(dots - np.max(dots), -50, 50)
         exps = np.exp(shifted)
         denom = exps.sum()
