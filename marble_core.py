@@ -2,11 +2,23 @@ from marble_imports import *
 
 # Representation size for GNN-style message passing
 _REP_SIZE = 4
-_RS = np.random.RandomState(0)
-_W1 = _RS.randn(_REP_SIZE, 8) * 0.1
-_B1 = _RS.randn(8) * 0.1
-_W2 = _RS.randn(8, _REP_SIZE) * 0.1
-_B2 = _RS.randn(_REP_SIZE) * 0.1
+
+def _init_weights(rep_size: int):
+    rs = np.random.RandomState(0)
+    w1 = rs.randn(rep_size, 8) * 0.1
+    b1 = rs.randn(8) * 0.1
+    w2 = rs.randn(8, rep_size) * 0.1
+    b2 = rs.randn(rep_size) * 0.1
+    return w1, b1, w2, b2
+
+_W1, _B1, _W2, _B2 = _init_weights(_REP_SIZE)
+
+def configure_representation_size(rep_size: int) -> None:
+    """Configure global representation size used for message passing."""
+    global _REP_SIZE, _W1, _B1, _W2, _B2
+    if rep_size != _REP_SIZE:
+        _REP_SIZE = rep_size
+        _W1, _B1, _W2, _B2 = _init_weights(rep_size)
 
 
 def _simple_mlp(x: np.ndarray) -> np.ndarray:
@@ -231,6 +243,9 @@ class Core:
     def __init__(self, params, formula=None, formula_num_neurons=100):
         print("Initializing MARBLE Core...")
         self.params = params
+        rep_size = params.get('representation_size', _REP_SIZE)
+        configure_representation_size(rep_size)
+        self.rep_size = rep_size
         self.vram_limit_mb = params.get('vram_limit_mb', 100)
         self.ram_limit_mb = params.get('ram_limit_mb', 500)
         self.disk_limit_mb = params.get('disk_limit_mb', 10000)
@@ -244,7 +259,7 @@ class Core:
             except Exception as e:
                 raise ValueError(f"Formula parsing failed: {e}")
             for i in range(formula_num_neurons):
-                neuron = Neuron(nid, value=0.0, tier='vram')
+                neuron = Neuron(nid, value=0.0, tier='vram', rep_size=self.rep_size)
                 neuron.formula = expr
                 self.neurons.append(neuron)
                 nid += 1
@@ -257,7 +272,7 @@ class Core:
             )
             mandel_cpu = cp.asnumpy(mandel_gpu)
             for val in mandel_cpu.flatten():
-                self.neurons.append(Neuron(nid, value=float(val), tier='vram'))
+                self.neurons.append(Neuron(nid, value=float(val), tier='vram', rep_size=self.rep_size))
                 nid += 1
 
         num_neurons = len(self.neurons)
@@ -337,8 +352,15 @@ class Core:
                 n_type = random.choice(neuron_types) if neuron_types else 'standard'
             else:
                 n_type = neuron_types if neuron_types is not None else 'standard'
-            self.neurons.append(Neuron(start_id + i, value=0.0,
-                                      tier=target_tier, neuron_type=n_type))
+            self.neurons.append(
+                Neuron(
+                    start_id + i,
+                    value=0.0,
+                    tier=target_tier,
+                    neuron_type=n_type,
+                    rep_size=self.rep_size,
+                )
+            )
         for _ in range(num_new_synapses):
             src = random.choice(self.neurons).id
             tgt = random.choice(self.neurons).id
@@ -397,13 +419,20 @@ class Core:
             "ram_limit_mb": 0.1,
             "disk_limit_mb": 0.1,
         }
+        params["representation_size"] = self.rep_size
         subcore = Core(params, formula=None, formula_num_neurons=0)
         subcore.neurons = []
         subcore.synapses = []
         id_map = {}
         for i, nid in enumerate(neuron_ids):
             n = self.neurons[nid]
-            new_n = Neuron(i, value=n.value, tier=n.tier, neuron_type=n.neuron_type)
+            new_n = Neuron(
+                i,
+                value=n.value,
+                tier=n.tier,
+                neuron_type=n.neuron_type,
+                rep_size=self.rep_size,
+            )
             new_n.representation = n.representation.copy()
             subcore.neurons.append(new_n)
             id_map[nid] = i
