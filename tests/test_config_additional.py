@@ -11,3 +11,4 @@ def test_extended_config_parameters():
     assert cfg["remote_client"]["auth_token"] is None
     assert cfg["remote_server"]["ssl_enabled"] is False
     assert cfg["metrics_visualizer"]["refresh_rate"] == 1
+    assert cfg["brain"]["super_evolution_mode"] is False

@@ -271,6 +271,10 @@ brain:
     sampling replacements during pruning.
   lobe_decay_rate: Fraction by which lobe attention decays each epoch without
     activity.
+  super_evolution_mode: When true, a controller records loss, speed, complexity
+    and resource metrics each epoch and adjusts all configurable parameters via
+    self-attention. This prioritizes minimising loss, then maximising speed,
+    reducing complexity and finally conserving resources.
 
 formula: Mathematical expression used to compute initial neuron values instead
   of the Mandelbrot seed. If omitted the Mandelbrot algorithm is used.

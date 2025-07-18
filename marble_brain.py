@@ -76,6 +76,7 @@ class Brain:
         default_activation_function: str = "tanh",
         neuron_reservoir_size: int = 1000,
         lobe_decay_rate: float = 0.98,
+        super_evolution_mode: bool = False,
     ):
         self.core = core
         self.neuronenblitz = neuronenblitz
@@ -162,6 +163,11 @@ class Brain:
         self.default_activation_function = default_activation_function
         self.neuron_reservoir_size = neuron_reservoir_size
         self.lobe_decay_rate = lobe_decay_rate
+        self.super_evolution_mode = super_evolution_mode
+        self.super_evo_controller = None
+        if self.super_evolution_mode:
+            from super_evolution_controller import SuperEvolutionController
+            self.super_evo_controller = SuperEvolutionController(self)
         self.last_val_loss = None
         self.tier_decision_params = (
             tier_decision_params
@@ -252,6 +258,7 @@ class Brain:
     def train(self, train_examples, epochs=1, validation_examples=None):
         pbar = tqdm(range(epochs), desc="Epochs", ncols=100)
         for epoch in pbar:
+            start_time = time.time()
             self.neuronenblitz.train(train_examples, epochs=1)
             self.neuronenblitz.modulate_plasticity(
                 self.neuromodulatory_system.get_context()
@@ -270,6 +277,13 @@ class Brain:
                 "VRAM(MB)": f"{self.core.get_usage_by_tier('vram'):.2f}",
             }
             pbar.set_postfix(metrics)
+
+            epoch_time = time.time() - start_time
+            if self.super_evo_controller is not None:
+                self.super_evo_controller.record_metrics(
+                    0.0 if val_loss is None else val_loss,
+                    epoch_time,
+                )
 
             if val_loss is not None and val_loss > self.loss_growth_threshold:
                 new_tier = self.choose_growth_tier()

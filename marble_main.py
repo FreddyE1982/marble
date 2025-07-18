@@ -115,6 +115,7 @@ class MARBLE:
             , 'default_activation_function': 'tanh'
             , 'neuron_reservoir_size': 1000
             , 'lobe_decay_rate': 0.98
+            , 'super_evolution_mode': False
         }
         if brain_params is not None:
             brain_defaults.update(brain_params)
