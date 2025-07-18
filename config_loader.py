@@ -5,6 +5,7 @@ from marble_main import MARBLE
 from neuromodulatory_system import NeuromodulatorySystem
 from meta_parameter_controller import MetaParameterController
 from marble_core import MemorySystem
+from remote_offload import RemoteBrainClient
 
 DEFAULT_CONFIG_FILE = Path(__file__).resolve().parent / "config.yaml"
 
@@ -52,11 +53,17 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
         "memory_system": memory_system,
     })
 
+    remote_client = None
+    remote_cfg = cfg.get("remote_client", {})
+    if isinstance(remote_cfg, dict) and remote_cfg.get("url"):
+        remote_client = RemoteBrainClient(remote_cfg["url"])
+
     marble = MARBLE(
         core_params,
         formula=formula,
         formula_num_neurons=formula_num_neurons,
         nb_params=nb_params,
         brain_params=brain_params,
+        remote_client=remote_client,
     )
     return marble
