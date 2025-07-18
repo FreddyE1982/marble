@@ -38,6 +38,14 @@ def test_dataloader_roundtrip():
     assert out == data
 
 
+def test_dataloader_array_roundtrip():
+    dl = DataLoader()
+    arr = np.arange(9, dtype=np.int32).reshape(3, 3)
+    tensor = dl.encode_array(arr)
+    restored = dl.decode_array(tensor)
+    assert np.array_equal(restored, arr)
+
+
 def test_core_expand_adds_neurons():
     random.seed(0)
     params = minimal_params()
