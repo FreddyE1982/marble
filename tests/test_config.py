@@ -19,6 +19,8 @@ def test_load_config_defaults():
     assert cfg['torrent_client']['client_id'] == 'main'
     assert cfg['torrent_client']['buffer_size'] == 10
     assert cfg['brain']['initial_neurogenesis_factor'] == 1.0
+    assert cfg['brain']['offload_enabled'] is False
+    assert cfg['brain']['torrent_offload_enabled'] is False
 
 
 def test_create_marble_from_config():
@@ -28,3 +30,5 @@ def test_create_marble_from_config():
     assert isinstance(marble.brain.remote_client, RemoteBrainClient)
     assert isinstance(marble.brain.torrent_client, BrainTorrentClient)
     assert marble.brain.neurogenesis_factor == 1.0
+    assert marble.brain.offload_enabled is False
+    assert marble.brain.torrent_offload_enabled is False

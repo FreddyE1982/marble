@@ -16,7 +16,7 @@ def test_remote_offload_roundtrip():
     params = minimal_params()
     core = Core(params)
     nb = Neuronenblitz(core, remote_client=client)
-    brain = Brain(core, nb, DataLoader(), remote_client=client)
+    brain = Brain(core, nb, DataLoader(), remote_client=client, offload_enabled=True)
 
     # offload all neurons
     brain.lobe_manager.genesis(range(len(core.neurons)))
@@ -40,12 +40,13 @@ def test_remote_brain_offload_chain():
     params = minimal_params()
     core = Core(params)
     nb = Neuronenblitz(core, remote_client=client1)
-    brain = Brain(core, nb, DataLoader(), remote_client=client1)
+    brain = Brain(core, nb, DataLoader(), remote_client=client1, offload_enabled=True)
 
     brain.lobe_manager.genesis(range(len(core.neurons)))
     brain.offload_high_attention(threshold=-1.0)
 
     server1.brain.remote_client = client2
+    server1.brain.offload_enabled = True
     server1.brain.lobe_manager.genesis(range(len(server1.core.neurons)))
     server1.brain.offload_high_attention(threshold=-1.0)
 
