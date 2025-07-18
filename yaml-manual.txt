@@ -220,6 +220,12 @@ brain:
     below the high threshold; lower scores are moved to disk tiers.
   dream_synapse_decay: Multiplicative decay applied to synapse weights during
     each dreaming cycle.
+  dream_decay_arousal_scale: Scaling factor applied to ``dream_synapse_decay``
+    proportional to current arousal. ``0.0`` disables arousal-based modulation
+    while higher values increase decay when arousal rises.
+  dream_decay_stress_scale: Scaling factor that reduces the effective decay
+    as stress grows. Values around ``0.0`` keep stress from affecting dream
+    strength, whereas ``1.0`` completely cancels decay at full stress.
   neurogenesis_increase_step: Amount added to the neurogenesis factor when
     validation loss worsens.
   neurogenesis_decrease_step: Amount subtracted from the neurogenesis factor

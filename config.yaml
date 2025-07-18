@@ -107,6 +107,8 @@ brain:
   cluster_high_threshold: 1.0
   cluster_medium_threshold: 0.1
   dream_synapse_decay: 0.995
+  dream_decay_arousal_scale: 0.0
+  dream_decay_stress_scale: 0.0
   neurogenesis_increase_step: 0.1
   neurogenesis_decrease_step: 0.05
   max_neurogenesis_factor: 3.0
