@@ -91,6 +91,7 @@ def test_load_config_defaults():
     assert cfg["remote_server"]["enabled"] is False
     assert cfg["metrics_visualizer"]["fig_width"] == 10
     assert cfg["metrics_visualizer"]["fig_height"] == 6
+    assert cfg["brain"]["super_evolution_mode"] is False
 def test_create_marble_from_config():
     marble = create_marble_from_config()
     assert isinstance(marble, MARBLE)
@@ -140,6 +141,8 @@ def test_create_marble_from_config():
     assert marble.brain.dream_cycle_sleep == 0.1
     assert marble.brain.lobe_manager.attention_increase_factor == 1.05
     assert marble.brain.lobe_manager.attention_decrease_factor == 0.95
+    assert marble.brain.super_evolution_mode is False
+    assert marble.brain.super_evo_controller is None
     assert hasattr(marble, "remote_server") is False
 
 
