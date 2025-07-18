@@ -63,14 +63,16 @@ class RemoteBrainServer:
 
 class RemoteBrainClient:
     """Client used by the main brain to interact with a remote brain."""
-    def __init__(self, url):
+
+    def __init__(self, url, timeout: float = 5.0):
         self.url = url.rstrip('/')
+        self.timeout = timeout
 
     def offload(self, core):
         payload = {'core': json.loads(core_to_json(core))}
-        requests.post(self.url + '/offload', json=payload)
+        requests.post(self.url + '/offload', json=payload, timeout=self.timeout)
 
     def process(self, value):
-        resp = requests.post(self.url + '/process', json={'value': value})
+        resp = requests.post(self.url + '/process', json={'value': value}, timeout=self.timeout)
         data = resp.json()
         return data['output']

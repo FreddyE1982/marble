@@ -25,6 +25,7 @@ brain:
   max_saved_models: 5
   save_dir: "saved_models"
   firing_interval_ms: 500
+  initial_neurogenesis_factor: 1.0
   tier_decision_params:
     vram_usage_threshold: 0.9
     ram_usage_threshold: 0.9
@@ -45,3 +46,7 @@ memory_system:
   long_term_path: "long_term_memory.pkl"
 remote_client:
   url: "http://localhost:8001"
+  timeout: 5.0
+torrent_client:
+  client_id: "main"
+  buffer_size: 10
