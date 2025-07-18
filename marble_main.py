@@ -2,6 +2,7 @@ from marble_imports import *
 from marble_core import Core, DataLoader, TIER_REGISTRY
 from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain, BenchmarkManager
+from marble_base import MetricsVisualizer
 
 class MARBLE:
     def __init__(self, params, formula=None, formula_num_neurons=100, converter_model=None, nb_params=None, brain_params=None, init_from_weights=False, remote_client=None, torrent_client=None):
