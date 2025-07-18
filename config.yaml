@@ -124,6 +124,7 @@ brain:
   prune_frequency: 1
   auto_offload: false
   benchmark_enabled: false
+  benchmark_interval: 2
   loss_growth_threshold: 0.1
   dream_cycle_sleep: 0.1
   tier_decision_params:

@@ -1,5 +1,7 @@
 from marble_imports import *
 from marble_core import TIER_REGISTRY, MemorySystem
+import torch
+import time
 from neuromodulatory_system import NeuromodulatorySystem
 from meta_parameter_controller import MetaParameterController
 from marble_base import MetricsVisualizer
@@ -22,6 +24,7 @@ class Brain:
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
+        autograd_layer=None,
         tier_decision_params=None,
         initial_neurogenesis_factor: float = 1.0,
         offload_enabled: bool = False,
@@ -65,6 +68,7 @@ class Brain:
         prune_frequency: int = 1,
         auto_offload: bool = False,
         benchmark_enabled: bool = False,
+        benchmark_interval: int = 2,
         loss_growth_threshold: float = 0.1,
         dream_cycle_sleep: float = 0.1,
         lobe_attention_increase: float = 1.05,
@@ -120,6 +124,7 @@ class Brain:
         self.remote_client = remote_client
         self.torrent_client = torrent_client
         self.torrent_map = torrent_map if torrent_map is not None else {}
+        self.autograd_layer = autograd_layer
         self.offload_enabled = offload_enabled
         self.torrent_offload_enabled = torrent_offload_enabled
         self.dream_num_cycles = dream_num_cycles
@@ -158,6 +163,8 @@ class Brain:
         self.prune_frequency = prune_frequency
         self.auto_offload = auto_offload
         self.benchmark_enabled = benchmark_enabled
+        self.benchmark_interval = benchmark_interval
+        self._benchmark_counter = 0
         self.loss_growth_threshold = loss_growth_threshold
         self.dream_cycle_sleep = dream_cycle_sleep
         self.model_name = model_name
@@ -174,6 +181,7 @@ class Brain:
         self.super_evo_controller = None
         if self.super_evolution_mode:
             from super_evolution_controller import SuperEvolutionController
+
             self.super_evo_controller = SuperEvolutionController(self)
         self.last_val_loss = None
         self.tier_decision_params = (
@@ -186,6 +194,10 @@ class Brain:
         self.prune_threshold = prune_threshold
         os.makedirs(self.save_dir, exist_ok=True)
         self.metrics_visualizer = metrics_visualizer
+
+    def set_autograd_layer(self, layer):
+        """Attach an autograd layer for benchmarking."""
+        self.autograd_layer = layer
 
     def update_neurogenesis_factor(self, val_loss):
         """Adjust neurogenesis factor based on validation loss trends."""
@@ -338,6 +350,15 @@ class Brain:
                 self.offload_high_attention_torrent(self.torrent_offload_threshold)
             self.consolidate_memory()
             self.evolve()
+            self._benchmark_counter += 1
+            if (
+                self.benchmark_enabled
+                and self.autograd_layer is not None
+                and self._benchmark_counter % self.benchmark_interval == 0
+                and train_examples
+            ):
+                example = random.choice(train_examples)
+                self.benchmark_step(example)
         pbar.close()
 
     def validate(self, validation_examples):
@@ -568,6 +589,41 @@ class Brain:
         print(f"Current Validation Loss: {current_val_loss:.4f}")
         print(f"Global Activation Count: {self.neuronenblitz.global_activation_count}")
         print("-----------------------")
+
+    def benchmark_step(self, example):
+        """Run a benchmark comparison on a single (input, target) pair."""
+        if self.autograd_layer is None:
+            return None
+
+        input_val, target_val = example
+
+        start = time.time()
+        _, error, _ = self.neuronenblitz.train_example(input_val, target_val)
+        marble_time = time.time() - start
+        marble_loss = abs(error) if isinstance(error, (int, float)) else 0.0
+
+        start = time.time()
+        inp = torch.tensor(float(input_val), dtype=torch.float32, requires_grad=True)
+        out = self.autograd_layer(inp)
+        loss = (out - torch.tensor(float(target_val), dtype=torch.float32)) ** 2
+        loss_val = float(loss.item())
+        loss.backward()
+        auto_time = time.time() - start
+
+        print(
+            f"[Benchmark] Marble loss {marble_loss:.4f} time {marble_time:.4f}s | "
+            f"Autograd loss {loss_val:.4f} time {auto_time:.4f}s"
+        )
+
+        if marble_loss > loss_val:
+            self.neuronenblitz.learning_rate *= 1.1
+        if marble_time > auto_time:
+            self.neuronenblitz.continue_decay_rate *= 1.05
+
+        return {
+            "marble": {"loss": marble_loss, "time": marble_time},
+            "autograd": {"loss": loss_val, "time": auto_time},
+        }
 
 
 class BenchmarkManager:

@@ -1,6 +1,7 @@
 import time
 import numpy as np
 import torch
+from sklearn.datasets import load_diabetes
 
 from marble_core import Core, DataLoader
 from marble_neuronenblitz import Neuronenblitz
@@ -15,6 +16,14 @@ def generate_dataset(n_samples: int = 50, seed: int = 0):
     xs = rng.uniform(-1.0, 1.0, size=n_samples)
     ys = np.sin(xs * np.pi)
     return list(zip(xs.tolist(), ys.tolist()))
+
+
+def load_real_dataset(n_samples: int = 100):
+    """Load a real regression dataset and return (input, target) pairs."""
+    data = load_diabetes()
+    xs = data.data[:n_samples, 0]
+    ys = data.target[:n_samples]
+    return list(zip(xs.astype(float).tolist(), ys.astype(float).tolist()))
 
 
 def train_marble(train_data, val_data, epochs: int = 10):
@@ -59,12 +68,12 @@ def train_autograd(train_data, val_data, epochs: int = 10, learning_rate: float 
 
 def run_benchmark():
     """Run both training modes and return their validation losses and durations."""
-    data = generate_dataset()
-    train_data = data[:40]
-    val_data = data[40:]
+    data = load_real_dataset()
+    train_data = data[:80]
+    val_data = data[80:]
 
-    marble_loss, marble_time = train_marble(train_data, val_data)
-    autograd_loss, autograd_time = train_autograd(train_data, val_data)
+    marble_loss, marble_time = train_marble(train_data, val_data, epochs=10)
+    autograd_loss, autograd_time = train_autograd(train_data, val_data, epochs=10)
 
     results = {
         "marble": {"loss": marble_loss, "time": marble_time},
