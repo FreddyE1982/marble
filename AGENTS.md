@@ -10,3 +10,12 @@
    configuration YAML in detail and describing the purpose of each parameter.
    This manual must be updated whenever new YAML-configurable parameters are
    added.
+7. Descriptions in `yaml-manual.txt` must be thorough. Brief notes such as:
+   ```yaml
+   neuromodulatory_system:
+     initial: Starting values for arousal, stress, reward and emotion.
+   ```
+   are insufficient. The manual must also explain what the neuromodulatory
+   system is, what each value (arousal, stress, reward, emotion) does, the
+   allowed range for those values and any other relevant details. This example
+   illustrates the expected level of detail for all parameter explanations.
