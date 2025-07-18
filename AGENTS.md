@@ -1,1 +1,2 @@
-NO existing functions, functionality or algorythms may be simplified in any way if they are modified in any way. 
+1. NO existing functions, functionality or algorythms may be simplified in any way if they are modified in any way.
+2. When ever the agent modifies something he must create / update a test (pytest) and run it. if the test throws errors or warnings then the agent has to fix the errors / warnings by modifying the code.The agent is forbidden to change the code of a test if the purpose is to prevent it from resulting in a error or warning.
