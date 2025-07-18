@@ -18,3 +18,11 @@ def test_marble_dataloader_array_roundtrip():
     tensor = dl.encode_array(arr)
     restored = dl.decode_array(tensor)
     assert np.array_equal(restored, arr)
+
+
+def test_marble_dataloader_disable_compression():
+    dl = DataLoader(compression_enabled=False)
+    data = {"x": 42}
+    tensor = dl.encode(data)
+    restored = dl.decode(tensor)
+    assert restored == data
