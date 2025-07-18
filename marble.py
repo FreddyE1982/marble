@@ -137,7 +137,7 @@ class MetricsVisualizer:
         plt.show()
 
 # -----------------------------------------------------
-# 4. MARBLE System – internal modules
+# 4. MARBLE System Â– internal modules
 # -----------------------------------------------------
 
 # 4.1 Neuron and Synapse
@@ -170,7 +170,7 @@ def compute_mandelbrot(xmin, xmax, ymin, ymax, width, height, max_iter=256):
         mandelbrot[mask] = i
     return mandelbrot
 
-# 4.3 Core – Build the neural core (supports multiple worlds: VRAM, RAM, disk)
+# 4.3 Core Â– Build the neural core (supports multiple worlds: VRAM, RAM, disk)
 class Core:
     def __init__(self, params, formula=None, formula_num_neurons=100):
         print("Initializing MARBLE Core...")
@@ -252,7 +252,7 @@ class Core:
         print(f"Core expanded: {num_new_neurons} new neurons in {new_tier} and {num_new_synapses} new synapses added.")
         self.check_memory_usage()
 
-# 4.4 DataLoader – Serialization and Compression
+# 4.4 DataLoader Â– Serialization and Compression
 class DataLoader:
     def encode(self, data):
         serialized = pickle.dumps(data)
@@ -266,7 +266,7 @@ class DataLoader:
         data = pickle.loads(serialized)
         return data
 
-# 4.5 Neuronenblitz – Dynamic wandering, training, structural plasticity, splitting and merging of blitz processes
+# 4.5 Neuronenblitz Â– Dynamic wandering, training, structural plasticity, splitting and merging of blitz processes
 class Neuronenblitz:
     def __init__(self, core,
                  backtrack_probability=0.3,
@@ -430,7 +430,7 @@ class Neuronenblitz:
     def get_training_history(self):
         return self.training_history
 
-# 4.6 Brain – Integration of training, validation, inference, model saving, auto-firing, and dreaming
+# 4.6 Brain Â– Integration of training, validation, inference, model saving, auto-firing, and dreaming
 class Brain:
     def __init__(self, core, neuronenblitz, dataloader, save_threshold=0.05, max_saved_models=5, save_dir="saved_models", firing_interval_ms=500):
         self.core = core
@@ -559,7 +559,7 @@ class Brain:
         print(f"Global Activation Count: {self.neuronenblitz.global_activation_count}")
         print("-----------------------")
 
-# 4.7 BenchmarkManager – Compare MARBLE metrics with target metrics or a PyTorch model
+# 4.7 BenchmarkManager Â– Compare MARBLE metrics with target metrics or a PyTorch model
 class BenchmarkManager:
     def __init__(self, marble_system, target_metrics=None):
         self.marble = marble_system
@@ -602,7 +602,7 @@ class BenchmarkManager:
             if 'inference_time' in self.target_metrics:
                 print(f"Inference time diff: {current_inference_time - self.target_metrics['inference_time']:.4f}")
 
-# 4.8 MarbleConverter – Converts a PyTorch model (e.g., text-encoder) into a MARBLE Core.
+# 4.8 MarbleConverter Â– Converts a PyTorch model (e.g., text-encoder) into a MARBLE Core.
 #     Extended with an option to initialize from model weights.
 class MarbleConverter:
     @staticmethod
@@ -660,7 +660,7 @@ class MarbleConverter:
         return new_core
 
 # -----------------------------------------------------
-# 5. MARBLE Class – Container for the entire MARBLE system
+# 5. MARBLE Class Â– Container for the entire MARBLE system
 # -----------------------------------------------------
 class MARBLE:
     """
@@ -752,12 +752,12 @@ class MARBLE:
         return self.benchmark_manager
 
 # -----------------------------------------------------
-# 6. BenchmarkManager – Compare MARBLE metrics with target metrics or a PyTorch model
+# 6. BenchmarkManager Â– Compare MARBLE metrics with target metrics or a PyTorch model
 # (Already defined above inside our consolidated code.)
 # -----------------------------------------------------
 
 # -----------------------------------------------------
-# 7. MarbleConverter – Converts a PyTorch model (e.g., text-encoder) into a MARBLE Core.
+# 7. MarbleConverter Â– Converts a PyTorch model (e.g., text-encoder) into a MARBLE Core.
 # (Already defined above.)
 # -----------------------------------------------------
 
@@ -778,12 +778,16 @@ if __name__ == '__main__':
         'ram_limit_mb': 1.0,
         'disk_limit_mb': 10
     }
+    if not torch.cuda.is_available():
+        params['ram_limit_mb'] += params.get('vram_limit_mb', 0)
+        params['vram_limit_mb'] = 0
     formula = "log(1+T)/log(1+I)"
     from diffusers import StableDiffusionPipeline
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     pipe = StableDiffusionPipeline.from_pretrained(
         "stabilityai/stable-diffusion-3.5-large",
         torch_dtype=torch.bfloat16
-    ).to("cuda")
+    ).to(device)
     # Instantiate the MARBLE system with the option to initialize from weights.
     marble_system = MARBLE(params, formula=formula, formula_num_neurons=100, converter_model=pipe.text_encoder, init_from_weights=True)
     core = marble_system.get_core()

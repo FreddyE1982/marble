@@ -76,14 +76,18 @@ if __name__ == '__main__':
         'ram_limit_mb': 1.0,
         'disk_limit_mb': 10
     }
+    if not torch.cuda.is_available():
+        params['ram_limit_mb'] += params.get('vram_limit_mb', 0)
+        params['vram_limit_mb'] = 0
     formula = "log(1+T)/log(1+I)"
 
     # Initialize MARBLE system
     from diffusers import StableDiffusionPipeline
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     pipe = StableDiffusionPipeline.from_pretrained(
         "stabilityai/stable-diffusion-3.5-large",
         torch_dtype=torch.bfloat16
-    ).to("cuda")
+    ).to(device)
     
     marble_system = MARBLE(params, formula=formula, formula_num_neurons=100, 
                           converter_model=pipe.text_encoder, init_from_weights=True)
