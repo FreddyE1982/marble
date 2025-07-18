@@ -394,6 +394,17 @@ metrics_visualizer:
     points.
   dpi: Resolution of the output figure in dots per inch.
 
+metrics_dashboard:
+  # Optional web dashboard built with Plotly Dash for real-time monitoring.
+  # When enabled a small HTTP server serves a page that visualizes the same
+  # metrics collected by ``MetricsVisualizer`` but updates automatically in the
+  # browser. This is useful when running training remotely and you still want
+  # to monitor progress live.
+  enabled: Set to ``true`` to start the dashboard in a background thread.
+  host: Interface address for the Dash server, usually ``"localhost"``.
+  port: TCP port used by the dashboard. Ensure this port is free.
+  update_interval: Milliseconds between refreshes of the dashboard graphs.
+
 lobe_manager:
   # Parameters controlling how strongly neuron attention is adjusted when the
   # ``LobeManager`` performs self-attention.

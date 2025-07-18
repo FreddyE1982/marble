@@ -104,6 +104,7 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
         torrent_client.connect()
 
     mv_params = cfg.get("metrics_visualizer", {})
+    dashboard_params = cfg.get("metrics_dashboard", {})
 
     marble = MARBLE(
         core_params,
@@ -115,6 +116,7 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
         remote_client=remote_client,
         torrent_client=torrent_client,
         mv_params=mv_params,
+        dashboard_params=dashboard_params,
     )
     if remote_server is not None:
         marble.remote_server = remote_server
