@@ -4,7 +4,7 @@ from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain, BenchmarkManager
 
 class MARBLE:
-    def __init__(self, params, formula=None, formula_num_neurons=100, converter_model=None, nb_params=None, brain_params=None, init_from_weights=False, remote_client=None):
+    def __init__(self, params, formula=None, formula_num_neurons=100, converter_model=None, nb_params=None, brain_params=None, init_from_weights=False, remote_client=None, torrent_client=None):
         if converter_model is not None:
             self.core = MarbleConverter.convert(converter_model, mode='sequential', core_params=params, init_from_weights=init_from_weights)
         else:
@@ -29,7 +29,11 @@ class MARBLE:
         }
         if nb_params is not None:
             nb_defaults.update(nb_params)
-        self.neuronenblitz = Neuronenblitz(self.core, remote_client=remote_client, **nb_defaults)
+        self.torrent_map = {}
+        self.neuronenblitz = Neuronenblitz(self.core, remote_client=remote_client,
+                                           torrent_client=torrent_client,
+                                           torrent_map=self.torrent_map,
+                                           **nb_defaults)
         
         brain_defaults = {
             'save_threshold': 0.05,
@@ -39,7 +43,11 @@ class MARBLE:
         }
         if brain_params is not None:
             brain_defaults.update(brain_params)
-        self.brain = Brain(self.core, self.neuronenblitz, self.dataloader, remote_client=remote_client, **brain_defaults)
+        self.brain = Brain(self.core, self.neuronenblitz, self.dataloader,
+                           remote_client=remote_client,
+                           torrent_client=torrent_client,
+                           torrent_map=self.torrent_map,
+                           **brain_defaults)
         
         self.metrics_visualizer = MetricsVisualizer()
         self.benchmark_manager = BenchmarkManager(self)

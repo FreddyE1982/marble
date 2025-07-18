@@ -9,7 +9,7 @@ class Brain:
     def __init__(self, core, neuronenblitz, dataloader, save_threshold=0.05,
                  max_saved_models=5, save_dir="saved_models", firing_interval_ms=500,
                  neuromodulatory_system=None, meta_controller=None, memory_system=None,
-                 remote_client=None):
+                 remote_client=None, torrent_client=None, torrent_map=None):
         self.core = core
         self.neuronenblitz = neuronenblitz
         self.dataloader = dataloader
@@ -31,6 +31,8 @@ class Brain:
         self.lobe_manager = LobeManager(core)
         self.neurogenesis_factor = 1.0
         self.remote_client = remote_client
+        self.torrent_client = torrent_client
+        self.torrent_map = torrent_map if torrent_map is not None else {}
         self.last_val_loss = None
         self.tier_decision_params = {
             'vram_usage_threshold': 0.9,
@@ -284,6 +286,18 @@ class Brain:
         for nid in ids:
             self.core.neurons[nid].tier = 'remote'
         self.remote_client.offload(subcore)
+
+    def offload_high_attention_torrent(self, threshold=1.0):
+        if self.torrent_client is None:
+            return
+        ids = self.lobe_manager.select_high_attention(threshold)
+        if not ids:
+            return
+        subcore = self.core.extract_subcore(ids)
+        part = self.torrent_client.offload(subcore)
+        for nid in ids:
+            self.core.neurons[nid].tier = 'torrent'
+            self.torrent_map[nid] = part
 
     def display_live_status(self, validation_examples):
         status = self.core.get_detailed_status()
