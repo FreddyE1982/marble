@@ -1,5 +1,5 @@
 from marble_imports import *
-from marble_core import Neuron, Synapse, NEURON_TYPES
+from marble_core import Neuron, Synapse, NEURON_TYPES, perform_message_passing
 
 class Neuronenblitz:
     def __init__(self, core,
@@ -198,6 +198,7 @@ class Neuronenblitz:
             if avg_error > 0.1:
                 self.core.expand(num_new_neurons=10, num_new_synapses=15, alternative_connection_prob=self.alternative_connection_prob)
             self.core.synapses = [s for s in self.core.synapses if abs(s.weight) >= 0.05]
+            perform_message_passing(self.core)
 
     def get_training_history(self):
         return self.training_history

@@ -1,5 +1,38 @@
 from marble_imports import *
 
+# Representation size for GNN-style message passing
+_REP_SIZE = 4
+_RS = np.random.RandomState(0)
+_W1 = _RS.randn(_REP_SIZE, 8) * 0.1
+_B1 = _RS.randn(8) * 0.1
+_W2 = _RS.randn(8, _REP_SIZE) * 0.1
+_B2 = _RS.randn(_REP_SIZE) * 0.1
+
+
+def _simple_mlp(x: np.ndarray) -> np.ndarray:
+    """Tiny MLP with one hidden layer and tanh activations."""
+    h = np.tanh(x @ _W1 + _B1)
+    return np.tanh(h @ _W2 + _B2)
+
+
+def perform_message_passing(core, alpha: float = 0.5) -> None:
+    """Propagate representations across synapses using attention."""
+    new_reps = [n.representation.copy() for n in core.neurons]
+    for target in core.neurons:
+        incoming = [s for s in core.synapses if s.target == target.id]
+        if not incoming:
+            continue
+        neigh_reps = [core.neurons[s.source].representation * s.weight for s in incoming]
+        if not neigh_reps:
+            continue
+        dots = np.array([float(np.dot(target.representation, nr)) for nr in neigh_reps])
+        exps = np.exp(dots - np.max(dots))
+        attn = exps / exps.sum()
+        agg = sum(attn[i] * neigh_reps[i] for i in range(len(neigh_reps)))
+        new_reps[target.id] = alpha * target.representation + (1 - alpha) * _simple_mlp(agg)
+    for idx, rep in enumerate(new_reps):
+        core.neurons[idx].representation = rep
+
 # List of supported neuron types
 NEURON_TYPES = ["standard", "excitatory", "inhibitory", "modulatory"]
 
@@ -64,7 +97,7 @@ class FileTier(Tier):
         return modified_data
 
 class Neuron:
-    def __init__(self, nid, value=0.0, tier='vram', neuron_type='standard'):
+    def __init__(self, nid, value=0.0, tier='vram', neuron_type='standard', rep_size=_REP_SIZE):
         self.id = nid
         self.value = value
         self.tier = tier
@@ -74,6 +107,7 @@ class Neuron:
         self.created_at = datetime.now()
         self.cluster_id = None
         self.attention_score = 0.0
+        self.representation = np.zeros(rep_size, dtype=float)
 
 class Synapse:
     def __init__(self, source, target, weight=1.0):
