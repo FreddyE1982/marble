@@ -132,7 +132,8 @@ class Neuronenblitz:
     def dynamic_wander(self, input_value):
         for neuron in self.core.neurons:
             neuron.value = None
-        entry_neuron = random.choice(self.core.neurons)
+        candidates = [n for n in self.core.neurons if n.synapses]
+        entry_neuron = random.choice(candidates) if candidates else random.choice(self.core.neurons)
         entry_neuron.value = input_value
         initial_path = [(entry_neuron, None)]
         results = self._wander(entry_neuron, initial_path, 1.0)

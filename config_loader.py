@@ -44,10 +44,10 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
     neuromod_system = NeuromodulatorySystem(initial=ns_init)
 
     # Memory system
-    long_term_path = cfg.get("memory_system", {}).get(
-        "long_term_path", "long_term_memory.pkl"
-    )
-    memory_system = MemorySystem(long_term_path)
+    memory_cfg = cfg.get("memory_system", {})
+    long_term_path = memory_cfg.get("long_term_path", "long_term_memory.pkl")
+    threshold = memory_cfg.get("threshold", 0.5)
+    memory_system = MemorySystem(long_term_path, threshold=threshold)
 
     brain_params.update({
         "neuromodulatory_system": neuromod_system,

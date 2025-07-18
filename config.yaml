@@ -49,6 +49,7 @@ neuromodulatory_system:
     emotion: "neutral"
 memory_system:
   long_term_path: "long_term_memory.pkl"
+  threshold: 0.5
 remote_client:
   url: "http://localhost:8001"
   timeout: 5.0
