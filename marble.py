@@ -14,12 +14,13 @@ from io import BytesIO
 import matplotlib.pyplot as plt
 import pickle
 import zlib
+from data_compressor import DataCompressor
 import random
 import math
 import sympy as sp
 import threading
 from datetime import datetime
-import cupy as cp
+from marble_imports import cp
 import torch.nn as nn
 
 
@@ -258,17 +259,47 @@ class Core:
 
 # 4.4 DataLoader  Serialization and Compression
 class DataLoader:
+    """Encode and decode objects using :class:`DataCompressor`."""
+
+    def __init__(
+        self,
+        compressor: "DataCompressor | None" = None,
+        compression_level: int = 6,
+        metrics_visualizer: "MetricsVisualizer | None" = None,
+    ) -> None:
+        self.compressor = compressor if compressor is not None else DataCompressor(level=compression_level)
+        self.metrics_visualizer = metrics_visualizer
+
     def encode(self, data):
         serialized = pickle.dumps(data)
-        compressed = zlib.compress(serialized)
-        tensor = np.frombuffer(compressed, dtype=np.uint8)
-        return tensor
+        compressed = self.compressor.compress(serialized)
+        if self.metrics_visualizer is not None:
+            ratio = len(compressed) / max(len(serialized), 1)
+            self.metrics_visualizer.update({"compression_ratio": ratio})
+        return np.frombuffer(compressed, dtype=np.uint8)
 
     def decode(self, tensor):
         compressed = tensor.tobytes()
-        serialized = zlib.decompress(compressed)
-        data = pickle.loads(serialized)
-        return data
+        serialized = self.compressor.decompress(compressed)
+        if self.metrics_visualizer is not None:
+            ratio = len(compressed) / max(len(serialized), 1)
+            self.metrics_visualizer.update({"compression_ratio": ratio})
+        return pickle.loads(serialized)
+
+    def encode_array(self, array: np.ndarray) -> np.ndarray:
+        compressed = self.compressor.compress_array(array)
+        if self.metrics_visualizer is not None:
+            ratio = len(compressed) / max(array.nbytes, 1)
+            self.metrics_visualizer.update({"compression_ratio": ratio})
+        return np.frombuffer(compressed, dtype=np.uint8)
+
+    def decode_array(self, tensor: np.ndarray) -> np.ndarray:
+        compressed = tensor.tobytes()
+        array = self.compressor.decompress_array(compressed)
+        if self.metrics_visualizer is not None:
+            ratio = len(compressed) / max(array.nbytes, 1)
+            self.metrics_visualizer.update({"compression_ratio": ratio})
+        return array
 
 # 4.5 Neuronenblitz  Dynamic wandering, training, structural plasticity, splitting and merging of blitz processes
 class Neuronenblitz:
