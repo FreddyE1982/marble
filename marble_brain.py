@@ -9,7 +9,8 @@ class Brain:
     def __init__(self, core, neuronenblitz, dataloader, save_threshold=0.05,
                  max_saved_models=5, save_dir="saved_models", firing_interval_ms=500,
                  neuromodulatory_system=None, meta_controller=None, memory_system=None,
-                 remote_client=None, torrent_client=None, torrent_map=None):
+                 remote_client=None, torrent_client=None, torrent_map=None,
+                 tier_decision_params=None):
         self.core = core
         self.neuronenblitz = neuronenblitz
         self.dataloader = dataloader
@@ -34,7 +35,7 @@ class Brain:
         self.torrent_client = torrent_client
         self.torrent_map = torrent_map if torrent_map is not None else {}
         self.last_val_loss = None
-        self.tier_decision_params = {
+        self.tier_decision_params = tier_decision_params if tier_decision_params is not None else {
             'vram_usage_threshold': 0.9,
             'ram_usage_threshold': 0.9
         }
