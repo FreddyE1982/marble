@@ -1,23 +1,35 @@
 import random
 from typing import Dict, List, Set
 from marble_neuronenblitz import Neuronenblitz
-from marble_core import Core, DataLoader
+from marble_core import Core
+from queue import Queue, Empty, Full
+from concurrent.futures import Future
+import threading
 
 class BrainTorrentClient:
-    """Simple client that holds assigned brain parts and executes them."""
+    """Simple client that holds assigned brain parts and executes them.
 
-    def __init__(self, client_id: str, tracker: 'BrainTorrentTracker'):
+    Added asynchronous processing with a buffering queue for tasks.
+    """
+
+    def __init__(self, client_id: str, tracker: 'BrainTorrentTracker', buffer_size: int = 10):
         self.client_id = client_id
         self.tracker = tracker
         self.parts: Set[int] = set()
         self.neuronenblitzes: Dict[int, Neuronenblitz] = {}
         self.online = False
 
+        # asynchronous processing state
+        self.buffer: Queue = Queue(maxsize=buffer_size)
+        self.worker_thread = None
+        self.running = False
+
     def connect(self):
         """Register with the tracker."""
         if not self.online:
             self.online = True
             self.tracker.register_client(self)
+            self._start_worker()
 
     def disconnect(self):
         """Unregister from the tracker and clear parts."""
@@ -25,6 +37,7 @@ class BrainTorrentClient:
             self.tracker.deregister_client(self.client_id)
             self.parts.clear()
             self.neuronenblitzes.clear()
+            self._stop_worker()
             self.online = False
 
     def add_part(self, part: int):
@@ -48,6 +61,47 @@ class BrainTorrentClient:
             return value
         output, _ = nb.dynamic_wander(value)
         return output
+
+    # -- asynchronous processing -------------------------------------------
+    def _start_worker(self) -> None:
+        if self.running:
+            return
+        self.running = True
+        self.worker_thread = threading.Thread(target=self._worker_loop, daemon=True)
+        self.worker_thread.start()
+
+    def _stop_worker(self) -> None:
+        self.running = False
+        if self.worker_thread:
+            self.worker_thread.join()
+            self.worker_thread = None
+
+    def _worker_loop(self) -> None:
+        while self.running:
+            try:
+                value, part, future = self.buffer.get(timeout=0.1)
+            except Empty:
+                continue
+            try:
+                result = self.process(value, part)
+                future.set_result(result)
+            except Exception as e:
+                future.set_exception(e)
+            finally:
+                self.buffer.task_done()
+
+    def process_async(self, value: float, part: int, timeout: float = 1.0) -> Future:
+        """Queue a value for asynchronous processing.
+
+        Returns a Future that will hold the result. Raises BufferError if the
+        internal buffer is full.
+        """
+        fut: Future = Future()
+        try:
+            self.buffer.put((value, part, fut), timeout=timeout)
+        except Full:
+            raise BufferError(f"Buffer full for client {self.client_id}")
+        return fut
 
 
 class BrainTorrentTracker:
