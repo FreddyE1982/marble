@@ -95,6 +95,7 @@ class Brain:
         self.dream_thread = None
         self.best_validation_loss = float("inf")
         self.saved_model_paths = []
+        self.last_chain_of_thought = []
         self.neuromodulatory_system = (
             neuromodulatory_system
             if neuromodulatory_system is not None
@@ -357,6 +358,26 @@ class Brain:
             self.core = data["core"]
             self.neuronenblitz = data["neuronenblitz"]
         print(f"Model loaded from {filepath}")
+
+    def generate_chain_of_thought(self, input_value):
+        """Return output and a chain of reasoning steps for the given input."""
+        output, path = self.neuronenblitz.dynamic_wander(input_value)
+        chain = []
+        prev_val = input_value
+        for syn in path:
+            to_val = self.core.neurons[syn.target].value
+            chain.append(
+                {
+                    "from": syn.source,
+                    "to": syn.target,
+                    "weight": syn.weight,
+                    "input": prev_val,
+                    "output": to_val,
+                }
+            )
+            prev_val = to_val
+        self.last_chain_of_thought = chain
+        return output, chain
 
     def store_memory(self, key, value):
         layer = self.memory_system.choose_layer(
