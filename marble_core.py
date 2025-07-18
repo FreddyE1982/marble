@@ -202,8 +202,8 @@ class MemorySystem:
 
 
 class DataLoader:
-    def __init__(self, compressor: DataCompressor | None = None):
-        self.compressor = compressor if compressor is not None else DataCompressor()
+    def __init__(self, compressor: DataCompressor | None = None, compression_level: int = 6):
+        self.compressor = compressor if compressor is not None else DataCompressor(level=compression_level)
 
     def encode(self, data):
         serialized = pickle.dumps(data)

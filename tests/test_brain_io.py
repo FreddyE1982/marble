@@ -59,3 +59,12 @@ def test_brain_neuromodulatory_system_integration():
     brain = Brain(core, nb, DataLoader(), neuromodulatory_system=ns, save_dir="saved_models")
     ns.update_signals(arousal=0.2)
     assert brain.neuromodulatory_system.get_context()['arousal'] == 0.2
+
+
+def test_brain_dream_defaults():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    brain = Brain(core, nb, DataLoader(), dream_num_cycles=3, dream_interval=2)
+    assert brain.dream_num_cycles == 3
+    assert brain.dream_interval == 2
