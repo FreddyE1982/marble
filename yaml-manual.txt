@@ -108,6 +108,10 @@ memory_system:
   # required.
   long_term_path: Path to the file used for persistent long-term storage of
     memories.
+  threshold: When ``arousal`` or ``reward`` exceed this value the
+    ``MemorySystem`` stores new entries directly in the long-term layer instead
+    of the short-term layer. Typical values range from 0.3 to 0.7 depending on
+    how aggressively long-term consolidation should occur.
 
 remote_client:
   # Configuration for forwarding parts of the brain to a remote server. When

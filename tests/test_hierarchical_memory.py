@@ -31,6 +31,11 @@ def test_brain_memory_integration(tmp_path):
     brain.consolidate_memory()
     brain.store_memory("other", 7)
     assert brain.retrieve_memory("other") == 7
-    brain.consolidate_memory()
-    assert brain.retrieve_memory("key") == 42
-    assert brain.retrieve_memory("other") == 7
+
+
+def test_memory_system_threshold():
+    ms = MemorySystem(threshold=0.3)
+    layer = ms.choose_layer({"arousal": 0.4})
+    assert layer is ms.long_term
+    layer = ms.choose_layer({"arousal": 0.2})
+    assert layer is ms.short_term

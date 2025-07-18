@@ -24,6 +24,7 @@ def test_load_config_defaults():
     assert cfg['brain']['mutation_rate'] == 0.01
     assert cfg['brain']['mutation_strength'] == 0.05
     assert cfg['brain']['prune_threshold'] == 0.01
+    assert cfg['memory_system']['threshold'] == 0.5
 
 
 def test_create_marble_from_config():
@@ -38,3 +39,4 @@ def test_create_marble_from_config():
     assert marble.brain.mutation_rate == 0.01
     assert marble.brain.mutation_strength == 0.05
     assert marble.brain.prune_threshold == 0.01
+    assert marble.brain.memory_system.threshold == 0.5

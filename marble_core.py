@@ -182,9 +182,10 @@ class LongTermMemory:
 class MemorySystem:
     """Hierarchical memory with short- and long-term layers."""
 
-    def __init__(self, long_term_path="long_term_memory.pkl"):
+    def __init__(self, long_term_path="long_term_memory.pkl", threshold: float = 0.5):
         self.short_term = ShortTermMemory()
         self.long_term = LongTermMemory(long_term_path)
+        self.threshold = threshold
 
     def consolidate(self):
         for k, v in list(self.short_term.data.items()):
@@ -192,7 +193,10 @@ class MemorySystem:
         self.short_term.clear()
 
     def choose_layer(self, context):
-        if context.get("arousal", 0) > 0.5 or context.get("reward", 0) > 0.5:
+        if (
+            context.get("arousal", 0) > self.threshold
+            or context.get("reward", 0) > self.threshold
+        ):
             return self.long_term
         return self.short_term
 
