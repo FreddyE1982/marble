@@ -1,7 +1,7 @@
 import os, sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from marble_core import Core, DataLoader
+from marble_core import Core, DataLoader, NEURON_TYPES
 from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain
 import pytest
@@ -28,8 +28,9 @@ def test_brain_perform_neurogenesis():
     brain = Brain(core, nb, DataLoader(), neuromodulatory_system=ns)
     initial_neurons = len(core.neurons)
     ns.update_signals(arousal=0.5)
-    added_neurons, _ = brain.perform_neurogenesis(base_neurons=2, base_synapses=2)
+    added_neurons, _, n_type = brain.perform_neurogenesis(base_neurons=2, base_synapses=2)
     assert len(core.neurons) >= initial_neurons + added_neurons
+    assert n_type in NEURON_TYPES
 
 
 def test_neurogenesis_factor_update():
@@ -58,3 +59,24 @@ def test_structural_plasticity_modulation():
     mod = 1.0 + 0.5 - 0.0
     new_syn = core.synapses[-2]
     assert new_syn.weight == pytest.approx(syn.weight * 1.5 * mod)
+
+
+def test_preferred_neuron_type_selection():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    path = [core.neurons[0].synapses[0]]
+    nb.update_attention(path, error=1.0)
+    preferred = nb.get_preferred_neuron_type()
+    assert preferred in NEURON_TYPES
+
+
+def test_brain_neurogenesis_returns_type():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    brain = Brain(core, nb, DataLoader())
+    nb.type_attention['excitatory'] = 1.0
+    added, _, ntype = brain.perform_neurogenesis(base_neurons=1, base_synapses=0)
+    assert added >= 1
+    assert ntype == 'excitatory'

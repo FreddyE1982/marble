@@ -1,5 +1,5 @@
 from marble_imports import *
-from marble_core import Neuron, Synapse
+from marble_core import Neuron, Synapse, NEURON_TYPES
 
 class Neuronenblitz:
     def __init__(self, core,
@@ -35,6 +35,7 @@ class Neuronenblitz:
         self.training_history = []
         self.global_activation_count = 0
         self.last_context = {}
+        self.type_attention = {nt: 0.0 for nt in NEURON_TYPES}
 
     def modulate_plasticity(self, context):
         """Adjust plasticity_threshold based on neuromodulatory context."""
@@ -145,6 +146,21 @@ class Neuronenblitz:
                 self.core.synapses = [s for s in self.core.synapses if s != syn]
                 print(f"Structural plasticity: Replaced synapse from {source.id} (tier {source.tier}) to {target.id} with new neuron {new_id} in tier {new_tier}.")
 
+    def update_attention(self, path, error):
+        path_len = len(path)
+        for syn in path:
+            n_type = self.core.neurons[syn.target].neuron_type
+            score = abs(error) / max(path_len, 1)
+            self.type_attention[n_type] += score
+
+    def get_preferred_neuron_type(self):
+        if not any(self.type_attention.values()):
+            return 'standard'
+        best = max(self.type_attention.items(), key=lambda x: x[1])[0]
+        for k in self.type_attention:
+            self.type_attention[k] *= 0.9
+        return best
+
     def train_example(self, input_value, target_value):
         output_value, path = self.dynamic_wander(input_value)
         error = self.loss_fn(target_value, output_value)
@@ -160,6 +176,8 @@ class Neuronenblitz:
         if path:
             last_neuron = self.core.neurons[path[-1].target]
             last_neuron.attention_score += abs(error)
+        if path:
+            self.update_attention(path, error)
         self.training_history.append({
             'input': input_value,
             'target': target_value,

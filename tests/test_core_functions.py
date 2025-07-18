@@ -54,6 +54,14 @@ def test_core_expand_adds_neurons():
     core.expand(num_new_neurons=2, num_new_synapses=2)
     assert len(core.neurons) >= initial_neurons + 2
 
+def test_core_expand_assigns_types():
+    random.seed(0)
+    params = minimal_params()
+    core = Core(params)
+    core.expand(num_new_neurons=3, num_new_synapses=0, neuron_types=['excitatory'])
+    types = {n.neuron_type for n in core.neurons[-3:]}
+    assert types == {'excitatory'}
+
 
 def test_neuronenblitz_train_example_updates_history():
     random.seed(0)
