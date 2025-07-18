@@ -22,6 +22,28 @@ core:
     passing. ``0.0`` relies entirely on new information, while ``1.0`` keeps the
     original representation unchanged. Typical values range from 0.3 to 0.8
     depending on how aggressively information should propagate.
+  weight_init_min: Lower bound for initial synapse weights when the core builds
+    its default connectivity. Values below ``0.0`` allow inhibitory links while
+    higher values force excitatory starts.
+  weight_init_max: Upper bound for initial synapse weights. Keeping this near
+    ``1.5`` maintains moderate signal strength but it may be increased for more
+    aggressive dynamics.
+  mandelbrot_escape_radius: Escape radius used when computing the Mandelbrot
+    seed. Increasing this explores a wider region of the complex plane.
+  mandelbrot_power: Power applied during Mandelbrot iterations. ``2`` produces
+    the classic set while higher integers create different fractal patterns.
+  tier_autotune_enabled: When true the core monitors tier usage and adjusts
+    limits based on ``vram_limit_mb`` and ``ram_limit_mb``.
+  memory_cleanup_interval: Seconds between automated clean-up passes that remove
+    expired objects from lower tiers.
+  representation_noise_std: Standard deviation of Gaussian noise added to
+    representations after each message passing step.
+  gradient_clip_value: Absolute value used to clip weight updates during
+    training. ``0`` disables clipping.
+  message_passing_iterations: Number of times the message passing routine runs
+    per training step. Increasing this deepens information flow but costs time.
+  cluster_algorithm: Name of the clustering method used by ``cluster_neurons``;
+    ``"kmeans"`` is the current default.
   vram_limit_mb: Maximum megabytes of GPU memory dedicated to VRAM tiers. If
     CUDA is unavailable this limit is merged into RAM.
   ram_limit_mb: Maximum megabytes of system memory used for RAM tiers.
@@ -71,6 +93,26 @@ neuronenblitz:
   max_wander_depth: Maximum recursion depth allowed in ``dynamic_wander``.
     Limits exploration of extremely long paths.
   learning_rate: Scalar applied to weight updates produced by ``weight_update_fn``.
+  weight_decay: Proportional decrease applied to all synapse weights each epoch
+    to prevent uncontrolled growth. ``0.0`` disables this effect.
+  dropout_probability: Fraction of synapses temporarily ignored during training
+    to improve robustness.
+  exploration_decay: Rate at which the exploration bonus diminishes over time.
+    Values slightly below ``1.0`` gradually reduce random behaviour.
+  reward_scale: Multiplier applied to reward signals before they adjust
+    plasticity.
+  stress_scale: Multiplier applied to stress signals before they reduce
+    plasticity.
+  remote_fallback: When true, neurons attempting remote execution fall back to
+    local processing if the remote call fails.
+  noise_injection_std: Standard deviation of Gaussian noise injected into neuron
+    activations during training.
+  dynamic_attention_enabled: Enables per-type attention updates in
+    ``update_attention``. Disabling keeps attention static.
+  backtrack_depth_limit: Maximum distance for which backtracking may revisit
+    previous neurons when ``backtrack_enabled`` is true.
+  synapse_update_cap: Absolute limit applied to single weight updates to avoid
+    extreme jumps.
   structural_plasticity_enabled: When false, ``apply_structural_plasticity`` is
     skipped entirely.
   backtrack_enabled: If false, wandering never returns to previously visited
@@ -114,6 +156,22 @@ brain:
     ``perform_neurogenesis``.
   neurogenesis_base_synapses: Base number of synapses introduced alongside new
     neurons during neurogenesis when defaults are used.
+  max_training_epochs: Total number of epochs the training loop should run
+    before stopping automatically.
+  memory_cleanup_enabled: Toggles periodic removal of stale data from RAM and
+    disk tiers.
+  manual_seed: Random seed applied during initialization for reproducible
+    experiments.
+  log_interval: Number of batches between status log messages during training.
+  evaluation_interval: Number of epochs between validation runs.
+  early_stopping_patience: Number of consecutive epochs without improvement
+    before training halts early.
+  early_stopping_delta: Minimum decrease in validation loss considered an
+    improvement when checking early stopping.
+  auto_cluster_interval: Epoch interval between automatic clustering of neurons.
+  cluster_method: Algorithm used for clustering; ``"kmeans"`` is provided but
+    others may be added in future.
+  auto_save_enabled: Enables periodic saves controlled by ``auto_save_interval``.
   offload_threshold: Minimum lobe attention required before ``offload_high_attention``
     sends a subcore to the remote brain. Increasing this reduces how frequently
     offloading occurs.

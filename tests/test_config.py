@@ -18,6 +18,16 @@ def test_load_config_defaults():
     assert cfg["core"]["file_tier_path"] == "data/marble_file_tier.dat"
     assert "neuronenblitz" in cfg
     assert cfg["core"]["init_noise_std"] == 0.0
+    assert cfg["core"]["weight_init_min"] == 0.5
+    assert cfg["core"]["weight_init_max"] == 1.5
+    assert cfg["core"]["mandelbrot_escape_radius"] == 2.0
+    assert cfg["core"]["mandelbrot_power"] == 2
+    assert cfg["core"]["tier_autotune_enabled"] is True
+    assert cfg["core"]["memory_cleanup_interval"] == 60
+    assert cfg["core"]["representation_noise_std"] == 0.0
+    assert cfg["core"]["gradient_clip_value"] == 1.0
+    assert cfg["core"]["message_passing_iterations"] == 1
+    assert cfg["core"]["cluster_algorithm"] == "kmeans"
     assert cfg["brain"]["save_threshold"] == 0.05
     assert cfg["meta_controller"]["history_length"] == 5
     assert cfg["neuromodulatory_system"]["initial"]["emotion"] == "neutral"
@@ -36,6 +46,16 @@ def test_load_config_defaults():
     assert cfg["brain"]["dream_interval"] == 5
     assert cfg["brain"]["neurogenesis_base_neurons"] == 5
     assert cfg["brain"]["neurogenesis_base_synapses"] == 10
+    assert cfg["brain"]["max_training_epochs"] == 100
+    assert cfg["brain"]["memory_cleanup_enabled"] is True
+    assert cfg["brain"]["manual_seed"] == 0
+    assert cfg["brain"]["log_interval"] == 10
+    assert cfg["brain"]["evaluation_interval"] == 1
+    assert cfg["brain"]["early_stopping_patience"] == 5
+    assert cfg["brain"]["early_stopping_delta"] == 0.001
+    assert cfg["brain"]["auto_cluster_interval"] == 5
+    assert cfg["brain"]["cluster_method"] == "kmeans"
+    assert cfg["brain"]["auto_save_enabled"] is True
     assert cfg["brain"]["offload_threshold"] == 1.0
     assert cfg["brain"]["torrent_offload_threshold"] == 1.0
     assert cfg["brain"]["cluster_high_threshold"] == 1.0
@@ -49,6 +69,16 @@ def test_load_config_defaults():
     assert cfg["neuronenblitz"]["struct_weight_multiplier1"] == 1.5
     assert cfg["neuronenblitz"]["struct_weight_multiplier2"] == 1.2
     assert cfg["neuronenblitz"]["attention_decay"] == 0.9
+    assert cfg["neuronenblitz"]["weight_decay"] == 0.0
+    assert cfg["neuronenblitz"]["dropout_probability"] == 0.0
+    assert cfg["neuronenblitz"]["exploration_decay"] == 0.99
+    assert cfg["neuronenblitz"]["reward_scale"] == 1.0
+    assert cfg["neuronenblitz"]["stress_scale"] == 1.0
+    assert cfg["neuronenblitz"]["remote_fallback"] is False
+    assert cfg["neuronenblitz"]["noise_injection_std"] == 0.0
+    assert cfg["neuronenblitz"]["dynamic_attention_enabled"] is True
+    assert cfg["neuronenblitz"]["backtrack_depth_limit"] == 10
+    assert cfg["neuronenblitz"]["synapse_update_cap"] == 1.0
     assert cfg["memory_system"]["threshold"] == 0.5
     assert cfg["neuronenblitz"]["max_wander_depth"] == 100
     assert cfg["memory_system"]["consolidation_interval"] == 10
@@ -92,6 +122,16 @@ def test_create_marble_from_config():
     assert marble.brain.dream_num_cycles == 10
     assert marble.brain.dream_interval == 5
     assert marble.brain.auto_save_interval == 5
+    assert marble.brain.max_training_epochs == 100
+    assert marble.brain.memory_cleanup_enabled is True
+    assert marble.brain.manual_seed == 0
+    assert marble.brain.log_interval == 10
+    assert marble.brain.evaluation_interval == 1
+    assert marble.brain.early_stopping_patience == 5
+    assert marble.brain.early_stopping_delta == 0.001
+    assert marble.brain.auto_cluster_interval == 5
+    assert marble.brain.cluster_method == "kmeans"
+    assert marble.brain.auto_save_enabled is True
     assert marble.neuronenblitz.max_wander_depth == 100
     assert marble.dataloader.compressor.level == 6
     assert marble.core.rep_size == 4

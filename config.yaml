@@ -8,6 +8,16 @@ core:
   max_iter: 50
   representation_size: 4
   message_passing_alpha: 0.5
+  weight_init_min: 0.5
+  weight_init_max: 1.5
+  mandelbrot_escape_radius: 2.0
+  mandelbrot_power: 2
+  tier_autotune_enabled: true
+  memory_cleanup_interval: 60
+  representation_noise_std: 0.0
+  gradient_clip_value: 1.0
+  message_passing_iterations: 1
+  cluster_algorithm: "kmeans"
   vram_limit_mb: 0.5
   ram_limit_mb: 1.0
   disk_limit_mb: 10
@@ -31,6 +41,16 @@ neuronenblitz:
   attention_decay: 0.9
   max_wander_depth: 100
   learning_rate: 0.01
+  weight_decay: 0.0
+  dropout_probability: 0.0
+  exploration_decay: 0.99
+  reward_scale: 1.0
+  stress_scale: 1.0
+  remote_fallback: false
+  noise_injection_std: 0.0
+  dynamic_attention_enabled: true
+  backtrack_depth_limit: 10
+  synapse_update_cap: 1.0
   structural_plasticity_enabled: true
   backtrack_enabled: true
   loss_scale: 1.0
@@ -52,6 +72,16 @@ brain:
   dream_interval: 5
   neurogenesis_base_neurons: 5
   neurogenesis_base_synapses: 10
+  max_training_epochs: 100
+  memory_cleanup_enabled: true
+  manual_seed: 0
+  log_interval: 10
+  evaluation_interval: 1
+  early_stopping_patience: 5
+  early_stopping_delta: 0.001
+  auto_cluster_interval: 5
+  cluster_method: "kmeans"
+  auto_save_enabled: true
   offload_threshold: 1.0
   torrent_offload_threshold: 1.0
   cluster_high_threshold: 1.0
