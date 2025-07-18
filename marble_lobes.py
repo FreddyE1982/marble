@@ -50,3 +50,12 @@ class LobeManager:
                 factor = 1.0
             for nid in lobe.neuron_ids:
                 self.core.neurons[nid].attention_score *= factor
+
+    def select_high_attention(self, threshold=1.0):
+        """Return neuron IDs belonging to lobes with attention above ``threshold``."""
+        self.update_attention()
+        selected = []
+        for lobe in self.lobes:
+            if lobe.attention_score > threshold:
+                selected.extend(lobe.neuron_ids)
+        return selected
