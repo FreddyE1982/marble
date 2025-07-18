@@ -18,6 +18,8 @@ class Brain:
         self.firing_interval_ms = firing_interval_ms
         self.auto_fire_thread = None
         self.auto_fire_active = False
+        self.training_thread = None
+        self.training_active = False
         self.dreaming_active = False
         self.dream_thread = None
         self.best_validation_loss = float('inf')
@@ -172,6 +174,26 @@ class Brain:
 
     def consolidate_memory(self):
         self.memory_system.consolidate()
+
+    def start_training(self, train_examples, epochs=1, validation_examples=None):
+        """Begin training in a background thread."""
+        if self.training_active:
+            return
+        self.training_active = True
+
+        def train_loop():
+            try:
+                self.train(train_examples, epochs=epochs, validation_examples=validation_examples)
+            finally:
+                self.training_active = False
+
+        self.training_thread = threading.Thread(target=train_loop, daemon=True)
+        self.training_thread.start()
+
+    def wait_for_training(self):
+        """Block until background training finishes."""
+        if self.training_thread is not None:
+            self.training_thread.join()
 
     def start_auto_firing(self, input_generator=None):
         self.auto_fire_active = True
