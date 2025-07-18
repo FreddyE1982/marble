@@ -27,8 +27,22 @@ def _simple_mlp(x: np.ndarray) -> np.ndarray:
     return np.tanh(h @ _W2 + _B2)
 
 
-def perform_message_passing(core, alpha: float = 0.5) -> None:
-    """Propagate representations across synapses using attention."""
+def perform_message_passing(core, alpha: float | None = None) -> None:
+    """Propagate representations across synapses using attention.
+
+    Parameters
+    ----------
+    core : Core
+        The :class:`Core` instance containing neurons and synapses.
+    alpha : float, optional
+        Mixing factor between the current representation and the message-passing
+        update. If ``None`` the value is read from ``core.params`` using the
+        ``message_passing_alpha`` key (default ``0.5``).
+    """
+
+    if alpha is None:
+        alpha = core.params.get("message_passing_alpha", 0.5)
+
     new_reps = [n.representation.copy() for n in core.neurons]
     for target in core.neurons:
         incoming = [s for s in core.synapses if s.target == target.id]

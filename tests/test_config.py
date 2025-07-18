@@ -11,6 +11,7 @@ def test_load_config_defaults():
     assert 'core' in cfg
     assert cfg['core']['width'] == 30
     assert cfg['core']['representation_size'] == 4
+    assert cfg['core']['message_passing_alpha'] == 0.5
     assert cfg['core']['file_tier_path'] == 'data/marble_file_tier.dat'
     assert 'neuronenblitz' in cfg
     assert cfg['brain']['save_threshold'] == 0.05
@@ -53,3 +54,4 @@ def test_create_marble_from_config():
     assert marble.brain.dream_interval == 5
     assert marble.dataloader.compressor.level == 6
     assert marble.core.rep_size == 4
+    assert marble.core.params['message_passing_alpha'] == 0.5

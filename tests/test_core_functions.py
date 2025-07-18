@@ -19,6 +19,7 @@ def minimal_params():
         'height': 3,
         'max_iter': 5,
         'representation_size': 4,
+        'message_passing_alpha': 0.5,
         'vram_limit_mb': 0.1,
         'ram_limit_mb': 0.1,
         'disk_limit_mb': 0.1,
