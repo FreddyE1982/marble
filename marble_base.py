@@ -72,7 +72,7 @@ def download_and_process_tar(url, temp_dir):
     return samples
 
 class MetricsVisualizer:
-    def __init__(self):
+    def __init__(self, fig_width=10, fig_height=6):
         self.metrics = {
             'loss': [],
             'vram_usage': [],
@@ -80,10 +80,12 @@ class MetricsVisualizer:
             'learning_efficiency': [],
             'memory_efficiency': []
         }
+        self.fig_width = fig_width
+        self.fig_height = fig_height
         self.setup_plot()
     
     def setup_plot(self):
-        self.fig, self.ax = plt.subplots(figsize=(10, 6))
+        self.fig, self.ax = plt.subplots(figsize=(self.fig_width, self.fig_height))
         self.ax.set_title('MARBLE Training Metrics Live View')
         self.ax.set_xlabel('Batches')
         self.ax.set_ylabel('Loss / VRAM Usage')

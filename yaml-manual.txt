@@ -150,6 +150,10 @@ brain:
     each training epoch.
   benchmark_enabled: Enables evaluation through ``BenchmarkManager`` at the end
     of each epoch.
+  loss_growth_threshold: Validation loss level that triggers expansion of the
+    core during training. The default of ``0.1`` keeps growth infrequent.
+  dream_cycle_sleep: Seconds to wait between dream cycles. Increase to reduce
+    CPU usage during prolonged dreaming.
   tier_decision_params:
     vram_usage_threshold: Fraction of VRAM usage that triggers migration of
       neurons to a lower tier.
@@ -231,3 +235,32 @@ data_compressor:
     6 balances speed and ratio for general use.
   compression_enabled: Set to ``false`` to bypass compression entirely. Useful
     during debugging or when working with already compressed data.
+
+remote_server:
+  # Launches an optional local ``RemoteBrainServer`` so this MARBLE instance can
+  # forward computation to another machine. When ``enabled`` is ``true`` the
+  # server starts automatically using the provided ``host`` and ``port``. If
+  # ``remote_url`` is specified the server itself forwards heavy requests to that
+  # address, creating a chain of offload targets.
+  enabled: Whether to start the server alongside the main process.
+  host: Interface address to bind the HTTP server to. Usually ``"localhost"``
+    for local testing.
+  port: TCP port used by the server.
+  remote_url: Optional URL of another remote brain server to which this server
+    offloads work.
+
+metrics_visualizer:
+  # Configure the live metrics plot size. These values are passed directly to
+  # ``matplotlib`` when creating the figure.
+  fig_width: Width of the metrics figure in inches.
+  fig_height: Height of the metrics figure in inches.
+
+lobe_manager:
+  # Parameters controlling how strongly neuron attention is adjusted when the
+  # ``LobeManager`` performs self-attention.
+  attention_increase_factor: Multiplier applied to neuron attention when a
+    lobe's score is below average and the loss is positive. Values slightly above
+    ``1.0`` encourage struggling lobes to contribute more.
+  attention_decrease_factor: Multiplier used when a lobe's attention is above
+    average but the loss is not improving. Numbers below ``1.0`` gradually reduce
+    emphasis on those lobes.

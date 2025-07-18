@@ -72,9 +72,14 @@ brain:
   prune_frequency: 1
   auto_offload: false
   benchmark_enabled: false
+  loss_growth_threshold: 0.1
+  dream_cycle_sleep: 0.1
   tier_decision_params:
     vram_usage_threshold: 0.9
     ram_usage_threshold: 0.9
+lobe_manager:
+  attention_increase_factor: 1.05
+  attention_decrease_factor: 0.95
 formula: "log(1+T)/log(1+I)"
 formula_num_neurons: 100
 meta_controller:
@@ -103,3 +108,11 @@ torrent_client:
 data_compressor:
   compression_level: 6
   compression_enabled: true
+remote_server:
+  enabled: false
+  host: "localhost"
+  port: 8000
+  remote_url: null
+metrics_visualizer:
+  fig_width: 10
+  fig_height: 6

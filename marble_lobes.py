@@ -9,9 +9,11 @@ class Lobe:
 class LobeManager:
     """Manages lobes and performs self-attention based optimizations."""
 
-    def __init__(self, core):
+    def __init__(self, core, attention_increase_factor=1.05, attention_decrease_factor=0.95):
         self.core = core
         self.lobes = []
+        self.attention_increase_factor = attention_increase_factor
+        self.attention_decrease_factor = attention_decrease_factor
 
     def genesis(self, neuron_ids):
         """Create a new lobe containing ``neuron_ids``."""
@@ -43,9 +45,9 @@ class LobeManager:
             if loss is None:
                 continue
             if loss > 0 and lobe.attention_score < avg_att:
-                factor = 1.05
+                factor = self.attention_increase_factor
             elif loss <= 0 and lobe.attention_score > avg_att:
-                factor = 0.95
+                factor = self.attention_decrease_factor
             else:
                 factor = 1.0
             for nid in lobe.neuron_ids:

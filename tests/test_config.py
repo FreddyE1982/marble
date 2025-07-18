@@ -3,6 +3,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from config_loader import load_config, create_marble_from_config
+import yaml
 from marble_main import MARBLE
 from remote_offload import RemoteBrainClient
 from torrent_offload import BrainTorrentClient
@@ -53,6 +54,13 @@ def test_load_config_defaults():
     assert cfg["memory_system"]["consolidation_interval"] == 10
     assert cfg["data_compressor"]["compression_level"] == 6
     assert cfg["data_compressor"]["compression_enabled"] is True
+    assert cfg["brain"]["loss_growth_threshold"] == 0.1
+    assert cfg["brain"]["dream_cycle_sleep"] == 0.1
+    assert cfg["lobe_manager"]["attention_increase_factor"] == 1.05
+    assert cfg["lobe_manager"]["attention_decrease_factor"] == 0.95
+    assert cfg["remote_server"]["enabled"] is False
+    assert cfg["metrics_visualizer"]["fig_width"] == 10
+    assert cfg["metrics_visualizer"]["fig_height"] == 6
 def test_create_marble_from_config():
     marble = create_marble_from_config()
     assert isinstance(marble, MARBLE)
@@ -88,3 +96,24 @@ def test_create_marble_from_config():
     assert marble.dataloader.compressor.level == 6
     assert marble.core.rep_size == 4
     assert marble.core.params["message_passing_alpha"] == 0.5
+    assert marble.brain.loss_growth_threshold == 0.1
+    assert marble.brain.dream_cycle_sleep == 0.1
+    assert marble.brain.lobe_manager.attention_increase_factor == 1.05
+    assert marble.brain.lobe_manager.attention_decrease_factor == 0.95
+    assert hasattr(marble, "remote_server") is False
+
+
+def test_remote_server_start(tmp_path):
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg = load_config()
+    cfg["remote_server"] = {
+        "enabled": True,
+        "host": "localhost",
+        "port": 8123,
+        "remote_url": None,
+    }
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(cfg, f)
+    marble = create_marble_from_config(str(cfg_path))
+    assert hasattr(marble, "remote_server")
+    marble.remote_server.stop()

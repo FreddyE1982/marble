@@ -52,6 +52,10 @@ class Brain:
         prune_frequency: int = 1,
         auto_offload: bool = False,
         benchmark_enabled: bool = False,
+        loss_growth_threshold: float = 0.1,
+        dream_cycle_sleep: float = 0.1,
+        lobe_attention_increase: float = 1.05,
+        lobe_attention_decrease: float = 0.95,
     ):
         self.core = core
         self.neuronenblitz = neuronenblitz
@@ -81,7 +85,11 @@ class Brain:
         self.memory_system = (
             memory_system if memory_system is not None else MemorySystem()
         )
-        self.lobe_manager = LobeManager(core)
+        self.lobe_manager = LobeManager(
+            core,
+            attention_increase_factor=lobe_attention_increase,
+            attention_decrease_factor=lobe_attention_decrease,
+        )
         self.neurogenesis_factor = initial_neurogenesis_factor
         self.remote_client = remote_client
         self.torrent_client = torrent_client
@@ -112,6 +120,8 @@ class Brain:
         self.prune_frequency = prune_frequency
         self.auto_offload = auto_offload
         self.benchmark_enabled = benchmark_enabled
+        self.loss_growth_threshold = loss_growth_threshold
+        self.dream_cycle_sleep = dream_cycle_sleep
         self.last_val_loss = None
         self.tier_decision_params = (
             tier_decision_params
@@ -221,7 +231,7 @@ class Brain:
             }
             pbar.set_postfix(metrics)
 
-            if val_loss is not None and val_loss > 0.1:
+            if val_loss is not None and val_loss > self.loss_growth_threshold:
                 new_tier = self.choose_growth_tier()
                 self.core.expand(
                     num_new_neurons=10,
@@ -355,7 +365,7 @@ class Brain:
             print(
                 f"Dream cycle {cycle+1}/{num_cycles}: output = {output:.4f}, path length = {len(path)}"
             )
-            time.sleep(0.1)
+            time.sleep(self.dream_cycle_sleep)
         print("Dreaming completed.")
 
     def start_dreaming(self, num_cycles=None, interval=None):
