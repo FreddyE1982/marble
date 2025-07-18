@@ -414,3 +414,7 @@ lobe_manager:
   attention_decrease_factor: Multiplier used when a lobe's attention is above
     average but the loss is not improving. Numbers below ``1.0`` gradually reduce
     emphasis on those lobes.
+
+autograd:
+  enabled: Set to true to wrap the Brain with a transparent PyTorch autograd layer. When enabled, gradients from PyTorch operations are applied to MARBLE synapse weights without altering the underlying architecture.
+  learning_rate: Step size used when the autograd layer applies gradient updates to synapse weights during backward passes. Typical values range from 0.001 to 0.1.
