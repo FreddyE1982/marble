@@ -51,6 +51,18 @@ neuronenblitz:
     converging paths. Small values enforce stricter merging behaviour.
   plasticity_threshold: Minimum potential a synapse must reach before structural
     changes such as adding or removing connections are applied.
+  continue_decay_rate: Factor multiplied with the current continuation
+    probability during wandering. Lower values shorten exploration paths,
+    while values closer to ``1.0`` keep paths longer. Typical range is
+    0.7–0.9.
+  struct_weight_multiplier1: Multiplier applied to the first new synapse weight
+    created during structural plasticity. Controls how strongly the new forward
+    connection influences signal flow.
+  struct_weight_multiplier2: Multiplier applied to the second synapse that
+    reconnects to the original target neuron after a structural change.
+  attention_decay: Fraction by which accumulated type attention scores are
+    reduced after each query. Values under ``1.0`` gradually forget old
+    preferences.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the
@@ -83,6 +95,25 @@ brain:
     ``perform_neurogenesis``.
   neurogenesis_base_synapses: Base number of synapses introduced alongside new
     neurons during neurogenesis when defaults are used.
+  offload_threshold: Minimum lobe attention required before ``offload_high_attention``
+    sends a subcore to the remote brain. Increasing this reduces how frequently
+    offloading occurs.
+  torrent_offload_threshold: Attention threshold used when distributing lobes
+    via the torrent client.
+  cluster_high_threshold: Score above which clusters are relocated directly to
+    the fast ``vram`` tier when ``relocate_clusters`` runs.
+  cluster_medium_threshold: Score above which clusters are kept in ``ram`` but
+    below the high threshold; lower scores are moved to disk tiers.
+  dream_synapse_decay: Multiplicative decay applied to synapse weights during
+    each dreaming cycle.
+  neurogenesis_increase_step: Amount added to the neurogenesis factor when
+    validation loss worsens.
+  neurogenesis_decrease_step: Amount subtracted from the neurogenesis factor
+    when validation improves.
+  max_neurogenesis_factor: Upper bound that ``neurogenesis_factor`` will not
+    exceed, regardless of adjustments.
+  cluster_k: Number of clusters created when ``cluster_neurons`` is invoked
+    during training.
   tier_decision_params:
     vram_usage_threshold: Fraction of VRAM usage that triggers migration of
       neurons to a lower tier.

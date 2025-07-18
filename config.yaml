@@ -23,6 +23,10 @@ neuronenblitz:
   split_probability: 0.2
   merge_tolerance: 0.01
   plasticity_threshold: 10.0
+  continue_decay_rate: 0.85
+  struct_weight_multiplier1: 1.5
+  struct_weight_multiplier2: 1.2
+  attention_decay: 0.9
 brain:
   save_threshold: 0.05
   max_saved_models: 5
@@ -38,6 +42,15 @@ brain:
   dream_interval: 5
   neurogenesis_base_neurons: 5
   neurogenesis_base_synapses: 10
+  offload_threshold: 1.0
+  torrent_offload_threshold: 1.0
+  cluster_high_threshold: 1.0
+  cluster_medium_threshold: 0.1
+  dream_synapse_decay: 0.995
+  neurogenesis_increase_step: 0.1
+  neurogenesis_decrease_step: 0.05
+  max_neurogenesis_factor: 3.0
+  cluster_k: 3
   tier_decision_params:
     vram_usage_threshold: 0.9
     ram_usage_threshold: 0.9
