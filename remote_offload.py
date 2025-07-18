@@ -1,20 +1,24 @@
 from marble_utils import core_to_json, core_from_json
 from marble_neuronenblitz import Neuronenblitz
+from marble_brain import Brain
+from marble_core import DataLoader
 import json
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import requests
 
 class RemoteBrainServer:
-    """Simple HTTP server hosting a remote brain."""
-    def __init__(self, host="localhost", port=8000):
+    """HTTP server hosting a full remote MARBLE brain."""
+    def __init__(self, host="localhost", port=8000, remote_url=None):
         self.host = host
         self.port = port
+        self.remote_client = RemoteBrainClient(remote_url) if remote_url else None
         self.core = None
         self.neuronenblitz = None
+        self.brain = None
         self.httpd = None
         self.thread = None
-
+        
     def start(self):
         server = self
 
@@ -30,7 +34,8 @@ class RemoteBrainServer:
                 payload = json.loads(data or '{}')
                 if self.path == '/offload':
                     server.core = core_from_json(json.dumps(payload['core']))
-                    server.neuronenblitz = Neuronenblitz(server.core)
+                    server.neuronenblitz = Neuronenblitz(server.core, remote_client=server.remote_client)
+                    server.brain = Brain(server.core, server.neuronenblitz, DataLoader(), remote_client=server.remote_client)
                     self._set_headers()
                     self.wfile.write(b'{}')
                 elif self.path == '/process':
