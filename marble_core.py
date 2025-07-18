@@ -99,6 +99,62 @@ def compute_mandelbrot(xmin, xmax, ymin, ymax, width, height, max_iter=256):
 from data_compressor import DataCompressor
 
 
+class ShortTermMemory:
+    """Ephemeral in-memory storage."""
+
+    def __init__(self):
+        self.data = {}
+
+    def store(self, key, value):
+        self.data[key] = value
+
+    def retrieve(self, key):
+        return self.data.get(key)
+
+    def clear(self):
+        self.data.clear()
+
+
+class LongTermMemory:
+    """Persistent storage backed by disk."""
+
+    def __init__(self, path="long_term_memory.pkl"):
+        self.path = path
+        self.data = {}
+        if os.path.exists(self.path):
+            with open(self.path, "rb") as f:
+                try:
+                    self.data = pickle.load(f)
+                except Exception:
+                    self.data = {}
+
+    def store(self, key, value):
+        self.data[key] = value
+        with open(self.path, "wb") as f:
+            pickle.dump(self.data, f)
+
+    def retrieve(self, key):
+        return self.data.get(key)
+
+
+class MemorySystem:
+    """Hierarchical memory with short- and long-term layers."""
+
+    def __init__(self, long_term_path="long_term_memory.pkl"):
+        self.short_term = ShortTermMemory()
+        self.long_term = LongTermMemory(long_term_path)
+
+    def consolidate(self):
+        for k, v in list(self.short_term.data.items()):
+            self.long_term.store(k, v)
+        self.short_term.clear()
+
+    def choose_layer(self, context):
+        if context.get("arousal", 0) > 0.5 or context.get("reward", 0) > 0.5:
+            return self.long_term
+        return self.short_term
+
+
 class DataLoader:
     def __init__(self, compressor: DataCompressor | None = None):
         self.compressor = compressor if compressor is not None else DataCompressor()
