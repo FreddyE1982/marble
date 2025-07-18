@@ -58,8 +58,12 @@ def perform_message_passing(
         if not neigh_reps:
             continue
         dots = np.array([float(np.dot(target.representation, nr)) for nr in neigh_reps])
-        exps = np.exp(dots - np.max(dots))
-        attn = exps / exps.sum()
+        shifted = np.clip(dots - np.max(dots), -50, 50)
+        exps = np.exp(shifted)
+        denom = exps.sum()
+        if not np.isfinite(denom) or denom == 0:
+            continue
+        attn = exps / denom
         agg = sum(attn[i] * neigh_reps[i] for i in range(len(neigh_reps)))
         new_reps[target.id] = alpha * target.representation + (1 - alpha) * _simple_mlp(agg)
     for idx, rep in enumerate(new_reps):

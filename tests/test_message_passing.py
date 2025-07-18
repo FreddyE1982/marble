@@ -29,3 +29,15 @@ def test_message_passing_alpha_configurable():
     after = [n.representation.copy() for n in core.neurons]
     unchanged = all(np.allclose(b, a) for b, a in zip(before, after))
     assert unchanged
+
+
+def test_message_passing_no_nan(recwarn):
+    np.random.seed(0)
+    params = minimal_params()
+    core = Core(params)
+    for n in core.neurons:
+        n.representation = np.random.randn(4) * 100
+    perform_message_passing(core)
+    assert not recwarn.list
+    for n in core.neurons:
+        assert np.all(np.isfinite(n.representation))
