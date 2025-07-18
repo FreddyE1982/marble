@@ -251,6 +251,8 @@ brain:
     each training epoch.
   benchmark_enabled: Enables evaluation through ``BenchmarkManager`` at the end
     of each epoch.
+  benchmark_interval: Number of epochs between automatic benchmark comparisons
+    of pure MARBLE and its autograd pathway. Higher values reduce overhead.
   loss_growth_threshold: Validation loss level that triggers expansion of the
     core during training. The default of ``0.1`` keeps growth infrequent.
   dream_cycle_sleep: Seconds to wait between dream cycles. Increase to reduce

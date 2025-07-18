@@ -131,6 +131,7 @@ Each entry is listed under its section heading.
 - prune_frequency
 - auto_offload
 - benchmark_enabled
+- benchmark_interval
 - tier_decision_params.vram_usage_threshold
 - tier_decision_params.ram_usage_threshold
 - model_name

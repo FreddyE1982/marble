@@ -2,6 +2,7 @@ import pytest
 
 from benchmark_autograd_vs_marble import (
     generate_dataset,
+    load_real_dataset,
     train_marble,
     train_autograd,
     run_benchmark,
@@ -11,6 +12,12 @@ from benchmark_autograd_vs_marble import (
 def test_generate_dataset_size():
     data = generate_dataset(10, seed=1)
     assert len(data) == 10
+    assert isinstance(data[0][0], float)
+
+
+def test_load_real_dataset_size():
+    data = load_real_dataset(50)
+    assert len(data) == 50
     assert isinstance(data[0][0], float)
 
 
