@@ -142,6 +142,17 @@ class Core:
             syn = Synapse(self.neurons[i].id, self.neurons[i+1].id, weight)
             self.neurons[i].synapses.append(syn)
             self.synapses.append(syn)
+
+        if not CUDA_AVAILABLE:
+            for neuron in self.neurons:
+                if neuron.tier == 'vram':
+                    neuron.tier = 'ram'
+            if 'vram' in TIER_REGISTRY and 'ram' in TIER_REGISTRY:
+                TIER_REGISTRY['ram'].limit_mb += TIER_REGISTRY['vram'].limit_mb
+                TIER_REGISTRY['vram'].limit_mb = 0
+            self.ram_limit_mb += self.vram_limit_mb
+            self.vram_limit_mb = 0
+            print("CUDA not available: migrated VRAM tiers to RAM.")
         self.check_memory_usage()
 
     def get_average_age(self, items):
