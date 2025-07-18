@@ -1,5 +1,8 @@
 from marble_imports import *
 
+# List of supported neuron types
+NEURON_TYPES = ["standard", "excitatory", "inhibitory", "modulatory"]
+
 # Global registry for all tiers
 TIER_REGISTRY = {}
 
@@ -61,10 +64,11 @@ class FileTier(Tier):
         return modified_data
 
 class Neuron:
-    def __init__(self, nid, value=0.0, tier='vram'):
+    def __init__(self, nid, value=0.0, tier='vram', neuron_type='standard'):
         self.id = nid
         self.value = value
         self.tier = tier
+        self.neuron_type = neuron_type if neuron_type in NEURON_TYPES else 'standard'
         self.synapses = []
         self.formula = None
         self.created_at = datetime.now()
@@ -220,13 +224,19 @@ class Core:
                 return tier.name
         return available_tiers[-1].name
 
-    def expand(self, num_new_neurons=10, num_new_synapses=15, 
-              alternative_connection_prob=0.1, target_tier=None):
+    def expand(self, num_new_neurons=10, num_new_synapses=15,
+              alternative_connection_prob=0.1, target_tier=None,
+              neuron_types=None):
         if target_tier is None:
             target_tier = self.choose_new_tier()
         start_id = len(self.neurons)
         for i in range(num_new_neurons):
-            self.neurons.append(Neuron(start_id + i, value=0.0, tier=target_tier))
+            if isinstance(neuron_types, list):
+                n_type = random.choice(neuron_types) if neuron_types else 'standard'
+            else:
+                n_type = neuron_types if neuron_types is not None else 'standard'
+            self.neurons.append(Neuron(start_id + i, value=0.0,
+                                      tier=target_tier, neuron_type=n_type))
         for _ in range(num_new_synapses):
             src = random.choice(self.neurons).id
             tgt = random.choice(self.neurons).id

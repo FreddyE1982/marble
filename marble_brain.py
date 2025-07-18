@@ -80,8 +80,10 @@ class Brain:
         factor *= self.neurogenesis_factor
         num_neurons = int(base_neurons * factor)
         num_synapses = int(base_synapses * factor)
-        self.core.expand(num_new_neurons=num_neurons, num_new_synapses=num_synapses)
-        return num_neurons, num_synapses
+        n_type = self.neuronenblitz.get_preferred_neuron_type()
+        self.core.expand(num_new_neurons=num_neurons, num_new_synapses=num_synapses,
+                         neuron_types=n_type)
+        return num_neurons, num_synapses, n_type
 
     def train(self, train_examples, epochs=1, validation_examples=None):
         pbar = tqdm(range(epochs), desc="Epochs", ncols=100)
