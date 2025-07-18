@@ -265,9 +265,14 @@ class DataLoader:
         self,
         compressor: "DataCompressor | None" = None,
         compression_level: int = 6,
+        compression_enabled: bool = True,
         metrics_visualizer: "MetricsVisualizer | None" = None,
     ) -> None:
-        self.compressor = compressor if compressor is not None else DataCompressor(level=compression_level)
+        self.compressor = (
+            compressor
+            if compressor is not None
+            else DataCompressor(level=compression_level, compression_enabled=compression_enabled)
+        )
         self.metrics_visualizer = metrics_visualizer
 
     def encode(self, data):

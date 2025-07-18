@@ -60,10 +60,13 @@ class MARBLE:
             self.metrics_dashboard.start()
 
         dl_level = 6
+        dl_enabled = True
         if dataloader_params is not None:
             dl_level = dataloader_params.get("compression_level", dl_level)
+            dl_enabled = dataloader_params.get("compression_enabled", True)
         self.dataloader = DataLoader(
             compression_level=dl_level,
+            compression_enabled=dl_enabled,
             metrics_visualizer=self.metrics_visualizer,
         )
 
