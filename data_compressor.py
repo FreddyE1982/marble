@@ -4,7 +4,17 @@ import struct
 import pickle
 
 class DataCompressor:
-    """Full transparent transitive binary compressor."""
+    """Full transparent transitive binary compressor.
+
+    Parameters
+    ----------
+    level : int, optional
+        Compression level passed to :func:`zlib.compress`. ``0`` disables
+        compression while ``9`` yields maximum compression. Defaults to ``6``.
+    """
+
+    def __init__(self, level: int = 6) -> None:
+        self.level = level
 
     @staticmethod
     def bytes_to_bits(data: bytes) -> np.ndarray:
@@ -22,7 +32,7 @@ class DataCompressor:
     def compress(self, data: bytes) -> bytes:
         """Compress bytes after converting to a binary representation."""
         bits = self.bytes_to_bits(data)
-        compressed = zlib.compress(bits.tobytes())
+        compressed = zlib.compress(bits.tobytes(), self.level)
         return compressed
 
     def decompress(self, compressed: bytes) -> bytes:

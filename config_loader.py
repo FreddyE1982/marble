@@ -26,6 +26,8 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
     nb_params = cfg.get("neuronenblitz", {})
     brain_params = cfg.get("brain", {})
     initial_neurogenesis_factor = brain_params.pop("initial_neurogenesis_factor", 1.0)
+    dream_num_cycles = brain_params.pop("dream_num_cycles", 10)
+    dream_interval = brain_params.pop("dream_interval", 5)
 
     formula = cfg.get("formula")
     formula_num_neurons = cfg.get("formula_num_neurons", 100)
@@ -49,11 +51,18 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
     threshold = memory_cfg.get("threshold", 0.5)
     memory_system = MemorySystem(long_term_path, threshold=threshold)
 
+    # Data compressor
+    compressor_cfg = cfg.get("data_compressor", {})
+    compression_level = compressor_cfg.get("compression_level", 6)
+    dataloader_params = {"compression_level": compression_level}
+
     brain_params.update({
         "neuromodulatory_system": neuromod_system,
         "meta_controller": meta_controller,
         "memory_system": memory_system,
         "initial_neurogenesis_factor": initial_neurogenesis_factor,
+        "dream_num_cycles": dream_num_cycles,
+        "dream_interval": dream_interval,
     })
 
     remote_client = None
@@ -81,6 +90,7 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
         formula_num_neurons=formula_num_neurons,
         nb_params=nb_params,
         brain_params=brain_params,
+        dataloader_params=dataloader_params,
         remote_client=remote_client,
         torrent_client=torrent_client,
     )

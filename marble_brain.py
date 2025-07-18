@@ -13,7 +13,8 @@ class Brain:
                  tier_decision_params=None, initial_neurogenesis_factor: float = 1.0,
                  offload_enabled: bool = False, torrent_offload_enabled: bool = False,
                  mutation_rate: float = 0.01, mutation_strength: float = 0.05,
-                 prune_threshold: float = 0.01):
+                 prune_threshold: float = 0.01,
+                 dream_num_cycles: int = 10, dream_interval: int = 5):
         self.core = core
         self.neuronenblitz = neuronenblitz
         self.dataloader = dataloader
@@ -39,6 +40,8 @@ class Brain:
         self.torrent_map = torrent_map if torrent_map is not None else {}
         self.offload_enabled = offload_enabled
         self.torrent_offload_enabled = torrent_offload_enabled
+        self.dream_num_cycles = dream_num_cycles
+        self.dream_interval = dream_interval
         self.last_val_loss = None
         self.tier_decision_params = tier_decision_params if tier_decision_params is not None else {
             'vram_usage_threshold': 0.9,
@@ -246,7 +249,11 @@ class Brain:
             time.sleep(0.1)
         print("Dreaming completed.")
 
-    def start_dreaming(self, num_cycles=10, interval=5):
+    def start_dreaming(self, num_cycles=None, interval=None):
+        if num_cycles is None:
+            num_cycles = self.dream_num_cycles
+        if interval is None:
+            interval = self.dream_interval
         self.dreaming_active = True
         def dream_loop():
             while self.dreaming_active:

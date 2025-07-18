@@ -61,6 +61,12 @@ brain:
     weight. Typical values range from 0.01 to 0.1.
   prune_threshold: Synapses with absolute weight below this value are removed
     during pruning, keeping the network efficient.
+  dream_num_cycles: Default number of cycles executed each time the brain
+    performs a background dreaming session. Values between 1 and 20 are common
+    depending on how much consolidation is desired.
+  dream_interval: Seconds to wait between consecutive dreaming sessions when
+    ``start_dreaming`` runs in the background. Short intervals keep memory
+    consolidation frequent but consume more processing time.
   tier_decision_params:
     vram_usage_threshold: Fraction of VRAM usage that triggers migration of
       neurons to a lower tier.
@@ -128,3 +134,10 @@ torrent_client:
     unique across participating clients.
   buffer_size: Maximum number of asynchronous tasks queued for a torrent
     client. Larger values allow more parallel requests but use more memory.
+
+data_compressor:
+  # Controls how strongly the DataCompressor reduces data size before it is
+  # stored or transmitted.
+  compression_level: Integer from 0 to 9 passed directly to ``zlib.compress``.
+    Higher levels yield smaller output but require more CPU time. The default of
+    6 balances speed and ratio for general use.

@@ -5,13 +5,16 @@ from marble_brain import Brain, BenchmarkManager
 from marble_base import MetricsVisualizer
 
 class MARBLE:
-    def __init__(self, params, formula=None, formula_num_neurons=100, converter_model=None, nb_params=None, brain_params=None, init_from_weights=False, remote_client=None, torrent_client=None):
+    def __init__(self, params, formula=None, formula_num_neurons=100, converter_model=None, nb_params=None, brain_params=None, dataloader_params=None, init_from_weights=False, remote_client=None, torrent_client=None):
         if converter_model is not None:
             self.core = MarbleConverter.convert(converter_model, mode='sequential', core_params=params, init_from_weights=init_from_weights)
         else:
             self.core = Core(params, formula, formula_num_neurons)
         
-        self.dataloader = DataLoader()
+        dl_level = 6
+        if dataloader_params is not None:
+            dl_level = dataloader_params.get("compression_level", dl_level)
+        self.dataloader = DataLoader(compression_level=dl_level)
         
         nb_defaults = {
             'backtrack_probability': 0.3,
@@ -45,7 +48,9 @@ class MARBLE:
             'torrent_offload_enabled': False,
             'mutation_rate': 0.01,
             'mutation_strength': 0.05,
-            'prune_threshold': 0.01
+            'prune_threshold': 0.01,
+            'dream_num_cycles': 10,
+            'dream_interval': 5
         }
         if brain_params is not None:
             brain_defaults.update(brain_params)

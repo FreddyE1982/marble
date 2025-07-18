@@ -31,6 +31,8 @@ brain:
   mutation_rate: 0.01
   mutation_strength: 0.05
   prune_threshold: 0.01
+  dream_num_cycles: 10
+  dream_interval: 5
   tier_decision_params:
     vram_usage_threshold: 0.9
     ram_usage_threshold: 0.9
@@ -56,3 +58,5 @@ remote_client:
 torrent_client:
   client_id: "main"
   buffer_size: 10
+data_compressor:
+  compression_level: 6
