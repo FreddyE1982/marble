@@ -197,6 +197,8 @@ class Brain:
         def train_loop():
             try:
                 self.train(train_examples, epochs=epochs, validation_examples=validation_examples)
+            except Exception as e:
+                print(f"Training thread error: {e}")
             finally:
                 self.training_active = False
 
