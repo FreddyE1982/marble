@@ -1,4 +1,6 @@
-import os, sys
+import os
+import sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from marble_core import Core
@@ -36,3 +38,13 @@ def test_clustering_during_training():
     brain.train(train_examples, epochs=1, validation_examples=None)
     has_cluster = any(n.cluster_id is not None for n in core.neurons)
     assert has_cluster
+
+
+def test_cluster_k_configurable():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    brain = Brain(core, nb, None, cluster_k=1)
+    brain.train([(0.1, 0.2)], epochs=1)
+    clusters = {n.cluster_id for n in core.neurons}
+    assert len(clusters) <= 1
