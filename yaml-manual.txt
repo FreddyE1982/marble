@@ -14,6 +14,9 @@ core:
   height: Vertical resolution of the seed grid.
   max_iter: Number of Mandelbrot iterations to run. A higher count yields more
     detailed values. Must be greater than zero.
+  representation_size: Length of the representation vector attached to each
+    neuron. Larger values allow richer message passing but increase memory and
+    computation.
   vram_limit_mb: Maximum megabytes of GPU memory dedicated to VRAM tiers. If
     CUDA is unavailable this limit is merged into RAM.
   ram_limit_mb: Maximum megabytes of system memory used for RAM tiers.

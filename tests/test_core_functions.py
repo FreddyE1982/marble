@@ -17,6 +17,7 @@ def minimal_params():
         'width': 3,
         'height': 3,
         'max_iter': 5,
+        'representation_size': 4,
         'vram_limit_mb': 0.1,
         'ram_limit_mb': 0.1,
         'disk_limit_mb': 0.1,

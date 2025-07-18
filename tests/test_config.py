@@ -10,6 +10,7 @@ def test_load_config_defaults():
     cfg = load_config()
     assert 'core' in cfg
     assert cfg['core']['width'] == 30
+    assert cfg['core']['representation_size'] == 4
     assert 'neuronenblitz' in cfg
     assert cfg['brain']['save_threshold'] == 0.05
     assert cfg['meta_controller']['history_length'] == 5
@@ -46,3 +47,4 @@ def test_create_marble_from_config():
     assert marble.brain.dream_num_cycles == 10
     assert marble.brain.dream_interval == 5
     assert marble.dataloader.compressor.level == 6
+    assert marble.core.rep_size == 4

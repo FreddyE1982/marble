@@ -6,6 +6,7 @@ core:
   width: 30
   height: 30
   max_iter: 50
+  representation_size: 4
   vram_limit_mb: 0.5
   ram_limit_mb: 1.0
   disk_limit_mb: 10
