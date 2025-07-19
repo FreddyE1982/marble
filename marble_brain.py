@@ -625,6 +625,59 @@ class Brain:
             "autograd": {"loss": loss_val, "time": auto_time},
         }
 
+    def train_pytorch_challenge(
+        self,
+        train_examples,
+        pytorch_model,
+        pytorch_inputs=None,
+        epochs=1,
+        validation_examples=None,
+        loss_penalty=0.1,
+        speed_penalty=0.1,
+        size_penalty=0.1,
+    ):
+        """Train with penalties relative to a PyTorch model."""
+        pyro_size = sum(p.numel() for p in pytorch_model.parameters()) * 4 / 1e6
+        pytorch_model.eval()
+        pbar = tqdm(range(epochs), desc="ChallengeEpochs", ncols=100)
+        if pytorch_inputs is None:
+            pytorch_inputs = [torch.tensor(inp, dtype=torch.float32) for inp, _ in train_examples]
+        for _ in pbar:
+            for (inp, tgt), p_inp in zip(train_examples, pytorch_inputs):
+                start = time.time()
+                _, err, _ = self.neuronenblitz.train_example(float(inp), float(tgt))
+                marble_time = time.time() - start
+                marble_loss = abs(err) if isinstance(err, (int, float)) else 0.0
+                tensor = p_inp
+                start = time.time()
+                with torch.no_grad():
+                    py_out = pytorch_model(tensor)
+                pyro_time = time.time() - start
+                pyro_loss = float(abs(float(tgt) - float(py_out.flatten()[0])))
+
+                penalty = 0.0
+                if marble_loss > pyro_loss:
+                    penalty += loss_penalty
+                if marble_time > pyro_time:
+                    penalty += speed_penalty
+                marble_size = (
+                    self.core.get_usage_by_tier("vram")
+                    + self.core.get_usage_by_tier("ram")
+                    + self.core.get_usage_by_tier("disk")
+                )
+                if marble_size > pyro_size:
+                    penalty += size_penalty
+                ctx = self.neuromodulatory_system.get_context()
+                new_stress = min(1.0, ctx.get("stress", 0.0) + penalty)
+                self.neuromodulatory_system.update_signals(stress=new_stress)
+                self.neuronenblitz.modulate_plasticity(
+                    self.neuromodulatory_system.get_context()
+                )
+            if validation_examples is not None:
+                val_loss = self.validate(validation_examples)
+                pbar.set_postfix({"ValLoss": f"{val_loss:.4f}"})
+        pbar.close()
+
 
 class BenchmarkManager:
     def __init__(self, marble_system, target_metrics=None):

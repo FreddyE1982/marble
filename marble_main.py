@@ -22,6 +22,7 @@ class MARBLE:
         mv_params=None,
         dashboard_params=None,
         autograd_params=None,
+        pytorch_challenge_params=None,
     ):
         if converter_model is not None:
             self.core = MarbleConverter.convert(
@@ -187,6 +188,8 @@ class MARBLE:
             )
             self.brain.set_autograd_layer(self.autograd_layer)
 
+        self.pytorch_challenge_params = pytorch_challenge_params
+
     def get_core(self):
         return self.core
 
@@ -207,6 +210,9 @@ class MARBLE:
 
     def get_autograd_layer(self):
         return self.autograd_layer
+
+    def get_pytorch_challenge_params(self):
+        return self.pytorch_challenge_params
 
 
 if __name__ == "__main__":
