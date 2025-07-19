@@ -1,4 +1,6 @@
 import os, sys
+import random
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import numpy as np
 from marble_core import Core, perform_message_passing
@@ -13,14 +15,16 @@ def test_message_passing_updates_representation():
         n.representation = np.random.rand(4)
     before = [n.representation.copy() for n in core.neurons]
     perform_message_passing(core)
-    changed = any(not np.allclose(n.representation, before[i]) for i, n in enumerate(core.neurons))
+    changed = any(
+        not np.allclose(n.representation, before[i]) for i, n in enumerate(core.neurons)
+    )
     assert changed
 
 
 def test_message_passing_alpha_configurable():
     np.random.seed(0)
     params = minimal_params()
-    params['message_passing_alpha'] = 1.0
+    params["message_passing_alpha"] = 1.0
     core = Core(params)
     for n in core.neurons:
         n.representation = np.random.rand(4)
@@ -67,3 +71,44 @@ def test_representation_noise_applied():
     perform_message_passing(core)
     changed = any(not np.allclose(n.representation, 0.0) for n in core.neurons)
     assert changed
+
+
+def test_message_passing_dropout():
+    random.seed(0)
+    np.random.seed(0)
+    params = minimal_params()
+    params["message_passing_dropout"] = 1.0
+    core = Core(params)
+    for n in core.neurons:
+        n.representation = np.random.rand(4)
+    before = [n.representation.copy() for n in core.neurons]
+    perform_message_passing(core)
+    after = [n.representation.copy() for n in core.neurons]
+    assert all(np.allclose(b, a) for b, a in zip(before, after))
+
+
+def test_representation_activation_relu():
+    np.random.seed(0)
+    params = minimal_params()
+    params["message_passing_alpha"] = 0.0
+    params["representation_activation"] = "relu"
+    core = Core(params)
+    for n in core.neurons:
+        n.representation = np.random.uniform(-1.0, 1.0, 4)
+    perform_message_passing(core)
+    for n in core.neurons:
+        assert np.all(n.representation >= -1e-6)
+
+
+def test_message_passing_beta_effect():
+    np.random.seed(0)
+    params = minimal_params()
+    params["message_passing_beta"] = 0.0
+    params["message_passing_alpha"] = 0.0
+    core = Core(params)
+    for n in core.neurons:
+        n.representation = np.random.rand(4)
+    before = [n.representation.copy() for n in core.neurons]
+    perform_message_passing(core)
+    after = [n.representation.copy() for n in core.neurons]
+    assert all(np.allclose(b, a) for b, a in zip(before, after))

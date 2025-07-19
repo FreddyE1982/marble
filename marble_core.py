@@ -5,6 +5,7 @@ import copy
 # Representation size for GNN-style message passing
 _REP_SIZE = 4
 
+
 def _init_weights(rep_size: int):
     rs = np.random.RandomState(0)
     w1 = rs.randn(rep_size, 8) * 0.1
@@ -13,7 +14,9 @@ def _init_weights(rep_size: int):
     b2 = rs.randn(rep_size) * 0.1
     return w1, b1, w2, b2
 
+
 _W1, _B1, _W2, _B2 = _init_weights(_REP_SIZE)
+
 
 def configure_representation_size(rep_size: int) -> None:
     """Configure global representation size used for message passing."""
@@ -23,12 +26,21 @@ def configure_representation_size(rep_size: int) -> None:
         _W1, _B1, _W2, _B2 = _init_weights(rep_size)
 
 
-def _simple_mlp(x: np.ndarray) -> np.ndarray:
-    """Tiny MLP with one hidden layer and tanh activations."""
+def _apply_activation(arr: np.ndarray, activation: str) -> np.ndarray:
+    """Return ``arr`` passed through the given activation function."""
+    if activation == "relu":
+        return np.maximum(arr, 0)
+    if activation == "sigmoid":
+        return 1.0 / (1.0 + np.exp(-arr))
+    return np.tanh(arr)
+
+
+def _simple_mlp(x: np.ndarray, activation: str = "tanh") -> np.ndarray:
+    """Tiny MLP with one hidden layer and configurable activations."""
     # Handle potential NaNs or infinities to avoid runtime warnings
     x = np.nan_to_num(x, nan=0.0, posinf=0.0, neginf=0.0)
-    h = np.tanh(x @ _W1 + _B1)
-    return np.tanh(h @ _W2 + _B2)
+    h = _apply_activation(x @ _W1 + _B1, activation)
+    return _apply_activation(h @ _W2 + _B2, activation)
 
 
 class AttentionModule:
@@ -75,6 +87,9 @@ def perform_message_passing(
         temp = core.params.get("attention_temperature", 1.0)
         attention_module = AttentionModule(temperature=temp)
 
+    beta = core.params.get("message_passing_beta", 1.0)
+    dropout = core.params.get("message_passing_dropout", 0.0)
+    activation = core.params.get("representation_activation", "tanh")
     energy_thr = core.params.get("energy_threshold", 0.0)
     noise_std = core.params.get("representation_noise_std", 0.0)
 
@@ -92,6 +107,8 @@ def perform_message_passing(
             continue
         neigh_reps = []
         for s in incoming:
+            if dropout > 0 and random.random() < dropout:
+                continue
             w = s.effective_weight()
             neigh_reps.append(core.neurons[s.source].representation * w)
             s.apply_side_effects(core, core.neurons[s.source].representation)
@@ -102,7 +119,10 @@ def perform_message_passing(
         if attn.size == 0:
             continue
         agg = sum(attn[i] * neigh_reps[i] for i in range(len(neigh_reps)))
-        updated = alpha * target.representation + (1 - alpha) * _simple_mlp(agg)
+        interm = alpha * target.representation + (1 - alpha) * _simple_mlp(
+            agg, activation
+        )
+        updated = beta * interm + (1 - beta) * target.representation
         if noise_std > 0:
             updated = updated + np.random.randn(*updated.shape) * noise_std
         new_reps[target.id] = updated
@@ -115,6 +135,7 @@ def perform_message_passing(
     if metrics_visualizer is not None:
         metrics_visualizer.update({"message_passing_change": avg_change})
     return avg_change
+
 
 # List of supported neuron types including layer-mimicking variants
 NEURON_TYPES = [
@@ -165,6 +186,7 @@ SYNAPSE_TYPES = [
 # Global registry for all tiers
 TIER_REGISTRY = {}
 
+
 class TierMeta(type):
     def __init__(cls, name, bases, attrs):
         super().__init__(name, bases, attrs)
@@ -172,6 +194,7 @@ class TierMeta(type):
             instance = cls()
             TIER_REGISTRY[instance.name] = instance
             print(f"Tier '{instance.name}' registered automatically.")
+
 
 class Tier(metaclass=TierMeta):
     def __init__(self):
@@ -183,12 +206,14 @@ class Tier(metaclass=TierMeta):
     def process(self, data):
         return data
 
+
 class VramTier(Tier):
     def __init__(self):
         super().__init__()
         self.name = "vram"
         self.description = "Fast memory (VRAM) tier."
         self.limit_mb = 100
+
 
 class RamTier(Tier):
     def __init__(self):
@@ -197,12 +222,14 @@ class RamTier(Tier):
         self.description = "Intermediate memory (RAM) tier."
         self.limit_mb = 500
 
+
 class DiskTier(Tier):
     def __init__(self):
         super().__init__()
         self.name = "disk"
         self.description = "Persistent memory (Disk) tier."
         self.limit_mb = 10000
+
 
 class FileTier(Tier):
     def __init__(self):
@@ -222,6 +249,7 @@ class FileTier(Tier):
             f.write(pickle.dumps(modified_data))
         return modified_data
 
+
 class RemoteTier(Tier):
     def __init__(self):
         super().__init__()
@@ -231,11 +259,13 @@ class RemoteTier(Tier):
 
 
 class Neuron:
-    def __init__(self, nid, value=0.0, tier='vram', neuron_type='standard', rep_size=_REP_SIZE):
+    def __init__(
+        self, nid, value=0.0, tier="vram", neuron_type="standard", rep_size=_REP_SIZE
+    ):
         self.id = nid
         self.value = value
         self.tier = tier
-        self.neuron_type = neuron_type if neuron_type in NEURON_TYPES else 'standard'
+        self.neuron_type = neuron_type if neuron_type in NEURON_TYPES else "standard"
         self.synapses = []
         self.formula = None
         self.created_at = datetime.now()
@@ -359,9 +389,11 @@ class Neuron:
             stride = self.params.get("stride", 1)
             self.value_history.append(value)
             if len(self.value_history) < len(kernel):
-                padded = [0.0] * (len(kernel) - len(self.value_history)) + self.value_history
+                padded = [0.0] * (
+                    len(kernel) - len(self.value_history)
+                ) + self.value_history
             else:
-                padded = self.value_history[-len(kernel):]
+                padded = self.value_history[-len(kernel) :]
                 if len(self.value_history) > len(kernel):
                     self.value_history = self.value_history[stride:]
             flipped = kernel[::-1]
@@ -379,13 +411,18 @@ class Neuron:
                 use_torch = False
             k = cp.asarray(kernel)
             if padding > 0:
-                arr = cp.pad(arr, ((padding, padding), (padding, padding)), mode="constant")
+                arr = cp.pad(
+                    arr, ((padding, padding), (padding, padding)), mode="constant"
+                )
             out_h = (arr.shape[0] - k.shape[0]) // stride + 1
             out_w = (arr.shape[1] - k.shape[1]) // stride + 1
             result = cp.zeros((out_h, out_w), dtype=arr.dtype)
             for i in range(out_h):
                 for j in range(out_w):
-                    region = arr[i * stride : i * stride + k.shape[0], j * stride : j * stride + k.shape[1]]
+                    region = arr[
+                        i * stride : i * stride + k.shape[0],
+                        j * stride : j * stride + k.shape[1],
+                    ]
                     result[i, j] = cp.sum(region * k)
             if use_torch:
                 return torch.from_numpy(cp.asnumpy(result))
@@ -512,7 +549,9 @@ class Neuron:
             mom = self.params.get("momentum", 0.1)
             eps = self.params.get("eps", 1e-5)
             self.params["mean"] = (1 - mom) * m + mom * value
-            self.params["var"] = (1 - mom) * v + mom * ((value - self.params["mean"]) ** 2)
+            self.params["var"] = (1 - mom) * v + mom * (
+                (value - self.params["mean"]) ** 2
+            )
             return (value - self.params["mean"]) / ((self.params["var"] + eps) ** 0.5)
         elif self.neuron_type == "dropout":
             p = self.params.get("p", 0.5)
@@ -627,7 +666,9 @@ class Neuron:
             result = cp.zeros((out_h, out_w), dtype=arr.dtype)
             for i in range(out_h):
                 for j in range(out_w):
-                    region = arr[i*stride:i*stride+size, j*stride:j*stride+size]
+                    region = arr[
+                        i * stride : i * stride + size, j * stride : j * stride + size
+                    ]
                     if self.neuron_type == "maxpool2d":
                         result[i, j] = cp.max(region)
                     else:
@@ -661,7 +702,11 @@ class Neuron:
             p = self.params
             h = self.hidden_state
             c = self.cell_state
-            sig = lambda x: 1.0 / (1.0 + cp.exp(-x)) if isinstance(value, cp.ndarray) else 1.0 / (1.0 + math.exp(-x))
+            sig = lambda x: (
+                1.0 / (1.0 + cp.exp(-x))
+                if isinstance(value, cp.ndarray)
+                else 1.0 / (1.0 + math.exp(-x))
+            )
             tanh = cp.tanh if isinstance(value, cp.ndarray) else math.tanh
             i = sig(value * p["wi"] + h * p["ui"] + p["bi"])
             f = sig(value * p["wf"] + h * p["uf"] + p["bf"])
@@ -675,7 +720,11 @@ class Neuron:
         elif self.neuron_type == "gru":
             p = self.params
             h = self.hidden_state
-            sig = lambda x: 1.0 / (1.0 + cp.exp(-x)) if isinstance(value, cp.ndarray) else 1.0 / (1.0 + math.exp(-x))
+            sig = lambda x: (
+                1.0 / (1.0 + cp.exp(-x))
+                if isinstance(value, cp.ndarray)
+                else 1.0 / (1.0 + math.exp(-x))
+            )
             tanh = cp.tanh if isinstance(value, cp.ndarray) else math.tanh
             r = sig(value * p["wr"] + h * p["ur"] + p["br"])
             z = sig(value * p["wz"] + h * p["uz"] + p["bz"])
@@ -704,8 +753,11 @@ class Neuron:
                 return result
         return value
 
+
 class Synapse:
-    def __init__(self, source, target, weight=1.0, synapse_type="standard", fatigue=0.0):
+    def __init__(
+        self, source, target, weight=1.0, synapse_type="standard", fatigue=0.0
+    ):
         self.source = source
         self.target = target
         self.weight = weight
@@ -742,7 +794,9 @@ class Synapse:
         if self.synapse_type == "mirror":
             core.neurons[self.source].value = source_value * self.weight
         elif self.synapse_type == "multi_neuron":
-            extra_ids = random.sample(range(len(core.neurons)), k=min(2, len(core.neurons)))
+            extra_ids = random.sample(
+                range(len(core.neurons)), k=min(2, len(core.neurons))
+            )
             for idx in extra_ids:
                 core.neurons[idx].value = source_value * self.weight
         elif self.synapse_type == "recurrent":
@@ -761,6 +815,7 @@ class Synapse:
             return source_value * w
         else:
             return source_value * w
+
 
 def compute_mandelbrot(
     xmin,
@@ -802,6 +857,7 @@ def compute_mandelbrot(
         Z[mask] = Z[mask] ** power + C[mask]
         mandelbrot[mask] = i
     return mandelbrot
+
 
 from data_compressor import DataCompressor
 
@@ -883,7 +939,9 @@ class DataLoader:
         self.compressor = (
             compressor
             if compressor is not None
-            else DataCompressor(level=compression_level, compression_enabled=compression_enabled)
+            else DataCompressor(
+                level=compression_level, compression_enabled=compression_enabled
+            )
         )
         self.metrics_visualizer = metrics_visualizer
 
@@ -938,6 +996,7 @@ class DataLoader:
         decoded_np = self.decode_array(np_tensor)
         return torch.from_numpy(decoded_np.copy())
 
+
 class Core:
     def __init__(self, params, formula=None, formula_num_neurons=100):
         print("Initializing MARBLE Core...")
@@ -950,63 +1009,65 @@ class Core:
             except Exception:
                 pass
         self.params = params
-        if 'file' in TIER_REGISTRY:
-            fpath = params.get('file_tier_path')
+        if "file" in TIER_REGISTRY:
+            fpath = params.get("file_tier_path")
             if fpath is not None:
-                TIER_REGISTRY['file'].file_path = fpath
+                TIER_REGISTRY["file"].file_path = fpath
                 os.makedirs(os.path.dirname(fpath), exist_ok=True)
-        rep_size = params.get('representation_size', _REP_SIZE)
+        rep_size = params.get("representation_size", _REP_SIZE)
         configure_representation_size(rep_size)
         self.rep_size = rep_size
         self.attention_module = AttentionModule(
             params.get("attention_temperature", 1.0)
         )
-        self.weight_init_min = params.get('weight_init_min', 0.5)
-        self.weight_init_max = params.get('weight_init_max', 1.5)
-        self.mandelbrot_escape_radius = params.get('mandelbrot_escape_radius', 2.0)
-        self.mandelbrot_power = params.get('mandelbrot_power', 2)
-        self.tier_autotune_enabled = params.get('tier_autotune_enabled', True)
-        self.memory_cleanup_interval = params.get('memory_cleanup_interval', 60)
-        self.representation_noise_std = params.get('representation_noise_std', 0.0)
-        self.energy_threshold = params.get('energy_threshold', 0.0)
-        self.gradient_clip_value = params.get('gradient_clip_value', 1.0)
-        self.message_passing_iterations = params.get('message_passing_iterations', 1)
-        self.cluster_algorithm = params.get('cluster_algorithm', 'kmeans')
-        self.vram_limit_mb = params.get('vram_limit_mb', 100)
-        self.ram_limit_mb = params.get('ram_limit_mb', 500)
-        self.disk_limit_mb = params.get('disk_limit_mb', 10000)
+        self.weight_init_min = params.get("weight_init_min", 0.5)
+        self.weight_init_max = params.get("weight_init_max", 1.5)
+        self.mandelbrot_escape_radius = params.get("mandelbrot_escape_radius", 2.0)
+        self.mandelbrot_power = params.get("mandelbrot_power", 2)
+        self.tier_autotune_enabled = params.get("tier_autotune_enabled", True)
+        self.memory_cleanup_interval = params.get("memory_cleanup_interval", 60)
+        self.representation_noise_std = params.get("representation_noise_std", 0.0)
+        self.energy_threshold = params.get("energy_threshold", 0.0)
+        self.gradient_clip_value = params.get("gradient_clip_value", 1.0)
+        self.message_passing_iterations = params.get("message_passing_iterations", 1)
+        self.cluster_algorithm = params.get("cluster_algorithm", "kmeans")
+        self.vram_limit_mb = params.get("vram_limit_mb", 100)
+        self.ram_limit_mb = params.get("ram_limit_mb", 500)
+        self.disk_limit_mb = params.get("disk_limit_mb", 10000)
         self.neurons = []
         self.synapses = []
         nid = 0
-        
+
         if formula is not None:
             try:
                 expr = sp.sympify(formula, evaluate=False)
             except Exception as e:
                 raise ValueError(f"Formula parsing failed: {e}")
             for i in range(formula_num_neurons):
-                neuron = Neuron(nid, value=0.0, tier='vram', rep_size=self.rep_size)
+                neuron = Neuron(nid, value=0.0, tier="vram", rep_size=self.rep_size)
                 neuron.formula = expr
                 self.neurons.append(neuron)
                 nid += 1
         else:
             mandel_gpu = compute_mandelbrot(
-                params['xmin'],
-                params['xmax'],
-                params['ymin'],
-                params['ymax'],
-                params['width'],
-                params['height'],
-                params.get('max_iter', 256),
+                params["xmin"],
+                params["xmax"],
+                params["ymin"],
+                params["ymax"],
+                params["width"],
+                params["height"],
+                params.get("max_iter", 256),
                 escape_radius=self.mandelbrot_escape_radius,
                 power=self.mandelbrot_power,
             )
             mandel_cpu = cp.asnumpy(mandel_gpu)
-            noise_std = params.get('init_noise_std', 0.0)
+            noise_std = params.get("init_noise_std", 0.0)
             if noise_std:
                 mandel_cpu = mandel_cpu + np.random.randn(*mandel_cpu.shape) * noise_std
             for val in mandel_cpu.flatten():
-                self.neurons.append(Neuron(nid, value=float(val), tier='vram', rep_size=self.rep_size))
+                self.neurons.append(
+                    Neuron(nid, value=float(val), tier="vram", rep_size=self.rep_size)
+                )
                 nid += 1
 
         num_neurons = len(self.neurons)
@@ -1021,11 +1082,11 @@ class Core:
 
         if not CUDA_AVAILABLE:
             for neuron in self.neurons:
-                if neuron.tier == 'vram':
-                    neuron.tier = 'ram'
-            if 'vram' in TIER_REGISTRY and 'ram' in TIER_REGISTRY:
-                TIER_REGISTRY['ram'].limit_mb += TIER_REGISTRY['vram'].limit_mb
-                TIER_REGISTRY['vram'].limit_mb = 0
+                if neuron.tier == "vram":
+                    neuron.tier = "ram"
+            if "vram" in TIER_REGISTRY and "ram" in TIER_REGISTRY:
+                TIER_REGISTRY["ram"].limit_mb += TIER_REGISTRY["vram"].limit_mb
+                TIER_REGISTRY["vram"].limit_mb = 0
             self.ram_limit_mb += self.vram_limit_mb
             self.vram_limit_mb = 0
             print("CUDA not available: migrated VRAM tiers to RAM.")
@@ -1040,15 +1101,19 @@ class Core:
 
     def get_usage_by_tier(self, tier):
         neurons_in_tier = [n for n in self.neurons if n.tier == tier]
-        synapses_in_tier = [s for s in self.synapses if self.neurons[s.source].tier == tier]
+        synapses_in_tier = [
+            s for s in self.synapses if self.neurons[s.source].tier == tier
+        ]
         usage_bytes = len(neurons_in_tier) * 32 + len(synapses_in_tier) * 16
         return usage_bytes / (1024 * 1024)
 
     def check_memory_usage(self):
-        usage_vram = self.get_usage_by_tier('vram')
-        usage_ram  = self.get_usage_by_tier('ram')
-        usage_disk = self.get_usage_by_tier('disk')
-        print(f"Memory usage - VRAM: {usage_vram:.2f} MB, RAM: {usage_ram:.2f} MB, Disk: {usage_disk:.2f} MB")
+        usage_vram = self.get_usage_by_tier("vram")
+        usage_ram = self.get_usage_by_tier("ram")
+        usage_disk = self.get_usage_by_tier("disk")
+        print(
+            f"Memory usage - VRAM: {usage_vram:.2f} MB, RAM: {usage_ram:.2f} MB, Disk: {usage_disk:.2f} MB"
+        )
 
     def add_synapse(self, source_id, target_id, weight=1.0, synapse_type="standard"):
         syn = Synapse(source_id, target_id, weight=weight, synapse_type=synapse_type)
@@ -1059,16 +1124,22 @@ class Core:
     def get_detailed_status(self):
         status = {}
         for tier in TIER_REGISTRY.keys():
-            neurons_in_tier = [n for n in self.neurons if n.tier.lower() == tier.lower()]
-            synapses_in_tier = [s for s in self.synapses if self.neurons[s.source].tier.lower() == tier.lower()]
+            neurons_in_tier = [
+                n for n in self.neurons if n.tier.lower() == tier.lower()
+            ]
+            synapses_in_tier = [
+                s
+                for s in self.synapses
+                if self.neurons[s.source].tier.lower() == tier.lower()
+            ]
             avg_neuron_age = self.get_average_age(neurons_in_tier)
             avg_synapse_age = self.get_average_age(synapses_in_tier)
             status[tier] = {
-                'neuron_count': len(neurons_in_tier),
-                'synapse_count': len(synapses_in_tier),
-                'memory_mb': self.get_usage_by_tier(tier),
-                'avg_neuron_age_sec': avg_neuron_age,
-                'avg_synapse_age_sec': avg_synapse_age
+                "neuron_count": len(neurons_in_tier),
+                "synapse_count": len(synapses_in_tier),
+                "memory_mb": self.get_usage_by_tier(tier),
+                "avg_neuron_age_sec": avg_neuron_age,
+                "avg_synapse_age_sec": avg_synapse_age,
             }
         return status
 
@@ -1084,17 +1155,22 @@ class Core:
                 return tier.name
         return available_tiers[-1].name
 
-    def expand(self, num_new_neurons=10, num_new_synapses=15,
-              alternative_connection_prob=0.1, target_tier=None,
-              neuron_types=None):
+    def expand(
+        self,
+        num_new_neurons=10,
+        num_new_synapses=15,
+        alternative_connection_prob=0.1,
+        target_tier=None,
+        neuron_types=None,
+    ):
         if target_tier is None:
             target_tier = self.choose_new_tier()
         start_id = len(self.neurons)
         for i in range(num_new_neurons):
             if isinstance(neuron_types, list):
-                n_type = random.choice(neuron_types) if neuron_types else 'standard'
+                n_type = random.choice(neuron_types) if neuron_types else "standard"
             else:
-                n_type = neuron_types if neuron_types is not None else 'standard'
+                n_type = neuron_types if neuron_types is not None else "standard"
             self.neurons.append(
                 Neuron(
                     start_id + i,
@@ -1114,7 +1190,9 @@ class Core:
                     weight=random.uniform(0.1, 1.0),
                     synapse_type=random.choice(SYNAPSE_TYPES),
                 )
-        print(f"Core expanded: {num_new_neurons} new neurons in tier '{target_tier}' and {num_new_synapses} new synapses added.")
+        print(
+            f"Core expanded: {num_new_neurons} new neurons in tier '{target_tier}' and {num_new_synapses} new synapses added."
+        )
         self.check_memory_usage()
 
     def cluster_neurons(self, k=3):
@@ -1129,13 +1207,15 @@ class Core:
                 else:
                     val = float(np.mean(val))
             elif val is None:
-                val = float('nan')
+                val = float("nan")
             processed_vals.append(val)
         values = np.array(processed_vals, dtype=float)
         k = int(min(k, len(values)))
         centers = np.random.choice(values, k, replace=False)
         for _ in range(5):
-            assignments = [int(np.argmin([abs(v - c) for c in centers])) for v in values]
+            assignments = [
+                int(np.argmin([abs(v - c) for c in centers])) for v in values
+            ]
             for i in range(k):
                 cluster_vals = [values[j] for j, a in enumerate(assignments) if a == i]
                 if cluster_vals:
@@ -1153,11 +1233,11 @@ class Core:
             cluster_scores[cid] += neuron.attention_score
         for cid, score in cluster_scores.items():
             if score > high:
-                new_tier = 'vram'
+                new_tier = "vram"
             elif score > medium:
-                new_tier = 'ram'
+                new_tier = "ram"
             else:
-                new_tier = 'disk'
+                new_tier = "disk"
             for neuron in self.neurons:
                 if neuron.cluster_id == cid:
                     neuron.tier = new_tier
@@ -1205,4 +1285,3 @@ class Core:
                 subcore.neurons[id_map[syn.source]].synapses.append(ns)
                 subcore.synapses.append(ns)
         return subcore
-
