@@ -87,6 +87,11 @@ def test_super_evolution_skips_blocked_parameters():
         "weight_init_min": brain.core.weight_init_min,
         "weight_init_max": brain.core.weight_init_max,
         "loss_scale": brain.neuronenblitz.loss_scale,
+        "representation_size": brain.core.params["representation_size"],
+        "manual_seed": brain.manual_seed,
+        "model_name": brain.model_name,
+        "checkpoint_format": brain.checkpoint_format,
+        "super_evolution_mode": brain.super_evolution_mode,
     }
 
     brain.super_evo_controller.record_metrics(0.5, 1.0)
@@ -102,6 +107,11 @@ def test_super_evolution_skips_blocked_parameters():
     assert brain.core.weight_init_min == orig["weight_init_min"]
     assert brain.core.weight_init_max == orig["weight_init_max"]
     assert brain.neuronenblitz.loss_scale == orig["loss_scale"]
+    assert brain.core.params["representation_size"] == orig["representation_size"]
+    assert brain.manual_seed == orig["manual_seed"]
+    assert brain.model_name == orig["model_name"]
+    assert brain.checkpoint_format == orig["checkpoint_format"]
+    assert brain.super_evolution_mode == orig["super_evolution_mode"]
     assert (
         brain.tier_decision_params["vram_usage_threshold"] == orig["tier_decision_vram"]
     )

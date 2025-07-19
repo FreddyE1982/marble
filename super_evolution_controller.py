@@ -18,6 +18,13 @@ class SuperEvolutionController:
         "weight_init_max",
         "random_seed",
         "loss_scale",
+        "representation_size",
+        "representation_activation",
+        "file_tier_path",
+        "manual_seed",
+        "model_name",
+        "checkpoint_format",
+        "super_evolution_mode",
     }
 
     BLOCKED_PREFIXES = ("tier_decision_params",)
