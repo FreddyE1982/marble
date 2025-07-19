@@ -330,6 +330,12 @@ class Brain:
                         "reward": ctx.get("reward", 0.0),
                         "plasticity_threshold": self.neuronenblitz.plasticity_threshold,
                         "message_passing_change": self.neuronenblitz.last_message_passing_change,
+                        "meta_loss_avg": (
+                            sum(self.meta_controller.loss_history)
+                            / len(self.meta_controller.loss_history)
+                            if self.meta_controller.loss_history
+                            else 0.0
+                        ),
                     }
                 )
 
@@ -653,7 +659,9 @@ class Brain:
         pytorch_model.eval()
         pbar = tqdm(range(epochs), desc="ChallengeEpochs", ncols=100)
         if pytorch_inputs is None:
-            pytorch_inputs = [torch.tensor(inp, dtype=torch.float32) for inp, _ in train_examples]
+            pytorch_inputs = [
+                torch.tensor(inp, dtype=torch.float32) for inp, _ in train_examples
+            ]
         for _ in pbar:
             for (inp, tgt), p_inp in zip(train_examples, pytorch_inputs):
                 start = time.time()
