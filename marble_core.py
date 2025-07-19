@@ -75,10 +75,19 @@ def perform_message_passing(
         temp = core.params.get("attention_temperature", 1.0)
         attention_module = AttentionModule(temperature=temp)
 
+    energy_thr = core.params.get("energy_threshold", 0.0)
+    noise_std = core.params.get("representation_noise_std", 0.0)
+
     new_reps = [n.representation.copy() for n in core.neurons]
     old_reps = [n.representation.copy() for n in core.neurons]
     for target in core.neurons:
-        incoming = [s for s in core.synapses if s.target == target.id]
+        if target.energy < energy_thr:
+            continue
+        incoming = [
+            s
+            for s in core.synapses
+            if s.target == target.id and core.neurons[s.source].energy >= energy_thr
+        ]
         if not incoming:
             continue
         neigh_reps = []
@@ -93,7 +102,10 @@ def perform_message_passing(
         if attn.size == 0:
             continue
         agg = sum(attn[i] * neigh_reps[i] for i in range(len(neigh_reps)))
-        new_reps[target.id] = alpha * target.representation + (1 - alpha) * _simple_mlp(agg)
+        updated = alpha * target.representation + (1 - alpha) * _simple_mlp(agg)
+        if noise_std > 0:
+            updated = updated + np.random.randn(*updated.shape) * noise_std
+        new_reps[target.id] = updated
     for idx, rep in enumerate(new_reps):
         core.neurons[idx].representation = rep
     diffs = [
@@ -229,6 +241,7 @@ class Neuron:
         self.created_at = datetime.now()
         self.cluster_id = None
         self.attention_score = 0.0
+        self.energy = 1.0
         self.representation = np.zeros(rep_size, dtype=float)
         self.params = {}
         self.value_history = []
@@ -955,6 +968,7 @@ class Core:
         self.tier_autotune_enabled = params.get('tier_autotune_enabled', True)
         self.memory_cleanup_interval = params.get('memory_cleanup_interval', 60)
         self.representation_noise_std = params.get('representation_noise_std', 0.0)
+        self.energy_threshold = params.get('energy_threshold', 0.0)
         self.gradient_clip_value = params.get('gradient_clip_value', 1.0)
         self.message_passing_iterations = params.get('message_passing_iterations', 1)
         self.cluster_algorithm = params.get('cluster_algorithm', 'kmeans')

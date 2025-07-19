@@ -41,3 +41,29 @@ def test_message_passing_no_nan(recwarn):
     assert not recwarn.list
     for n in core.neurons:
         assert np.all(np.isfinite(n.representation))
+
+
+def test_energy_threshold_blocks_neurons():
+    params = minimal_params()
+    params["energy_threshold"] = 1.0
+    core = Core(params)
+    for n in core.neurons:
+        n.representation = np.random.rand(4)
+        n.energy = 0.0
+    before = [n.representation.copy() for n in core.neurons]
+    perform_message_passing(core)
+    after = [n.representation.copy() for n in core.neurons]
+    assert all(np.allclose(b, a) for b, a in zip(before, after))
+
+
+def test_representation_noise_applied():
+    np.random.seed(0)
+    params = minimal_params()
+    params["representation_noise_std"] = 0.5
+    params["message_passing_alpha"] = 1.0
+    core = Core(params)
+    for n in core.neurons:
+        n.representation = np.zeros(4)
+    perform_message_passing(core)
+    changed = any(not np.allclose(n.representation, 0.0) for n in core.neurons)
+    assert changed
