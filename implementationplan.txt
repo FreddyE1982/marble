@@ -12,7 +12,7 @@ Below is an updated, step‐by‐step implementation plan that incorporates all 
 ──────────────────────────── Step 2. Add FULL TRANSPARENT TRANSITIVE BINARY DATA COMPRESSION / DECOMPRESSION
 ──────────────────────────── A. Design a Data Compression Module
  • Create a new module (e.g., data_compressor.py or add within marble_base.py) that implements:
-  – Conversion of incoming data (e.g., images, text) into tensors using standard libraries (PyTorch, NumPy).
+– Conversion of incoming data (e.g., images, text) into tensors using PyTorch, NumPy.
   – Conversion from tensors into a “real binary representation” (an array of 0s and 1s).
   – Lossless binary compression using a fast, efficient algorithm (e.g., custom implementation based on well‑known techniques such as Huffman coding, LZ77/LZ78 variants, or zstd if allowed—but with full transparency: every transformation is visible and fully invertible).
   – A corresponding decompression and reverse transformation to retrieve the original tensor from the compressed binary format. B. Explain and Ensure “Transitivity”
@@ -33,7 +33,7 @@ Below is an updated, step‐by‐step implementation plan that incorporates all 
   – Inversion Accuracy: Any errors in the invertible transformations may corrupt the data.
  • Workarounds/Minimization Strategies:
   – Thorough unit testing of every transformation step ensures perfect inversion.
-  – Use vectorized operations (NumPy/PyTorch) to minimize performance overhead.
+– Use vectorized operations (NumPy/PyTorch) to minimize performance overhead.
   – Profile and optimize the compression algorithm to ensure it remains fast relative to the overall processing time.
   – Maintain extensive logging during early iterations to confirm that the “transitive” property holds (i.e., decompress(compress(input)) equals input exactly).
 
@@ -53,7 +53,7 @@ Below is an updated, step‐by‐step implementation plan that incorporates all 
  • Write functions (e.g., perform_message_passing() in marble_core.py) that iterate over neurons to exchange information:   – For each neuron, aggregate messages from neighbors weighted by synaptic strength.   – Compute attention scores (using a softmax over explicit dot products) to weight neighbor contributions.
   – Update the neuron’s representation using a formula such as:
    new_rep = α * current_rep + (1 – α) * f(sum(neighbor_msg))
-  – Develop ‘f’ as a small custom MLP (implemented from scratch using NumPy or basic PyTorch operations) with non-linear activation. C. Integration with Structural Plasticity:
+– Develop ‘f’ as a small custom MLP (implemented from scratch using NumPy or basic PyTorch operations) with non-linear activation. C. Integration with Structural Plasticity:
  • Integrate the updated representations in structural adjustments and conceptual refinement.  • When attention or message-passing indicates maladaptive convergence, trigger synaptic pruning or neuron splitting/merging (integrated into apply_structural_plasticity).
 
 ──────────────────────────── Step 7. Refine Structural Plasticity with Context-Driven Remodeling
@@ -100,3 +100,12 @@ Step 10B:
 
 By following these steps, MARBLE will evolve into a system that not only captures statistical patterns but also deeply understands and adapts to conceptual relationships—all while ensuring data is processed, compressed, and decompressed in a rigorously transparent and transitive manner.
 ──────────────────────────── Future Improvements
+
+──────────────────────────── Step 12. Advanced GPT Training Component
+──────────────────────────── • Build a dedicated module (e.g., advanced_gpt.py) implementing a full transformer decoder stack using only MARBLE’s components with NumPy and CuPy.
+• Provide configuration options for model depth, width, attention heads, feed‑forward size, dropout and activation functions so the complexity can scale from tiny experiments to very large models.
+• Implement a tokenisation and dataset ingestion pipeline that reads raw text files specified in YAML (dataset_path) and converts them into training sequences using a configurable vocabulary.
+• Add a training routine that supports batching, GPU utilisation and checkpointing. Training should rely on MARBLE’s CuPy-based automatic differentiation rather than external libraries or manual gradient calculations.
+• Integrate this component into MARBLE by enabling it when `gpt.enabled` is true and exposing all hyperparameters through the `gpt` configuration section.
+• Write unit tests covering dataset preparation, model initialisation and a short training loop verifying loss decreases.
+• Document each parameter in CONFIGURABLE_PARAMETERS.md and yaml-manual.txt, expanding the manual with detailed explanations of dataset_path, batch_size and optimizer settings when those are added.

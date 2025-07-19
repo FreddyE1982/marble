@@ -1,0 +1,229 @@
+import numpy as np
+from typing import List, Tuple
+
+
+def unbroadcast(grad: np.ndarray, shape: Tuple[int, ...]) -> np.ndarray:
+    while grad.ndim > len(shape):
+        grad = grad.sum(axis=0)
+    for axis, size in enumerate(shape):
+        if size == 1:
+            grad = grad.sum(axis=axis, keepdims=True)
+    return grad
+
+
+class Tensor:
+    def __init__(self, data: np.ndarray, parents: Tuple['Tensor', ...] = (), op: str | None = None):
+        self.data = np.asarray(data, dtype=np.float32)
+        self.grad = np.zeros_like(self.data)
+        self.parents = parents
+        self.op = op
+        self._backward = lambda: None
+
+    def __add__(self, other: 'Tensor') -> 'Tensor':
+        other = other if isinstance(other, Tensor) else Tensor(other)
+        out = Tensor(self.data + other.data, (self, other), 'add')
+
+        def _backward():
+            self.grad += unbroadcast(out.grad, self.data.shape)
+            other.grad += unbroadcast(out.grad, other.data.shape)
+        out._backward = _backward
+        return out
+
+    def __matmul__(self, other: 'Tensor') -> 'Tensor':
+        out = Tensor(self.data @ other.data, (self, other), 'matmul')
+
+        def _backward():
+            self.grad += out.grad @ np.swapaxes(other.data, -1, -2)
+            other.grad += np.swapaxes(self.data, -1, -2) @ out.grad
+        out._backward = _backward
+        return out
+
+    def __mul__(self, other: 'Tensor') -> 'Tensor':
+        other = other if isinstance(other, Tensor) else Tensor(other)
+        out = Tensor(self.data * other.data, (self, other), 'mul')
+
+        def _backward():
+            self.grad += unbroadcast(out.grad * other.data, self.data.shape)
+            other.grad += unbroadcast(out.grad * self.data, other.data.shape)
+        out._backward = _backward
+        return out
+
+    def tanh(self) -> 'Tensor':
+        out = Tensor(np.tanh(self.data), (self,), 'tanh')
+
+        def _backward():
+            self.grad += (1 - out.data ** 2) * out.grad
+        out._backward = _backward
+        return out
+
+    def reshape(self, *shape: int) -> 'Tensor':
+        out = Tensor(self.data.reshape(*shape), (self,), 'reshape')
+
+        def _backward():
+            self.grad += out.grad.reshape(self.data.shape)
+        out._backward = _backward
+        return out
+
+    def transpose(self, axes: Tuple[int, ...]) -> 'Tensor':
+        out = Tensor(self.data.transpose(axes), (self,), 'transpose')
+
+        def _backward():
+            inv = np.argsort(axes)
+            self.grad += out.grad.transpose(inv)
+        out._backward = _backward
+        return out
+
+    def backward(self, grad: np.ndarray | None = None) -> None:
+        if grad is None:
+            grad = np.ones_like(self.data)
+        self.grad = grad
+        topo: List[Tensor] = []
+        visited = set()
+
+        def build(v: 'Tensor'):
+            if id(v) not in visited:
+                visited.add(id(v))
+                for child in v.parents:
+                    build(child)
+                topo.append(v)
+
+        build(self)
+        for v in reversed(topo):
+            v._backward()
+
+
+def softmax(x: Tensor, axis: int = -1) -> Tensor:
+    e = np.exp(x.data - np.max(x.data, axis=axis, keepdims=True))
+    out = Tensor(e / e.sum(axis=axis, keepdims=True), (x,), 'softmax')
+
+    def _backward():
+        grad = out.grad
+        s = out.data
+        dx = (grad - (grad * s).sum(axis=axis, keepdims=True)) * s
+        x.grad += dx
+    out._backward = _backward
+    return out
+
+
+def cross_entropy(logits: Tensor, targets: np.ndarray) -> Tensor:
+    probs = softmax(logits, axis=-1)
+    N = targets.shape[0]
+    loss_val = -np.log(probs.data[np.arange(N), targets]).mean()
+    out = Tensor(loss_val, (logits,), 'cross_entropy')
+
+    def _backward():
+        grad = probs.data
+        grad[np.arange(N), targets] -= 1
+        grad /= N
+        logits.grad += grad * out.grad
+    out._backward = _backward
+    return out
+
+
+def embed(weight: Tensor, idx: np.ndarray) -> Tensor:
+    out = Tensor(weight.data[idx], (weight,), 'embed')
+
+    def _backward():
+        np.add.at(weight.grad, idx, out.grad)
+    out._backward = _backward
+    return out
+
+
+def generate_dataset(vocab_size: int, num_samples: int, block_size: int,
+                      seed: int | None = None) -> List[np.ndarray]:
+    if seed is not None:
+        np.random.seed(seed)
+    data = np.random.randint(0, vocab_size, size=(num_samples, block_size + 1))
+    return [seq for seq in data]
+
+
+class NumpyGPT:
+    """A tiny GPT implementation using NumPy and custom autograd."""
+
+    def __init__(self, vocab_size: int, block_size: int, num_layers: int = 2,
+                 num_heads: int = 2, hidden_dim: int = 64) -> None:
+        assert hidden_dim % num_heads == 0, 'hidden_dim must be divisible by num_heads'
+        self.vocab_size = vocab_size
+        self.block_size = block_size
+        self.num_layers = num_layers
+        self.num_heads = num_heads
+        self.hidden_dim = hidden_dim
+        self.head_dim = hidden_dim // num_heads
+        scale = 0.02
+
+        self.embed = Tensor(np.random.randn(vocab_size, hidden_dim) * scale)
+        self.pos_embed = Tensor(np.random.randn(block_size, hidden_dim) * scale)
+        self.layers = []
+        for _ in range(num_layers):
+            layer = {
+                'wq': Tensor(np.random.randn(hidden_dim, hidden_dim) * scale),
+                'wk': Tensor(np.random.randn(hidden_dim, hidden_dim) * scale),
+                'wv': Tensor(np.random.randn(hidden_dim, hidden_dim) * scale),
+                'wo': Tensor(np.random.randn(hidden_dim, hidden_dim) * scale),
+                'w1': Tensor(np.random.randn(hidden_dim, 4 * hidden_dim) * scale),
+                'w2': Tensor(np.random.randn(4 * hidden_dim, hidden_dim) * scale),
+            }
+            self.layers.append(layer)
+        self.lm_head = Tensor(np.random.randn(hidden_dim, vocab_size) * scale)
+
+    def parameters(self) -> List[Tensor]:
+        params = [self.embed, self.pos_embed, self.lm_head]
+        for layer in self.layers:
+            params.extend([layer['wq'], layer['wk'], layer['wv'], layer['wo'],
+                           layer['w1'], layer['w2']])
+        return params
+
+    def __call__(self, idx: np.ndarray) -> Tensor:
+        T = len(idx)
+        x = embed(self.embed, idx) + embed(self.pos_embed, np.arange(T))
+        for layer in self.layers:
+            q = x @ layer['wq']
+            k = x @ layer['wk']
+            v = x @ layer['wv']
+
+            q = q.reshape(T, self.num_heads, self.head_dim).transpose((1, 0, 2))
+            k = k.reshape(T, self.num_heads, self.head_dim).transpose((1, 2, 0))
+            v = v.reshape(T, self.num_heads, self.head_dim).transpose((1, 0, 2))
+
+            scores = (q @ k) * (1.0 / np.sqrt(self.head_dim))
+            mask = np.tril(np.ones((T, T), dtype=bool))
+            scores_data = scores.data.copy()
+            scores_data[:, ~mask] = -1e9
+            masked = Tensor(scores_data, (scores,), 'mask')
+            def _backward():
+                scores.grad += np.where(mask, masked.grad, 0)
+            masked._backward = _backward
+            scores = masked
+
+            weights = softmax(scores, axis=-1)
+            attn = weights @ v
+            attn = attn.transpose((1, 0, 2)).reshape(T, self.hidden_dim)
+            x = attn @ layer['wo']
+            ff = (x @ layer['w1']).tanh()
+            x = x + ff @ layer['w2']
+        logits = x @ self.lm_head
+        return logits
+
+
+def train_gpt(dataset: List[np.ndarray], vocab_size: int, block_size: int,
+              num_layers: int = 2, num_heads: int = 2, hidden_dim: int = 64,
+              epochs: int = 1, lr: float = 1e-3,
+              seed: int | None = None) -> Tuple[NumpyGPT, List[float]]:
+    if seed is not None:
+        np.random.seed(seed)
+    model = NumpyGPT(vocab_size, block_size, num_layers, num_heads, hidden_dim)
+    losses: List[float] = []
+    for _ in range(epochs):
+        total = 0.0
+        for seq in dataset:
+            inp = seq[:-1]
+            target = seq[1:]
+            logits = model(inp)
+            loss = cross_entropy(logits, target)
+            loss.backward()
+            for p in model.parameters():
+                p.data -= lr * p.grad
+                p.grad = np.zeros_like(p.grad)
+            total += float(loss.data)
+        losses.append(total / len(dataset))
+    return model, losses
