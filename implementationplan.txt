@@ -1,5 +1,14 @@
 Below is an updated, step‐by‐step implementation plan that incorporates all of the previous enhancements—including our custom GNN concepts, neuromodulatory systems, adaptive meta‐learning, hierarchical memory, and structural plasticity—with the additional requirement to implement “FULL TRANSPARENT TRANSITIVE BINARY DATA COMPRESSION / DECOMPRESSION.” This new component ensures that any data entering or exiting the brain is fully converted into binary tensors before being compressed losslessly (and decompressed on output). The term “transitive” in this context emphasizes that the transformation should be invertible across all stages of the pipeline so that the relationships between the input data and the compressed representations are fully traceable, and nothing is lost in translation. In other words, every transformation from original data → tensor → binary representation → compression is transparent (visible and interpretable) and transitive (invertible and composable over multiple operations).
 
+──────────────────────────── Step 0. Environment Preparation and Compliance
+──────────────────────────── • Install all dependencies with `pip install -r requirements.txt` before modifying code.
+• Ensure every module works on CPU and GPU by detecting `torch.cuda.is_available()` and routing operations accordingly.
+• Do not simplify or stub any feature—implement full functionality from the outset.
+• Whenever code is added or modified, create or update pytest tests for each affected function or algorithm and run the full test suite.
+• Fix all warnings and errors reported by tests; never disable tests to hide failures.
+• Update `requirements.txt` automatically if new dependencies are introduced.
+• Document any new YAML parameters in `CONFIGURABLE_PARAMETERS.md`, add defaults in `config.yaml`, and extend `yaml-manual.txt` with detailed explanations immediately.
+
 ──────────────────────────── Step 1. Review and Map Integration Points
 ──────────────────────────── • Review the current modules:
  – marble_core.py (Core, MemorySystem, EnergySystem, and eventual neuromodulatory signals)
@@ -68,8 +77,9 @@ Below is an updated, step‐by‐step implementation plan that incorporates all 
 
 ──────────────────────────── Step 10. Integration Testing, Profiling, and Iterative Refinement
 ──────────────────────────── • Build comprehensive unit tests for:
- – The new binary compression/decompression pipeline (ensure full invertibility and transitivity).
- – The NeuromodulatorySystem, MetaParameterController, hierarchical memory, GNN message passing, and attention modules.
+– The new binary compression/decompression pipeline (ensure full invertibility and transitivity).
+– The NeuromodulatorySystem, MetaParameterController, hierarchical memory, GNN message passing, and attention modules.
+• Every function and algorithm must have its own pytest unit test. Additionally, create integration tests exercising all modules together through dynamic_wander, dreaming, and full training loops.
 • Run integration tests through dynamic_wander, dreaming, and overall training loops.
 • Profile the system to ensure the compression overhead is minimized.
 • Analyze logs and refine parameters iteratively until expected performance and conceptual consistency are reached.
@@ -89,6 +99,7 @@ Step 10B:
 ──────────────────────────── • Fully document each new module and explain the transitive binary compression process step-by-step (including diagrams of the transformation pipeline).
 • Clearly define how “transitive” is maintained (i.e., every stage’s operation is invertible and transparent).
 • Provide detailed usage examples and potential future extensions (e.g., richer emotional context integration, multi-modal data handling).
+• Keep `yaml-manual.txt` up to date with thorough explanations of all configuration sections and parameters whenever changes are made.
 
 ──────────────────────────── Summary
 ──────────────────────────── This enhanced implementation plan for MARBLE will:  – Introduce a fully invertible (“full transparent transitive”) data compression/decompression pipeline that transforms input data into binary tensors, compresses them losslessly, and then reverts the process for output.
