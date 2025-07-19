@@ -1,5 +1,6 @@
 from marble_imports import *
 from marble_base import MetricsVisualizer
+import copy
 
 # Representation size for GNN-style message passing
 _REP_SIZE = 4
@@ -103,8 +104,17 @@ def perform_message_passing(
         metrics_visualizer.update({"message_passing_change": avg_change})
     return avg_change
 
-# List of supported neuron types
-NEURON_TYPES = ["standard", "excitatory", "inhibitory", "modulatory"]
+# List of supported neuron types including layer-mimicking variants
+NEURON_TYPES = [
+    "standard",
+    "excitatory",
+    "inhibitory",
+    "modulatory",
+    "linear",
+    "conv1d",
+    "batchnorm",
+    "dropout",
+]
 
 # List of supported synapse types
 SYNAPSE_TYPES = [
@@ -198,6 +208,56 @@ class Neuron:
         self.cluster_id = None
         self.attention_score = 0.0
         self.representation = np.zeros(rep_size, dtype=float)
+        self.params = {}
+        self.value_history = []
+        self.initialize_params()
+
+    def initialize_params(self) -> None:
+        """Initialize layer-like parameters based on ``neuron_type``."""
+        if self.neuron_type == "linear":
+            self.params = {
+                "weight": random.uniform(-1.0, 1.0),
+                "bias": random.uniform(-1.0, 1.0),
+            }
+        elif self.neuron_type == "conv1d":
+            kernel = np.random.randn(3).astype(float)
+            self.params = {"kernel": kernel, "stride": 1}
+        elif self.neuron_type == "batchnorm":
+            self.params = {"mean": 0.0, "var": 1.0, "momentum": 0.1, "eps": 1e-5}
+        elif self.neuron_type == "dropout":
+            self.params = {"p": 0.5}
+
+    def process(self, value: float) -> float:
+        """Apply the neuron-type specific transformation to ``value``."""
+        if self.neuron_type == "linear":
+            w = self.params.get("weight", 1.0)
+            b = self.params.get("bias", 0.0)
+            return w * value + b
+        elif self.neuron_type == "conv1d":
+            kernel = self.params.get("kernel", np.array([1.0]))
+            stride = self.params.get("stride", 1)
+            self.value_history.append(value)
+            if len(self.value_history) < len(kernel):
+                padded = [0.0] * (len(kernel) - len(self.value_history)) + self.value_history
+            else:
+                padded = self.value_history[-len(kernel):]
+                if len(self.value_history) > len(kernel):
+                    self.value_history = self.value_history[stride:]
+            flipped = kernel[::-1]
+            conv = sum(flipped[i] * padded[i] for i in range(len(kernel)))
+            return float(conv)
+        elif self.neuron_type == "batchnorm":
+            m = self.params.get("mean", 0.0)
+            v = self.params.get("var", 1.0)
+            mom = self.params.get("momentum", 0.1)
+            eps = self.params.get("eps", 1e-5)
+            self.params["mean"] = (1 - mom) * m + mom * value
+            self.params["var"] = (1 - mom) * v + mom * ((value - self.params["mean"]) ** 2)
+            return (value - self.params["mean"]) / ((self.params["var"] + eps) ** 0.5)
+        elif self.neuron_type == "dropout":
+            p = self.params.get("p", 0.5)
+            return 0.0 if random.random() < p else value
+        return value
 
 class Synapse:
     def __init__(self, source, target, weight=1.0, synapse_type="standard", fatigue=0.0):
@@ -651,6 +711,8 @@ class Core:
                 rep_size=self.rep_size,
             )
             new_n.representation = n.representation.copy()
+            new_n.params = copy.deepcopy(n.params)
+            new_n.value_history = list(n.value_history)
             subcore.neurons.append(new_n)
             id_map[nid] = i
         for syn in self.synapses:

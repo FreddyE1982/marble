@@ -388,7 +388,7 @@ class Neuronenblitz:
             for syn in current_neuron.synapses:
                 next_neuron = self.core.neurons[syn.target]
                 transmitted_value = self.combine_fn(current_neuron.value, syn.weight)
-                next_neuron.value = transmitted_value
+                next_neuron.value = next_neuron.process(transmitted_value)
                 new_path = path + [(next_neuron, syn)]
                 new_continue_prob = current_continue_prob * 0.85
                 results.extend(self._wander(next_neuron, new_path, new_continue_prob))
@@ -396,7 +396,7 @@ class Neuronenblitz:
             syn = self.weighted_choice(current_neuron.synapses)
             next_neuron = self.core.neurons[syn.target]
             transmitted_value = self.combine_fn(current_neuron.value, syn.weight)
-            next_neuron.value = transmitted_value
+            next_neuron.value = next_neuron.process(transmitted_value)
             new_path = path + [(next_neuron, syn)]
             new_continue_prob = current_continue_prob * 0.85
             results.extend(self._wander(next_neuron, new_path, new_continue_prob))
