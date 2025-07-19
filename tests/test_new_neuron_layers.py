@@ -20,6 +20,10 @@ def test_neuron_types_list_contains_new_types():
     assert "maxpool1d" in NEURON_TYPES
     assert "avgpool1d" in NEURON_TYPES
     assert "flatten" in NEURON_TYPES
+    assert "convtranspose2d" in NEURON_TYPES
+    assert "lstm" in NEURON_TYPES
+    assert "gru" in NEURON_TYPES
+    assert "layernorm" in NEURON_TYPES
 
 
 def test_linear_neuron_operation():
@@ -130,3 +134,49 @@ def test_flatten_neuron_operation():
     out = n.process(arr)
     assert isinstance(out, np.ndarray)
     assert out.shape == (4,)
+
+
+def test_convtranspose2d_neuron_operation():
+    kern = np.array([[1.0, 0.0], [0.0, 1.0]])
+    n = Neuron(0, neuron_type="convtranspose2d")
+    n.params["kernel"] = kern
+    inp = np.array([[1.0, 2.0], [3.0, 4.0]])
+    out = n.process(inp)
+    expected = np.array([[1.0, 2.0, 0.0], [3.0, 5.0, 2.0], [0.0, 3.0, 4.0]])
+    assert np.allclose(out, expected)
+
+
+def test_lstm_neuron_operation():
+    n = Neuron(0, neuron_type="lstm")
+    for k in n.params:
+        n.params[k] = 1.0
+    out = n.process(1.0)
+    sig = lambda x: 1.0 / (1.0 + math.exp(-x))
+    i = sig(1.0 * 1 + 0 * 1 + 1)
+    f = sig(1.0 * 1 + 0 * 1 + 1)
+    o = sig(1.0 * 1 + 0 * 1 + 1)
+    g = math.tanh(1.0 * 1 + 0 * 1 + 1)
+    c = f * 0 + i * g
+    expected = o * math.tanh(c)
+    assert np.isclose(out, expected, atol=1e-6)
+
+
+def test_gru_neuron_operation():
+    n = Neuron(0, neuron_type="gru")
+    for k in n.params:
+        n.params[k] = 1.0
+    out = n.process(1.0)
+    sig = lambda x: 1.0 / (1.0 + math.exp(-x))
+    r = sig(1.0 * 1 + 0 * 1 + 1)
+    z = sig(1.0 * 1 + 0 * 1 + 1)
+    n_val = math.tanh(1.0 * 1 + r * 0 * 1 + 1)
+    expected = (1 - z) * n_val + z * 0
+    assert np.isclose(out, expected, atol=1e-6)
+
+
+def test_layernorm_neuron_operation():
+    arr = np.array([1.0, 2.0, 3.0])
+    n = Neuron(0, neuron_type="layernorm")
+    out = n.process(arr)
+    ex = (arr - arr.mean()) / np.sqrt(arr.var() + 1e-5)
+    assert np.allclose(out, ex)
