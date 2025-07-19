@@ -229,3 +229,7 @@ gpt:
   num_train_steps: 50
   dataset_path: "data/sample_text.txt"
   batch_size: 4
+distillation:
+  enabled: false
+  alpha: 0.5
+  teacher_model: null

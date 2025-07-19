@@ -505,3 +505,19 @@ gpt:
     coverage and allows more diverse sequences.
   batch_size: Number of sequences processed before each optimisation step. Batches between 1 and 64 are typical. Larger
     values yield smoother gradient estimates but require more memory, especially when running on GPU with CuPy.
+
+distillation:
+  # Knowledge distillation allows training a "student" brain using guidance from
+  # a pre-trained "teacher" brain. When enabled the student blends the teacher's
+  # predictions with the ground truth targets before performing regular training
+  # updates. This is useful for compressing a large model into a smaller one or
+  # for transferring knowledge between different MARBLE instances.
+  enabled: Set to ``true`` to activate distillation during training.
+  alpha: Weighting factor between the true target and the teacher's output when
+    computing the blended target value. ``0.0`` relies solely on the ground
+    truth while ``1.0`` exactly matches the teacher. Typical values range from
+    ``0.3`` to ``0.7`` depending on how strongly the teacher should influence
+    learning.
+  teacher_model: Path to a pickled MARBLE system used as the teacher. If ``null``
+    the caller must provide the teacher programmatically when invoking the
+    distillation trainer.

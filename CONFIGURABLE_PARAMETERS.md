@@ -250,3 +250,8 @@ Each entry is listed under its section heading.
 - num_train_steps
 - dataset_path
 - batch_size
+
+## distillation
+- enabled
+- alpha
+- teacher_model
