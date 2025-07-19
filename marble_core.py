@@ -114,6 +114,12 @@ NEURON_TYPES = [
     "conv1d",
     "batchnorm",
     "dropout",
+    "relu",
+    "sigmoid",
+    "tanh",
+    "maxpool1d",
+    "avgpool1d",
+    "flatten",
 ]
 
 # List of supported synapse types
@@ -226,6 +232,10 @@ class Neuron:
             self.params = {"mean": 0.0, "var": 1.0, "momentum": 0.1, "eps": 1e-5}
         elif self.neuron_type == "dropout":
             self.params = {"p": 0.5}
+        elif self.neuron_type in {"relu", "sigmoid", "tanh", "flatten"}:
+            self.params = {}
+        elif self.neuron_type in {"maxpool1d", "avgpool1d"}:
+            self.params = {"size": 2, "stride": 2}
 
     def process(self, value: float) -> float:
         """Apply the neuron-type specific transformation to ``value``."""
@@ -257,6 +267,61 @@ class Neuron:
         elif self.neuron_type == "dropout":
             p = self.params.get("p", 0.5)
             return 0.0 if random.random() < p else value
+        elif self.neuron_type == "relu":
+            if torch.is_tensor(value):
+                return torch.relu(value)
+            elif isinstance(value, cp.ndarray):
+                return cp.maximum(value, 0)
+            else:
+                return max(0.0, value)
+        elif self.neuron_type == "sigmoid":
+            if torch.is_tensor(value):
+                return torch.sigmoid(value)
+            elif isinstance(value, cp.ndarray):
+                return 1.0 / (1.0 + cp.exp(-value))
+            else:
+                return 1.0 / (1.0 + math.exp(-value))
+        elif self.neuron_type == "tanh":
+            if torch.is_tensor(value):
+                return torch.tanh(value)
+            elif isinstance(value, cp.ndarray):
+                return cp.tanh(value)
+            else:
+                return math.tanh(value)
+        elif self.neuron_type in {"maxpool1d", "avgpool1d"}:
+            size = self.params.get("size", 2)
+            stride = self.params.get("stride", 2)
+            self.value_history.append(value)
+            if len(self.value_history) < size:
+                return value
+            window = self.value_history[-size:]
+            if len(self.value_history) > size:
+                self.value_history = self.value_history[stride:]
+            if self.neuron_type == "maxpool1d":
+                if torch.is_tensor(window[0]):
+                    return torch.stack(window).max(dim=0).values
+                elif isinstance(window[0], cp.ndarray):
+                    stacked = cp.stack(window)
+                    return cp.max(stacked, axis=0)
+                else:
+                    return max(window)
+            else:
+                if torch.is_tensor(window[0]):
+                    return torch.stack(window).mean(dim=0)
+                elif isinstance(window[0], cp.ndarray):
+                    stacked = cp.stack(window)
+                    return cp.mean(stacked, axis=0)
+                else:
+                    return sum(window) / len(window)
+        elif self.neuron_type == "flatten":
+            if torch.is_tensor(value):
+                return torch.reshape(value, (-1,))
+            elif isinstance(value, cp.ndarray):
+                return cp.reshape(value, (-1,))
+            elif isinstance(value, np.ndarray):
+                return value.reshape(-1)
+            else:
+                return value
         return value
 
 class Synapse:
