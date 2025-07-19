@@ -211,7 +211,12 @@ class Core:
         num_neurons = len(self.neurons)
         for i in range(num_neurons - 1):
             weight = random.uniform(0.5, 1.5)
-            syn = Synapse(self.neurons[i].id, self.neurons[i+1].id, weight)
+            syn = Synapse(
+                self.neurons[i].id,
+                self.neurons[i + 1].id,
+                weight,
+                synapse_type="standard",
+            )
             self.neurons[i].synapses.append(syn)
             self.synapses.append(syn)
         self.check_memory_usage()
@@ -251,7 +256,12 @@ class Core:
             src = random.choice(self.neurons).id
             tgt = random.choice(self.neurons).id
             if src != tgt:
-                syn = Synapse(src, tgt, weight=random.uniform(0.1, 1.0))
+                syn = Synapse(
+                    src,
+                    tgt,
+                    weight=random.uniform(0.1, 1.0),
+                    synapse_type="standard",
+                )
                 self.neurons[src].synapses.append(syn)
                 self.synapses.append(syn)
         print(f"Core expanded: {num_new_neurons} new neurons in {new_tier} and {num_new_synapses} new synapses added.")
@@ -439,11 +449,21 @@ class Neuronenblitz:
                 new_neuron = Neuron(new_id, value=target.value, tier=new_tier)
                 self.core.neurons.append(new_neuron)
                 new_weight1 = syn.weight * 1.5
-                new_syn1 = Synapse(source.id, new_id, weight=new_weight1)
+                new_syn1 = Synapse(
+                    source.id,
+                    new_id,
+                    weight=new_weight1,
+                    synapse_type="standard",
+                )
                 source.synapses.append(new_syn1)
                 self.core.synapses.append(new_syn1)
                 new_weight2 = syn.weight * 1.2
-                new_syn2 = Synapse(new_id, target.id, weight=new_weight2)
+                new_syn2 = Synapse(
+                    new_id,
+                    target.id,
+                    weight=new_weight2,
+                    synapse_type="standard",
+                )
                 new_neuron.synapses.append(new_syn2)
                 self.core.synapses.append(new_syn2)
                 source.synapses = [s for s in source.synapses if s != syn]
@@ -707,7 +727,12 @@ class MarbleConverter:
                 for j, out_id in enumerate(output_ids):
                     for i, in_id in enumerate(prev_neuron_ids):
                         weight_val = float(weight_matrix[j, i])
-                        syn = Synapse(in_id, out_id, weight=weight_val)
+                        syn = Synapse(
+                            in_id,
+                            out_id,
+                            weight=weight_val,
+                            synapse_type="standard",
+                        )
                         new_core.neurons[in_id].synapses.append(syn)
                         new_core.synapses.append(syn)
                 prev_neuron_ids = output_ids
