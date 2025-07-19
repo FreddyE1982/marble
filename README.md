@@ -18,3 +18,4 @@ Below is a list of ideas explored when naming the project:
 - Morphological Adaptive Robotics Brain-Like Executor
 - Multi-sensory Associative Response and Behavior Learning Engine
 - Matrix-Accelerated Reasoning Bot with Learning Enhancements
+For a high level description of the system components and data flow see [ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md). The YAML configuration format is documented in detail in [yaml-manual.txt](yaml-manual.txt).
