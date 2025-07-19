@@ -84,6 +84,7 @@ class MARBLE:
             "merge_tolerance": 0.01,
             "combine_fn": None,
             "loss_fn": None,
+            "loss_module": None,
             "weight_update_fn": None,
             "plasticity_threshold": 10.0,
             "max_wander_depth": 100,

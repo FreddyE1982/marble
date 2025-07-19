@@ -361,6 +361,7 @@ class Neuronenblitz:
                  merge_tolerance=0.01,
                  combine_fn=None,
                  loss_fn=None,
+                 loss_module=None,
                  weight_update_fn=None,
                  plasticity_threshold=10.0):
         self.core = core
@@ -377,6 +378,7 @@ class Neuronenblitz:
 
         self.combine_fn = combine_fn if combine_fn is not None else (lambda x, w: max(x * w, 0))
         self.loss_fn = loss_fn if loss_fn is not None else (lambda target, output: target - output)
+        self.loss_module = loss_module
         self.weight_update_fn = weight_update_fn if weight_update_fn is not None else (lambda source, error, path_len: (error * source) / (path_len + 1))
         
         self.training_history = []
@@ -385,6 +387,14 @@ class Neuronenblitz:
     def reset_neuron_values(self):
         for neuron in self.core.neurons:
             neuron.value = None
+
+    def _compute_loss(self, target_value, output_value):
+        """Return loss using either ``loss_module`` or ``loss_fn``."""
+        if self.loss_module is not None:
+            t = torch.tensor([output_value], dtype=torch.float32)
+            tt = torch.tensor([target_value], dtype=torch.float32)
+            return float(self.loss_module(t, tt))
+        return self.loss_fn(target_value, output_value)
 
     def weighted_choice(self, synapses):
         total = sum(syn.potential for syn in synapses)
@@ -489,7 +499,7 @@ class Neuronenblitz:
 
     def train_example(self, input_value, target_value):
         output_value, path = self.dynamic_wander(input_value)
-        error = self.loss_fn(target_value, output_value)
+        error = self._compute_loss(target_value, output_value)
         path_length = len(path)
         for syn in path:
             source_value = self.core.neurons[syn.source].value
@@ -792,6 +802,7 @@ class MARBLE:
             'merge_tolerance': 0.01,
             'combine_fn': None,
             'loss_fn': None,
+            'loss_module': None,
             'weight_update_fn': None,
             'plasticity_threshold': 10.0
         }
@@ -809,6 +820,7 @@ class MARBLE:
                                            merge_tolerance=nb_defaults['merge_tolerance'],
                                            combine_fn=nb_defaults['combine_fn'],
                                            loss_fn=nb_defaults['loss_fn'],
+                                           loss_module=nb_defaults['loss_module'],
                                            weight_update_fn=nb_defaults['weight_update_fn'],
                                            plasticity_threshold=nb_defaults['plasticity_threshold'])
         

@@ -71,6 +71,7 @@ Each entry is listed under its section heading.
 - structural_plasticity_enabled
 - backtrack_enabled
 - loss_scale
+- loss_module
 - exploration_bonus
 - synapse_potential_cap
 - attention_update_scale

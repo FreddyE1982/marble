@@ -42,6 +42,7 @@ class Neuronenblitz:
         merge_tolerance=0.01,
         combine_fn=None,
         loss_fn=None,
+        loss_module=None,
         weight_update_fn=None,
         plasticity_threshold=10.0,
         continue_decay_rate=0.85,
@@ -137,6 +138,7 @@ class Neuronenblitz:
 
         self.combine_fn = combine_fn if combine_fn is not None else default_combine_fn
         self.loss_fn = loss_fn if loss_fn is not None else default_loss_fn
+        self.loss_module = loss_module
         self.weight_update_fn = (
             weight_update_fn if weight_update_fn is not None else default_weight_update_fn
         )
@@ -167,6 +169,14 @@ class Neuronenblitz:
     def __setstate__(self, state):
         self.__dict__.update(state)
         self.lock = threading.RLock()
+
+    def _compute_loss(self, target_value, output_value):
+        """Return loss using either ``loss_module`` or ``loss_fn``."""
+        if self.loss_module is not None:
+            t = torch.tensor([output_value], dtype=torch.float32)
+            tt = torch.tensor([target_value], dtype=torch.float32)
+            return float(self.loss_module(t, tt))
+        return self.loss_fn(target_value, output_value)
 
     def modulate_plasticity(self, context):
         """Adjust plasticity_threshold based on neuromodulatory context."""
@@ -498,7 +508,7 @@ class Neuronenblitz:
                     out_val, path = self.dynamic_wander(
                         input_value, apply_plasticity=False
                     )
-                    err = self.loss_fn(target_value, out_val)
+                    err = self._compute_loss(target_value, out_val)
                     pred_size = len(self.core.synapses) + sum(
                         1
                         for syn in path
@@ -517,11 +527,11 @@ class Neuronenblitz:
                 random.seed(best_seed)
                 np.random.seed(best_seed % (2**32 - 1))
                 output_value, path = self.dynamic_wander(input_value)
-                error = self.loss_fn(target_value, output_value)
+                error = self._compute_loss(target_value, output_value)
                 path_length = self.apply_weight_updates_and_attention(path, error)
             else:
                 output_value, path = self.dynamic_wander(input_value)
-                error = self.loss_fn(target_value, output_value)
+                error = self._compute_loss(target_value, output_value)
                 path_length = self.apply_weight_updates_and_attention(path, error)
             self.error_history.append(abs(error))
             self.training_history.append(
