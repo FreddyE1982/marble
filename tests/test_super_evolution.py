@@ -82,6 +82,11 @@ def test_super_evolution_skips_blocked_parameters():
         "last_val_loss": brain.last_val_loss,
         "tier_decision_vram": brain.tier_decision_params["vram_usage_threshold"],
         "tier_decision_ram": brain.tier_decision_params["ram_usage_threshold"],
+        "gradient_clip_value": brain.core.gradient_clip_value,
+        "random_seed": brain.core.params["random_seed"],
+        "weight_init_min": brain.core.weight_init_min,
+        "weight_init_max": brain.core.weight_init_max,
+        "loss_scale": brain.neuronenblitz.loss_scale,
     }
 
     brain.super_evo_controller.record_metrics(0.5, 1.0)
@@ -92,6 +97,11 @@ def test_super_evolution_skips_blocked_parameters():
     assert brain.loss_growth_threshold == orig["loss_growth_threshold"]
     assert brain.metrics_history_size == orig["metrics_history_size"]
     assert brain.last_val_loss == orig["last_val_loss"]
+    assert brain.core.gradient_clip_value == orig["gradient_clip_value"]
+    assert brain.core.params["random_seed"] == orig["random_seed"]
+    assert brain.core.weight_init_min == orig["weight_init_min"]
+    assert brain.core.weight_init_max == orig["weight_init_max"]
+    assert brain.neuronenblitz.loss_scale == orig["loss_scale"]
     assert (
         brain.tier_decision_params["vram_usage_threshold"] == orig["tier_decision_vram"]
     )
