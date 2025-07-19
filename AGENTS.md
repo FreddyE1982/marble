@@ -1,6 +1,6 @@
 0. Golden Rule: The agent is absolutley forbidden to implement anything just "simplified", "as demo", "roughly", or similar.
 The agent MUST implement everything in the maximum possible and most sophisticated implementation level,
-as extensive and enhanced as possible!
+as extensive and enhanced as possible! ALL code parts must work with CPU AND GPU depending if cuda/gpu is available
 
 Before doing anything, the agent must install dependencies using `pip install -r requirements.txt`.
 1. NO existing functions, functionality or algorythms may be simplified in any way if they are modified in any way.
