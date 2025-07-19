@@ -13,6 +13,11 @@ class SuperEvolutionController:
         "metrics_history_size",
         "last_val_loss",
         "best_validation_loss",
+        "gradient_clip_value",
+        "weight_init_min",
+        "weight_init_max",
+        "random_seed",
+        "loss_scale",
     }
 
     BLOCKED_PREFIXES = ("tier_decision_params",)
