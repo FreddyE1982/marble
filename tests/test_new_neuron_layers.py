@@ -20,11 +20,13 @@ def test_neuron_types_list_contains_new_types():
     assert "maxpool1d" in NEURON_TYPES
     assert "avgpool1d" in NEURON_TYPES
     assert "flatten" in NEURON_TYPES
+    assert "convtranspose1d" in NEURON_TYPES
     assert "convtranspose2d" in NEURON_TYPES
     assert "lstm" in NEURON_TYPES
     assert "gru" in NEURON_TYPES
     assert "layernorm" in NEURON_TYPES
     assert "conv3d" in NEURON_TYPES
+    assert "convtranspose3d" in NEURON_TYPES
     assert "maxpool2d" in NEURON_TYPES
     assert "avgpool2d" in NEURON_TYPES
     assert "dropout2d" in NEURON_TYPES
@@ -152,6 +154,16 @@ def test_convtranspose2d_neuron_operation():
     assert np.allclose(out, expected)
 
 
+def test_convtranspose1d_neuron_operation():
+    kern = np.array([1.0, 1.0])
+    n = Neuron(0, neuron_type="convtranspose1d")
+    n.params["kernel"] = kern
+    inp = np.array([1.0, 2.0])
+    out = n.process(inp)
+    expected = np.array([1.0, 3.0, 2.0])
+    assert np.allclose(out, expected)
+
+
 def test_lstm_neuron_operation():
     n = Neuron(0, neuron_type="lstm")
     for k in n.params:
@@ -195,6 +207,23 @@ def test_conv3d_neuron_operation():
     inp = np.ones((3, 3, 3))
     out = n.process(inp)
     expected = np.full((2, 2, 2), 8.0)
+    assert np.allclose(out, expected)
+
+
+def test_convtranspose3d_neuron_operation():
+    kern = np.ones((2, 2, 2))
+    n = Neuron(0, neuron_type="convtranspose3d")
+    n.params["kernel"] = kern
+    inp = np.ones((2, 2, 2))
+    out = n.process(inp)
+    expected = np.array(
+        [
+            [[1, 2, 1], [2, 4, 2], [1, 2, 1]],
+            [[2, 4, 2], [4, 8, 4], [2, 4, 2]],
+            [[1, 2, 1], [2, 4, 2], [1, 2, 1]],
+        ],
+        dtype=float,
+    )
     assert np.allclose(out, expected)
 
 

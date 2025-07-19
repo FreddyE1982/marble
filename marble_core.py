@@ -124,11 +124,13 @@ NEURON_TYPES = [
     "maxpool1d",
     "avgpool1d",
     "flatten",
+    "convtranspose1d",
     "convtranspose2d",
     "lstm",
     "gru",
     "layernorm",
     "conv3d",
+    "convtranspose3d",
     "maxpool2d",
     "avgpool2d",
     "dropout2d",
@@ -259,6 +261,14 @@ class Neuron:
             self.params = {}
         elif self.neuron_type in {"maxpool1d", "avgpool1d"}:
             self.params = {"size": 2, "stride": 2}
+        elif self.neuron_type == "convtranspose1d":
+            kernel = np.random.randn(3).astype(float)
+            self.params = {
+                "kernel": kernel,
+                "stride": 1,
+                "padding": 0,
+                "output_padding": 0,
+            }
         elif self.neuron_type == "convtranspose2d":
             kernel = np.random.randn(3, 3).astype(float)
             self.params = {
@@ -270,6 +280,14 @@ class Neuron:
         elif self.neuron_type == "conv3d":
             kernel = np.random.randn(3, 3, 3).astype(float)
             self.params = {"kernel": kernel, "stride": 1, "padding": 0}
+        elif self.neuron_type == "convtranspose3d":
+            kernel = np.random.randn(3, 3, 3).astype(float)
+            self.params = {
+                "kernel": kernel,
+                "stride": 1,
+                "padding": 0,
+                "output_padding": 0,
+            }
         elif self.neuron_type in {"maxpool2d", "avgpool2d"}:
             self.params = {"size": 2, "stride": 2}
         elif self.neuron_type == "dropout2d":
@@ -388,6 +406,28 @@ class Neuron:
             if isinstance(value, np.ndarray) and not CUDA_AVAILABLE:
                 return cp.asnumpy(result)
             return result
+        elif self.neuron_type == "convtranspose1d":
+            kernel = self.params.get("kernel", np.ones(1))
+            stride = self.params.get("stride", 1)
+            padding = self.params.get("padding", 0)
+            out_pad = self.params.get("output_padding", 0)
+            if torch.is_tensor(value):
+                arr = value.detach().cpu().numpy()
+                use_torch = True
+            else:
+                arr = cp.asarray(value)
+                use_torch = False
+            k = cp.asarray(kernel)
+            out_len = (arr.shape[0] - 1) * stride - 2 * padding + k.shape[0] + out_pad
+            result = cp.zeros((out_len,), dtype=arr.dtype)
+            for i in range(arr.shape[0]):
+                region = result[i * stride : i * stride + k.shape[0]]
+                region += arr[i] * k
+            if use_torch:
+                return torch.from_numpy(cp.asnumpy(result))
+            if isinstance(value, np.ndarray) and not CUDA_AVAILABLE:
+                return cp.asnumpy(result)
+            return result
         elif self.neuron_type == "conv3d":
             kernel = self.params.get("kernel", np.ones((1, 1, 1)))
             stride = self.params.get("stride", 1)
@@ -418,6 +458,36 @@ class Neuron:
                             l * stride : l * stride + k.shape[2],
                         ]
                         result[i, j, l] = cp.sum(region * k)
+            if use_torch:
+                return torch.from_numpy(cp.asnumpy(result))
+            if isinstance(value, np.ndarray) and not CUDA_AVAILABLE:
+                return cp.asnumpy(result)
+            return result
+        elif self.neuron_type == "convtranspose3d":
+            kernel = self.params.get("kernel", np.ones((1, 1, 1)))
+            stride = self.params.get("stride", 1)
+            padding = self.params.get("padding", 0)
+            out_pad = self.params.get("output_padding", 0)
+            if torch.is_tensor(value):
+                arr = value.detach().cpu().numpy()
+                use_torch = True
+            else:
+                arr = cp.asarray(value)
+                use_torch = False
+            k = cp.asarray(kernel)
+            out_d = (arr.shape[0] - 1) * stride - 2 * padding + k.shape[0] + out_pad
+            out_h = (arr.shape[1] - 1) * stride - 2 * padding + k.shape[1] + out_pad
+            out_w = (arr.shape[2] - 1) * stride - 2 * padding + k.shape[2] + out_pad
+            result = cp.zeros((out_d, out_h, out_w), dtype=arr.dtype)
+            for i in range(arr.shape[0]):
+                for j in range(arr.shape[1]):
+                    for l in range(arr.shape[2]):
+                        region = result[
+                            i * stride : i * stride + k.shape[0],
+                            j * stride : j * stride + k.shape[1],
+                            l * stride : l * stride + k.shape[2],
+                        ]
+                        region += arr[i, j, l] * k
             if use_torch:
                 return torch.from_numpy(cp.asnumpy(result))
             if isinstance(value, np.ndarray) and not CUDA_AVAILABLE:
