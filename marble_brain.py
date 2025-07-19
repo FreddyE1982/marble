@@ -773,6 +773,24 @@ class Brain:
         pbar.close()
 
 
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["training_thread"] = None
+        state["auto_fire_thread"] = None
+        state["dream_thread"] = None
+        state["metrics_visualizer"] = None
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.training_thread = None
+        self.auto_fire_thread = None
+        self.dream_thread = None
+        if self.metrics_visualizer is None:
+            from marble_base import MetricsVisualizer
+
+            self.metrics_visualizer = MetricsVisualizer()
+
 class BenchmarkManager:
     def __init__(self, marble_system, target_metrics=None):
         self.marble = marble_system
