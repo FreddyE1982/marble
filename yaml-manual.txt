@@ -165,6 +165,13 @@ neuronenblitz:
   max_learning_rate: Upper bound allowed for adaptive learning rate schemes.
   top_k_paths: Number of most promising wander paths retained during
     exploration.
+  parallel_wanderers: How many ``dynamic_wander`` processes to run in parallel
+    for each training example. Setting this above ``1`` launches multiple
+    temporary Neuronenblitz copies that explore the graph concurrently in
+    separate OS processes.  After all processes finish, only the wanderer that
+    achieves the greatest loss reduction, path speed improvement and model size
+    decrease is replayed in the main process to apply its weight updates and
+    structural plasticity.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the

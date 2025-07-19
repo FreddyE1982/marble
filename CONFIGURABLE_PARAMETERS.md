@@ -84,6 +84,7 @@ Each entry is listed under its section heading.
 - min_learning_rate
 - max_learning_rate
 - top_k_paths
+- parallel_wanderers
 
 ## brain
 - save_threshold

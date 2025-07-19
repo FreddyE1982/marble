@@ -2,6 +2,28 @@ from marble_imports import *
 from marble_core import Neuron, SYNAPSE_TYPES, NEURON_TYPES, perform_message_passing
 from marble_base import MetricsVisualizer
 import threading
+import multiprocessing as mp
+import pickle
+
+
+def _wander_worker(state_bytes, input_value, seed):
+    nb = pickle.loads(state_bytes)
+    random.seed(seed)
+    np.random.seed(seed % (2**32 - 1))
+    output, _ = nb.dynamic_wander(input_value)
+    return output, seed
+
+
+def default_combine_fn(x, w):
+    return max(x * w, 0)
+
+
+def default_loss_fn(target, output):
+    return target - output
+
+
+def default_weight_update_fn(source, error, path_len):
+    return (error * source) / (path_len + 1)
 
 
 class Neuronenblitz:
@@ -53,6 +75,7 @@ class Neuronenblitz:
         min_learning_rate=0.0001,
         max_learning_rate=0.1,
         top_k_paths=5,
+        parallel_wanderers=1,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -101,17 +124,12 @@ class Neuronenblitz:
         self.min_learning_rate = min_learning_rate
         self.max_learning_rate = max_learning_rate
         self.top_k_paths = top_k_paths
+        self.parallel_wanderers = parallel_wanderers
 
-        self.combine_fn = (
-            combine_fn if combine_fn is not None else (lambda x, w: max(x * w, 0))
-        )
-        self.loss_fn = (
-            loss_fn if loss_fn is not None else (lambda target, output: target - output)
-        )
+        self.combine_fn = combine_fn if combine_fn is not None else default_combine_fn
+        self.loss_fn = loss_fn if loss_fn is not None else default_loss_fn
         self.weight_update_fn = (
-            weight_update_fn
-            if weight_update_fn is not None
-            else (lambda source, error, path_len: (error * source) / (path_len + 1))
+            weight_update_fn if weight_update_fn is not None else default_weight_update_fn
         )
 
         self._weight_limit = 1e6
@@ -234,7 +252,7 @@ class Neuronenblitz:
             print(f"Partial pathway age: {pathway_age:.2f} sec")
         return final_neuron, final_path
 
-    def dynamic_wander(self, input_value):
+    def dynamic_wander(self, input_value, apply_plasticity=True):
         with self.lock:
             for neuron in self.core.neurons:
                 neuron.value = None
@@ -262,8 +280,34 @@ class Neuronenblitz:
             if self.global_activation_count % self.route_visit_decay_interval == 0:
                 for syn in self.core.synapses:
                     syn.potential *= self.route_potential_decay
-            self.apply_structural_plasticity(final_path)
+            if apply_plasticity:
+                self.apply_structural_plasticity(final_path)
             return final_neuron.value, [s for (_, s) in final_path if s is not None]
+
+    def dynamic_wander_parallel(self, input_value, num_processes=None):
+        """Run ``dynamic_wander`` in multiple processes.
+
+        Each process receives a temporary copy of ``self`` and performs its own
+        wandering starting from a different random seed.  The seeds used are
+        returned so the main process can replay each path and apply weight
+        updates.  This avoids modifying stale copies of the core while still
+        allowing the expensive wandering phase to execute in parallel.
+        """
+
+        num = num_processes if num_processes is not None else self.parallel_wanderers
+        num = int(max(1, round(num)))
+        if num <= 1:
+            output, _ = self.dynamic_wander(input_value)
+            seed = random.randint(0, 2**32 - 1)
+            return [(output, seed)]
+
+        state = pickle.dumps(self)
+        seeds = [random.randint(0, 2**32 - 1) for _ in range(num)]
+        ctx = mp.get_context("spawn")
+        with ctx.Pool(processes=num) as pool:
+            outputs = pool.starmap(_wander_worker, [(state, input_value, s) for s in seeds])
+
+        return outputs
 
     def apply_structural_plasticity(self, path):
         ctx = self.last_context
@@ -324,35 +368,70 @@ class Neuronenblitz:
             self.type_attention[k] *= self.attention_decay
         return best
 
+    def apply_weight_updates_and_attention(self, path, error):
+        path_length = len(path)
+        for syn in path:
+            source_value = self.core.neurons[syn.source].value
+            delta = self.weight_update_fn(source_value, error, path_length)
+            syn.weight += delta
+            if random.random() < self.consolidation_probability:
+                syn.weight *= self.consolidation_strength
+            if syn.weight > self._weight_limit:
+                syn.weight = self._weight_limit
+            elif syn.weight < -self._weight_limit:
+                syn.weight = -self._weight_limit
+            score = abs(error) * abs(syn.weight) / max(path_length, 1)
+            self.core.neurons[syn.target].attention_score += score
+        if path:
+            last_neuron = self.core.neurons[path[-1].target]
+            last_neuron.attention_score += abs(error)
+            self.update_attention(path, error)
+            self.update_synapse_type_attentions(
+                path,
+                error,
+                len(path),
+                len(self.core.synapses),
+            )
+        return path_length
+
     def train_example(self, input_value, target_value):
         with self.lock:
-            output_value, path = self.dynamic_wander(input_value)
-            error = self.loss_fn(target_value, output_value)
-            path_length = len(path)
-            for syn in path:
-                source_value = self.core.neurons[syn.source].value
-                delta = self.weight_update_fn(source_value, error, path_length)
-                syn.weight += delta
-                if random.random() < self.consolidation_probability:
-                    syn.weight *= self.consolidation_strength
-                if syn.weight > self._weight_limit:
-                    syn.weight = self._weight_limit
-                elif syn.weight < -self._weight_limit:
-                    syn.weight = -self._weight_limit
-                score = abs(error) * abs(syn.weight) / max(path_length, 1)
-                self.core.neurons[syn.target].attention_score += score
-            if path:
-                last_neuron = self.core.neurons[path[-1].target]
-                last_neuron.attention_score += abs(error)
-            if path:
-                self.update_attention(path, error)
-            if path:
-                self.update_synapse_type_attentions(
-                    path,
-                    error,
-                    len(path),
-                    len(self.core.synapses),
+            if self.parallel_wanderers > 1:
+                results = self.dynamic_wander_parallel(
+                    input_value, num_processes=self.parallel_wanderers
                 )
+                metrics = []
+                for _, seed in results:
+                    random.seed(seed)
+                    np.random.seed(seed % (2**32 - 1))
+                    out_val, path = self.dynamic_wander(
+                        input_value, apply_plasticity=False
+                    )
+                    err = self.loss_fn(target_value, out_val)
+                    pred_size = len(self.core.synapses) + sum(
+                        1
+                        for syn in path
+                        if syn.potential >= self.plasticity_threshold
+                    )
+                    metrics.append(
+                        (
+                            abs(err),
+                            len(path),
+                            pred_size,
+                            seed,
+                        )
+                    )
+                best = min(metrics, key=lambda m: (m[0], m[1], m[2]))
+                best_seed = best[3]
+                random.seed(best_seed)
+                np.random.seed(best_seed % (2**32 - 1))
+                output_value, path = self.dynamic_wander(input_value)
+                error = self.loss_fn(target_value, output_value)
+                path_length = self.apply_weight_updates_and_attention(path, error)
+            else:
+                output_value, path = self.dynamic_wander(input_value)
+                error = self.loss_fn(target_value, output_value)
+                path_length = self.apply_weight_updates_and_attention(path, error)
             self.training_history.append(
                 {
                     "input": input_value,
