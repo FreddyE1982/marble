@@ -112,11 +112,15 @@ NEURON_TYPES = [
     "modulatory",
     "linear",
     "conv1d",
+    "conv2d",
     "batchnorm",
     "dropout",
     "relu",
+    "leakyrelu",
+    "elu",
     "sigmoid",
     "tanh",
+    "softmax",
     "maxpool1d",
     "avgpool1d",
     "flatten",
@@ -228,10 +232,19 @@ class Neuron:
         elif self.neuron_type == "conv1d":
             kernel = np.random.randn(3).astype(float)
             self.params = {"kernel": kernel, "stride": 1}
+        elif self.neuron_type == "conv2d":
+            kernel = np.random.randn(3, 3).astype(float)
+            self.params = {"kernel": kernel, "stride": 1, "padding": 0}
         elif self.neuron_type == "batchnorm":
             self.params = {"mean": 0.0, "var": 1.0, "momentum": 0.1, "eps": 1e-5}
         elif self.neuron_type == "dropout":
             self.params = {"p": 0.5}
+        elif self.neuron_type == "leakyrelu":
+            self.params = {"negative_slope": 0.01}
+        elif self.neuron_type == "elu":
+            self.params = {"alpha": 1.0}
+        elif self.neuron_type == "softmax":
+            self.params = {"axis": -1}
         elif self.neuron_type in {"relu", "sigmoid", "tanh", "flatten"}:
             self.params = {}
         elif self.neuron_type in {"maxpool1d", "avgpool1d"}:
@@ -256,6 +269,31 @@ class Neuron:
             flipped = kernel[::-1]
             conv = sum(flipped[i] * padded[i] for i in range(len(kernel)))
             return float(conv)
+        elif self.neuron_type == "conv2d":
+            kernel = self.params.get("kernel", np.ones((1, 1)))
+            stride = self.params.get("stride", 1)
+            padding = self.params.get("padding", 0)
+            if torch.is_tensor(value):
+                arr = value.detach().cpu().numpy()
+                use_torch = True
+            else:
+                arr = cp.asarray(value)
+                use_torch = False
+            k = cp.asarray(kernel)
+            if padding > 0:
+                arr = cp.pad(arr, ((padding, padding), (padding, padding)), mode="constant")
+            out_h = (arr.shape[0] - k.shape[0]) // stride + 1
+            out_w = (arr.shape[1] - k.shape[1]) // stride + 1
+            result = cp.zeros((out_h, out_w), dtype=arr.dtype)
+            for i in range(out_h):
+                for j in range(out_w):
+                    region = arr[i * stride : i * stride + k.shape[0], j * stride : j * stride + k.shape[1]]
+                    result[i, j] = cp.sum(region * k)
+            if use_torch:
+                return torch.from_numpy(cp.asnumpy(result))
+            if isinstance(value, np.ndarray) and not CUDA_AVAILABLE:
+                return cp.asnumpy(result)
+            return result
         elif self.neuron_type == "batchnorm":
             m = self.params.get("mean", 0.0)
             v = self.params.get("var", 1.0)
@@ -274,6 +312,22 @@ class Neuron:
                 return cp.maximum(value, 0)
             else:
                 return max(0.0, value)
+        elif self.neuron_type == "leakyrelu":
+            slope = self.params.get("negative_slope", 0.01)
+            if torch.is_tensor(value):
+                return torch.where(value > 0, value, slope * value)
+            elif isinstance(value, cp.ndarray):
+                return cp.where(value > 0, value, slope * value)
+            else:
+                return value if value > 0 else slope * value
+        elif self.neuron_type == "elu":
+            alpha = self.params.get("alpha", 1.0)
+            if torch.is_tensor(value):
+                return torch.where(value > 0, value, alpha * (torch.exp(value) - 1))
+            elif isinstance(value, cp.ndarray):
+                return cp.where(value > 0, value, alpha * (cp.exp(value) - 1))
+            else:
+                return value if value > 0 else alpha * (math.exp(value) - 1)
         elif self.neuron_type == "sigmoid":
             if torch.is_tensor(value):
                 return torch.sigmoid(value)
@@ -288,6 +342,21 @@ class Neuron:
                 return cp.tanh(value)
             else:
                 return math.tanh(value)
+        elif self.neuron_type == "softmax":
+            axis = self.params.get("axis", -1)
+            if torch.is_tensor(value):
+                v = value - torch.max(value)
+                exp = torch.exp(v)
+                return exp / torch.sum(exp, dim=axis, keepdim=True)
+            elif isinstance(value, cp.ndarray):
+                v = value - cp.max(value)
+                exp = cp.exp(v)
+                denom = cp.sum(exp, axis=axis, keepdims=True)
+                return exp / denom
+            else:
+                v = value - np.max(value)
+                exp = np.exp(v)
+                return exp / np.sum(exp, axis=axis, keepdims=True)
         elif self.neuron_type in {"maxpool1d", "avgpool1d"}:
             size = self.params.get("size", 2)
             stride = self.params.get("stride", 2)
