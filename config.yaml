@@ -78,6 +78,7 @@ neuronenblitz:
   min_learning_rate: 0.0001
   max_learning_rate: 0.1
   top_k_paths: 5
+  parallel_wanderers: 1
 brain:
   save_threshold: 0.05
   max_saved_models: 5

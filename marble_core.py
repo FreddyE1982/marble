@@ -575,7 +575,18 @@ class Core:
     def cluster_neurons(self, k=3):
         if not self.neurons:
             return
-        values = np.array([n.value for n in self.neurons], dtype=float)
+        processed_vals = []
+        for n in self.neurons:
+            val = n.value
+            if isinstance(val, np.ndarray):
+                if val.size == 0:
+                    val = 0.0
+                else:
+                    val = float(np.mean(val))
+            elif val is None:
+                val = float('nan')
+            processed_vals.append(val)
+        values = np.array(processed_vals, dtype=float)
         k = int(min(k, len(values)))
         centers = np.random.choice(values, k, replace=False)
         for _ in range(5):
