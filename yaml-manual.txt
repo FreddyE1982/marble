@@ -201,10 +201,13 @@ brain:
     experiments.
   log_interval: Number of batches between status log messages during training.
   evaluation_interval: Number of epochs between validation runs.
-  early_stopping_patience: Number of consecutive epochs without improvement
-    before training halts early.
-  early_stopping_delta: Minimum decrease in validation loss considered an
-    improvement when checking early stopping.
+  early_stopping_patience: Number of sequential epochs allowed without a
+    sufficient decrease in validation loss. Once this count is exceeded the
+    training loop terminates early. Set ``0`` to disable patience-based checks.
+    Values between ``3`` and ``10`` work well for most experiments.
+  early_stopping_delta: Minimum drop in validation loss required to reset the
+    patience counter. This prevents noise in the validation metric from
+    triggering false improvements. Typical ranges are ``1e-4`` to ``1e-3``.
   auto_cluster_interval: Epoch interval between automatic clustering of neurons.
   cluster_method: Algorithm used for clustering; ``"kmeans"`` is provided but
     others may be added in future.
@@ -267,8 +270,10 @@ brain:
     the default but ``"safetensors"`` may be used for faster loading.
   metrics_history_size: Number of past epochs kept in memory for plotting
     performance metrics.
-  early_stop_enabled: Enables early stopping logic based on validation loss
-    trends.
+  early_stop_enabled: When ``true`` the trainer monitors the validation loss
+    after each epoch and halts once the patience criteria are met. Set to
+    ``false`` to force the loop to run ``max_training_epochs`` regardless of
+    validation performance.
   lobe_sync_interval: Seconds between background synchronization of lobe data
     when remote syncing is active.
   cleanup_batch_size: Maximum number of objects removed in one cleanup pass.

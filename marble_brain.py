@@ -287,6 +287,8 @@ class Brain:
 
     def train(self, train_examples, epochs=1, validation_examples=None):
         pbar = tqdm(range(epochs), desc="Epochs", ncols=100)
+        best_loss = float("inf")
+        patience_counter = 0
         for epoch in pbar:
             start_time = time.time()
             self.neuronenblitz.train(train_examples, epochs=1)
@@ -301,6 +303,16 @@ class Brain:
                 self.meta_controller.record_loss(val_loss)
                 self.meta_controller.adjust(self.neuronenblitz)
                 self.update_neurogenesis_factor(val_loss)
+                if self.early_stop_enabled:
+                    if val_loss < best_loss - self.early_stopping_delta:
+                        best_loss = val_loss
+                        patience_counter = 0
+                    else:
+                        patience_counter += 1
+                        if patience_counter >= self.early_stopping_patience:
+                            pbar.close()
+                            print("Early stopping triggered")
+                            break
             metrics = {
                 "MeanValLoss": f"{val_loss:.4f}" if val_loss is not None else "N/A",
                 "GlobalActs": self.neuronenblitz.global_activation_count,
