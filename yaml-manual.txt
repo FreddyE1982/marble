@@ -66,6 +66,10 @@ core:
     synaptic weights.
   message_passing_beta: Secondary mixing factor controlling how quickly new
     representations replace old ones when ``alpha`` alone is insufficient.
+  attention_temperature: Softmax temperature used by the attention module
+    during message passing. Lower values (<1.0) concentrate weight on the
+    highest scoring neighbours while larger values produce smoother
+    distributions. Must be greater than zero.
   energy_threshold: Minimum energy level required before neurons participate in
     message passing. Helps filter out inactive units.
   early_cleanup_enabled: If ``true``, unused neurons are removed before normal

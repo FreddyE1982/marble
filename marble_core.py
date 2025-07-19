@@ -30,10 +30,31 @@ def _simple_mlp(x: np.ndarray) -> np.ndarray:
     return np.tanh(h @ _W2 + _B2)
 
 
+class AttentionModule:
+    """Compute attention weights for message passing."""
+
+    def __init__(self, temperature: float = 1.0) -> None:
+        self.temperature = temperature
+
+    def compute(self, query: np.ndarray, keys: list[np.ndarray]) -> np.ndarray:
+        if not keys:
+            return np.array([])
+        q = np.nan_to_num(query, nan=0.0, posinf=0.0, neginf=0.0)
+        ks = [np.nan_to_num(k, nan=0.0, posinf=0.0, neginf=0.0) for k in keys]
+        dots = np.dot(ks, q) / max(self.temperature, 1e-6)
+        shifted = np.clip(dots - np.max(dots), -50, 50)
+        exps = np.exp(shifted)
+        denom = exps.sum()
+        if not np.isfinite(denom) or denom == 0:
+            return np.ones(len(ks)) / len(ks)
+        return exps / denom
+
+
 def perform_message_passing(
     core,
     alpha: float | None = None,
     metrics_visualizer: "MetricsVisualizer | None" = None,
+    attention_module: "AttentionModule | None" = None,
 ) -> float:
     """Propagate representations across synapses using attention.
 
@@ -49,6 +70,9 @@ def perform_message_passing(
 
     if alpha is None:
         alpha = core.params.get("message_passing_alpha", 0.5)
+    if attention_module is None:
+        temp = core.params.get("attention_temperature", 1.0)
+        attention_module = AttentionModule(temperature=temp)
 
     new_reps = [n.representation.copy() for n in core.neurons]
     old_reps = [n.representation.copy() for n in core.neurons]
@@ -59,15 +83,10 @@ def perform_message_passing(
         neigh_reps = [core.neurons[s.source].representation * s.weight for s in incoming]
         if not neigh_reps:
             continue
-        target_rep = np.nan_to_num(target.representation, nan=0.0, posinf=0.0, neginf=0.0)
-        neigh_reps = [np.nan_to_num(nr, nan=0.0, posinf=0.0, neginf=0.0) for nr in neigh_reps]
-        dots = np.array([float(np.dot(target_rep, nr)) for nr in neigh_reps])
-        shifted = np.clip(dots - np.max(dots), -50, 50)
-        exps = np.exp(shifted)
-        denom = exps.sum()
-        if not np.isfinite(denom) or denom == 0:
+        target_rep = target.representation
+        attn = attention_module.compute(target_rep, neigh_reps)
+        if attn.size == 0:
             continue
-        attn = exps / denom
         agg = sum(attn[i] * neigh_reps[i] for i in range(len(neigh_reps)))
         new_reps[target.id] = alpha * target.representation + (1 - alpha) * _simple_mlp(agg)
     for idx, rep in enumerate(new_reps):
@@ -340,6 +359,9 @@ class Core:
         rep_size = params.get('representation_size', _REP_SIZE)
         configure_representation_size(rep_size)
         self.rep_size = rep_size
+        self.attention_module = AttentionModule(
+            params.get("attention_temperature", 1.0)
+        )
         self.weight_init_min = params.get('weight_init_min', 0.5)
         self.weight_init_max = params.get('weight_init_max', 1.5)
         self.mandelbrot_escape_radius = params.get('mandelbrot_escape_radius', 2.0)
