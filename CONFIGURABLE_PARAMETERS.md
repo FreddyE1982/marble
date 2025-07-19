@@ -222,6 +222,7 @@ Each entry is listed under its section heading.
 
 ## brain (additional)
 - loss_growth_threshold
+- auto_neurogenesis_prob
 - dream_cycle_sleep
 - super_evolution_mode
 

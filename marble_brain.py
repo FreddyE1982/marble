@@ -70,6 +70,7 @@ class Brain:
         benchmark_enabled: bool = False,
         benchmark_interval: int = 2,
         loss_growth_threshold: float = 0.1,
+        auto_neurogenesis_prob: float = 0.0,
         dream_cycle_sleep: float = 0.1,
         lobe_attention_increase: float = 1.05,
         lobe_attention_decrease: float = 0.95,
@@ -166,6 +167,7 @@ class Brain:
         self.benchmark_interval = benchmark_interval
         self._benchmark_counter = 0
         self.loss_growth_threshold = loss_growth_threshold
+        self.auto_neurogenesis_prob = auto_neurogenesis_prob
         self.dream_cycle_sleep = dream_cycle_sleep
         self.model_name = model_name
         self.checkpoint_format = checkpoint_format
@@ -266,7 +268,9 @@ class Brain:
         )
         return chosen
 
-    def perform_neurogenesis(self, base_neurons=None, base_synapses=None):
+    def perform_neurogenesis(
+        self, base_neurons=None, base_synapses=None, use_combined_attention=False
+    ):
         """Grow new neurons and synapses based on neuromodulatory context."""
         if base_neurons is None:
             base_neurons = self.neurogenesis_base_neurons
@@ -277,13 +281,25 @@ class Brain:
         factor *= self.neurogenesis_factor
         num_neurons = int(base_neurons * factor)
         num_synapses = int(base_synapses * factor)
-        n_type = self.neuronenblitz.get_preferred_neuron_type()
+        if use_combined_attention:
+            n_type = self.neuronenblitz.get_combined_preferred_neuron_type()
+        else:
+            n_type = self.neuronenblitz.get_preferred_neuron_type()
         self.core.expand(
             num_new_neurons=num_neurons,
             num_new_synapses=num_synapses,
             neuron_types=n_type,
         )
         return num_neurons, num_synapses, n_type
+
+    def maybe_autonomous_neurogenesis(self, val_loss=None):
+        prob = self.auto_neurogenesis_prob
+        if val_loss is not None:
+            prob *= min(1.0, float(val_loss))
+        if random.random() < prob:
+            self.perform_neurogenesis(use_combined_attention=True)
+            return True
+        return False
 
     def train(self, train_examples, epochs=1, validation_examples=None):
         pbar = tqdm(range(epochs), desc="Epochs", ncols=100)
@@ -303,6 +319,7 @@ class Brain:
                 self.meta_controller.record_loss(val_loss)
                 self.meta_controller.adjust(self.neuronenblitz)
                 self.update_neurogenesis_factor(val_loss)
+                self.maybe_autonomous_neurogenesis(val_loss)
                 if self.early_stop_enabled:
                     if val_loss < best_loss - self.early_stopping_delta:
                         best_loss = val_loss
@@ -354,7 +371,7 @@ class Brain:
                     alternative_connection_prob=0.1,
                     target_tier=new_tier,
                 )
-                self.perform_neurogenesis()
+                self.perform_neurogenesis(use_combined_attention=True)
             self.core.cluster_neurons(k=self.cluster_k)
             self.core.relocate_clusters(
                 high=self.cluster_high_threshold,
