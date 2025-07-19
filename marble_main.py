@@ -5,6 +5,7 @@ from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain, BenchmarkManager
 from marble_autograd import MarbleAutogradLayer
 from marble_base import MetricsVisualizer
+from marble import MarbleConverter
 
 
 class MARBLE:
