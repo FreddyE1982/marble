@@ -3,6 +3,7 @@ from __future__ import annotations
 import pickle
 from typing import Any, Iterable
 
+from distillation_trainer import DistillationTrainer
 from config_loader import create_marble_from_config, load_config
 from marble_main import MARBLE
 from marble_autograd import MarbleAutogradLayer
@@ -59,6 +60,19 @@ def train_marble_system(
 ) -> None:
     """Train ``marble`` on ``train_examples`` for ``epochs``."""
     marble.get_brain().train(train_examples, epochs=epochs, validation_examples=validation_examples)
+
+
+def distillation_train_marble_system(
+    student: MARBLE,
+    teacher: MARBLE,
+    train_examples: Iterable[Any],
+    epochs: int = 1,
+    alpha: float = 0.5,
+    validation_examples: Iterable[Any] | None = None,
+) -> None:
+    """Train ``student`` using ``teacher`` outputs for knowledge distillation."""
+    trainer = DistillationTrainer(student.get_brain(), teacher.get_brain(), alpha=alpha)
+    trainer.train(train_examples, epochs=epochs, validation_examples=validation_examples)
 
 
 def set_dreaming(marble: MARBLE, enabled: bool) -> None:
