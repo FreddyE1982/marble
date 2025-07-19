@@ -20,6 +20,7 @@ def core_to_json(core: Core) -> str:
                 "target": s.target,
                 "weight": s.weight,
                 "potential": s.potential,
+                "synapse_type": s.synapse_type,
             }
             for s in core.synapses
         ],
@@ -51,7 +52,12 @@ def core_from_json(json_str: str) -> Core:
             neuron.formula = n["formula"]
         core.neurons.append(neuron)
     for s in payload.get("synapses", []):
-        syn = Synapse(s["source"], s["target"], weight=s["weight"])
+        syn = Synapse(
+            s["source"],
+            s["target"],
+            weight=s["weight"],
+            synapse_type=s.get("synapse_type", "standard"),
+        )
         syn.potential = s.get("potential", 1.0)
         core.synapses.append(syn)
         core.neurons[syn.source].synapses.append(syn)

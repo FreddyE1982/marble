@@ -102,6 +102,18 @@ def perform_message_passing(
 # List of supported neuron types
 NEURON_TYPES = ["standard", "excitatory", "inhibitory", "modulatory"]
 
+# List of supported synapse types
+SYNAPSE_TYPES = [
+    "standard",
+    "one_way",
+    "mirror",
+    "multi_neuron",
+    "recurrent",
+    "excitatory",
+    "inhibitory",
+    "modulatory",
+]
+
 # Global registry for all tiers
 TIER_REGISTRY = {}
 
@@ -184,11 +196,14 @@ class Neuron:
         self.representation = np.zeros(rep_size, dtype=float)
 
 class Synapse:
-    def __init__(self, source, target, weight=1.0):
+    def __init__(self, source, target, weight=1.0, synapse_type="standard"):
         self.source = source
         self.target = target
         self.weight = weight
         self.potential = 1.0
+        self.synapse_type = (
+            synapse_type if synapse_type in SYNAPSE_TYPES else "standard"
+        )
         self.created_at = datetime.now()
 
 def compute_mandelbrot(xmin, xmax, ymin, ymax, width, height, max_iter=256):
@@ -407,9 +422,12 @@ class Core:
         num_neurons = len(self.neurons)
         for i in range(num_neurons - 1):
             weight = random.uniform(0.5, 1.5)
-            syn = Synapse(self.neurons[i].id, self.neurons[i+1].id, weight)
-            self.neurons[i].synapses.append(syn)
-            self.synapses.append(syn)
+            self.add_synapse(
+                self.neurons[i].id,
+                self.neurons[i + 1].id,
+                weight=weight,
+                synapse_type="standard",
+            )
 
         if not CUDA_AVAILABLE:
             for neuron in self.neurons:
@@ -441,6 +459,12 @@ class Core:
         usage_ram  = self.get_usage_by_tier('ram')
         usage_disk = self.get_usage_by_tier('disk')
         print(f"Memory usage - VRAM: {usage_vram:.2f} MB, RAM: {usage_ram:.2f} MB, Disk: {usage_disk:.2f} MB")
+
+    def add_synapse(self, source_id, target_id, weight=1.0, synapse_type="standard"):
+        syn = Synapse(source_id, target_id, weight=weight, synapse_type=synapse_type)
+        self.neurons[source_id].synapses.append(syn)
+        self.synapses.append(syn)
+        return syn
 
     def get_detailed_status(self):
         status = {}
@@ -494,9 +518,12 @@ class Core:
             src = random.choice(self.neurons).id
             tgt = random.choice(self.neurons).id
             if src != tgt:
-                syn = Synapse(src, tgt, weight=random.uniform(0.1, 1.0))
-                self.neurons[src].synapses.append(syn)
-                self.synapses.append(syn)
+                self.add_synapse(
+                    src,
+                    tgt,
+                    weight=random.uniform(0.1, 1.0),
+                    synapse_type=random.choice(SYNAPSE_TYPES),
+                )
         print(f"Core expanded: {num_new_neurons} new neurons in tier '{target_tier}' and {num_new_synapses} new synapses added.")
         self.check_memory_usage()
 
@@ -566,7 +593,12 @@ class Core:
             id_map[nid] = i
         for syn in self.synapses:
             if syn.source in id_map and syn.target in id_map:
-                ns = Synapse(id_map[syn.source], id_map[syn.target], weight=syn.weight)
+                ns = Synapse(
+                    id_map[syn.source],
+                    id_map[syn.target],
+                    weight=syn.weight,
+                    synapse_type=syn.synapse_type,
+                )
                 subcore.neurons[id_map[syn.source]].synapses.append(ns)
                 subcore.synapses.append(ns)
         return subcore

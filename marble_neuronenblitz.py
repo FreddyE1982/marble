@@ -1,5 +1,5 @@
 from marble_imports import *
-from marble_core import Neuron, Synapse, NEURON_TYPES, perform_message_passing
+from marble_core import Neuron, SYNAPSE_TYPES, NEURON_TYPES, perform_message_passing
 from marble_base import MetricsVisualizer
 import threading
 
@@ -120,6 +120,9 @@ class Neuronenblitz:
         self.global_activation_count = 0
         self.last_context = {}
         self.type_attention = {nt: 0.0 for nt in NEURON_TYPES}
+        self.synapse_loss_attention = {st: 0.0 for st in SYNAPSE_TYPES}
+        self.synapse_size_attention = {st: 0.0 for st in SYNAPSE_TYPES}
+        self.synapse_speed_attention = {st: 0.0 for st in SYNAPSE_TYPES}
         self.remote_client = remote_client
         self.torrent_client = torrent_client
         self.torrent_map = torrent_map if torrent_map is not None else {}
@@ -277,17 +280,23 @@ class Neuronenblitz:
                     new_weight1 = self._weight_limit
                 elif new_weight1 < -self._weight_limit:
                     new_weight1 = -self._weight_limit
-                new_syn1 = Synapse(source.id, new_id, weight=new_weight1)
-                source.synapses.append(new_syn1)
-                self.core.synapses.append(new_syn1)
+                new_syn1 = self.core.add_synapse(
+                    source.id,
+                    new_id,
+                    weight=new_weight1,
+                    synapse_type=random.choice(SYNAPSE_TYPES),
+                )
                 new_weight2 = syn.weight * self.struct_weight_multiplier2 * mod
                 if new_weight2 > self._weight_limit:
                     new_weight2 = self._weight_limit
                 elif new_weight2 < -self._weight_limit:
                     new_weight2 = -self._weight_limit
-                new_syn2 = Synapse(new_id, target.id, weight=new_weight2)
-                new_neuron.synapses.append(new_syn2)
-                self.core.synapses.append(new_syn2)
+                new_syn2 = self.core.add_synapse(
+                    new_id,
+                    target.id,
+                    weight=new_weight2,
+                    synapse_type=random.choice(SYNAPSE_TYPES),
+                )
                 source.synapses = [s for s in source.synapses if s != syn]
                 self.core.synapses = [s for s in self.core.synapses if s != syn]
                 print(
@@ -331,6 +340,13 @@ class Neuronenblitz:
                 last_neuron.attention_score += abs(error)
             if path:
                 self.update_attention(path, error)
+            if path:
+                self.update_synapse_type_attentions(
+                    path,
+                    error,
+                    len(path),
+                    len(self.core.synapses),
+                )
             self.training_history.append(
                 {
                     "input": input_value,
@@ -367,6 +383,36 @@ class Neuronenblitz:
                 attention_module=self.core.attention_module,
             )
             self.last_message_passing_change = change
+            self.decide_synapse_action()
 
     def get_training_history(self):
         return self.training_history
+
+    def update_synapse_type_attentions(self, path, loss, speed, size):
+        for syn in path:
+            st = syn.synapse_type
+            self.synapse_loss_attention[st] += abs(loss)
+            self.synapse_speed_attention[st] += speed
+            self.synapse_size_attention[st] += size
+
+    def decide_synapse_action(self):
+        if not self.core.synapses:
+            return
+        create_type = max(self.synapse_loss_attention, key=self.synapse_loss_attention.get)
+        remove_type = max(self.synapse_size_attention, key=self.synapse_size_attention.get)
+        if random.random() < 0.5:
+            src = random.choice(self.core.neurons).id
+            tgt = random.choice(self.core.neurons).id
+            if src != tgt:
+                self.core.add_synapse(
+                    src,
+                    tgt,
+                    weight=random.uniform(0.1, 1.0),
+                    synapse_type=create_type,
+                )
+        else:
+            for syn in list(self.core.synapses):
+                if syn.synapse_type == remove_type:
+                    self.core.neurons[syn.source].synapses.remove(syn)
+                    self.core.synapses.remove(syn)
+                    break
