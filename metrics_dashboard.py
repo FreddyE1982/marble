@@ -30,18 +30,24 @@ class MetricsDashboard:
         self.app.layout = html.Div(
             [
                 dcc.Graph(id="metrics-graph"),
-                dcc.Interval(id="interval", interval=self.update_interval, n_intervals=0),
+                dcc.Interval(
+                    id="interval", interval=self.update_interval, n_intervals=0
+                ),
             ]
         )
 
-        @self.app.callback(Output("metrics-graph", "figure"), Input("interval", "n_intervals"))
+        @self.app.callback(
+            Output("metrics-graph", "figure"), Input("interval", "n_intervals")
+        )
         def update_graph(n: int) -> Dict[str, Any]:
             metrics = self.metrics_source.metrics
             fig = go.Figure()
             if metrics.get("loss"):
                 fig.add_scatter(y=metrics["loss"], mode="lines", name="Loss")
             if metrics.get("vram_usage"):
-                fig.add_scatter(y=metrics["vram_usage"], mode="lines", name="VRAM Usage")
+                fig.add_scatter(
+                    y=metrics["vram_usage"], mode="lines", name="VRAM Usage"
+                )
             if metrics.get("arousal"):
                 fig.add_scatter(y=metrics["arousal"], mode="lines", name="Arousal")
             if metrics.get("stress"):
@@ -49,11 +55,21 @@ class MetricsDashboard:
             if metrics.get("reward"):
                 fig.add_scatter(y=metrics["reward"], mode="lines", name="Reward")
             if metrics.get("plasticity_threshold"):
-                fig.add_scatter(y=metrics["plasticity_threshold"], mode="lines", name="Plasticity")
+                fig.add_scatter(
+                    y=metrics["plasticity_threshold"], mode="lines", name="Plasticity"
+                )
             if metrics.get("message_passing_change"):
-                fig.add_scatter(y=metrics["message_passing_change"], mode="lines", name="MsgPass")
+                fig.add_scatter(
+                    y=metrics["message_passing_change"], mode="lines", name="MsgPass"
+                )
             if metrics.get("compression_ratio"):
-                fig.add_scatter(y=metrics["compression_ratio"], mode="lines", name="Compression")
+                fig.add_scatter(
+                    y=metrics["compression_ratio"], mode="lines", name="Compression"
+                )
+            if metrics.get("meta_loss_avg"):
+                fig.add_scatter(
+                    y=metrics["meta_loss_avg"], mode="lines", name="MetaLossAvg"
+                )
             fig.update_layout(xaxis_title="Updates", yaxis_title="Value")
             return fig
 
