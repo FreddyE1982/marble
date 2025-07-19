@@ -6,6 +6,11 @@ The MARBLE system is a modular neural architecture that begins with a Mandelbrot
 
 MARBLE can train on datasets provided as lists of ``(input, target)`` pairs or using PyTorch-style ``Dataset``/``DataLoader`` objects. Each sample must expose an ``input`` and ``target`` field. After training and saving a model, ``Brain.infer`` generates outputs when given only an input value.
 
+Any Python object can serve as an ``input`` or ``target`` because the built-in
+``DataLoader`` serializes data through ``DataCompressor``. This makes it
+possible to train on multimodal pairs such as text-to-image, image-to-text or
+even audio and arbitrary byte blobs without additional conversion steps.
+
 ## Possible MARBLE Backcronyms
 
 Below is a list of ideas explored when naming the project:
