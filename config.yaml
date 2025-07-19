@@ -206,3 +206,12 @@ pytorch_challenge:
   loss_penalty: 0.1
   speed_penalty: 0.1
   size_penalty: 0.1
+gpt:
+  enabled: false
+  vocab_size: 50
+  block_size: 8
+  num_layers: 2
+  num_heads: 2
+  hidden_dim: 64
+  learning_rate: 0.001
+  num_train_steps: 50

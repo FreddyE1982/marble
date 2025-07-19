@@ -430,3 +430,22 @@ pytorch_challenge:
   loss_penalty: Amount of stress added when MARBLE's loss is worse than the PyTorch baseline. Values around 0.1 provide noticeable pressure without overwhelming the system.
   speed_penalty: Stress increment applied when MARBLE's inference time is slower than the baseline model. Setting this near 0.1 encourages optimisations to execution paths.
   size_penalty: Stress increment when MARBLE grows larger than the baseline model in megabytes. This guides synaptic pruning and structural plasticity to favour compactness.
+
+gpt:
+  # The GPT component enables MARBLE to build and train a transformer-based language model entirely from scratch. When
+  # `enabled` is true a small GPT architecture is initialised using the parameters below and trained on token sequences
+  # provided by the user. This allows experimentation with generative text models without relying on any pretrained weights.
+  enabled: Set to true to activate GPT training within MARBLE.
+  vocab_size: Size of the discrete token vocabulary used when constructing the embedding layers. Must be greater than one.
+  block_size: Number of tokens processed at once. Sequences longer than this are split into blocks. Typical values range
+    from 8 to 128 for lightweight experiments.
+  num_layers: Number of transformer encoder layers stacked in the GPT. Increasing this improves modelling power but also
+    memory and compute requirements. Values between 2 and 8 are common for small models.
+  num_heads: Quantity of attention heads per layer. More heads allow the model to capture diverse relationships between
+    tokens. Small configurations often use 2 to 8 heads.
+  hidden_dim: Dimensionality of the token and positional embeddings as well as the hidden size of each transformer layer.
+    Higher values provide more capacity but also increase memory usage.
+  learning_rate: Step size for the Adam optimiser when training the GPT model. Start with around 0.001 and adjust based
+    on observed convergence.
+  num_train_steps: Number of update steps performed during GPT training. Keeping this low (tens to hundreds) ensures test
+    runs complete quickly while still demonstrating learning behaviour.

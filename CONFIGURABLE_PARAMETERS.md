@@ -225,3 +225,13 @@ Each entry is listed under its section heading.
 - loss_penalty
 - speed_penalty
 - size_penalty
+
+## gpt
+- enabled
+- vocab_size
+- block_size
+- num_layers
+- num_heads
+- hidden_dim
+- learning_rate
+- num_train_steps
