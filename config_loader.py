@@ -10,6 +10,7 @@ from torrent_offload import BrainTorrentClient, BrainTorrentTracker
 
 DEFAULT_CONFIG_FILE = Path(__file__).resolve().parent / "config.yaml"
 
+
 def load_config(path: str | None = None) -> dict:
     """Load configuration from a YAML file."""
     cfg_path = Path(path) if path is not None else DEFAULT_CONFIG_FILE
@@ -53,7 +54,11 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
     long_term_path = memory_cfg.get("long_term_path", "long_term_memory.pkl")
     threshold = memory_cfg.get("threshold", 0.5)
     consolidation_interval = memory_cfg.get("consolidation_interval", 10)
-    memory_system = MemorySystem(long_term_path, threshold=threshold, consolidation_interval=consolidation_interval)
+    memory_system = MemorySystem(
+        long_term_path,
+        threshold=threshold,
+        consolidation_interval=consolidation_interval,
+    )
 
     # Data compressor
     compressor_cfg = cfg.get("data_compressor", {})
@@ -68,17 +73,19 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
     pytorch_challenge_params = cfg.get("pytorch_challenge", {})
     gpt_cfg = cfg.get("gpt", {})
 
-    brain_params.update({
-        "neuromodulatory_system": neuromod_system,
-        "meta_controller": meta_controller,
-        "memory_system": memory_system,
-        "initial_neurogenesis_factor": initial_neurogenesis_factor,
-        "dream_num_cycles": dream_num_cycles,
-        "dream_interval": dream_interval,
-        "neurogenesis_base_neurons": neuro_base_neurons,
-        "neurogenesis_base_synapses": neuro_base_synapses,
-        "super_evolution_mode": super_evolution_mode,
-    })
+    brain_params.update(
+        {
+            "neuromodulatory_system": neuromod_system,
+            "meta_controller": meta_controller,
+            "memory_system": memory_system,
+            "initial_neurogenesis_factor": initial_neurogenesis_factor,
+            "dream_num_cycles": dream_num_cycles,
+            "dream_interval": dream_interval,
+            "neurogenesis_base_neurons": neuro_base_neurons,
+            "neurogenesis_base_synapses": neuro_base_synapses,
+            "super_evolution_mode": super_evolution_mode,
+        }
+    )
 
     remote_client = None
     remote_cfg = cfg.get("remote_client", {})

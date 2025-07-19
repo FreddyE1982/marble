@@ -92,6 +92,8 @@ def test_load_config_defaults():
     assert cfg["metrics_visualizer"]["fig_width"] == 10
     assert cfg["metrics_visualizer"]["fig_height"] == 6
     assert cfg["brain"]["super_evolution_mode"] is False
+
+
 def test_create_marble_from_config():
     marble = create_marble_from_config()
     assert isinstance(marble, MARBLE)
