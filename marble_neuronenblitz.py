@@ -4,6 +4,7 @@ from marble_base import MetricsVisualizer
 import threading
 import multiprocessing as mp
 import pickle
+from collections import deque
 
 
 def _wander_worker(state_bytes, input_value, seed):
@@ -76,6 +77,10 @@ class Neuronenblitz:
         max_learning_rate=0.1,
         top_k_paths=5,
         parallel_wanderers=1,
+        synaptic_fatigue_enabled=True,
+        fatigue_increase=0.05,
+        fatigue_decay=0.95,
+        lr_adjustment_factor=0.1,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -125,6 +130,10 @@ class Neuronenblitz:
         self.max_learning_rate = max_learning_rate
         self.top_k_paths = top_k_paths
         self.parallel_wanderers = parallel_wanderers
+        self.synaptic_fatigue_enabled = synaptic_fatigue_enabled
+        self.fatigue_increase = fatigue_increase
+        self.fatigue_decay = fatigue_decay
+        self.lr_adjustment_factor = lr_adjustment_factor
 
         self.combine_fn = combine_fn if combine_fn is not None else default_combine_fn
         self.loss_fn = loss_fn if loss_fn is not None else default_loss_fn
@@ -147,6 +156,7 @@ class Neuronenblitz:
         self.metrics_visualizer = metrics_visualizer
         self.last_message_passing_change = 0.0
         self.lock = threading.RLock()
+        self.error_history = deque(maxlen=100)
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -168,6 +178,35 @@ class Neuronenblitz:
     def reset_neuron_values(self):
         for neuron in self.core.neurons:
             neuron.value = None
+
+    def decay_fatigues(self) -> None:
+        """Apply fatigue decay to all synapses."""
+        if not self.synaptic_fatigue_enabled:
+            return
+        for syn in self.core.synapses:
+            syn.update_fatigue(0.0, self.fatigue_decay)
+
+    def adjust_learning_rate(self) -> None:
+        """Adapt learning rate based on recent error trends."""
+        if len(self.error_history) < 4:
+            return
+        half = len(self.error_history) // 2
+        hist = list(self.error_history)
+        recent = np.mean(hist[-half:])
+        previous = np.mean(hist[:-half]) if half > 0 else recent
+        if previous <= 0:
+            return
+        ratio = recent / previous
+        if ratio > 1.05:
+            self.learning_rate = min(
+                self.learning_rate * (1 + self.lr_adjustment_factor),
+                self.max_learning_rate,
+            )
+        elif ratio < 0.95:
+            self.learning_rate = max(
+                self.learning_rate * (1 - self.lr_adjustment_factor),
+                self.min_learning_rate,
+            )
 
     def weighted_choice(self, synapses):
         total = sum(syn.potential for syn in synapses)
@@ -193,6 +232,8 @@ class Neuronenblitz:
                 w = syn.effective_weight(self.last_context)
                 transmitted_value = self.combine_fn(current_neuron.value, w)
                 syn.apply_side_effects(self.core, current_neuron.value)
+                if self.synaptic_fatigue_enabled:
+                    syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
                 next_neuron.value = transmitted_value
                 new_path = path + [(next_neuron, syn)]
                 new_continue_prob = current_continue_prob * self.continue_decay_rate
@@ -215,6 +256,8 @@ class Neuronenblitz:
             w = syn.effective_weight(self.last_context)
             transmitted_value = self.combine_fn(current_neuron.value, w)
             syn.apply_side_effects(self.core, current_neuron.value)
+            if self.synaptic_fatigue_enabled:
+                syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
             next_neuron.value = transmitted_value
             new_path = path + [(next_neuron, syn)]
             new_continue_prob = current_continue_prob * self.continue_decay_rate
@@ -256,6 +299,7 @@ class Neuronenblitz:
         with self.lock:
             for neuron in self.core.neurons:
                 neuron.value = None
+            self.decay_fatigues()
             candidates = [n for n in self.core.neurons if n.synapses]
             entry_neuron = (
                 random.choice(candidates)
@@ -273,6 +317,8 @@ class Neuronenblitz:
                     w = syn.effective_weight(self.last_context)
                     next_neuron.value = self.combine_fn(entry_neuron.value, w)
                     syn.apply_side_effects(self.core, entry_neuron.value)
+                    if self.synaptic_fatigue_enabled:
+                        syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
                     final_path = [(entry_neuron, None), (next_neuron, syn)]
                 else:
                     final_path = initial_path
@@ -373,7 +419,7 @@ class Neuronenblitz:
         for syn in path:
             source_value = self.core.neurons[syn.source].value
             delta = self.weight_update_fn(source_value, error, path_length)
-            syn.weight += delta
+            syn.weight += self.learning_rate * delta
             if random.random() < self.consolidation_probability:
                 syn.weight *= self.consolidation_strength
             if syn.weight > self._weight_limit:
@@ -392,6 +438,9 @@ class Neuronenblitz:
                 len(path),
                 len(self.core.synapses),
             )
+        if self.weight_decay:
+            for syn in self.core.synapses:
+                syn.weight *= 1.0 - self.weight_decay
         return path_length
 
     def train_example(self, input_value, target_value):
@@ -432,6 +481,7 @@ class Neuronenblitz:
                 output_value, path = self.dynamic_wander(input_value)
                 error = self.loss_fn(target_value, output_value)
                 path_length = self.apply_weight_updates_and_attention(path, error)
+            self.error_history.append(abs(error))
             self.training_history.append(
                 {
                     "input": input_value,
@@ -469,6 +519,7 @@ class Neuronenblitz:
             )
             self.last_message_passing_change = change
             self.decide_synapse_action()
+            self.adjust_learning_rate()
 
     def get_training_history(self):
         return self.training_history

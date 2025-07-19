@@ -200,7 +200,7 @@ class Neuron:
         self.representation = np.zeros(rep_size, dtype=float)
 
 class Synapse:
-    def __init__(self, source, target, weight=1.0, synapse_type="standard"):
+    def __init__(self, source, target, weight=1.0, synapse_type="standard", fatigue=0.0):
         self.source = source
         self.target = target
         self.weight = weight
@@ -209,6 +209,11 @@ class Synapse:
             synapse_type if synapse_type in SYNAPSE_TYPES else "standard"
         )
         self.created_at = datetime.now()
+        self.fatigue = float(fatigue)
+
+    def update_fatigue(self, increase: float, decay: float) -> None:
+        """Update fatigue using a decay factor and additive increase."""
+        self.fatigue = max(0.0, min(1.0, self.fatigue * decay + increase))
 
     def effective_weight(self, context=None):
         """Return the weight modified according to ``synapse_type`` and context."""
@@ -222,6 +227,7 @@ class Synapse:
         elif self.synapse_type == "modulatory":
             mod = 1.0 + context.get("reward", 0.0) - context.get("stress", 0.0)
             w *= mod
+        w *= max(0.0, 1.0 - self.fatigue)
         return w
 
     def apply_side_effects(self, core, source_value):

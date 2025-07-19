@@ -85,6 +85,10 @@ Each entry is listed under its section heading.
 - max_learning_rate
 - top_k_paths
 - parallel_wanderers
+- synaptic_fatigue_enabled
+- fatigue_increase
+- fatigue_decay
+- lr_adjustment_factor
 
 ## brain
 - save_threshold

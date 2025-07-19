@@ -79,6 +79,10 @@ neuronenblitz:
   max_learning_rate: 0.1
   top_k_paths: 5
   parallel_wanderers: 1
+  synaptic_fatigue_enabled: true
+  fatigue_increase: 0.05
+  fatigue_decay: 0.95
+  lr_adjustment_factor: 0.1
 brain:
   save_threshold: 0.05
   max_saved_models: 5
