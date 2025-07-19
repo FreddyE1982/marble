@@ -1,6 +1,7 @@
 import os, sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import numpy as np
+import torch
 from marble import DataLoader
 
 
@@ -26,3 +27,19 @@ def test_marble_dataloader_disable_compression():
     tensor = dl.encode(data)
     restored = dl.decode(tensor)
     assert restored == data
+
+
+def test_marble_dataloader_tensor_roundtrip():
+    dl = DataLoader()
+    t = torch.arange(6, dtype=torch.float32).reshape(2, 3)
+    encoded = dl.encode_tensor(t)
+    decoded = dl.decode_tensor(encoded)
+    assert torch.allclose(decoded, t)
+
+
+def test_encode_array_accepts_tensor():
+    dl = DataLoader()
+    t = torch.arange(4, dtype=torch.float32)
+    encoded = dl.encode_array(t)
+    decoded = dl.decode_array(encoded)
+    assert np.allclose(decoded, t.numpy())

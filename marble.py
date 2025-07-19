@@ -292,6 +292,8 @@ class DataLoader:
         return pickle.loads(serialized)
 
     def encode_array(self, array: np.ndarray) -> np.ndarray:
+        if isinstance(array, torch.Tensor):
+            array = array.detach().cpu().numpy()
         compressed = self.compressor.compress_array(array)
         if self.metrics_visualizer is not None:
             ratio = len(compressed) / max(array.nbytes, 1)
@@ -299,12 +301,24 @@ class DataLoader:
         return np.frombuffer(compressed, dtype=np.uint8)
 
     def decode_array(self, tensor: np.ndarray) -> np.ndarray:
+        if isinstance(tensor, torch.Tensor):
+            tensor = tensor.detach().cpu().numpy()
         compressed = tensor.tobytes()
         array = self.compressor.decompress_array(compressed)
         if self.metrics_visualizer is not None:
             ratio = len(compressed) / max(array.nbytes, 1)
             self.metrics_visualizer.update({"compression_ratio": ratio})
         return array
+
+    def encode_tensor(self, tensor: "torch.Tensor") -> "torch.Tensor":
+        np_array = tensor.detach().cpu().numpy()
+        encoded_np = self.encode_array(np_array)
+        return torch.from_numpy(encoded_np.copy())
+
+    def decode_tensor(self, tensor: "torch.Tensor") -> "torch.Tensor":
+        np_tensor = tensor.detach().cpu().numpy()
+        decoded_np = self.decode_array(np_tensor)
+        return torch.from_numpy(decoded_np.copy())
 
 # 4.5 Neuronenblitz  Dynamic wandering, training, structural plasticity, splitting and merging of blitz processes
 class Neuronenblitz:

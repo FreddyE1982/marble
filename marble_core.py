@@ -288,7 +288,9 @@ class DataLoader:
         return data
 
     def encode_array(self, array: np.ndarray) -> np.ndarray:
-        """Encode a NumPy array into a uint8 tensor using compression."""
+        """Encode a NumPy array (or PyTorch tensor) into a uint8 tensor using compression."""
+        if isinstance(array, torch.Tensor):
+            array = array.detach().cpu().numpy()
         compressed = self.compressor.compress_array(array)
         if self.metrics_visualizer is not None:
             ratio = len(compressed) / max(array.nbytes, 1)
@@ -297,12 +299,26 @@ class DataLoader:
 
     def decode_array(self, tensor: np.ndarray) -> np.ndarray:
         """Decode a tensor created by ``encode_array`` back to a NumPy array."""
+        if isinstance(tensor, torch.Tensor):
+            tensor = tensor.detach().cpu().numpy()
         compressed = tensor.tobytes()
         array = self.compressor.decompress_array(compressed)
         if self.metrics_visualizer is not None:
             ratio = len(compressed) / max(array.nbytes, 1)
             self.metrics_visualizer.update({"compression_ratio": ratio})
         return array
+
+    def encode_tensor(self, tensor: "torch.Tensor") -> "torch.Tensor":
+        """Encode a PyTorch tensor using compression."""
+        np_array = tensor.detach().cpu().numpy()
+        encoded_np = self.encode_array(np_array)
+        return torch.from_numpy(encoded_np.copy())
+
+    def decode_tensor(self, tensor: "torch.Tensor") -> "torch.Tensor":
+        """Decode a tensor created by ``encode_tensor`` back to a PyTorch tensor."""
+        np_tensor = tensor.detach().cpu().numpy()
+        decoded_np = self.decode_array(np_tensor)
+        return torch.from_numpy(decoded_np.copy())
 
 class Core:
     def __init__(self, params, formula=None, formula_num_neurons=100):
