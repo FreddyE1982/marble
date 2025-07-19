@@ -393,6 +393,11 @@ remote_server:
   ssl_cert_file: Path to the SSL certificate used when ``ssl_enabled`` is true.
   ssl_key_file: Path to the private key for the certificate.
   max_connections: Maximum concurrent connections the server will accept.
+  compression_level: Compression strength used when exchanging data with
+    clients. The value is passed to ``zlib.compress`` and ranges from 0
+    (no compression) to 9 (maximum compression).
+  compression_enabled: Set to ``false`` to disable compression entirely. When
+    disabled the server expects plain JSON payloads.
 
 metrics_visualizer:
   # Configure the live metrics plot size. These values are passed directly to
