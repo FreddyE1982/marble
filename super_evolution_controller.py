@@ -8,6 +8,11 @@ class SuperEvolutionController:
         self.prev_complexity = None
         self.prev_resources = None
         self.history = []
+        self.change_log = []
+
+    def _record_change(self, name, old, new):
+        if old != new:
+            self.change_log.append({"parameter": name, "old": old, "new": new})
 
     def record_metrics(self, loss, epoch_time):
         complexity = len(self.brain.core.neurons) + len(self.brain.core.synapses)
@@ -35,7 +40,7 @@ class SuperEvolutionController:
         if isinstance(val, (int, float)) and not isinstance(val, bool):
             setattr(obj, attr, val * factor)
 
-    def _apply_factor_recursive(self, obj, factor, seen=None):
+    def _apply_factor_recursive(self, obj, factor, seen=None, prefix=""):
         if seen is None:
             seen = set()
         oid = id(obj)
@@ -46,9 +51,11 @@ class SuperEvolutionController:
         if isinstance(obj, dict):
             for k, v in obj.items():
                 if isinstance(v, (int, float)):
+                    old = v
                     obj[k] = v * factor
+                    self._record_change(f"{prefix}{k}", old, obj[k])
                 else:
-                    self._apply_factor_recursive(v, factor, seen)
+                    self._apply_factor_recursive(v, factor, seen, prefix=f"{prefix}{k}.")
             return
 
         if not hasattr(obj, "__dict__"):
@@ -66,9 +73,12 @@ class SuperEvolutionController:
             except AttributeError:
                 continue
             if isinstance(val, (int, float)) and not isinstance(val, bool):
-                setattr(obj, attr, val * factor)
+                old = val
+                new_val = val * factor
+                setattr(obj, attr, new_val)
+                self._record_change(f"{prefix}{attr}", old, new_val)
             else:
-                self._apply_factor_recursive(val, factor, seen)
+                self._apply_factor_recursive(val, factor, seen, prefix=f"{prefix}{attr}.")
 
     def _adjust_parameters(self, loss, speed, complexity, resources):
         lobes = self.brain.lobe_manager.lobes
@@ -90,9 +100,11 @@ class SuperEvolutionController:
         for key in list(self.brain.core.params.keys()):
             val = self.brain.core.params[key]
             if isinstance(val, (int, float)) and not isinstance(val, bool):
-                self.brain.core.params[key] = val * factor
+                new_val = val * factor
+                self.brain.core.params[key] = new_val
+                self._record_change(f"core.params.{key}", val, new_val)
                 if hasattr(self.brain.core, key):
-                    setattr(self.brain.core, key, self.brain.core.params[key])
+                    setattr(self.brain.core, key, new_val)
 
         self._apply_factor_recursive(self.brain.neuronenblitz, factor)
         self._apply_factor_recursive(self.brain, factor)
