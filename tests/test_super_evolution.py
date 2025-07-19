@@ -1,4 +1,5 @@
 import os, sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from marble_core import Core, DataLoader
@@ -13,6 +14,7 @@ def test_super_evolution_records_metrics():
     core = Core(params)
     nb = Neuronenblitz(core)
     import marble_brain as mb
+
     mb.tqdm = std_tqdm
     brain = Brain(core, nb, DataLoader(), super_evolution_mode=True)
     examples = [(0.1, 0.2), (0.2, 0.3)]
@@ -25,6 +27,7 @@ def test_super_evolution_affects_all_parameters():
     core = Core(params)
     nb = Neuronenblitz(core)
     import marble_brain as mb
+
     mb.tqdm = std_tqdm
     brain = Brain(core, nb, DataLoader(), super_evolution_mode=True)
     brain.lobe_manager.genesis([0])
@@ -58,3 +61,40 @@ def test_super_evolution_affects_all_parameters():
     assert brain.dataloader.compressor.level != orig_values[6]
     assert brain.lobe_manager.attention_increase_factor != orig_values[7]
 
+
+def test_super_evolution_skips_blocked_parameters():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    import marble_brain as mb
+
+    mb.tqdm = std_tqdm
+    brain = Brain(core, nb, DataLoader(), super_evolution_mode=True)
+    brain.lobe_manager.genesis([0])
+    brain.core.neurons[0].attention_score = 1.0
+    brain.lobe_manager.update_attention()
+
+    orig = {
+        "auto_save_interval": brain.auto_save_interval,
+        "benchmark_interval": brain.benchmark_interval,
+        "loss_growth_threshold": brain.loss_growth_threshold,
+        "metrics_history_size": brain.metrics_history_size,
+        "last_val_loss": brain.last_val_loss,
+        "tier_decision_vram": brain.tier_decision_params["vram_usage_threshold"],
+        "tier_decision_ram": brain.tier_decision_params["ram_usage_threshold"],
+    }
+
+    brain.super_evo_controller.record_metrics(0.5, 1.0)
+    brain.super_evo_controller.record_metrics(1.0, 1.1)
+
+    assert brain.auto_save_interval == orig["auto_save_interval"]
+    assert brain.benchmark_interval == orig["benchmark_interval"]
+    assert brain.loss_growth_threshold == orig["loss_growth_threshold"]
+    assert brain.metrics_history_size == orig["metrics_history_size"]
+    assert brain.last_val_loss == orig["last_val_loss"]
+    assert (
+        brain.tier_decision_params["vram_usage_threshold"] == orig["tier_decision_vram"]
+    )
+    assert (
+        brain.tier_decision_params["ram_usage_threshold"] == orig["tier_decision_ram"]
+    )

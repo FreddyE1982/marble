@@ -1,5 +1,21 @@
 class SuperEvolutionController:
-    """Adjusts all configurable parameters using self-attention feedback."""
+    """Adjusts all configurable parameters using self-attention feedback.
+
+    Parameters listed in ``BLOCKED_NAMES`` or matching any prefix in
+    ``BLOCKED_PREFIXES`` are left untouched. Any attribute containing
+    ``"val_loss"`` is also ignored.
+    """
+
+    BLOCKED_NAMES = {
+        "auto_save_interval",
+        "benchmark_interval",
+        "loss_growth_threshold",
+        "metrics_history_size",
+        "last_val_loss",
+        "best_validation_loss",
+    }
+
+    BLOCKED_PREFIXES = ("tier_decision_params",)
 
     def __init__(self, brain):
         self.brain = brain
@@ -13,6 +29,16 @@ class SuperEvolutionController:
     def _record_change(self, name, old, new):
         if old != new:
             self.change_log.append({"parameter": name, "old": old, "new": new})
+
+    def _should_skip(self, name: str, prefix: str) -> bool:
+        full = f"{prefix}{name}" if prefix else name
+        if any(full.startswith(p) for p in self.BLOCKED_PREFIXES):
+            return True
+        if name in self.BLOCKED_NAMES:
+            return True
+        if "val_loss" in full:
+            return True
+        return False
 
     def record_metrics(self, loss, epoch_time):
         complexity = len(self.brain.core.neurons) + len(self.brain.core.synapses)
@@ -50,12 +76,16 @@ class SuperEvolutionController:
 
         if isinstance(obj, dict):
             for k, v in obj.items():
+                if self._should_skip(k, prefix):
+                    continue
                 if isinstance(v, (int, float)):
                     old = v
                     obj[k] = v * factor
                     self._record_change(f"{prefix}{k}", old, obj[k])
                 else:
-                    self._apply_factor_recursive(v, factor, seen, prefix=f"{prefix}{k}.")
+                    self._apply_factor_recursive(
+                        v, factor, seen, prefix=f"{prefix}{k}."
+                    )
             return
 
         if not hasattr(obj, "__dict__"):
@@ -68,6 +98,8 @@ class SuperEvolutionController:
                 "super_evo_controller",
             ):
                 continue
+            if self._should_skip(attr, prefix):
+                continue
             try:
                 val = getattr(obj, attr)
             except AttributeError:
@@ -78,7 +110,9 @@ class SuperEvolutionController:
                 setattr(obj, attr, new_val)
                 self._record_change(f"{prefix}{attr}", old, new_val)
             else:
-                self._apply_factor_recursive(val, factor, seen, prefix=f"{prefix}{attr}.")
+                self._apply_factor_recursive(
+                    val, factor, seen, prefix=f"{prefix}{attr}."
+                )
 
     def _adjust_parameters(self, loss, speed, complexity, resources):
         lobes = self.brain.lobe_manager.lobes
@@ -98,6 +132,8 @@ class SuperEvolutionController:
         if factor == 1.0:
             return
         for key in list(self.brain.core.params.keys()):
+            if self._should_skip(key, "core.params."):
+                continue
             val = self.brain.core.params[key]
             if isinstance(val, (int, float)) and not isinstance(val, bool):
                 new_val = val * factor
