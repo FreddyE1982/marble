@@ -215,3 +215,5 @@ gpt:
   hidden_dim: 64
   learning_rate: 0.001
   num_train_steps: 50
+  dataset_path: "data/sample_text.txt"
+  batch_size: 4
