@@ -124,6 +124,10 @@ NEURON_TYPES = [
     "maxpool1d",
     "avgpool1d",
     "flatten",
+    "convtranspose2d",
+    "lstm",
+    "gru",
+    "layernorm",
 ]
 
 # List of supported synapse types
@@ -249,6 +253,46 @@ class Neuron:
             self.params = {}
         elif self.neuron_type in {"maxpool1d", "avgpool1d"}:
             self.params = {"size": 2, "stride": 2}
+        elif self.neuron_type == "convtranspose2d":
+            kernel = np.random.randn(3, 3).astype(float)
+            self.params = {
+                "kernel": kernel,
+                "stride": 1,
+                "padding": 0,
+                "output_padding": 0,
+            }
+        elif self.neuron_type == "lstm":
+            self.params = {
+                "wi": random.uniform(-1.0, 1.0),
+                "ui": random.uniform(-1.0, 1.0),
+                "bi": 0.0,
+                "wf": random.uniform(-1.0, 1.0),
+                "uf": random.uniform(-1.0, 1.0),
+                "bf": 0.0,
+                "wo": random.uniform(-1.0, 1.0),
+                "uo": random.uniform(-1.0, 1.0),
+                "bo": 0.0,
+                "wg": random.uniform(-1.0, 1.0),
+                "ug": random.uniform(-1.0, 1.0),
+                "bg": 0.0,
+            }
+            self.hidden_state = 0.0
+            self.cell_state = 0.0
+        elif self.neuron_type == "gru":
+            self.params = {
+                "wr": random.uniform(-1.0, 1.0),
+                "ur": random.uniform(-1.0, 1.0),
+                "br": 0.0,
+                "wz": random.uniform(-1.0, 1.0),
+                "uz": random.uniform(-1.0, 1.0),
+                "bz": 0.0,
+                "wn": random.uniform(-1.0, 1.0),
+                "un": random.uniform(-1.0, 1.0),
+                "bn": 0.0,
+            }
+            self.hidden_state = 0.0
+        elif self.neuron_type == "layernorm":
+            self.params = {"eps": 1e-5, "gain": 1.0, "bias": 0.0, "axis": -1}
 
     def process(self, value: float) -> float:
         """Apply the neuron-type specific transformation to ``value``."""
@@ -289,6 +333,33 @@ class Neuron:
                 for j in range(out_w):
                     region = arr[i * stride : i * stride + k.shape[0], j * stride : j * stride + k.shape[1]]
                     result[i, j] = cp.sum(region * k)
+            if use_torch:
+                return torch.from_numpy(cp.asnumpy(result))
+            if isinstance(value, np.ndarray) and not CUDA_AVAILABLE:
+                return cp.asnumpy(result)
+            return result
+        elif self.neuron_type == "convtranspose2d":
+            kernel = self.params.get("kernel", np.ones((1, 1)))
+            stride = self.params.get("stride", 1)
+            padding = self.params.get("padding", 0)
+            out_pad = self.params.get("output_padding", 0)
+            if torch.is_tensor(value):
+                arr = value.detach().cpu().numpy()
+                use_torch = True
+            else:
+                arr = cp.asarray(value)
+                use_torch = False
+            k = cp.asarray(kernel)
+            out_h = (arr.shape[0] - 1) * stride - 2 * padding + k.shape[0] + out_pad
+            out_w = (arr.shape[1] - 1) * stride - 2 * padding + k.shape[1] + out_pad
+            result = cp.zeros((out_h, out_w), dtype=arr.dtype)
+            for i in range(arr.shape[0]):
+                for j in range(arr.shape[1]):
+                    region = result[
+                        i * stride : i * stride + k.shape[0],
+                        j * stride : j * stride + k.shape[1],
+                    ]
+                    region += arr[i, j] * k
             if use_torch:
                 return torch.from_numpy(cp.asnumpy(result))
             if isinstance(value, np.ndarray) and not CUDA_AVAILABLE:
@@ -391,6 +462,51 @@ class Neuron:
                 return value.reshape(-1)
             else:
                 return value
+        elif self.neuron_type == "lstm":
+            p = self.params
+            h = self.hidden_state
+            c = self.cell_state
+            sig = lambda x: 1.0 / (1.0 + cp.exp(-x)) if isinstance(value, cp.ndarray) else 1.0 / (1.0 + math.exp(-x))
+            tanh = cp.tanh if isinstance(value, cp.ndarray) else math.tanh
+            i = sig(value * p["wi"] + h * p["ui"] + p["bi"])
+            f = sig(value * p["wf"] + h * p["uf"] + p["bf"])
+            o = sig(value * p["wo"] + h * p["uo"] + p["bo"])
+            g = tanh(value * p["wg"] + h * p["ug"] + p["bg"])
+            c = f * c + i * g
+            h = o * tanh(c)
+            self.cell_state = c
+            self.hidden_state = h
+            return h
+        elif self.neuron_type == "gru":
+            p = self.params
+            h = self.hidden_state
+            sig = lambda x: 1.0 / (1.0 + cp.exp(-x)) if isinstance(value, cp.ndarray) else 1.0 / (1.0 + math.exp(-x))
+            tanh = cp.tanh if isinstance(value, cp.ndarray) else math.tanh
+            r = sig(value * p["wr"] + h * p["ur"] + p["br"])
+            z = sig(value * p["wz"] + h * p["uz"] + p["bz"])
+            n = tanh(value * p["wn"] + r * h * p["un"] + p["bn"])
+            h = (1 - z) * n + z * h
+            self.hidden_state = h
+            return h
+        elif self.neuron_type == "layernorm":
+            axis = self.params.get("axis", -1)
+            eps = self.params.get("eps", 1e-5)
+            gain = self.params.get("gain", 1.0)
+            bias = self.params.get("bias", 0.0)
+            if torch.is_tensor(value):
+                mean = torch.mean(value, dim=axis, keepdim=True)
+                var = torch.var(value, dim=axis, keepdim=True, unbiased=False)
+                return gain * (value - mean) / torch.sqrt(var + eps) + bias
+            elif isinstance(value, cp.ndarray):
+                mean = cp.mean(value, axis=axis, keepdims=True)
+                var = cp.var(value, axis=axis, keepdims=True)
+                return gain * (value - mean) / cp.sqrt(var + eps) + bias
+            else:
+                arr = np.asarray(value)
+                mean = np.mean(arr, axis=axis, keepdims=True)
+                var = np.var(arr, axis=axis, keepdims=True)
+                result = gain * (arr - mean) / np.sqrt(var + eps) + bias
+                return result
         return value
 
 class Synapse:
