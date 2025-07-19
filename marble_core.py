@@ -749,7 +749,33 @@ class Synapse:
         else:
             return source_value * w
 
-def compute_mandelbrot(xmin, xmax, ymin, ymax, width, height, max_iter=256):
+def compute_mandelbrot(
+    xmin,
+    xmax,
+    ymin,
+    ymax,
+    width,
+    height,
+    max_iter: int = 256,
+    escape_radius: float = 2.0,
+    power: int = 2,
+):
+    """Return a Mandelbrot set fragment as a 2D array.
+
+    Parameters
+    ----------
+    xmin, xmax, ymin, ymax : float
+        Bounds of the complex plane section.
+    width, height : int
+        Resolution of the output grid.
+    max_iter : int, optional
+        Maximum iteration count before declaring divergence.
+    escape_radius : float, optional
+        Absolute value beyond which points are marked as diverging.
+    power : int, optional
+        Exponent applied during iteration, allowing fractal variations.
+    """
+
     x = cp.linspace(xmin, xmax, width)
     y = cp.linspace(ymin, ymax, height)
     X, Y = cp.meshgrid(x, y)
@@ -757,8 +783,10 @@ def compute_mandelbrot(xmin, xmax, ymin, ymax, width, height, max_iter=256):
     Z = cp.zeros_like(C, dtype=cp.complex64)
     mandelbrot = cp.zeros(C.shape, dtype=cp.int32)
     for i in range(max_iter):
-        mask = cp.abs(Z) <= 2
-        Z[mask] = Z[mask] * Z[mask] + C[mask]
+        mask = cp.abs(Z) <= escape_radius
+        if not mask.any():
+            break
+        Z[mask] = Z[mask] ** power + C[mask]
         mandelbrot[mask] = i
     return mandelbrot
 
@@ -949,10 +977,15 @@ class Core:
                 nid += 1
         else:
             mandel_gpu = compute_mandelbrot(
-                params['xmin'], params['xmax'],
-                params['ymin'], params['ymax'],
-                params['width'], params['height'],
-                params.get('max_iter', 256)
+                params['xmin'],
+                params['xmax'],
+                params['ymin'],
+                params['ymax'],
+                params['width'],
+                params['height'],
+                params.get('max_iter', 256),
+                escape_radius=self.mandelbrot_escape_radius,
+                power=self.mandelbrot_power,
             )
             mandel_cpu = cp.asnumpy(mandel_gpu)
             noise_std = params.get('init_noise_std', 0.0)
