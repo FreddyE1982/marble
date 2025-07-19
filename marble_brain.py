@@ -8,6 +8,51 @@ from marble_base import MetricsVisualizer
 from marble_lobes import LobeManager
 
 
+def _parse_example(sample):
+    """Return ``(input_value, target_value)`` from various sample formats."""
+
+    if isinstance(sample, dict):
+        inp = (
+            sample.get("input")
+            or sample.get("inputs")
+            or sample.get("x")
+        )
+        tgt = (
+            sample.get("target")
+            or sample.get("output")
+            or sample.get("y")
+            or sample.get("label")
+        )
+    elif isinstance(sample, (tuple, list)) and len(sample) >= 2:
+        inp, tgt = sample[0], sample[1]
+    else:
+        raise TypeError("Unsupported sample type")
+
+    if torch.is_tensor(inp):
+        inp = inp.detach().cpu().float().mean().item()
+    elif isinstance(inp, np.ndarray):
+        inp = float(np.mean(inp))
+
+    if torch.is_tensor(tgt):
+        tgt = tgt.detach().cpu().float().mean().item()
+    elif isinstance(tgt, np.ndarray):
+        tgt = float(np.mean(tgt))
+
+    return float(inp), float(tgt)
+
+
+def _normalize_examples(examples):
+    """Convert supported datasets or iterables to a list of ``(input, target)``."""
+
+    if isinstance(examples, list):
+        return [_parse_example(e) for e in examples]
+
+    try:
+        return [_parse_example(e) for e in examples]
+    except TypeError:
+        raise
+
+
 class Brain:
     def __init__(
         self,
@@ -302,6 +347,12 @@ class Brain:
         return False
 
     def train(self, train_examples, epochs=1, validation_examples=None):
+        train_examples = _normalize_examples(train_examples)
+        validation_examples = (
+            _normalize_examples(validation_examples)
+            if validation_examples is not None
+            else None
+        )
         pbar = tqdm(range(epochs), desc="Epochs", ncols=100)
         best_loss = float("inf")
         patience_counter = 0
@@ -397,6 +448,7 @@ class Brain:
         pbar.close()
 
     def validate(self, validation_examples):
+        validation_examples = _normalize_examples(validation_examples)
         errors = []
         for input_val, target_val in validation_examples:
             output, _ = self.neuronenblitz.dynamic_wander(input_val)
@@ -430,6 +482,11 @@ class Brain:
             self.core = data["core"]
             self.neuronenblitz = data["neuronenblitz"]
         print(f"Model loaded from {filepath}")
+
+    def infer(self, input_value):
+        """Return the output of the trained model for ``input_value``."""
+        output, _ = self.neuronenblitz.dynamic_wander(float(input_value))
+        return float(output)
 
     def generate_chain_of_thought(self, input_value):
         """Return output and a chain of reasoning steps for the given input."""
