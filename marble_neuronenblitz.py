@@ -172,7 +172,9 @@ class Neuronenblitz:
         ):
             for syn in current_neuron.synapses:
                 next_neuron = self.core.neurons[syn.target]
-                transmitted_value = self.combine_fn(current_neuron.value, syn.weight)
+                w = syn.effective_weight(self.last_context)
+                transmitted_value = self.combine_fn(current_neuron.value, w)
+                syn.apply_side_effects(self.core, current_neuron.value)
                 next_neuron.value = transmitted_value
                 new_path = path + [(next_neuron, syn)]
                 new_continue_prob = current_continue_prob * self.continue_decay_rate
@@ -192,7 +194,9 @@ class Neuronenblitz:
         else:
             syn = self.weighted_choice(current_neuron.synapses)
             next_neuron = self.core.neurons[syn.target]
-            transmitted_value = self.combine_fn(current_neuron.value, syn.weight)
+            w = syn.effective_weight(self.last_context)
+            transmitted_value = self.combine_fn(current_neuron.value, w)
+            syn.apply_side_effects(self.core, current_neuron.value)
             next_neuron.value = transmitted_value
             new_path = path + [(next_neuron, syn)]
             new_continue_prob = current_continue_prob * self.continue_decay_rate
@@ -248,7 +252,9 @@ class Neuronenblitz:
                 if entry_neuron.synapses:
                     syn = self.weighted_choice(entry_neuron.synapses)
                     next_neuron = self.core.neurons[syn.target]
-                    next_neuron.value = self.combine_fn(entry_neuron.value, syn.weight)
+                    w = syn.effective_weight(self.last_context)
+                    next_neuron.value = self.combine_fn(entry_neuron.value, w)
+                    syn.apply_side_effects(self.core, entry_neuron.value)
                     final_path = [(entry_neuron, None), (next_neuron, syn)]
                 else:
                     final_path = initial_path
