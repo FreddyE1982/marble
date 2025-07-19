@@ -7,6 +7,7 @@ from marble_core import Core, DataLoader
 from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain
 from neuromodulatory_system import NeuromodulatorySystem
+import torch
 
 from tests.test_core_functions import minimal_params
 
@@ -74,3 +75,27 @@ def test_brain_dream_defaults():
     brain = Brain(core, nb, DataLoader(), dream_num_cycles=3, dream_interval=2)
     assert brain.dream_num_cycles == 3
     assert brain.dream_interval == 2
+
+
+def test_train_with_pytorch_dataloader_and_infer(tmp_path):
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    brain = Brain(core, nb, DataLoader(), save_dir=str(tmp_path))
+
+    dataset = torch.utils.data.TensorDataset(
+        torch.tensor([0.1, 0.2], dtype=torch.float32),
+        torch.tensor([0.2, 0.4], dtype=torch.float32),
+    )
+    loader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False)
+
+    brain.train(loader, epochs=1)
+    brain.save_model()
+    path = brain.saved_model_paths[0]
+
+    new_core = Core(params)
+    new_nb = Neuronenblitz(new_core)
+    new_brain = Brain(new_core, new_nb, DataLoader(), save_dir=str(tmp_path))
+    new_brain.load_model(path)
+    out = new_brain.infer(0.1)
+    assert isinstance(out, float)
