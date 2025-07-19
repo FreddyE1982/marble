@@ -78,3 +78,41 @@ def set_autograd(marble: MARBLE, enabled: bool, learning_rate: float = 0.01) -> 
     elif not enabled and marble.get_autograd_layer() is not None:
         marble.get_brain().set_autograd_layer(None)
         marble.autograd_layer = None
+
+
+def convert_pytorch_model(
+    model: "torch.nn.Module",
+    core_params: dict | None = None,
+    nb_params: dict | None = None,
+    brain_params: dict | None = None,
+    dataloader_params: dict | None = None,
+) -> MARBLE:
+    """Return a :class:`MARBLE` instance converted from a PyTorch ``model``.
+
+    Parameters
+    ----------
+    model:
+        The PyTorch model to convert.
+    core_params:
+        Optional parameters passed to :class:`MARBLE` for core creation.
+    nb_params:
+        Optional :class:`Neuronenblitz` parameters.
+    brain_params:
+        Optional :class:`Brain` parameters.
+    dataloader_params:
+        Optional :class:`DataLoader` parameters.
+
+    Returns
+    -------
+    MARBLE
+        A new MARBLE system initialized from ``model`` weights.
+    """
+
+    return MARBLE(
+        core_params or {},
+        converter_model=model,
+        nb_params=nb_params,
+        brain_params=brain_params,
+        dataloader_params=dataloader_params,
+        init_from_weights=True,
+    )

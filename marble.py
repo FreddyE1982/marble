@@ -18,6 +18,7 @@ from data_compressor import DataCompressor
 import random
 import math
 import sympy as sp
+from marble_core import Neuron, Synapse, Core
 import threading
 from datetime import datetime
 from marble_imports import cp
@@ -778,13 +779,16 @@ class MarbleConverter:
                 for j, out_id in enumerate(output_ids):
                     for i, in_id in enumerate(prev_neuron_ids):
                         weight_val = float(weight_matrix[j, i])
-                        syn = Synapse(
-                            in_id,
-                            out_id,
-                            weight=weight_val,
-                            synapse_type="standard",
-                        )
+                        syn = Synapse(in_id, out_id, weight_val)
                         new_core.neurons[in_id].synapses.append(syn)
+                        new_core.synapses.append(syn)
+                if layer.bias is not None:
+                    bias_id = len(new_core.neurons)
+                    new_core.neurons.append(Neuron(bias_id, value=1.0, tier="vram"))
+                    for j, out_id in enumerate(output_ids):
+                        bias_val = float(layer.bias.detach().cpu().numpy()[j])
+                        syn = Synapse(bias_id, out_id, bias_val)
+                        new_core.neurons[bias_id].synapses.append(syn)
                         new_core.synapses.append(syn)
                 prev_neuron_ids = output_ids
         return new_core
