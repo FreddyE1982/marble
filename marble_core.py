@@ -128,6 +128,12 @@ NEURON_TYPES = [
     "lstm",
     "gru",
     "layernorm",
+    "conv3d",
+    "maxpool2d",
+    "avgpool2d",
+    "dropout2d",
+    "prelu",
+    "embedding",
 ]
 
 # List of supported synapse types
@@ -261,6 +267,23 @@ class Neuron:
                 "padding": 0,
                 "output_padding": 0,
             }
+        elif self.neuron_type == "conv3d":
+            kernel = np.random.randn(3, 3, 3).astype(float)
+            self.params = {"kernel": kernel, "stride": 1, "padding": 0}
+        elif self.neuron_type in {"maxpool2d", "avgpool2d"}:
+            self.params = {"size": 2, "stride": 2}
+        elif self.neuron_type == "dropout2d":
+            self.params = {"p": 0.5}
+        elif self.neuron_type == "prelu":
+            self.params = {"alpha": 0.25}
+        elif self.neuron_type == "embedding":
+            num = 10
+            dim = 4
+            self.params = {
+                "num_embeddings": num,
+                "embedding_dim": dim,
+                "weights": np.random.randn(num, dim).astype(float),
+            }
         elif self.neuron_type == "lstm":
             self.params = {
                 "wi": random.uniform(-1.0, 1.0),
@@ -365,6 +388,41 @@ class Neuron:
             if isinstance(value, np.ndarray) and not CUDA_AVAILABLE:
                 return cp.asnumpy(result)
             return result
+        elif self.neuron_type == "conv3d":
+            kernel = self.params.get("kernel", np.ones((1, 1, 1)))
+            stride = self.params.get("stride", 1)
+            padding = self.params.get("padding", 0)
+            if torch.is_tensor(value):
+                arr = value.detach().cpu().numpy()
+                use_torch = True
+            else:
+                arr = cp.asarray(value)
+                use_torch = False
+            k = cp.asarray(kernel)
+            if padding > 0:
+                arr = cp.pad(
+                    arr,
+                    ((padding, padding), (padding, padding), (padding, padding)),
+                    mode="constant",
+                )
+            out_d = (arr.shape[0] - k.shape[0]) // stride + 1
+            out_h = (arr.shape[1] - k.shape[1]) // stride + 1
+            out_w = (arr.shape[2] - k.shape[2]) // stride + 1
+            result = cp.zeros((out_d, out_h, out_w), dtype=arr.dtype)
+            for i in range(out_d):
+                for j in range(out_h):
+                    for l in range(out_w):
+                        region = arr[
+                            i * stride : i * stride + k.shape[0],
+                            j * stride : j * stride + k.shape[1],
+                            l * stride : l * stride + k.shape[2],
+                        ]
+                        result[i, j, l] = cp.sum(region * k)
+            if use_torch:
+                return torch.from_numpy(cp.asnumpy(result))
+            if isinstance(value, np.ndarray) and not CUDA_AVAILABLE:
+                return cp.asnumpy(result)
+            return result
         elif self.neuron_type == "batchnorm":
             m = self.params.get("mean", 0.0)
             v = self.params.get("var", 1.0)
@@ -376,6 +434,17 @@ class Neuron:
         elif self.neuron_type == "dropout":
             p = self.params.get("p", 0.5)
             return 0.0 if random.random() < p else value
+        elif self.neuron_type == "dropout2d":
+            p = self.params.get("p", 0.5)
+            if torch.is_tensor(value):
+                mask = (torch.rand_like(value, dtype=torch.float32) > p).float()
+                return value * mask
+            elif isinstance(value, cp.ndarray):
+                mask = (cp.random.rand(*value.shape) > p).astype(value.dtype)
+                return value * mask
+            else:
+                mask = (np.random.rand(*np.asarray(value).shape) > p).astype(float)
+                return np.asarray(value) * mask
         elif self.neuron_type == "relu":
             if torch.is_tensor(value):
                 return torch.relu(value)
@@ -391,6 +460,14 @@ class Neuron:
                 return cp.where(value > 0, value, slope * value)
             else:
                 return value if value > 0 else slope * value
+        elif self.neuron_type == "prelu":
+            alpha = self.params.get("alpha", 0.25)
+            if torch.is_tensor(value):
+                return torch.where(value > 0, value, alpha * value)
+            elif isinstance(value, cp.ndarray):
+                return cp.where(value > 0, value, alpha * value)
+            else:
+                return value if value > 0 else alpha * value
         elif self.neuron_type == "elu":
             alpha = self.params.get("alpha", 1.0)
             if torch.is_tensor(value):
@@ -453,6 +530,30 @@ class Neuron:
                     return cp.mean(stacked, axis=0)
                 else:
                     return sum(window) / len(window)
+        elif self.neuron_type in {"maxpool2d", "avgpool2d"}:
+            size = self.params.get("size", 2)
+            stride = self.params.get("stride", 2)
+            if torch.is_tensor(value):
+                arr = value.detach().cpu().numpy()
+                use_torch = True
+            else:
+                arr = cp.asarray(value)
+                use_torch = False
+            out_h = (arr.shape[0] - size) // stride + 1
+            out_w = (arr.shape[1] - size) // stride + 1
+            result = cp.zeros((out_h, out_w), dtype=arr.dtype)
+            for i in range(out_h):
+                for j in range(out_w):
+                    region = arr[i*stride:i*stride+size, j*stride:j*stride+size]
+                    if self.neuron_type == "maxpool2d":
+                        result[i, j] = cp.max(region)
+                    else:
+                        result[i, j] = cp.mean(region)
+            if use_torch:
+                return torch.from_numpy(cp.asnumpy(result))
+            if isinstance(value, np.ndarray) and not CUDA_AVAILABLE:
+                return cp.asnumpy(result)
+            return result
         elif self.neuron_type == "flatten":
             if torch.is_tensor(value):
                 return torch.reshape(value, (-1,))
@@ -462,6 +563,17 @@ class Neuron:
                 return value.reshape(-1)
             else:
                 return value
+        elif self.neuron_type == "embedding":
+            weights = self.params.get("weights")
+            if torch.is_tensor(value):
+                idx = int(value.item()) % weights.shape[0]
+                return torch.tensor(weights[idx], dtype=torch.float32)
+            indices = np.asarray(value, dtype=int)
+            idx = indices % weights.shape[0]
+            result = weights[idx]
+            if isinstance(value, cp.ndarray):
+                return cp.asarray(result)
+            return result
         elif self.neuron_type == "lstm":
             p = self.params
             h = self.hidden_state

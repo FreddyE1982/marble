@@ -24,6 +24,12 @@ def test_neuron_types_list_contains_new_types():
     assert "lstm" in NEURON_TYPES
     assert "gru" in NEURON_TYPES
     assert "layernorm" in NEURON_TYPES
+    assert "conv3d" in NEURON_TYPES
+    assert "maxpool2d" in NEURON_TYPES
+    assert "avgpool2d" in NEURON_TYPES
+    assert "dropout2d" in NEURON_TYPES
+    assert "prelu" in NEURON_TYPES
+    assert "embedding" in NEURON_TYPES
 
 
 def test_linear_neuron_operation():
@@ -180,3 +186,57 @@ def test_layernorm_neuron_operation():
     out = n.process(arr)
     ex = (arr - arr.mean()) / np.sqrt(arr.var() + 1e-5)
     assert np.allclose(out, ex)
+
+
+def test_conv3d_neuron_operation():
+    kern = np.ones((2, 2, 2))
+    n = Neuron(0, neuron_type="conv3d")
+    n.params["kernel"] = kern
+    inp = np.ones((3, 3, 3))
+    out = n.process(inp)
+    expected = np.full((2, 2, 2), 8.0)
+    assert np.allclose(out, expected)
+
+
+def test_pool2d_neuron_operations():
+    arr = np.array([[1.0, 2.0], [3.0, 4.0]])
+    n_max = Neuron(0, neuron_type="maxpool2d")
+    n_max.params["size"] = 2
+    n_max.params["stride"] = 2
+    out_max = n_max.process(arr)
+    assert np.allclose(out_max, np.array([[4.0]]))
+
+    n_avg = Neuron(1, neuron_type="avgpool2d")
+    n_avg.params["size"] = 2
+    n_avg.params["stride"] = 2
+    out_avg = n_avg.process(arr)
+    assert np.allclose(out_avg, np.array([[2.5]]))
+
+
+def test_dropout2d_neuron_operation():
+    random.seed(0)
+    np.random.seed(0)
+    arr = np.ones((2, 2))
+    n = Neuron(0, neuron_type="dropout2d")
+    n.params["p"] = 1.0
+    out = n.process(arr)
+    assert np.allclose(out, np.zeros_like(arr))
+
+
+def test_prelu_neuron_operation():
+    n = Neuron(0, neuron_type="prelu")
+    n.params["alpha"] = 0.2
+    assert n.process(-5.0) == -1.0
+    assert n.process(3.0) == 3.0
+
+
+def test_embedding_neuron_operation():
+    n = Neuron(0, neuron_type="embedding")
+    n.params["weights"] = np.array([[1.0, 2.0], [3.0, 4.0]])
+    n.params["num_embeddings"] = 2
+    n.params["embedding_dim"] = 2
+    out_single = n.process(1)
+    assert np.allclose(out_single, np.array([3.0, 4.0]))
+    out_multi = n.process([0, 1])
+    expected = np.array([[1.0, 2.0], [3.0, 4.0]])
+    assert np.allclose(out_multi, expected)
