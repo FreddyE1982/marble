@@ -282,6 +282,9 @@ brain:
     of pure MARBLE and its autograd pathway. Higher values reduce overhead.
   loss_growth_threshold: Validation loss level that triggers expansion of the
     core during training. The default of ``0.1`` keeps growth infrequent.
+  auto_neurogenesis_prob: Baseline probability between 0 and 1 that
+    ``maybe_autonomous_neurogenesis`` creates new neurons each epoch. The
+    probability scales with the current validation loss.
   dream_cycle_sleep: Seconds to wait between dream cycles. Increase to reduce
     CPU usage during prolonged dreaming.
   tier_decision_params:

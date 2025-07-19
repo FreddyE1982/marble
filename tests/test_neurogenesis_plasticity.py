@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from marble_core import Core, DataLoader, NEURON_TYPES
 from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain
+import random
 import pytest
 from neuromodulatory_system import NeuromodulatorySystem
 from tests.test_core_functions import minimal_params
@@ -102,3 +103,23 @@ def test_neurogenesis_uses_default_base_values():
     added, syns, _ = brain.perform_neurogenesis()
     assert added >= 2
     assert syns >= 3
+
+
+def test_combined_preferred_neuron_type():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    nb.type_attention["conv1d"] = 0.5
+    nb.type_speed_attention["relu"] = 1.0
+    preferred = nb.get_combined_preferred_neuron_type()
+    assert preferred == "relu"
+
+
+def test_maybe_autonomous_neurogenesis(monkeypatch):
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    brain = Brain(core, nb, DataLoader(), auto_neurogenesis_prob=1.0)
+    monkeypatch.setattr(random, "random", lambda: 0.0)
+    triggered = brain.maybe_autonomous_neurogenesis(val_loss=0.5)
+    assert triggered

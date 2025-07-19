@@ -132,6 +132,7 @@ brain:
   benchmark_enabled: false
   benchmark_interval: 2
   loss_growth_threshold: 0.1
+  auto_neurogenesis_prob: 0.0
   dream_cycle_sleep: 0.1
   tier_decision_params:
     vram_usage_threshold: 0.9

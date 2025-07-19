@@ -147,6 +147,7 @@ class Neuronenblitz:
         self.global_activation_count = 0
         self.last_context = {}
         self.type_attention = {nt: 0.0 for nt in NEURON_TYPES}
+        self.type_speed_attention = {nt: 0.0 for nt in NEURON_TYPES}
         self.synapse_loss_attention = {st: 0.0 for st in SYNAPSE_TYPES}
         self.synapse_size_attention = {st: 0.0 for st in SYNAPSE_TYPES}
         self.synapse_speed_attention = {st: 0.0 for st in SYNAPSE_TYPES}
@@ -406,6 +407,8 @@ class Neuronenblitz:
             n_type = self.core.neurons[syn.target].neuron_type
             score = abs(error) / max(path_len, 1)
             self.type_attention[n_type] += score
+            speed_score = 1.0 / max(path_len, 1)
+            self.type_speed_attention[n_type] += speed_score
 
     def get_preferred_neuron_type(self):
         if not any(self.type_attention.values()):
@@ -413,6 +416,19 @@ class Neuronenblitz:
         best = max(self.type_attention.items(), key=lambda x: x[1])[0]
         for k in self.type_attention:
             self.type_attention[k] *= self.attention_decay
+        return best
+
+    def get_combined_preferred_neuron_type(self):
+        combined = {
+            nt: self.type_attention[nt] + self.type_speed_attention[nt]
+            for nt in NEURON_TYPES
+        }
+        if not any(combined.values()):
+            return "standard"
+        best = max(combined.items(), key=lambda x: x[1])[0]
+        for d in (self.type_attention, self.type_speed_attention):
+            for k in d:
+                d[k] *= self.attention_decay
         return best
 
     def apply_weight_updates_and_attention(self, path, error):
