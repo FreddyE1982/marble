@@ -57,3 +57,23 @@ def test_learning_rate_adjustment_bounds():
     assert nb.learning_rate < prev
     assert nb.min_learning_rate <= nb.learning_rate <= nb.max_learning_rate
 
+
+def test_max_wander_depth_limit():
+    random.seed(0)
+    np.random.seed(0)
+    core, _ = create_simple_core()
+    # Add a self-loop to allow indefinite wandering without the depth limit
+    core.add_synapse(1, 1, weight=1.0)
+    nb = Neuronenblitz(
+        core,
+        max_wander_depth=3,
+        wander_depth_noise=0.0,
+        continue_decay_rate=1.0,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        backtrack_probability=0.0,
+        backtrack_enabled=False,
+    )
+    _, path = nb.dynamic_wander(1.0)
+    assert len(path) <= 3
+

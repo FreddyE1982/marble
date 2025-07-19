@@ -219,9 +219,13 @@ class Neuronenblitz:
                 return syn
         return random.choice(synapses)
 
-    def _wander(self, current_neuron, path, current_continue_prob):
+    def _wander(self, current_neuron, path, current_continue_prob, depth_remaining):
         results = []
-        if not current_neuron.synapses or random.random() > current_continue_prob:
+        if (
+            depth_remaining <= 0
+            or not current_neuron.synapses
+            or random.random() > current_continue_prob
+        ):
             results.append((current_neuron, path))
             return results
         if (
@@ -249,7 +253,12 @@ class Neuronenblitz:
                     results.append((next_neuron, new_path))
                 else:
                     results.extend(
-                        self._wander(next_neuron, new_path, new_continue_prob)
+                        self._wander(
+                            next_neuron,
+                            new_path,
+                            new_continue_prob,
+                            depth_remaining - 1,
+                        )
                     )
         else:
             syn = self.weighted_choice(current_neuron.synapses)
@@ -272,7 +281,14 @@ class Neuronenblitz:
                 next_neuron.value = remote_out
                 results.append((next_neuron, new_path))
             else:
-                results.extend(self._wander(next_neuron, new_path, new_continue_prob))
+                results.extend(
+                    self._wander(
+                        next_neuron,
+                        new_path,
+                        new_continue_prob,
+                        depth_remaining - 1,
+                    )
+                )
         return results
 
     def _merge_results(self, results):
@@ -309,7 +325,16 @@ class Neuronenblitz:
             )
             entry_neuron.value = input_value
             initial_path = [(entry_neuron, None)]
-            results = self._wander(entry_neuron, initial_path, 1.0)
+            depth_limit = int(
+                max(
+                    1,
+                    round(
+                        self.max_wander_depth
+                        + np.random.normal(0.0, self.wander_depth_noise)
+                    ),
+                )
+            )
+            results = self._wander(entry_neuron, initial_path, 1.0, depth_limit)
             final_neuron, final_path = self._merge_results(results)
             if not final_path or all(s is None for _, s in final_path):
                 if entry_neuron.synapses:
