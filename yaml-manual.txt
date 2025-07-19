@@ -32,8 +32,11 @@ core:
     seed. Increasing this explores a wider region of the complex plane.
   mandelbrot_power: Power applied during Mandelbrot iterations. ``2`` produces
     the classic set while higher integers create different fractal patterns.
-  tier_autotune_enabled: When true the core monitors tier usage and adjusts
-    limits based on ``vram_limit_mb`` and ``ram_limit_mb``.
+  tier_autotune_enabled: When enabled the core automatically migrates neurons
+    between VRAM, RAM and disk to keep usage below the configured
+    ``*_limit_mb`` values. Neurons are moved in order of age with the oldest
+    leaving the faster tiers first. This prevents out-of-memory errors while
+    keeping recently created neurons in the quickest storage available.
   memory_cleanup_interval: Seconds between automated clean-up passes that remove
     expired objects from lower tiers.
   representation_noise_std: Standard deviation of Gaussian noise added to
