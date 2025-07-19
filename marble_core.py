@@ -466,7 +466,7 @@ class Core:
         if not self.neurons:
             return
         values = np.array([n.value for n in self.neurons], dtype=float)
-        k = min(k, len(values))
+        k = int(min(k, len(values)))
         centers = np.random.choice(values, k, replace=False)
         for _ in range(5):
             assignments = [int(np.argmin([abs(v - c) for c in centers])) for v in values]
@@ -495,7 +495,6 @@ class Core:
             for neuron in self.neurons:
                 if neuron.cluster_id == cid:
                     neuron.tier = new_tier
-                    neuron.attention_score = 0.0
 
     def extract_subcore(self, neuron_ids):
         params = {
