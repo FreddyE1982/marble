@@ -112,3 +112,29 @@ def test_message_passing_beta_effect():
     perform_message_passing(core)
     after = [n.representation.copy() for n in core.neurons]
     assert all(np.allclose(b, a) for b, a in zip(before, after))
+
+
+def test_run_message_passing_iterations():
+    np.random.seed(0)
+    params = minimal_params()
+    params["message_passing_iterations"] = 2
+    core_single = Core(params)
+    core_multi = Core(params)
+    for n1, n2 in zip(core_single.neurons, core_multi.neurons):
+        rep = np.random.rand(4)
+        n1.representation = rep.copy()
+        n2.representation = rep.copy()
+
+    base = [n.representation.copy() for n in core_single.neurons]
+    single_change = perform_message_passing(core_single)
+    multi_change = core_multi.run_message_passing()
+    single_diff = sum(
+        float(np.linalg.norm(n.representation - base[i]))
+        for i, n in enumerate(core_single.neurons)
+    )
+    multi_diff = sum(
+        float(np.linalg.norm(n.representation - base[i]))
+        for i, n in enumerate(core_multi.neurons)
+    )
+    assert multi_diff > single_diff
+    assert not np.isclose(multi_change, single_change)
