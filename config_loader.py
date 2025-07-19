@@ -64,9 +64,12 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
     compressor_cfg = cfg.get("data_compressor", {})
     compression_level = compressor_cfg.get("compression_level", 6)
     compression_enabled = compressor_cfg.get("compression_enabled", True)
+    dataloader_cfg = cfg.get("dataloader", {})
+    tensor_dtype = dataloader_cfg.get("tensor_dtype", "uint8")
     dataloader_params = {
         "compression_level": compression_level,
         "compression_enabled": compression_enabled,
+        "tensor_dtype": tensor_dtype,
     }
 
     autograd_params = cfg.get("autograd", {})
