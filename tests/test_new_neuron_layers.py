@@ -1,5 +1,6 @@
 import random
 import numpy as np
+import math
 
 from marble_core import Neuron, NEURON_TYPES
 
@@ -7,11 +8,15 @@ from marble_core import Neuron, NEURON_TYPES
 def test_neuron_types_list_contains_new_types():
     assert "linear" in NEURON_TYPES
     assert "conv1d" in NEURON_TYPES
+    assert "conv2d" in NEURON_TYPES
     assert "batchnorm" in NEURON_TYPES
     assert "dropout" in NEURON_TYPES
     assert "relu" in NEURON_TYPES
+    assert "leakyrelu" in NEURON_TYPES
+    assert "elu" in NEURON_TYPES
     assert "sigmoid" in NEURON_TYPES
     assert "tanh" in NEURON_TYPES
+    assert "softmax" in NEURON_TYPES
     assert "maxpool1d" in NEURON_TYPES
     assert "avgpool1d" in NEURON_TYPES
     assert "flatten" in NEURON_TYPES
@@ -31,6 +36,16 @@ def test_conv1d_neuron_operation():
     for val in [1.0, 2.0, 3.0]:
         res = n.process(val)
     assert res == 6.0
+
+
+def test_conv2d_neuron_operation():
+    kern = np.array([[1.0, 0.0], [0.0, 1.0]])
+    n = Neuron(0, neuron_type="conv2d")
+    n.params["kernel"] = kern
+    inp = np.array([[1.0, 2.0], [3.0, 4.0]])
+    out = n.process(inp)
+    expected = np.array([[5.0]])
+    assert np.allclose(out, expected)
 
 
 def test_batchnorm_neuron_operation():
@@ -55,6 +70,22 @@ def test_relu_neuron_operation():
     assert n.process(2.0) == 2.0
 
 
+def test_leakyrelu_neuron_operation():
+    n = Neuron(0, neuron_type="leakyrelu")
+    n.params["negative_slope"] = 0.1
+    assert n.process(-2.0) == -0.2
+    assert n.process(3.0) == 3.0
+
+
+def test_elu_neuron_operation():
+    n = Neuron(0, neuron_type="elu")
+    n.params["alpha"] = 1.0
+    out_neg = n.process(-1.0)
+    out_pos = n.process(2.0)
+    assert np.isclose(out_neg, math.exp(-1.0) - 1)
+    assert out_pos == 2.0
+
+
 def test_sigmoid_neuron_operation():
     n = Neuron(0, neuron_type="sigmoid")
     out = n.process(0.0)
@@ -64,6 +95,15 @@ def test_sigmoid_neuron_operation():
 def test_tanh_neuron_operation():
     n = Neuron(0, neuron_type="tanh")
     assert n.process(0.0) == 0.0
+
+
+def test_softmax_neuron_operation():
+    arr = np.array([1.0, 2.0, 3.0])
+    n = Neuron(0, neuron_type="softmax")
+    out = n.process(arr)
+    exps = np.exp(arr - np.max(arr))
+    expected = exps / exps.sum()
+    assert np.allclose(out, expected)
 
 
 def test_pooling_neuron_operations():
