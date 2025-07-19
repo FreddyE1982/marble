@@ -66,6 +66,7 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
 
     autograd_params = cfg.get("autograd", {})
     pytorch_challenge_params = cfg.get("pytorch_challenge", {})
+    gpt_cfg = cfg.get("gpt", {})
 
     brain_params.update({
         "neuromodulatory_system": neuromod_system,
@@ -129,4 +130,24 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
     )
     if remote_server is not None:
         marble.remote_server = remote_server
+
+    if gpt_cfg.get("enabled", False) and gpt_cfg.get("dataset_path"):
+        from advanced_gpt import load_text_dataset, train_advanced_gpt
+
+        dataset, _ = load_text_dataset(
+            gpt_cfg["dataset_path"],
+            gpt_cfg.get("vocab_size", 50),
+            gpt_cfg.get("block_size", 8),
+        )
+        marble.gpt_model, _ = train_advanced_gpt(
+            dataset,
+            vocab_size=gpt_cfg.get("vocab_size", 50),
+            block_size=gpt_cfg.get("block_size", 8),
+            num_layers=gpt_cfg.get("num_layers", 2),
+            num_heads=gpt_cfg.get("num_heads", 2),
+            hidden_dim=gpt_cfg.get("hidden_dim", 64),
+            epochs=gpt_cfg.get("num_train_steps", 1),
+            lr=gpt_cfg.get("learning_rate", 1e-3),
+            batch_size=gpt_cfg.get("batch_size", 1),
+        )
     return marble

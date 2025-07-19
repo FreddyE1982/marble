@@ -235,3 +235,5 @@ Each entry is listed under its section heading.
 - hidden_dim
 - learning_rate
 - num_train_steps
+- dataset_path
+- batch_size

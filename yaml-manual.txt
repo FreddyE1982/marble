@@ -449,3 +449,9 @@ gpt:
     on observed convergence.
   num_train_steps: Number of update steps performed during GPT training. Keeping this low (tens to hundreds) ensures test
     runs complete quickly while still demonstrating learning behaviour.
+  dataset_path: Path to a plain text file used to generate training sequences. Characters are read from the file and
+    mapped to token IDs until ``vocab_size`` unique tokens are collected. The file must contain at least ``block_size``
+    characters so that each training example can include a start and target token. Using larger files improves vocabulary
+    coverage and allows more diverse sequences.
+  batch_size: Number of sequences processed before each optimisation step. Batches between 1 and 64 are typical. Larger
+    values yield smoother gradient estimates but require more memory, especially when running on GPU with CuPy.
