@@ -2,6 +2,7 @@ from marble_imports import *
 from marble_core import Neuron, Synapse, NEURON_TYPES, perform_message_passing
 from marble_base import MetricsVisualizer
 import threading
+import math
 
 
 class Neuronenblitz:
@@ -158,18 +159,28 @@ class Neuronenblitz:
                 return syn
         return random.choice(synapses)
 
-    def _wander(self, current_neuron, path, current_continue_prob):
+    def _wander(self, current_neuron, path, current_continue_prob, depth=0):
         results = []
-        if not current_neuron.synapses or random.random() > current_continue_prob:
+        if depth >= self.max_wander_depth:
+            results.append((current_neuron, path))
+            return results
+        synapses = [
+            s
+            for s in current_neuron.synapses
+            if random.random() > self.dropout_probability
+        ]
+        if not synapses or random.random() > current_continue_prob:
             results.append((current_neuron, path))
             return results
         if (
-            len(current_neuron.synapses) > 1
+            len(synapses) > 1
             and random.random() < self.split_probability
         ):
-            for syn in current_neuron.synapses:
+            for syn in synapses:
                 next_neuron = self.core.neurons[syn.target]
                 transmitted_value = self.combine_fn(current_neuron.value, syn.weight)
+                if self.noise_injection_std > 0:
+                    transmitted_value += random.gauss(0, self.noise_injection_std)
                 next_neuron.value = transmitted_value
                 new_path = path + [(next_neuron, syn)]
                 new_continue_prob = current_continue_prob * self.continue_decay_rate
@@ -184,12 +195,14 @@ class Neuronenblitz:
                     results.append((next_neuron, new_path))
                 else:
                     results.extend(
-                        self._wander(next_neuron, new_path, new_continue_prob)
+                        self._wander(next_neuron, new_path, new_continue_prob, depth + 1)
                     )
         else:
-            syn = self.weighted_choice(current_neuron.synapses)
+            syn = self.weighted_choice(synapses)
             next_neuron = self.core.neurons[syn.target]
             transmitted_value = self.combine_fn(current_neuron.value, syn.weight)
+            if self.noise_injection_std > 0:
+                transmitted_value += random.gauss(0, self.noise_injection_std)
             next_neuron.value = transmitted_value
             new_path = path + [(next_neuron, syn)]
             new_continue_prob = current_continue_prob * self.continue_decay_rate
@@ -203,7 +216,7 @@ class Neuronenblitz:
                 next_neuron.value = remote_out
                 results.append((next_neuron, new_path))
             else:
-                results.extend(self._wander(next_neuron, new_path, new_continue_prob))
+                results.extend(self._wander(next_neuron, new_path, new_continue_prob, depth + 1))
         return results
 
     def _merge_results(self, results):
@@ -239,7 +252,7 @@ class Neuronenblitz:
             )
             entry_neuron.value = input_value
             initial_path = [(entry_neuron, None)]
-            results = self._wander(entry_neuron, initial_path, 1.0)
+            results = self._wander(entry_neuron, initial_path, 1.0, 0)
             final_neuron, final_path = self._merge_results(results)
             if not final_path or all(s is None for _, s in final_path):
                 if entry_neuron.synapses:
@@ -257,6 +270,8 @@ class Neuronenblitz:
             return final_neuron.value, [s for (_, s) in final_path if s is not None]
 
     def apply_structural_plasticity(self, path):
+        if not self.structural_plasticity_enabled:
+            return
         ctx = self.last_context
         mod = 1.0 + ctx.get("reward", 0.0) - ctx.get("stress", 0.0)
         for _, syn in path:
@@ -317,6 +332,11 @@ class Neuronenblitz:
             for syn in path:
                 source_value = self.core.neurons[syn.source].value
                 delta = self.weight_update_fn(source_value, error, path_length)
+                delta *= self.learning_rate
+                if self.gradient_noise_std > 0:
+                    delta += random.gauss(0, self.gradient_noise_std)
+                if abs(delta) > self.synapse_update_cap:
+                    delta = math.copysign(self.synapse_update_cap, delta)
                 syn.weight += delta
                 if random.random() < self.consolidation_probability:
                     syn.weight *= self.consolidation_strength
@@ -358,9 +378,14 @@ class Neuronenblitz:
                     num_new_synapses=15,
                     alternative_connection_prob=self.alternative_connection_prob,
                 )
-            self.core.synapses = [
-                s for s in self.core.synapses if abs(s.weight) >= 0.05
-            ]
+            if self.weight_decay > 0:
+                for syn in self.core.synapses:
+                    syn.weight *= 1.0 - self.weight_decay
+                    if syn.weight > self._weight_limit:
+                        syn.weight = self._weight_limit
+                    elif syn.weight < -self._weight_limit:
+                        syn.weight = -self._weight_limit
+            self.core.synapses = [s for s in self.core.synapses if abs(s.weight) >= 0.05]
             change = perform_message_passing(
                 self.core, metrics_visualizer=self.metrics_visualizer
             )
