@@ -220,3 +220,8 @@ Each entry is listed under its section heading.
 ## autograd
 - enabled
 - learning_rate
+## pytorch_challenge
+- enabled
+- loss_penalty
+- speed_penalty
+- size_penalty

@@ -201,3 +201,8 @@ metrics_dashboard:
 autograd:
   enabled: false
   learning_rate: 0.01
+pytorch_challenge:
+  enabled: false
+  loss_penalty: 0.1
+  speed_penalty: 0.1
+  size_penalty: 0.1

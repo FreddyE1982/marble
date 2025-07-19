@@ -65,6 +65,7 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
     }
 
     autograd_params = cfg.get("autograd", {})
+    pytorch_challenge_params = cfg.get("pytorch_challenge", {})
 
     brain_params.update({
         "neuromodulatory_system": neuromod_system,
@@ -124,6 +125,7 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
         mv_params=mv_params,
         dashboard_params=dashboard_params,
         autograd_params=autograd_params,
+        pytorch_challenge_params=pytorch_challenge_params,
     )
     if remote_server is not None:
         marble.remote_server = remote_server
