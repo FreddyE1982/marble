@@ -80,7 +80,11 @@ def perform_message_passing(
         incoming = [s for s in core.synapses if s.target == target.id]
         if not incoming:
             continue
-        neigh_reps = [core.neurons[s.source].representation * s.weight for s in incoming]
+        neigh_reps = []
+        for s in incoming:
+            w = s.effective_weight()
+            neigh_reps.append(core.neurons[s.source].representation * w)
+            s.apply_side_effects(core, core.neurons[s.source].representation)
         if not neigh_reps:
             continue
         target_rep = target.representation
@@ -205,6 +209,47 @@ class Synapse:
             synapse_type if synapse_type in SYNAPSE_TYPES else "standard"
         )
         self.created_at = datetime.now()
+
+    def effective_weight(self, context=None):
+        """Return the weight modified according to ``synapse_type`` and context."""
+        if context is None:
+            context = {}
+        w = self.weight
+        if self.synapse_type == "excitatory":
+            w = abs(w)
+        elif self.synapse_type == "inhibitory":
+            w = -abs(w)
+        elif self.synapse_type == "modulatory":
+            mod = 1.0 + context.get("reward", 0.0) - context.get("stress", 0.0)
+            w *= mod
+        return w
+
+    def apply_side_effects(self, core, source_value):
+        """Apply any extra behaviour implied by ``synapse_type``."""
+        if core is None:
+            return
+        if self.synapse_type == "mirror":
+            core.neurons[self.source].value = source_value * self.weight
+        elif self.synapse_type == "multi_neuron":
+            extra_ids = random.sample(range(len(core.neurons)), k=min(2, len(core.neurons)))
+            for idx in extra_ids:
+                core.neurons[idx].value = source_value * self.weight
+        elif self.synapse_type == "recurrent":
+            val = core.neurons[self.source].value
+            if val is None:
+                val = 0.0
+            core.neurons[self.source].value = val + source_value * self.weight
+
+    def transmit(self, source_value, core=None, context=None):
+        """Compute the transmitted value and apply side effects."""
+        self.apply_side_effects(core, source_value)
+        w = self.effective_weight(context)
+        if torch.is_tensor(source_value):
+            return source_value * w
+        elif isinstance(source_value, cp.ndarray):
+            return source_value * w
+        else:
+            return source_value * w
 
 def compute_mandelbrot(xmin, xmax, ymin, ymax, width, height, max_iter=256):
     x = cp.linspace(xmin, xmax, width)
