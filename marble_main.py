@@ -63,13 +63,16 @@ class MARBLE:
 
         dl_level = 6
         dl_enabled = True
+        dl_dtype = "uint8"
         if dataloader_params is not None:
             dl_level = dataloader_params.get("compression_level", dl_level)
             dl_enabled = dataloader_params.get("compression_enabled", True)
+            dl_dtype = dataloader_params.get("tensor_dtype", dl_dtype)
         self.dataloader = DataLoader(
             compression_level=dl_level,
             compression_enabled=dl_enabled,
             metrics_visualizer=self.metrics_visualizer,
+            tensor_dtype=dl_dtype,
         )
 
         nb_defaults = {

@@ -188,6 +188,9 @@ Each entry is listed under its section heading.
 - compression_level
 - compression_enabled
 
+## dataloader
+- tensor_dtype
+
 ## formula
 - formula
 - formula_num_neurons

@@ -43,3 +43,21 @@ def test_encode_array_accepts_tensor():
     encoded = dl.encode_array(t)
     decoded = dl.decode_array(encoded)
     assert np.allclose(decoded, t.numpy())
+
+
+def test_marble_dataloader_custom_dtype():
+    dl = DataLoader(tensor_dtype="int16")
+    data = {"x": 123}
+    tensor = dl.encode(data)
+    assert str(tensor.dtype) == "int16"
+    restored = dl.decode(tensor)
+    assert restored == data
+
+
+def test_marble_dataloader_array_custom_dtype():
+    dl = DataLoader(tensor_dtype="int16")
+    arr = np.arange(4, dtype=np.float32)
+    tensor = dl.encode_array(arr)
+    assert str(tensor.dtype) == "int16"
+    decoded = dl.decode_array(tensor)
+    assert np.allclose(decoded, arr)

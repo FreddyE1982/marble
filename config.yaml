@@ -185,6 +185,8 @@ torrent_client:
 data_compressor:
   compression_level: 6
   compression_enabled: true
+dataloader:
+  tensor_dtype: "uint8"
 remote_server:
   enabled: false
   host: "localhost"

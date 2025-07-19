@@ -294,6 +294,7 @@ class DataLoader:
         compression_level: int = 6,
         compression_enabled: bool = True,
         metrics_visualizer: "MetricsVisualizer | None" = None,
+        tensor_dtype: str = "uint8",
     ) -> None:
         self.compressor = (
             compressor
@@ -301,6 +302,7 @@ class DataLoader:
             else DataCompressor(level=compression_level, compression_enabled=compression_enabled)
         )
         self.metrics_visualizer = metrics_visualizer
+        self.tensor_dtype = cp.dtype(tensor_dtype)
 
     def encode(self, data):
         serialized = pickle.dumps(data)
@@ -308,7 +310,14 @@ class DataLoader:
         if self.metrics_visualizer is not None:
             ratio = len(compressed) / max(len(serialized), 1)
             self.metrics_visualizer.update({"compression_ratio": ratio})
-        return np.frombuffer(compressed, dtype=np.uint8)
+        array_module = cp if cp is not np else np
+        base = array_module.frombuffer(compressed, dtype=array_module.uint8)
+        if (
+            self.tensor_dtype != array_module.uint8
+            and len(base) % self.tensor_dtype.itemsize == 0
+        ):
+            base = base.view(self.tensor_dtype)
+        return base
 
     def decode(self, tensor):
         compressed = tensor.tobytes()
@@ -325,11 +334,22 @@ class DataLoader:
         if self.metrics_visualizer is not None:
             ratio = len(compressed) / max(array.nbytes, 1)
             self.metrics_visualizer.update({"compression_ratio": ratio})
-        return np.frombuffer(compressed, dtype=np.uint8)
+        array_module = cp if cp is not np else np
+        base = array_module.frombuffer(compressed, dtype=array_module.uint8)
+        if (
+            self.tensor_dtype != array_module.uint8
+            and len(base) % self.tensor_dtype.itemsize == 0
+        ):
+            base = base.view(self.tensor_dtype)
+        return base
 
     def decode_array(self, tensor: np.ndarray) -> np.ndarray:
         if isinstance(tensor, torch.Tensor):
             tensor = tensor.detach().cpu().numpy()
+        elif isinstance(tensor, cp.ndarray):
+            tensor = cp.asnumpy(tensor)
+        if tensor.dtype != np.uint8:
+            tensor = tensor.view(np.uint8)
         compressed = tensor.tobytes()
         array = self.compressor.decompress_array(compressed)
         if self.metrics_visualizer is not None:
@@ -339,13 +359,17 @@ class DataLoader:
 
     def encode_tensor(self, tensor: "torch.Tensor") -> "torch.Tensor":
         np_array = tensor.detach().cpu().numpy()
-        encoded_np = self.encode_array(np_array)
-        return torch.from_numpy(encoded_np.copy())
+        encoded = self.encode_array(np_array)
+        if isinstance(encoded, cp.ndarray):
+            encoded = cp.asnumpy(encoded)
+        return torch.from_numpy(encoded.copy())
 
     def decode_tensor(self, tensor: "torch.Tensor") -> "torch.Tensor":
         np_tensor = tensor.detach().cpu().numpy()
-        decoded_np = self.decode_array(np_tensor)
-        return torch.from_numpy(decoded_np.copy())
+        decoded = self.decode_array(np_tensor)
+        if isinstance(decoded, cp.ndarray):
+            decoded = cp.asnumpy(decoded)
+        return torch.from_numpy(decoded.copy())
 
 # 4.5 Neuronenblitz  Dynamic wandering, training, structural plasticity, splitting and merging of blitz processes
 class Neuronenblitz:

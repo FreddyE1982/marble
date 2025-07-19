@@ -410,6 +410,14 @@ data_compressor:
   compression_enabled: Set to ``false`` to bypass compression entirely. Useful
     during debugging or when working with already compressed data.
 
+dataloader:
+  # Settings for the ``DataLoader`` which serializes and compresses data.
+  # ``tensor_dtype`` defines the NumPy dtype used when encoding objects and
+  # arrays. This affects the precision of the returned tensors and must be a
+  # valid dtype name like ``"uint8"`` or ``"int16"``. Wider dtypes can prevent
+  # overflow with exceptionally large payloads but increase memory usage.
+  tensor_dtype: String specifying the dtype of encoded tensors.
+
 remote_server:
   # Launches an optional local ``RemoteBrainServer`` so this MARBLE instance can
   # forward computation to another machine. When ``enabled`` is ``true`` the
