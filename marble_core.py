@@ -1311,3 +1311,46 @@ class Core:
                 subcore.neurons[id_map[syn.source]].synapses.append(ns)
                 subcore.synapses.append(ns)
         return subcore
+
+    def run_message_passing(
+        self,
+        metrics_visualizer: "MetricsVisualizer | None" = None,
+        attention_module: "AttentionModule | None" = None,
+        iterations: int | None = None,
+    ) -> float:
+        """Execute the message passing routine multiple times.
+
+        Parameters
+        ----------
+        metrics_visualizer : MetricsVisualizer or None
+            If provided, average change statistics are sent to this instance.
+        attention_module : AttentionModule or None
+            Optional custom attention module. If ``None`` the core's configured
+            module is used.
+        iterations : int, optional
+            How often to call :func:`perform_message_passing`. When omitted the
+            value from ``self.message_passing_iterations`` is used.
+
+        Returns
+        -------
+        float
+            Average representation change across all iterations.
+        """
+
+        if iterations is None:
+            iterations = self.message_passing_iterations
+        if attention_module is None:
+            attention_module = self.attention_module
+
+        total_change = 0.0
+        for _ in range(int(iterations)):
+            total_change += perform_message_passing(
+                self,
+                metrics_visualizer=metrics_visualizer,
+                attention_module=attention_module,
+            )
+
+        avg_change = total_change / max(int(iterations), 1)
+        if metrics_visualizer is not None:
+            metrics_visualizer.update({"avg_message_passing_change": avg_change})
+        return avg_change
