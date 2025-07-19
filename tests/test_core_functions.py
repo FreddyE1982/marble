@@ -25,6 +25,8 @@ def minimal_params():
         'disk_limit_mb': 0.1,
         'random_seed': 0,
         'attention_temperature': 1.0,
+        'energy_threshold': 0.0,
+        'representation_noise_std': 0.0,
     }
 
 
