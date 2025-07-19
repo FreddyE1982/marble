@@ -234,7 +234,7 @@ class Neuronenblitz:
                 syn.apply_side_effects(self.core, current_neuron.value)
                 if self.synaptic_fatigue_enabled:
                     syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
-                next_neuron.value = transmitted_value
+                next_neuron.value = next_neuron.process(transmitted_value)
                 new_path = path + [(next_neuron, syn)]
                 new_continue_prob = current_continue_prob * self.continue_decay_rate
                 if next_neuron.tier == "remote" and self.remote_client is not None:
@@ -258,7 +258,7 @@ class Neuronenblitz:
             syn.apply_side_effects(self.core, current_neuron.value)
             if self.synaptic_fatigue_enabled:
                 syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
-            next_neuron.value = transmitted_value
+            next_neuron.value = next_neuron.process(transmitted_value)
             new_path = path + [(next_neuron, syn)]
             new_continue_prob = current_continue_prob * self.continue_decay_rate
             if next_neuron.tier == "remote" and self.remote_client is not None:
@@ -315,7 +315,8 @@ class Neuronenblitz:
                     syn = self.weighted_choice(entry_neuron.synapses)
                     next_neuron = self.core.neurons[syn.target]
                     w = syn.effective_weight(self.last_context)
-                    next_neuron.value = self.combine_fn(entry_neuron.value, w)
+                    raw_val = self.combine_fn(entry_neuron.value, w)
+                    next_neuron.value = next_neuron.process(raw_val)
                     syn.apply_side_effects(self.core, entry_neuron.value)
                     if self.synaptic_fatigue_enabled:
                         syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
