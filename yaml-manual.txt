@@ -133,8 +133,11 @@ neuronenblitz:
     previous neurons when ``backtrack_enabled`` is true.
   synapse_update_cap: Absolute limit applied to single weight updates to avoid
     extreme jumps.
-  structural_plasticity_enabled: When false, ``apply_structural_plasticity`` is
-    skipped entirely.
+  structural_plasticity_enabled: Enables automatic growth of the network by
+    inserting new neurons and connections along frequently used paths.
+    The default is ``true`` so the network topology can adapt over time.
+    Setting this to ``false`` freezes the architecture and causes
+    ``apply_structural_plasticity`` to return immediately.
   backtrack_enabled: If false, wandering never returns to previously visited
     neurons regardless of ``backtrack_probability``.
   loss_scale: Multiplier for training errors before they are applied to weights.
