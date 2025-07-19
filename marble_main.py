@@ -216,6 +216,21 @@ class MARBLE:
     def get_pytorch_challenge_params(self):
         return self.pytorch_challenge_params
 
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        state["metrics_dashboard"] = None
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        if self.metrics_dashboard is not None:
+            try:
+                self.metrics_dashboard.stop()
+            except Exception:
+                pass
+        if self.metrics_visualizer is None:
+            self.metrics_visualizer = MetricsVisualizer()
+
 
 if __name__ == "__main__":
     # Core parameters
