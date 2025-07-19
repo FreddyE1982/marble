@@ -162,7 +162,17 @@ class Synapse:
         self.potential = 1.0
 
 # 4.2 Alternative initialization: Mandelbrot calculation (using GPU via CuPy)
-def compute_mandelbrot(xmin, xmax, ymin, ymax, width, height, max_iter=256):
+def compute_mandelbrot(
+    xmin,
+    xmax,
+    ymin,
+    ymax,
+    width,
+    height,
+    max_iter: int = 256,
+    escape_radius: float = 2.0,
+    power: int = 2,
+):
     x = cp.linspace(xmin, xmax, width)
     y = cp.linspace(ymin, ymax, height)
     X, Y = cp.meshgrid(x, y)
@@ -170,8 +180,10 @@ def compute_mandelbrot(xmin, xmax, ymin, ymax, width, height, max_iter=256):
     Z = cp.zeros_like(C, dtype=cp.complex64)
     mandelbrot = cp.zeros(C.shape, dtype=cp.int32)
     for i in range(max_iter):
-        mask = cp.abs(Z) <= 2
-        Z[mask] = Z[mask] * Z[mask] + C[mask]
+        mask = cp.abs(Z) <= escape_radius
+        if not mask.any():
+            break
+        Z[mask] = Z[mask] ** power + C[mask]
         mandelbrot[mask] = i
     return mandelbrot
 
@@ -198,10 +210,15 @@ class Core:
                 nid += 1
         else:
             mandel_gpu = compute_mandelbrot(
-                params['xmin'], params['xmax'],
-                params['ymin'], params['ymax'],
-                params['width'], params['height'],
-                params.get('max_iter', 256)
+                params['xmin'],
+                params['xmax'],
+                params['ymin'],
+                params['ymax'],
+                params['width'],
+                params['height'],
+                params.get('max_iter', 256),
+                escape_radius=params.get('mandelbrot_escape_radius', 2.0),
+                power=params.get('mandelbrot_power', 2),
             )
             mandel_cpu = cp.asnumpy(mandel_gpu)
             for val in mandel_cpu.flatten():

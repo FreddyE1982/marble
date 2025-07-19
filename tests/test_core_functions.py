@@ -29,10 +29,36 @@ def minimal_params():
 
 
 def test_compute_mandelbrot_shape():
-    arr = compute_mandelbrot(-2, 1, -1.5, 1.5, 4, 4, max_iter=5)
+    arr = compute_mandelbrot(
+        -2,
+        1,
+        -1.5,
+        1.5,
+        4,
+        4,
+        max_iter=5,
+        escape_radius=2.0,
+        power=2,
+    )
     np_arr = cp.asnumpy(arr)
     assert np_arr.shape == (4, 4)
     assert np_arr.dtype == np.int32
+
+
+def test_compute_mandelbrot_parameters_change_output():
+    base = compute_mandelbrot(-2, 1, -1.5, 1.5, 10, 10, max_iter=10)
+    alt = compute_mandelbrot(
+        -2,
+        1,
+        -1.5,
+        1.5,
+        10,
+        10,
+        max_iter=10,
+        escape_radius=4.0,
+        power=3,
+    )
+    assert not cp.allclose(base, alt)
 
 
 def test_dataloader_roundtrip():
@@ -110,6 +136,19 @@ def test_core_init_noise_std_affects_values():
     values_noisy = [n.value for n in core_noisy.neurons]
     values_clean = [n.value for n in core_clean.neurons]
     assert values_noisy != values_clean
+
+
+def test_core_uses_mandelbrot_parameters():
+    params = minimal_params()
+    params["mandelbrot_escape_radius"] = 4.0
+    params["mandelbrot_power"] = 3
+    core_alt = Core(params)
+    params["mandelbrot_escape_radius"] = 2.0
+    params["mandelbrot_power"] = 2
+    core_default = Core(params)
+    values_alt = [n.value for n in core_alt.neurons]
+    values_default = [n.value for n in core_default.neurons]
+    assert values_alt != values_default
 
 
 def test_simple_mlp_handles_invalid_input():
