@@ -29,6 +29,7 @@ core:
   representation_activation: "tanh"
   weight_init_mean: 0.0
   message_passing_beta: 1.0
+  attention_temperature: 1.0
   energy_threshold: 0.5
   early_cleanup_enabled: false
   pretraining_epochs: 0

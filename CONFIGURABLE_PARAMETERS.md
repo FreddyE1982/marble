@@ -34,6 +34,7 @@ Each entry is listed under its section heading.
 - representation_activation
 - weight_init_mean
 - message_passing_beta
+- attention_temperature
 - energy_threshold
 - early_cleanup_enabled
 - pretraining_epochs

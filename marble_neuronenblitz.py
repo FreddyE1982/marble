@@ -362,7 +362,9 @@ class Neuronenblitz:
                 s for s in self.core.synapses if abs(s.weight) >= 0.05
             ]
             change = perform_message_passing(
-                self.core, metrics_visualizer=self.metrics_visualizer
+                self.core,
+                metrics_visualizer=self.metrics_visualizer,
+                attention_module=self.core.attention_module,
             )
             self.last_message_passing_change = change
 
