@@ -120,7 +120,8 @@ neuronenblitz:
     reduced after each query. Values under ``1.0`` gradually forget old
     preferences.
   max_wander_depth: Maximum recursion depth allowed in ``dynamic_wander``.
-    Limits exploration of extremely long paths.
+    Limits exploration of extremely long paths. The actual limit for each
+    call is drawn from this value plus ``wander_depth_noise``.
   learning_rate: Scalar applied to weight updates produced by ``weight_update_fn``.
   weight_decay: Proportional decrease applied to all synapse weights each epoch
     to prevent uncontrolled growth. ``0.0`` disables this effect.
@@ -155,8 +156,9 @@ neuronenblitz:
     attention statistics.
   plasticity_modulation: Global multiplier applied to weight updates after
     neuromodulation. Values above ``1.0`` accelerate structural changes.
-  wander_depth_noise: Standard deviation of random noise added to wander depth
-    calculations, introducing variability into exploration.
+  wander_depth_noise: Standard deviation of Gaussian noise used when
+    computing the per-call depth limit. Positive values occasionally
+    permit longer explorations while negative samples shorten them.
   reward_decay: Factor by which accumulated reward signals diminish each epoch.
   synapse_prune_interval: Number of epochs between automatic pruning passes
     removing low-potential synapses.
