@@ -56,3 +56,21 @@ def test_remote_brain_offload_chain():
 
     server1.stop()
     server2.stop()
+
+
+def test_remote_offload_uncompressed():
+    server = RemoteBrainServer(port=8004, compression_enabled=False)
+    server.start()
+    client = RemoteBrainClient("http://localhost:8004", compression_enabled=False)
+
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core, remote_client=client)
+    brain = Brain(core, nb, DataLoader(), remote_client=client, offload_enabled=True)
+
+    brain.lobe_manager.genesis(range(len(core.neurons)))
+    brain.offload_high_attention(threshold=-1.0)
+
+    out, _ = nb.dynamic_wander(0.3)
+    assert isinstance(out, float)
+    server.stop()

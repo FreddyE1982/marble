@@ -195,6 +195,8 @@ Each entry is listed under its section heading.
 - ssl_cert_file
 - ssl_key_file
 - max_connections
+- compression_level
+- compression_enabled
 
 ## metrics_visualizer
 - fig_width

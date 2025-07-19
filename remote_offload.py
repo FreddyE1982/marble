@@ -2,6 +2,8 @@ from marble_utils import core_to_json, core_from_json
 from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain
 from marble_core import DataLoader
+from data_compressor import DataCompressor
+import base64
 import json
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -9,10 +11,27 @@ import requests
 
 class RemoteBrainServer:
     """HTTP server hosting a full remote MARBLE brain."""
-    def __init__(self, host="localhost", port=8000, remote_url=None):
+
+    def __init__(
+        self,
+        host: str = "localhost",
+        port: int = 8000,
+        remote_url: str | None = None,
+        compression_level: int = 6,
+        compression_enabled: bool = True,
+    ) -> None:
         self.host = host
         self.port = port
-        self.remote_client = RemoteBrainClient(remote_url) if remote_url else None
+        self.remote_client = (
+            RemoteBrainClient(remote_url, compression_level=compression_level,
+                               compression_enabled=compression_enabled)
+            if remote_url
+            else None
+        )
+        self.compressor = DataCompressor(
+            level=compression_level, compression_enabled=compression_enabled
+        )
+        self.use_compression = compression_enabled
         self.core = None
         self.neuronenblitz = None
         self.brain = None
@@ -33,9 +52,23 @@ class RemoteBrainServer:
                 data = self.rfile.read(length).decode()
                 payload = json.loads(data or '{}')
                 if self.path == '/offload':
-                    server.core = core_from_json(json.dumps(payload['core']))
-                    server.neuronenblitz = Neuronenblitz(server.core, remote_client=server.remote_client)
-                    server.brain = Brain(server.core, server.neuronenblitz, DataLoader(), remote_client=server.remote_client)
+                    if server.use_compression:
+                        comp_b64 = payload['core']
+                        comp_bytes = base64.b64decode(comp_b64.encode())
+                        json_bytes = server.compressor.decompress(comp_bytes)
+                        core_json = json_bytes.decode()
+                    else:
+                        core_json = json.dumps(payload['core'])
+                    server.core = core_from_json(core_json)
+                    server.neuronenblitz = Neuronenblitz(
+                        server.core, remote_client=server.remote_client
+                    )
+                    server.brain = Brain(
+                        server.core,
+                        server.neuronenblitz,
+                        DataLoader(),
+                        remote_client=server.remote_client,
+                    )
                     self._set_headers()
                     self.wfile.write(b'{}')
                 elif self.path == '/process':
@@ -43,10 +76,22 @@ class RemoteBrainServer:
                         self.send_response(400)
                         self.end_headers()
                         return
-                    value = float(payload.get('value', 0.0))
+                    if server.use_compression:
+                        comp_b64 = payload.get('value', '')
+                        comp_bytes = base64.b64decode(comp_b64.encode())
+                        val_bytes = server.compressor.decompress(comp_bytes)
+                        value = float(json.loads(val_bytes.decode()))
+                    else:
+                        value = float(payload.get('value', 0.0))
                     output, _ = server.neuronenblitz.dynamic_wander(value)
                     self._set_headers()
-                    self.wfile.write(json.dumps({'output': output}).encode())
+                    if server.use_compression:
+                        out_bytes = json.dumps(output).encode()
+                        comp_out = server.compressor.compress(out_bytes)
+                        out_b64 = base64.b64encode(comp_out).decode()
+                        self.wfile.write(json.dumps({'output': out_b64}).encode())
+                    else:
+                        self.wfile.write(json.dumps({'output': output}).encode())
                 else:
                     self.send_response(404)
                     self.end_headers()
@@ -64,16 +109,40 @@ class RemoteBrainServer:
 class RemoteBrainClient:
     """Client used by the main brain to interact with a remote brain."""
 
-    def __init__(self, url, timeout: float = 5.0, max_retries: int = 3):
+    def __init__(
+        self,
+        url: str,
+        timeout: float = 5.0,
+        max_retries: int = 3,
+        compression_level: int = 6,
+        compression_enabled: bool = True,
+    ) -> None:
         self.url = url.rstrip('/')
         self.timeout = timeout
         self.max_retries = max_retries
+        self.compressor = DataCompressor(level=compression_level, compression_enabled=compression_enabled)
+        self.use_compression = compression_enabled
 
-    def offload(self, core):
-        payload = {'core': json.loads(core_to_json(core))}
+    def offload(self, core) -> None:
+        if self.use_compression:
+            core_json = core_to_json(core).encode()
+            comp = self.compressor.compress(core_json)
+            payload = {'core': base64.b64encode(comp).decode()}
+        else:
+            payload = {'core': json.loads(core_to_json(core))}
         requests.post(self.url + '/offload', json=payload, timeout=self.timeout)
 
-    def process(self, value):
-        resp = requests.post(self.url + '/process', json={'value': value}, timeout=self.timeout)
+    def process(self, value: float) -> float:
+        if self.use_compression:
+            val_bytes = json.dumps(value).encode()
+            comp = self.compressor.compress(val_bytes)
+            payload = {'value': base64.b64encode(comp).decode()}
+        else:
+            payload = {'value': value}
+        resp = requests.post(self.url + '/process', json=payload, timeout=self.timeout)
         data = resp.json()
+        if self.use_compression:
+            comp_out = base64.b64decode(data['output'].encode())
+            out_bytes = self.compressor.decompress(comp_out)
+            return float(json.loads(out_bytes.decode()))
         return data['output']

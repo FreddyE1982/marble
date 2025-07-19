@@ -187,6 +187,8 @@ remote_server:
   ssl_cert_file: "server.crt"
   ssl_key_file: "server.key"
   max_connections: 100
+  compression_level: 6
+  compression_enabled: true
 metrics_visualizer:
   fig_width: 10
   fig_height: 6
