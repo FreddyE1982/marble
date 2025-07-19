@@ -1091,6 +1091,8 @@ class Core:
             self.vram_limit_mb = 0
             print("CUDA not available: migrated VRAM tiers to RAM.")
         self.check_memory_usage()
+        if self.tier_autotune_enabled:
+            self.autotune_tiers()
 
     def get_average_age(self, items):
         now = datetime.now()
@@ -1114,6 +1116,28 @@ class Core:
         print(
             f"Memory usage - VRAM: {usage_vram:.2f} MB, RAM: {usage_ram:.2f} MB, Disk: {usage_disk:.2f} MB"
         )
+
+    def autotune_tiers(self) -> None:
+        """Automatically migrate neurons between tiers when usage exceeds limits."""
+        limits = {
+            "vram": self.params.get("vram_limit_mb", TIER_REGISTRY.get("vram", VramTier()).limit_mb),
+            "ram": self.params.get("ram_limit_mb", TIER_REGISTRY.get("ram", RamTier()).limit_mb),
+        }
+
+        def migrate(src: str, dst: str) -> None:
+            limit = limits.get(src)
+            if limit is None:
+                return
+            while self.get_usage_by_tier(src) > limit:
+                candidates = [n for n in self.neurons if n.tier == src]
+                if not candidates:
+                    break
+                oldest = min(candidates, key=lambda n: n.created_at)
+                oldest.tier = dst
+
+        migrate("vram", "ram")
+        migrate("ram", "disk")
+        self.check_memory_usage()
 
     def add_synapse(self, source_id, target_id, weight=1.0, synapse_type="standard"):
         syn = Synapse(source_id, target_id, weight=weight, synapse_type=synapse_type)
@@ -1194,6 +1218,8 @@ class Core:
             f"Core expanded: {num_new_neurons} new neurons in tier '{target_tier}' and {num_new_synapses} new synapses added."
         )
         self.check_memory_usage()
+        if self.tier_autotune_enabled:
+            self.autotune_tiers()
 
     def cluster_neurons(self, k=3):
         if not self.neurons:
