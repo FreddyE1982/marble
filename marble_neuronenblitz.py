@@ -114,6 +114,8 @@ class Neuronenblitz:
             else (lambda source, error, path_len: (error * source) / (path_len + 1))
         )
 
+        self._weight_limit = 1e6
+
         self.training_history = []
         self.global_activation_count = 0
         self.last_context = {}
@@ -271,10 +273,18 @@ class Neuronenblitz:
                 new_neuron = Neuron(new_id, value=target.value, tier=new_tier)
                 self.core.neurons.append(new_neuron)
                 new_weight1 = syn.weight * self.struct_weight_multiplier1 * mod
+                if new_weight1 > self._weight_limit:
+                    new_weight1 = self._weight_limit
+                elif new_weight1 < -self._weight_limit:
+                    new_weight1 = -self._weight_limit
                 new_syn1 = Synapse(source.id, new_id, weight=new_weight1)
                 source.synapses.append(new_syn1)
                 self.core.synapses.append(new_syn1)
                 new_weight2 = syn.weight * self.struct_weight_multiplier2 * mod
+                if new_weight2 > self._weight_limit:
+                    new_weight2 = self._weight_limit
+                elif new_weight2 < -self._weight_limit:
+                    new_weight2 = -self._weight_limit
                 new_syn2 = Synapse(new_id, target.id, weight=new_weight2)
                 new_neuron.synapses.append(new_syn2)
                 self.core.synapses.append(new_syn2)
@@ -310,6 +320,10 @@ class Neuronenblitz:
                 syn.weight += delta
                 if random.random() < self.consolidation_probability:
                     syn.weight *= self.consolidation_strength
+                if syn.weight > self._weight_limit:
+                    syn.weight = self._weight_limit
+                elif syn.weight < -self._weight_limit:
+                    syn.weight = -self._weight_limit
                 score = abs(error) * abs(syn.weight) / max(path_length, 1)
                 self.core.neurons[syn.target].attention_score += score
             if path:
