@@ -29,6 +29,17 @@ def test_relocate_clusters_changes_tiers():
     assert tiers == {"vram"} or tiers == {"ram", "vram"} or tiers == {"ram"}
 
 
+def test_relocate_clusters_preserves_attention():
+    params = minimal_params()
+    core = Core(params)
+    for n in core.neurons[:2]:
+        n.cluster_id = 0
+        n.attention_score = 1.5
+    core.relocate_clusters(high=1.0, medium=0.5)
+    scores = [n.attention_score for n in core.neurons[:2]]
+    assert all(s > 0 for s in scores)
+
+
 def test_clustering_during_training():
     params = minimal_params()
     core = Core(params)

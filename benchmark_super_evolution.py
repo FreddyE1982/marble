@@ -22,10 +22,8 @@ def train_super_evolution(train_data, val_data, epochs: int = 20, seed: int | No
     core = Core(params)
     nb = Neuronenblitz(core)
     brain = Brain(core, nb, DataLoader(), super_evolution_mode=True)
-    brain.core.neurons[0].cluster_id = 0
+    brain.core.cluster_neurons(k=3)
     brain.lobe_manager.organize()
-    brain.core.neurons[0].attention_score = 1.0
-    brain.lobe_manager.update_attention()
 
     logs: List[Dict] = []
     change_idx = 0
@@ -34,12 +32,6 @@ def train_super_evolution(train_data, val_data, epochs: int = 20, seed: int | No
         brain.train(train_data, epochs=1, validation_examples=val_data)
         val_loss = brain.validate(val_data)
         epoch_time = time.time() - start
-        # Trigger a manual adjustment to ensure change logging
-        old = brain.mutation_rate
-        brain.mutation_rate *= 1.01
-        brain.super_evo_controller.change_log.append(
-            {"parameter": "brain.mutation_rate", "old": old, "new": brain.mutation_rate}
-        )
         brain.super_evo_controller.record_metrics(val_loss, epoch_time)
         new_changes = brain.super_evo_controller.change_log[change_idx:]
         change_idx = len(brain.super_evo_controller.change_log)
