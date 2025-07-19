@@ -148,6 +148,9 @@ neuronenblitz:
   backtrack_enabled: If false, wandering never returns to previously visited
     neurons regardless of ``backtrack_probability``.
   loss_scale: Multiplier for training errors before they are applied to weights.
+  loss_module: PyTorch loss module object to compute training errors. If set to
+    an instance such as ``torch.nn.MSELoss()``, all weight updates use this
+    module's output as the error value.
   exploration_bonus: Additional reward added to rarely used synapses when they
     are traversed, encouraging exploration.
   synapse_potential_cap: Upper bound for ``synapse.potential`` to prevent

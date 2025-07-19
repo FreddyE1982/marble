@@ -65,6 +65,7 @@ neuronenblitz:
   structural_plasticity_enabled: true
   backtrack_enabled: true
   loss_scale: 1.0
+  loss_module: null
   exploration_bonus: 0.0
   synapse_potential_cap: 100.0
   attention_update_scale: 1.0
