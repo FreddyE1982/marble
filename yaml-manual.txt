@@ -172,6 +172,19 @@ neuronenblitz:
     achieves the greatest loss reduction, path speed improvement and model size
     decrease is replayed in the main process to apply its weight updates and
     structural plasticity.
+  synaptic_fatigue_enabled: When true each synapse maintains a temporary
+    fatigue value that reduces its effective weight after repeated use. This
+    models biological short-term depression and can help prevent domination by
+    a few highly active connections.
+  fatigue_increase: Amount added to a synapse's fatigue every time it is
+    traversed. Larger values cause quicker weakening. ``0.0`` disables new
+    fatigue accumulation.
+  fatigue_decay: Multiplicative factor applied to all fatigue values at the
+    start of each ``dynamic_wander`` call. Values near ``1.0`` make fatigue
+    persist for many steps while lower values allow faster recovery.
+  lr_adjustment_factor: Fractional step used by ``adjust_learning_rate`` when
+    increasing or decreasing ``learning_rate`` in response to recent error
+    trends.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the
