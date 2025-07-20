@@ -304,3 +304,8 @@ Each entry is listed under its section heading.
 - batch_size
 - noise_std
 
+## semi_supervised_learning
+- enabled
+- epochs
+- batch_size
+- unlabeled_weight

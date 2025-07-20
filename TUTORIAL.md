@@ -155,6 +155,15 @@ with the existing Core and Neuronenblitz components.
 3. Call `AutoencoderLearner.train()` on your dataset of numeric values.
 4. Inspect `learner.history` to see reconstruction losses.
 
+## Project 11 – Semi-Supervised Learning (Frontier)
+
+**Goal:** Combine labeled and unlabeled data using the `SemiSupervisedLearner`.
+
+1. Enable `semi_supervised_learning.enabled` in `config.yaml` and set `epochs`, `batch_size` and `unlabeled_weight`.
+2. Instantiate a `Neuronenblitz` network and a `SemiSupervisedLearner`.
+3. Provide matching lists of labeled pairs and unlabeled inputs to `train()`.
+4. Review `learner.history` for supervised and consistency loss values.
+
 ## Where to Go Next
 
 The configuration file exposes many additional parameters covering memory management, neuromodulation, meta‑controller behaviour and more. Consult `CONFIGURABLE_PARAMETERS.md` for the complete list and see `yaml-manual.txt` for thorough descriptions such as the excerpt below:
