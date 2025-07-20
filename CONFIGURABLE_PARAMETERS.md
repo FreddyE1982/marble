@@ -323,3 +323,8 @@ Each entry is listed under its section heading.
 - epochs
 - inner_steps
 - meta_lr
+## transfer_learning
+- enabled
+- epochs
+- batch_size
+- freeze_fraction
