@@ -173,3 +173,44 @@ def test_weight_update_momentum():
     nb.apply_weight_updates_and_attention([syn], error=1.0)
     assert np.isclose(syn.weight, 2.25)
 
+
+def test_dropout_prevents_synapse_use():
+    random.seed(0)
+    np.random.seed(0)
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        dropout_probability=1.0,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        backtrack_probability=0.0,
+        backtrack_enabled=False,
+    )
+    _, path = nb.dynamic_wander(1.0)
+    assert len(path) == 0
+
+
+def test_remote_timeout_passed():
+    class DummyClient:
+        def __init__(self):
+            self.last_timeout = None
+
+        def process(self, value, timeout=None):
+            self.last_timeout = timeout
+            return value
+
+    core, _ = create_simple_core()
+    core.neurons[1].tier = "remote"
+    client = DummyClient()
+    nb = Neuronenblitz(
+        core,
+        remote_client=client,
+        remote_timeout=2.5,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        backtrack_probability=0.0,
+        backtrack_enabled=False,
+    )
+    nb.dynamic_wander(1.0)
+    assert client.last_timeout == 2.5
+

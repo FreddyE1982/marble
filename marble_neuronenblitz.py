@@ -243,18 +243,21 @@ class Neuronenblitz:
 
     def _wander(self, current_neuron, path, current_continue_prob, depth_remaining):
         results = []
+        synapses = current_neuron.synapses
+        if self.dropout_probability > 0.0:
+            synapses = [s for s in synapses if random.random() > self.dropout_probability]
         if (
             depth_remaining <= 0
-            or not current_neuron.synapses
+            or not synapses
             or random.random() > current_continue_prob
         ):
             results.append((current_neuron, path))
             return results
         if (
-            len(current_neuron.synapses) > 1
+            len(synapses) > 1
             and random.random() < self.split_probability
         ):
-            for syn in current_neuron.synapses:
+            for syn in synapses:
                 next_neuron = self.core.neurons[syn.target]
                 w = syn.effective_weight(self.last_context) if hasattr(syn, "effective_weight") else syn.weight
                 transmitted_value = self.combine_fn(current_neuron.value, w)
@@ -273,7 +276,9 @@ class Neuronenblitz:
                 new_path = path + [(next_neuron, syn)]
                 new_continue_prob = current_continue_prob * self.continue_decay_rate
                 if next_neuron.tier == "remote" and self.remote_client is not None:
-                    remote_out = self.remote_client.process(transmitted_value)
+                    remote_out = self.remote_client.process(
+                        transmitted_value, timeout=self.remote_timeout
+                    )
                     next_neuron.value = remote_out
                     results.append((next_neuron, new_path))
                 elif next_neuron.tier == "torrent" and self.torrent_client is not None:
@@ -291,7 +296,7 @@ class Neuronenblitz:
                         )
                     )
         else:
-            syn = self.weighted_choice(current_neuron.synapses)
+            syn = self.weighted_choice(synapses)
             next_neuron = self.core.neurons[syn.target]
             w = syn.effective_weight(self.last_context) if hasattr(syn, "effective_weight") else syn.weight
             transmitted_value = self.combine_fn(current_neuron.value, w)
@@ -310,7 +315,9 @@ class Neuronenblitz:
             new_path = path + [(next_neuron, syn)]
             new_continue_prob = current_continue_prob * self.continue_decay_rate
             if next_neuron.tier == "remote" and self.remote_client is not None:
-                remote_out = self.remote_client.process(transmitted_value)
+                remote_out = self.remote_client.process(
+                    transmitted_value, timeout=self.remote_timeout
+                )
                 next_neuron.value = remote_out
                 results.append((next_neuron, new_path))
             elif next_neuron.tier == "torrent" and self.torrent_client is not None:
@@ -375,7 +382,7 @@ class Neuronenblitz:
             results = self._wander(entry_neuron, initial_path, 1.0, depth_limit)
             final_neuron, final_path = self._merge_results(results)
             if not final_path or all(s is None for _, s in final_path):
-                if entry_neuron.synapses:
+                if entry_neuron.synapses and self.dropout_probability < 1.0:
                     syn = self.weighted_choice(entry_neuron.synapses)
                     next_neuron = self.core.neurons[syn.target]
                     w = syn.effective_weight(self.last_context) if hasattr(syn, "effective_weight") else syn.weight
