@@ -280,3 +280,9 @@ autoencoder_learning:
   batch_size: 4
   noise_std: 0.1
 
+
+semi_supervised_learning:
+  enabled: false
+  epochs: 1
+  batch_size: 4
+  unlabeled_weight: 0.5

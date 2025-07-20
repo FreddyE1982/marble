@@ -633,3 +633,15 @@ autoencoder_learning:
   noise_std: Standard deviation of Gaussian noise added to inputs. A range
     from ``0.0`` (no noise) to ``0.5`` encourages robust representations.
 
+semi_supervised_learning:
+  # Semi-supervised learning using consistency regularization. Each step
+  # processes a labeled example and an unlabeled input. The network first
+  # performs a standard supervised update with the labeled pair. It then
+  # processes the unlabeled input twice with independent wander paths and
+  # adjusts weights to minimise the difference between the two outputs.
+  enabled: Set to ``true`` to enable semi-supervised updates during training.
+  epochs: Number of passes over the combined labeled and unlabeled datasets.
+  batch_size: Count of labeled/unlabeled pairs processed before weight updates.
+  unlabeled_weight: Scaling factor applied to the consistency loss derived from
+    the two unlabeled outputs. Values between ``0.1`` and ``1.0`` control how
+    strongly the unlabeled data influences learning.
