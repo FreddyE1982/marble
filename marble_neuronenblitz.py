@@ -251,6 +251,10 @@ class Neuronenblitz:
                     syn.apply_side_effects(self.core, current_neuron.value)
                 if self.synaptic_fatigue_enabled and hasattr(syn, "update_fatigue"):
                     syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
+                inc = self.route_potential_increase
+                if syn.potential < 1.0:
+                    inc += self.exploration_bonus
+                syn.potential = min(self.synapse_potential_cap, syn.potential + inc)
                 if hasattr(next_neuron, "process"):
                     next_neuron.value = next_neuron.process(transmitted_value)
                 else:
@@ -284,6 +288,10 @@ class Neuronenblitz:
                 syn.apply_side_effects(self.core, current_neuron.value)
             if self.synaptic_fatigue_enabled and hasattr(syn, "update_fatigue"):
                 syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
+            inc = self.route_potential_increase
+            if syn.potential < 1.0:
+                inc += self.exploration_bonus
+            syn.potential = min(self.synapse_potential_cap, syn.potential + inc)
             if hasattr(next_neuron, "process"):
                 next_neuron.value = next_neuron.process(transmitted_value)
             else:
@@ -376,6 +384,8 @@ class Neuronenblitz:
             if self.global_activation_count % self.route_visit_decay_interval == 0:
                 for syn in self.core.synapses:
                     syn.potential *= self.route_potential_decay
+            if self.global_activation_count % self.synapse_prune_interval == 0:
+                self.prune_low_potential_synapses()
             if apply_plasticity:
                 self.apply_structural_plasticity(final_path)
             return final_neuron.value, [s for (_, s) in final_path if s is not None]
@@ -421,7 +431,12 @@ class Neuronenblitz:
                 new_id = len(self.core.neurons)
                 new_neuron = Neuron(new_id, value=target.value, tier=new_tier)
                 self.core.neurons.append(new_neuron)
-                new_weight1 = syn.weight * self.struct_weight_multiplier1 * mod
+                new_weight1 = (
+                    syn.weight
+                    * self.struct_weight_multiplier1
+                    * mod
+                    * self.structural_learning_rate
+                )
                 if new_weight1 > self._weight_limit:
                     new_weight1 = self._weight_limit
                 elif new_weight1 < -self._weight_limit:
@@ -432,7 +447,12 @@ class Neuronenblitz:
                     weight=new_weight1,
                     synapse_type=random.choice(SYNAPSE_TYPES),
                 )
-                new_weight2 = syn.weight * self.struct_weight_multiplier2 * mod
+                new_weight2 = (
+                    syn.weight
+                    * self.struct_weight_multiplier2
+                    * mod
+                    * self.structural_learning_rate
+                )
                 if new_weight2 > self._weight_limit:
                     new_weight2 = self._weight_limit
                 elif new_weight2 < -self._weight_limit:
@@ -622,3 +642,13 @@ class Neuronenblitz:
                     self.core.neurons[syn.source].synapses.remove(syn)
                     self.core.synapses.remove(syn)
                     break
+
+    def prune_low_potential_synapses(self, threshold=0.05):
+        """Remove synapses with low potential or very small weights."""
+        to_keep = []
+        for syn in self.core.synapses:
+            if abs(syn.weight) < threshold or syn.potential < threshold:
+                self.core.neurons[syn.source].synapses.remove(syn)
+            else:
+                to_keep.append(syn)
+        self.core.synapses = to_keep

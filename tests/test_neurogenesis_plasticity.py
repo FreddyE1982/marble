@@ -64,7 +64,10 @@ def test_structural_plasticity_modulation():
     mod = 1.0 + 0.5 - 0.0
     new_syn = core.synapses[-2]
     assert new_syn.weight == pytest.approx(
-        syn.weight * nb.struct_weight_multiplier1 * mod
+        syn.weight
+        * nb.struct_weight_multiplier1
+        * mod
+        * nb.structural_learning_rate
     )
 
 
