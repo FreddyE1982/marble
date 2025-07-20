@@ -132,14 +132,15 @@ class RemoteBrainClient:
             payload = {'core': json.loads(core_to_json(core))}
         requests.post(self.url + '/offload', json=payload, timeout=self.timeout)
 
-    def process(self, value: float) -> float:
+    def process(self, value: float, timeout: float | None = None) -> float:
         if self.use_compression:
             val_bytes = json.dumps(value).encode()
             comp = self.compressor.compress(val_bytes)
             payload = {'value': base64.b64encode(comp).decode()}
         else:
             payload = {'value': value}
-        resp = requests.post(self.url + '/process', json=payload, timeout=self.timeout)
+        req_timeout = timeout if timeout is not None else self.timeout
+        resp = requests.post(self.url + '/process', json=payload, timeout=req_timeout)
         data = resp.json()
         if self.use_compression:
             comp_out = base64.b64decode(data['output'].encode())
