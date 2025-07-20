@@ -30,3 +30,24 @@ def test_train_advanced_gpt_reduces_loss(tmp_path):
         seed=0,
     )
     assert losses[-1] <= losses[0]
+
+
+def test_train_advanced_gpt_gradient_clipping(tmp_path):
+    txt = tmp_path / "tiny.txt"
+    txt.write_text("abcdefgh" * 2)
+    data, vocab = load_text_dataset(str(txt), vocab_size=10, block_size=3)
+    _, _, norms = train_advanced_gpt(
+        data,
+        vocab_size=len(vocab),
+        block_size=3,
+        num_layers=1,
+        num_heads=1,
+        hidden_dim=16,
+        epochs=1,
+        lr=0.2,
+        batch_size=2,
+        seed=1,
+        max_grad_norm=0.25,
+        return_grad_norms=True,
+    )
+    assert norms and all(n <= 0.25 + 1e-6 for n in norms)
