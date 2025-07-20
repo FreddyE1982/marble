@@ -127,6 +127,10 @@ neuronenblitz:
     to prevent uncontrolled growth. ``0.0`` disables this effect.
   dropout_probability: Fraction of synapses temporarily ignored during training
     to improve robustness.
+  dropout_decay_rate: Multiplicative factor applied to ``dropout_probability``
+    after each training epoch. Values below ``1.0`` gradually reduce the
+    effective dropout as learning progresses while higher values keep it
+    constant. The rate must be between ``0.0`` and ``1.0``.
   exploration_decay: Rate at which the exploration bonus diminishes over time.
     Values slightly below ``1.0`` gradually reduce random behaviour.
   reward_scale: Multiplier applied to reward signals before they adjust

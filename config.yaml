@@ -54,6 +54,7 @@ neuronenblitz:
   learning_rate: 0.01
   weight_decay: 0.0
   dropout_probability: 0.0
+  dropout_decay_rate: 1.0
   exploration_decay: 0.99
   reward_scale: 1.0
   stress_scale: 1.0

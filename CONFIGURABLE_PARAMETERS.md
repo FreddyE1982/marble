@@ -60,6 +60,7 @@ Each entry is listed under its section heading.
 - learning_rate
 - weight_decay
 - dropout_probability
+- dropout_decay_rate
 - exploration_decay
 - reward_scale
 - stress_scale
