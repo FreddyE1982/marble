@@ -95,6 +95,11 @@ core:
     is invoked automatically.
   cross_tier_migration: When ``true`` neurons may move between tiers even if
     their age thresholds have not been reached.
+  synapse_echo_length: Number of past activations each synapse stores in its
+    echo buffer. Larger values retain longer history but increase memory usage.
+  synapse_echo_decay: Multiplicative factor applied to incoming activations
+    before they are appended to the echo buffer. Values in ``0.0``–``1.0``
+    gradually forget older activity.
 
 neuronenblitz:
   backtrack_probability: Probability between 0 and 1 that the wandering
@@ -216,6 +221,9 @@ neuronenblitz:
     ``0.0`` and ``1.0`` accelerate training by smoothing updates. Momentum is
     applied in ``apply_weight_updates_and_attention`` and is stored per-synapse
     so that frequently updated connections gain additional inertia.
+  use_echo_modulation: When ``true`` weight updates are multiplied by each
+    synapse's echo buffer average, enabling the synaptic echo learning
+    mechanism. Disable to revert to standard updates.
   reinforcement_learning_enabled: Turn on Q-learning inside Neuronenblitz. When
     enabled the ``rl_`` methods may be used to select actions and update
     values directly through the network.
@@ -724,3 +732,12 @@ harmonic_resonance_learning:
     larger numbers increase oscillation speed.
   decay: Multiplicative factor applied to ``base_frequency`` after each
     training step. ``0.99`` slowly lowers the frequency over time.
+
+synaptic_echo_learning:
+  # Uses the echo buffers stored on each synapse to modulate updates.
+  # Weight changes are scaled by the average echoed activity.
+  enabled: Activate the synaptic echo learner when ``true``.
+  epochs: Number of training epochs to run. Usually ``1`` or ``2`` is
+    sufficient for simple experiments.
+  echo_influence: Multiplier applied to the error signal before updating
+    weights. Larger values amplify the effect of echoed activations.

@@ -252,3 +252,17 @@ a subset of synapses.**
    objects.
 3. Call `train_step(value, target)` in a loop for the specified number of epochs.
 4. Inspect `learner.history` to monitor the frequency error over time.
+
+## Project 19 – Synaptic Echo Learning (Novel)
+
+**Goal:** Experiment with echo-modulated weight updates.**
+
+1. Enable `synaptic_echo_learning.enabled` in `config.yaml` and set
+   `epochs` and `echo_influence` as desired.
+2. Instantiate `SynapticEchoLearner` with your `Core` and `Neuronenblitz`
+   objects. The Neuronenblitz instance must have `use_echo_modulation`
+   enabled.
+3. Call `train_step(value, target)` repeatedly to train using the echo
+   mechanism.
+4. Examine `learner.history` and synapse echo buffers to understand how
+   past activations influence learning.
