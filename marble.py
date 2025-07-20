@@ -18,7 +18,7 @@ from data_compressor import DataCompressor
 import random
 import math
 import sympy as sp
-from marble_core import Neuron, Synapse, Core
+from marble_core import Core
 import threading
 from datetime import datetime
 from marble_imports import cp
@@ -154,6 +154,11 @@ class Neuron:
         self.tier = tier  # "vram", "ram", or "disk"
         self.synapses = []
         self.formula = None
+        from datetime import datetime
+        self.created_at = datetime.now()
+
+    def process(self, value):
+        return value
 
 class Synapse:
     def __init__(self, source, target, weight=1.0):
@@ -161,6 +166,15 @@ class Synapse:
         self.target = target
         self.weight = weight
         self.potential = 1.0
+
+    def update_fatigue(self, increase: float, decay: float) -> None:
+        self.potential = max(0.0, min(1.0, self.potential * decay + increase))
+
+    def effective_weight(self, context=None):
+        return self.weight * max(0.0, 1.0 - self.potential)
+
+    def apply_side_effects(self, core, source_value):
+        pass
 
 # 4.2 Alternative initialization: Mandelbrot calculation (using GPU via CuPy)
 def compute_mandelbrot(

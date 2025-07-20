@@ -115,6 +115,7 @@ class MetricsVisualizer:
             "message_passing_change": [],
             "compression_ratio": [],
             "meta_loss_avg": [],
+            "representation_variance": [],
         }
         self.fig_width = fig_width
         self.fig_height = fig_height

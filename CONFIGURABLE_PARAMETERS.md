@@ -151,6 +151,10 @@ Each entry is listed under its section heading.
 - default_activation_function
 - neuron_reservoir_size
 - lobe_decay_rate
+- dimensional_search.enabled
+- dimensional_search.max_size
+- dimensional_search.improvement_threshold
+- dimensional_search.plateau_epochs
 
 ## meta_controller
 - history_length
