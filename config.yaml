@@ -296,3 +296,8 @@ curriculum_learning:
   enabled: false
   epochs: 1
   schedule: "linear"
+meta_learning:
+  enabled: false
+  epochs: 1
+  inner_steps: 1
+  meta_lr: 0.1

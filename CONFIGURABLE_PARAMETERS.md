@@ -318,3 +318,8 @@ Each entry is listed under its section heading.
 - enabled
 - epochs
 - schedule
+## meta_learning
+- enabled
+- epochs
+- inner_steps
+- meta_lr

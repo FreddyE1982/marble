@@ -194,3 +194,13 @@ Experiment by modifying these options and combining features from multiple proje
 3. Provide your dataset of `(input, target)` pairs ordered by a difficulty function.
 4. Call `CurriculumLearner.train()` to run through the curriculum.
 5. Monitor `learner.history` for loss values as harder samples are introduced.
+
+## Project 14 – Meta Learning (Frontier)
+
+**Goal:** Adapt quickly to new tasks using the Reptile algorithm.**
+
+1. Enable `meta_learning.enabled` in `config.yaml` and configure `epochs`, `inner_steps` and `meta_lr`.
+2. Create a list of tasks, where each task is a list of `(input, target)` pairs.
+3. Instantiate a `MetaLearner` with your `Core` and `Neuronenblitz` objects.
+4. Call `MetaLearner.train_step(tasks)` inside a loop for the desired number of epochs.
+5. Inspect `learner.history` to track the average meta-loss across tasks.
