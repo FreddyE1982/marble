@@ -621,3 +621,15 @@ adversarial_learning:
     Higher values allow more variation but increase compute. Values of
     ``1`` to ``10`` are common.
 
+autoencoder_learning:
+  # Denoising autoencoder that trains Neuronenblitz to reconstruct noisy
+  # inputs. After each wander the reconstruction error is applied through
+  # ``apply_weight_updates_and_attention``.
+  enabled: Activate training for the autoencoder module.
+  epochs: Number of times the dataset is presented. Typical values are
+    ``1`` to ``10`` depending on dataset size.
+  batch_size: Number of samples processed before weight updates. Values of
+    ``4`` to ``64`` work well in practice.
+  noise_std: Standard deviation of Gaussian noise added to inputs. A range
+    from ``0.0`` (no noise) to ``0.5`` encourages robust representations.
+

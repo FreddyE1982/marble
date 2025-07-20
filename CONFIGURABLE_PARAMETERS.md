@@ -298,3 +298,9 @@ Each entry is listed under its section heading.
 - batch_size
 - noise_dim
 
+## autoencoder_learning
+- enabled
+- epochs
+- batch_size
+- noise_std
+
