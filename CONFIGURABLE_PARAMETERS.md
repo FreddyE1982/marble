@@ -261,3 +261,12 @@ Each entry is listed under its section heading.
 - enabled
 - alpha
 - teacher_model
+
+## reinforcement_learning
+- enabled
+- episodes
+- max_steps
+- discount_factor
+- epsilon_start
+- epsilon_decay
+- epsilon_min
