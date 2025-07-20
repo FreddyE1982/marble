@@ -131,6 +131,7 @@ class Brain:
         lobe_decay_rate: float = 0.98,
         super_evolution_mode: bool = False,
         metrics_visualizer=None,
+        dimensional_search_params=None,
     ):
         self.core = core
         self.neuronenblitz = neuronenblitz
@@ -241,6 +242,16 @@ class Brain:
         self.prune_threshold = prune_threshold
         os.makedirs(self.save_dir, exist_ok=True)
         self.metrics_visualizer = metrics_visualizer
+        self.dim_search = None
+        if dimensional_search_params is not None and dimensional_search_params.get("enabled", False):
+            from dimensional_search import DimensionalitySearch
+            self.dim_search = DimensionalitySearch(
+                self.core,
+                max_size=dimensional_search_params.get("max_size", self.core.rep_size),
+                improvement_threshold=dimensional_search_params.get("improvement_threshold", 0.02),
+                plateau_epochs=dimensional_search_params.get("plateau_epochs", 2),
+                metrics_visualizer=self.metrics_visualizer,
+            )
 
     def set_autograd_layer(self, layer):
         """Attach an autograd layer for benchmarking."""
@@ -406,6 +417,8 @@ class Brain:
                         ),
                     }
                 )
+            if self.dim_search is not None and val_loss is not None:
+                self.dim_search.evaluate(val_loss)
 
             epoch_time = time.time() - start_time
             if self.super_evo_controller is not None:
