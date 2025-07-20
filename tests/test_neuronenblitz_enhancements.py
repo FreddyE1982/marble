@@ -156,3 +156,20 @@ def test_update_and_get_context():
     assert ctx["arousal"] == 0.2
     assert ctx["stress"] == 0.1
 
+
+def test_weight_update_momentum():
+    random.seed(0)
+    core, syn = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        consolidation_probability=0.0,
+        weight_decay=0.0,
+        momentum_coefficient=0.5,
+    )
+    nb.learning_rate = 1.0
+    core.neurons[0].value = 1.0
+    nb.apply_weight_updates_and_attention([syn], error=1.0)
+    core.neurons[0].value = 1.0
+    nb.apply_weight_updates_and_attention([syn], error=1.0)
+    assert np.isclose(syn.weight, 2.25)
+

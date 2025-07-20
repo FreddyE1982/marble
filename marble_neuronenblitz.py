@@ -82,6 +82,7 @@ class Neuronenblitz:
         fatigue_increase=0.05,
         fatigue_decay=0.95,
         lr_adjustment_factor=0.1,
+        momentum_coefficient=0.0,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -135,6 +136,7 @@ class Neuronenblitz:
         self.fatigue_increase = fatigue_increase
         self.fatigue_decay = fatigue_decay
         self.lr_adjustment_factor = lr_adjustment_factor
+        self.momentum_coefficient = momentum_coefficient
 
         self.combine_fn = combine_fn if combine_fn is not None else default_combine_fn
         self.loss_fn = loss_fn if loss_fn is not None else default_loss_fn
@@ -160,6 +162,7 @@ class Neuronenblitz:
         self.last_message_passing_change = 0.0
         self.lock = threading.RLock()
         self.error_history = deque(maxlen=100)
+        self._momentum = {}
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -517,7 +520,10 @@ class Neuronenblitz:
             clip = getattr(self.core, "gradient_clip_value", None)
             if clip is not None:
                 delta = float(np.clip(delta, -clip, clip))
-            syn.weight += self.learning_rate * delta
+            mom = self._momentum.get(syn, 0.0)
+            mom = self.momentum_coefficient * mom + delta
+            self._momentum[syn] = mom
+            syn.weight += self.learning_rate * mom
             if random.random() < self.consolidation_probability:
                 syn.weight *= self.consolidation_strength
             if syn.weight > self._weight_limit:
@@ -657,6 +663,8 @@ class Neuronenblitz:
         for syn in self.core.synapses:
             if abs(syn.weight) < threshold or syn.potential < threshold:
                 self.core.neurons[syn.source].synapses.remove(syn)
+                if syn in self._momentum:
+                    del self._momentum[syn]
             else:
                 to_keep.append(syn)
         self.core.synapses = to_keep
