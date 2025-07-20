@@ -29,3 +29,4 @@ Before doing anything, the agent must install dependencies using `pip install -r
    validation losses and adjusts Neuronenblitz plasticity, what role each
    parameter plays (`history_length`, `adjustment`, `min_threshold`,
    `max_threshold`) and the recommended ranges for those values.
+9. The agent must maintain `TUTORIAL.md` containing a detailed step-by-step tutorial. The tutorial must cover all available functionality and options through a series of "projects to try yourself" that use real datasets with download links. Projects should be ordered from easiest to most advanced. Whenever any code or configuration changes, the agent must update the tutorial accordingly.
