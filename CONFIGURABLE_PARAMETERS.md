@@ -90,6 +90,7 @@ Each entry is listed under its section heading.
 - fatigue_increase
 - fatigue_decay
 - lr_adjustment_factor
+- momentum_coefficient
 
 ## brain
 - save_threshold

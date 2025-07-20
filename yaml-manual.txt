@@ -195,6 +195,11 @@ neuronenblitz:
   lr_adjustment_factor: Fractional step used by ``adjust_learning_rate`` when
     increasing or decreasing ``learning_rate`` in response to recent error
     trends.
+  momentum_coefficient: Coefficient used to blend the previous weight update
+    with the current gradient. ``0.0`` disables momentum while values between
+    ``0.0`` and ``1.0`` accelerate training by smoothing updates. Momentum is
+    applied in ``apply_weight_updates_and_attention`` and is stored per-synapse
+    so that frequently updated connections gain additional inertia.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the

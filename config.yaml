@@ -84,6 +84,7 @@ neuronenblitz:
   fatigue_increase: 0.05
   fatigue_decay: 0.95
   lr_adjustment_factor: 0.1
+  momentum_coefficient: 0.0
 brain:
   save_threshold: 0.05
   max_saved_models: 5
