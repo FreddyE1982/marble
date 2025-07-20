@@ -162,3 +162,13 @@ def test_remote_server_start(tmp_path):
     marble = create_marble_from_config(str(cfg_path))
     assert hasattr(marble, "remote_server")
     marble.remote_server.stop()
+
+
+def test_synapse_update_cap_configurable(tmp_path):
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg = load_config()
+    cfg["neuronenblitz"]["synapse_update_cap"] = 0.5
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(cfg, f)
+    marble = create_marble_from_config(str(cfg_path))
+    assert marble.neuronenblitz.synapse_update_cap == 0.5

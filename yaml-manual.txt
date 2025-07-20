@@ -145,8 +145,10 @@ neuronenblitz:
     ``update_attention``. Disabling keeps attention static.
   backtrack_depth_limit: Maximum distance for which backtracking may revisit
     previous neurons when ``backtrack_enabled`` is true.
-  synapse_update_cap: Absolute limit applied to single weight updates to avoid
-    extreme jumps.
+  synapse_update_cap: Maximum absolute magnitude allowed for each individual
+    weight update. Prevents large sudden jumps that may destabilize learning.
+    The default is 1.0 and values typically range from 0.01 to 5.0 depending on
+    how aggressively weights should adapt.
   structural_plasticity_enabled: When false, ``apply_structural_plasticity`` is
     skipped entirely.
   backtrack_enabled: If false, wandering never returns to previously visited
