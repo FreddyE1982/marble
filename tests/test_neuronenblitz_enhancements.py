@@ -147,3 +147,12 @@ def test_prune_low_potential_synapses():
     assert weak not in core.synapses
     assert syn_main in core.synapses
 
+
+def test_update_and_get_context():
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(core)
+    nb.update_context(arousal=0.2, stress=0.1)
+    ctx = nb.get_context()
+    assert ctx["arousal"] == 0.2
+    assert ctx["stress"] == 0.1
+

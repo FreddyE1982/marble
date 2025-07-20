@@ -186,6 +186,14 @@ class Neuronenblitz:
         self.plasticity_threshold = max(0.5, self.plasticity_threshold - adjustment)
         self.last_context = context.copy()
 
+    def update_context(self, **kwargs):
+        """Update the stored neuromodulatory context without modifying plasticity."""
+        self.last_context.update(kwargs)
+
+    def get_context(self):
+        """Return a copy of the most recently stored neuromodulatory context."""
+        return self.last_context.copy()
+
     def reset_neuron_values(self):
         for neuron in self.core.neurons:
             neuron.value = None
