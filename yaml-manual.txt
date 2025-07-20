@@ -654,3 +654,12 @@ federated_learning:
   rounds: Number of communication rounds performed.
   local_epochs: Epochs of local training executed on each client per round.
 
+curriculum_learning:
+  # Progressive training strategy that orders examples by difficulty.
+  # The learner introduces harder examples as training progresses to
+  # stabilise optimisation and accelerate convergence.
+  enabled: Enable curriculum learning when ``true``.
+  epochs: Number of passes over the dataset with increasing difficulty.
+  schedule: Determines how quickly more difficult samples are added. Use
+    ``linear`` for a steady increase or ``exponential`` to focus on easy
+    examples longer.

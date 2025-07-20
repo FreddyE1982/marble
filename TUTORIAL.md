@@ -184,3 +184,13 @@ Experiment by modifying these options and combining features from multiple proje
 3. Provide a dataset list matching the clients to `train_round()` for each communication round.
 4. After training, examine synapse weights to confirm they were synchronised across clients.
 
+
+## Project 13 – Curriculum Learning (Frontier)
+
+**Goal:** Gradually introduce harder examples to improve stability.**
+
+1. Enable `curriculum_learning.enabled` in `config.yaml` and set `epochs` and `schedule`.
+2. Instantiate a `Neuronenblitz` network and a `CurriculumLearner`.
+3. Provide your dataset of `(input, target)` pairs ordered by a difficulty function.
+4. Call `CurriculumLearner.train()` to run through the curriculum.
+5. Monitor `learner.history` for loss values as harder samples are introduced.

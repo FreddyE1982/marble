@@ -292,3 +292,7 @@ federated_learning:
   rounds: 1
   local_epochs: 1
 
+curriculum_learning:
+  enabled: false
+  epochs: 1
+  schedule: "linear"
