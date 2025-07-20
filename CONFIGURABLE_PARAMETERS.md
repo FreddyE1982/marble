@@ -36,6 +36,12 @@ Each entry is listed under its section heading.
 - message_passing_beta
 - attention_temperature
 - energy_threshold
+- reinforcement_learning_enabled
+- rl_discount
+- rl_learning_rate
+- rl_epsilon
+- rl_epsilon_decay
+- rl_min_epsilon
 - early_cleanup_enabled
 - pretraining_epochs
 - min_cluster_k
@@ -92,6 +98,11 @@ Each entry is listed under its section heading.
 - fatigue_decay
 - lr_adjustment_factor
 - momentum_coefficient
+- reinforcement_learning_enabled
+- rl_discount
+- rl_epsilon
+- rl_epsilon_decay
+- rl_min_epsilon
 
 ## brain
 - save_threshold

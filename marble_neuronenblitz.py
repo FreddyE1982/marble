@@ -28,6 +28,11 @@ def default_weight_update_fn(source, error, path_len):
     return (error * source) / (path_len + 1)
 
 
+def default_q_encoding(state: tuple[int, int], action: int) -> float:
+    """Encode a state-action pair into a numeric value."""
+    return float(state[0] * 10 + state[1] + action / 10)
+
+
 class Neuronenblitz:
     def __init__(
         self,
@@ -85,6 +90,11 @@ class Neuronenblitz:
         fatigue_decay=0.95,
         lr_adjustment_factor=0.1,
         momentum_coefficient=0.0,
+        reinforcement_learning_enabled=False,
+        rl_discount=0.9,
+        rl_epsilon=1.0,
+        rl_epsilon_decay=0.95,
+        rl_min_epsilon=0.1,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -140,6 +150,11 @@ class Neuronenblitz:
         self.fatigue_decay = fatigue_decay
         self.lr_adjustment_factor = lr_adjustment_factor
         self.momentum_coefficient = momentum_coefficient
+        self.rl_enabled = reinforcement_learning_enabled
+        self.rl_discount = rl_discount
+        self.rl_epsilon = rl_epsilon
+        self.rl_epsilon_decay = rl_epsilon_decay
+        self.rl_min_epsilon = rl_min_epsilon
 
         self.combine_fn = combine_fn if combine_fn is not None else default_combine_fn
         self.loss_fn = loss_fn if loss_fn is not None else default_loss_fn
@@ -166,6 +181,7 @@ class Neuronenblitz:
         self.lock = threading.RLock()
         self.error_history = deque(maxlen=100)
         self._momentum = {}
+        self.q_encoding = default_q_encoding
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -233,6 +249,49 @@ class Neuronenblitz:
                 self.learning_rate * (1 - self.lr_adjustment_factor),
                 self.min_learning_rate,
             )
+
+    # Reinforcement learning utilities
+    def enable_rl(self) -> None:
+        """Enable built-in reinforcement learning."""
+        self.rl_enabled = True
+
+    def disable_rl(self) -> None:
+        """Disable built-in reinforcement learning."""
+        self.rl_enabled = False
+
+    def rl_select_action(self, state: tuple[int, int], n_actions: int) -> int:
+        """Return an action using epsilon-greedy selection."""
+        if not self.rl_enabled:
+            raise RuntimeError("reinforcement learning disabled")
+        if random.random() < self.rl_epsilon:
+            return random.randrange(n_actions)
+        q_vals = [
+            self.dynamic_wander(self.q_encoding(state, a))[0]
+            for a in range(n_actions)
+        ]
+        return int(np.argmax(q_vals))
+
+    def rl_update(
+        self,
+        state: tuple[int, int],
+        action: int,
+        reward: float,
+        next_state: tuple[int, int],
+        done: bool,
+        n_actions: int = 4,
+    ) -> None:
+        """Perform a Q-learning update using ``dynamic_wander``."""
+        if not self.rl_enabled:
+            return
+        next_q = 0.0
+        if not done:
+            next_q = max(
+                self.dynamic_wander(self.q_encoding(next_state, a))[0]
+                for a in range(n_actions)
+            )
+        target = reward + self.rl_discount * next_q
+        self.train([(self.q_encoding(state, action), target)], epochs=1)
+        self.rl_epsilon = max(self.rl_min_epsilon, self.rl_epsilon * self.rl_epsilon_decay)
 
     def weighted_choice(self, synapses):
         total = sum(syn.potential for syn in synapses)

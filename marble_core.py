@@ -1,5 +1,6 @@
 from marble_imports import *
 from marble_base import MetricsVisualizer
+from typing import Hashable
 import copy
 
 # Representation size for GNN-style message passing
@@ -1058,6 +1059,13 @@ class Core:
         self.memory_cleanup_interval = params.get("memory_cleanup_interval", 60)
         self.representation_noise_std = params.get("representation_noise_std", 0.0)
         self.energy_threshold = params.get("energy_threshold", 0.0)
+        self.rl_enabled = params.get("reinforcement_learning_enabled", False)
+        self.rl_discount = params.get("rl_discount", 0.9)
+        self.rl_learning_rate = params.get("rl_learning_rate", 0.1)
+        self.rl_epsilon = params.get("rl_epsilon", 1.0)
+        self.rl_epsilon_decay = params.get("rl_epsilon_decay", 0.95)
+        self.rl_min_epsilon = params.get("rl_min_epsilon", 0.1)
+        self.q_table = {}
         self.gradient_clip_value = params.get("gradient_clip_value", 1.0)
         self.message_passing_iterations = params.get("message_passing_iterations", 1)
         self.cluster_algorithm = params.get("cluster_algorithm", "kmeans")
@@ -1261,6 +1269,45 @@ class Core:
         for neuron in self.neurons:
             neuron.representation = np.pad(neuron.representation, (0, delta))
         self.rep_size = new_size
+
+    # Built-in reinforcement learning utilities
+    def enable_rl(self) -> None:
+        """Enable Q-learning inside the core."""
+        self.rl_enabled = True
+
+    def disable_rl(self) -> None:
+        """Disable Q-learning functionality."""
+        self.rl_enabled = False
+
+    def rl_select_action(self, state: Hashable, n_actions: int) -> int:
+        """Return epsilon-greedy action from the Q-table."""
+        if not self.rl_enabled:
+            raise RuntimeError("reinforcement learning disabled")
+        if random.random() < self.rl_epsilon:
+            return random.randrange(n_actions)
+        return int(
+            np.argmax([self.q_table.get((state, a), 0.0) for a in range(n_actions)])
+        )
+
+    def rl_update(
+        self,
+        state: Hashable,
+        action: int,
+        reward: float,
+        next_state: Hashable,
+        done: bool,
+        n_actions: int = 4,
+    ) -> None:
+        """Update Q-table using standard Q-learning."""
+        if not self.rl_enabled:
+            return
+        current = self.q_table.get((state, action), 0.0)
+        next_q = 0.0
+        if not done:
+            next_q = max(self.q_table.get((next_state, a), 0.0) for a in range(n_actions))
+        target = reward + self.rl_discount * next_q
+        self.q_table[(state, action)] = current + self.rl_learning_rate * (target - current)
+        self.rl_epsilon = max(self.rl_min_epsilon, self.rl_epsilon * self.rl_epsilon_decay)
 
     def cluster_neurons(self, k=3):
         if not self.neurons:
