@@ -204,3 +204,16 @@ Experiment by modifying these options and combining features from multiple proje
 3. Instantiate a `MetaLearner` with your `Core` and `Neuronenblitz` objects.
 4. Call `MetaLearner.train_step(tasks)` inside a loop for the desired number of epochs.
 5. Inspect `learner.history` to track the average meta-loss across tasks.
+
+## Project 15 – Transfer Learning (Frontier)
+
+**Goal:** Fine-tune a pretrained MARBLE model on a new dataset while freezing
+a subset of synapses.**
+
+1. Enable `transfer_learning.enabled` in `config.yaml` and set `epochs`,
+   `batch_size` and `freeze_fraction`.
+2. Load an existing model or train a base model, then create a
+   `TransferLearner` with the `Core` and `Neuronenblitz` objects.
+3. Provide your new `(input, target)` pairs to `TransferLearner.train()`.
+4. Adjust `freeze_fraction` to control how many synapses stay fixed during
+   fine-tuning.

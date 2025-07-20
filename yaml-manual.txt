@@ -675,4 +675,14 @@ meta_learning:
     before the meta update is applied. Typically between 1 and 5.
   meta_lr: Step size used when blending task weights back into the
     primary network. Values around ``0.1`` work well for most setups.
+transfer_learning:
+  # Fine-tune a pretrained model while keeping a portion of synapses fixed.
+  # ``freeze_fraction`` controls what percentage of synapses are marked as
+  # frozen before training begins. Frozen synapses do not receive weight
+  # updates in ``apply_weight_updates_and_attention``.
+  enabled: Set to ``true`` to run transfer learning updates.
+  epochs: Number of fine-tuning passes over the new dataset.
+  batch_size: Mini-batch size used during fine-tuning steps.
+  freeze_fraction: Fraction between ``0.0`` and ``1.0`` specifying the portion
+    of synapses that remain unchanged.
 

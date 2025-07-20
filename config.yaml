@@ -301,3 +301,8 @@ meta_learning:
   epochs: 1
   inner_steps: 1
   meta_lr: 0.1
+transfer_learning:
+  enabled: false
+  epochs: 1
+  batch_size: 4
+  freeze_fraction: 0.5

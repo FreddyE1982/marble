@@ -764,7 +764,13 @@ class Neuron:
 
 class Synapse:
     def __init__(
-        self, source, target, weight=1.0, synapse_type="standard", fatigue=0.0
+        self,
+        source,
+        target,
+        weight=1.0,
+        synapse_type="standard",
+        fatigue=0.0,
+        frozen: bool = False,
     ):
         self.source = source
         self.target = target
@@ -775,6 +781,7 @@ class Synapse:
         )
         self.created_at = datetime.now()
         self.fatigue = float(fatigue)
+        self.frozen = bool(frozen)
 
     def update_fatigue(self, increase: float, decay: float) -> None:
         """Update fatigue using a decay factor and additive increase."""
@@ -1177,11 +1184,33 @@ class Core:
         migrate("ram", "disk")
         self.check_memory_usage()
 
-    def add_synapse(self, source_id, target_id, weight=1.0, synapse_type="standard"):
-        syn = Synapse(source_id, target_id, weight=weight, synapse_type=synapse_type)
+    def add_synapse(
+        self,
+        source_id,
+        target_id,
+        weight=1.0,
+        synapse_type="standard",
+        frozen: bool = False,
+    ):
+        syn = Synapse(
+            source_id,
+            target_id,
+            weight=weight,
+            synapse_type=synapse_type,
+            frozen=frozen,
+        )
         self.neurons[source_id].synapses.append(syn)
         self.synapses.append(syn)
         return syn
+
+    def freeze_fraction_of_synapses(self, fraction: float) -> None:
+        """Randomly mark a fraction of synapses as frozen."""
+        if not 0.0 <= fraction <= 1.0:
+            raise ValueError("fraction must be between 0 and 1")
+        count = int(len(self.synapses) * fraction)
+        to_freeze = random.sample(self.synapses, count)
+        for syn in to_freeze:
+            syn.frozen = True
 
     def get_detailed_status(self):
         status = {}

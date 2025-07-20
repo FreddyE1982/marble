@@ -583,6 +583,8 @@ class Neuronenblitz:
     def apply_weight_updates_and_attention(self, path, error):
         path_length = len(path)
         for syn in path:
+            if getattr(syn, "frozen", False):
+                continue
             source_value = self.core.neurons[syn.source].value
             delta = self.weight_update_fn(source_value, error, path_length)
             if self.gradient_noise_std > 0:
@@ -617,6 +619,8 @@ class Neuronenblitz:
             )
         if self.weight_decay:
             for syn in self.core.synapses:
+                if getattr(syn, "frozen", False):
+                    continue
                 syn.weight *= 1.0 - self.weight_decay
         return path_length
 

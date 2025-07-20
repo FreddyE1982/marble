@@ -9,6 +9,8 @@ A semi-supervised paradigm leverages both labeled and unlabeled data by applying
 A meta-learning module implements a Reptile-style algorithm allowing
 rapid adaptation to new tasks by blending weights from short inner
 training loops back into the main network.
+Transfer learning is supported through a new learner that freezes a
+fraction of synapses while fine-tuning on a different dataset.
 
 MARBLE can train on datasets provided as lists of ``(input, target)`` pairs or using PyTorch-style ``Dataset``/``DataLoader`` objects. Each sample must expose an ``input`` and ``target`` field. After training and saving a model, ``Brain.infer`` generates outputs when given only an input value.
 
