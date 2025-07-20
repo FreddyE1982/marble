@@ -30,6 +30,7 @@ This tutorial demonstrates every major component of MARBLE through a series of p
    marble.brain.train(train_examples, epochs=10, validation_examples=val_examples)
    ```
 6. Inspect live metrics with the `MetricsVisualizer` which plots loss and memory usage. Options such as `fig_width` and `color_scheme` are configurable in `config.yaml` under `metrics_visualizer`.
+7. To slowly reduce regularization as training progresses, set `dropout_probability` and `dropout_decay_rate` under `neuronenblitz` in `config.yaml`. A decay rate below `1.0` multiplies the current dropout after each epoch.
 
 This project introduces the **Core**, **Neuronenblitz** and **Brain** objects along with the data compression pipeline.
 

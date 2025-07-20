@@ -214,3 +214,21 @@ def test_remote_timeout_passed():
     nb.dynamic_wander(1.0)
     assert client.last_timeout == 2.5
 
+
+def test_dropout_probability_decays():
+    random.seed(0)
+    np.random.seed(0)
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        dropout_probability=0.5,
+        dropout_decay_rate=0.8,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        backtrack_probability=0.0,
+        backtrack_enabled=False,
+    )
+    nb.train([(1.0, 0.0)], epochs=2)
+    expected = 0.5 * 0.8 * 0.8
+    assert np.isclose(nb.dropout_probability, expected)
+

@@ -53,6 +53,7 @@ class Neuronenblitz:
         learning_rate=0.01,
         weight_decay=0.0,
         dropout_probability=0.0,
+        dropout_decay_rate=1.0,
         exploration_decay=0.99,
         reward_scale=1.0,
         stress_scale=1.0,
@@ -107,6 +108,7 @@ class Neuronenblitz:
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
         self.dropout_probability = dropout_probability
+        self.dropout_decay_rate = dropout_decay_rate
         self.exploration_decay = exploration_decay
         self.reward_scale = reward_scale
         self.stress_scale = stress_scale
@@ -631,6 +633,11 @@ class Neuronenblitz:
             self.last_message_passing_change = change
             self.decide_synapse_action()
             self.adjust_learning_rate()
+            if self.dropout_decay_rate != 1.0:
+                self.dropout_probability *= self.dropout_decay_rate
+                self.dropout_probability = float(
+                    max(0.0, min(1.0, self.dropout_probability))
+                )
 
     def get_training_history(self):
         return self.training_history
