@@ -663,3 +663,16 @@ curriculum_learning:
   schedule: Determines how quickly more difficult samples are added. Use
     ``linear`` for a steady increase or ``exponential`` to focus on easy
     examples longer.
+meta_learning:
+  # Reptile-style meta learning for rapid adaptation across tasks.
+  # Each task contains input-target pairs. The learner clones the
+  # current Core and Neuronenblitz, performs ``inner_steps`` of
+  # training on each task and then moves the main network weights
+  # toward the average of the task-specific weights using ``meta_lr``.
+  enabled: Set to ``true`` to activate meta learning during training.
+  epochs: Number of meta-training iterations over the provided tasks.
+  inner_steps: Training steps executed inside each temporary clone
+    before the meta update is applied. Typically between 1 and 5.
+  meta_lr: Step size used when blending task weights back into the
+    primary network. Values around ``0.1`` work well for most setups.
+
