@@ -645,3 +645,12 @@ semi_supervised_learning:
   unlabeled_weight: Scaling factor applied to the consistency loss derived from
     the two unlabeled outputs. Values between ``0.1`` and ``1.0`` control how
     strongly the unlabeled data influences learning.
+
+federated_learning:
+  # Federated averaging trainer that coordinates multiple clients.
+  # Each round trains all local Neuronenblitz networks on their
+  # respective datasets before averaging synapse weights.
+  enabled: Enable federated training when set to ``true``.
+  rounds: Number of communication rounds performed.
+  local_epochs: Epochs of local training executed on each client per round.
+

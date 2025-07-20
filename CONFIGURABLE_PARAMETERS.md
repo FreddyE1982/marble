@@ -309,3 +309,4 @@ Each entry is listed under its section heading.
 - epochs
 - batch_size
 - unlabeled_weight
+\n## federated_learning\n- enabled\n- rounds\n- local_epochs\n

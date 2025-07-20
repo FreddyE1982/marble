@@ -286,3 +286,9 @@ semi_supervised_learning:
   epochs: 1
   batch_size: 4
   unlabeled_weight: 0.5
+
+federated_learning:
+  enabled: false
+  rounds: 1
+  local_epochs: 1
+

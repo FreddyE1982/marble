@@ -174,3 +174,13 @@ alter its behaviour.
 ```
 
 Experiment by modifying these options and combining features from multiple projects. The test suite (`pytest`) exercises every component and can be run to verify your setup.
+
+## Project 12 – Federated Learning (Frontier)
+
+**Goal:** Train multiple Neuronenblitz networks on separate datasets and combine them using federated averaging.**
+
+1. Enable `federated_learning.enabled` in `config.yaml` and set `rounds` and `local_epochs`.
+2. Create one `Core`/`Neuronenblitz` pair for each client and instantiate `FederatedAveragingTrainer` with them.
+3. Provide a dataset list matching the clients to `train_round()` for each communication round.
+4. After training, examine synapse weights to confirm they were synchronised across clients.
+
