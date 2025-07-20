@@ -97,6 +97,14 @@ This project covers **autograd integration** and the **PyTorch challenge** mecha
 5. Optionally apply **knowledge distillation** by training a student brain with `DistillationTrainer`, using a previously saved MARBLE model as the teacher.
 
 This final project introduces the **GPT components**, **distillation**, and the **dimensional search** capability if `dimensional_search.enabled` is set in the configuration.
+## Project 6 – Reinforcement Learning (Master)
+
+**Goal:** Solve a simple GridWorld using Q-learning built on top of MARBLE.
+
+1. Set `reinforcement_learning.enabled` in `config.yaml` to `true`.
+2. Use `reinforcement_learning.train_gridworld()` with a `MarbleQLearningAgent` created from your core and neuronenblitz instances.
+3. Observe the total rewards returned after each episode to verify learning progress.
+
 
 ## Where to Go Next
 

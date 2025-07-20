@@ -240,3 +240,11 @@ distillation:
   enabled: false
   alpha: 0.5
   teacher_model: null
+reinforcement_learning:
+  enabled: false
+  episodes: 10
+  max_steps: 50
+  discount_factor: 0.9
+  epsilon_start: 1.0
+  epsilon_decay: 0.95
+  epsilon_min: 0.1

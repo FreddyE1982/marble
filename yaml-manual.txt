@@ -542,3 +542,15 @@ distillation:
   teacher_model: Path to a pickled MARBLE system used as the teacher. If ``null``
     the caller must provide the teacher programmatically when invoking the
     distillation trainer.
+
+reinforcement_learning:
+  enabled: Activate training in a reinforcement learning loop using the MARBLE
+    core and Neuronenblitz. Set to ``true`` to begin episodic interaction with
+    the environment defined in ``reinforcement_learning.py``.
+  episodes: Number of training episodes to run. More episodes generally yield
+    better policies but increase computation time.
+  max_steps: Maximum steps per episode before resetting the environment.
+  discount_factor: Discount applied to future rewards when computing Q-values.
+  epsilon_start: Initial exploration rate for the epsilon-greedy policy.
+  epsilon_decay: Multiplicative decay applied to ``epsilon`` after each update.
+  epsilon_min: Lowest exploration rate allowed once ``epsilon`` has decayed.
