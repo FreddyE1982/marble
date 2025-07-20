@@ -241,3 +241,14 @@ a subset of synapses.**
 3. Record demonstrations using `ImitationLearner.record(input, action)` then
    call `ImitationLearner.train()` or `Neuronenblitz.imitation_train()`.
 4. Query `dynamic_wander` with new inputs to evaluate the cloned policy.
+
+## Project 18 – Harmonic Resonance Learning (Novel)
+
+**Goal:** Explore the experimental frequency-based paradigm.**
+
+1. Enable `harmonic_resonance_learning.enabled` in `config.yaml` and set
+   `epochs`, `base_frequency` and `decay` as desired.
+2. Instantiate `HarmonicResonanceLearner` with your `Core` and `Neuronenblitz`
+   objects.
+3. Call `train_step(value, target)` in a loop for the specified number of epochs.
+4. Inspect `learner.history` to monitor the frequency error over time.

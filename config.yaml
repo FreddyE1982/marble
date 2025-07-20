@@ -315,3 +315,8 @@ imitation_learning:
   enabled: false
   epochs: 1
   max_history: 10
+harmonic_resonance_learning:
+  enabled: false
+  epochs: 1
+  base_frequency: 1.0
+  decay: 0.99
