@@ -146,6 +146,15 @@ with the existing Core and Neuronenblitz components.
 4. Call `AdversarialLearner.train()` on a list of real numeric values.
 5. Generate new samples by passing random noise to `dynamic_wander` of the generator.
 
+## Project 10 – Autoencoder Learning (Frontier)
+
+**Goal:** Reconstruct noisy inputs using an autoencoder built with Neuronenblitz.
+
+1. Set `autoencoder_learning.enabled` to `true` in `config.yaml` and adjust `epochs`, `batch_size` and `noise_std` as desired.
+2. Instantiate a `Neuronenblitz` network and an `AutoencoderLearner`.
+3. Call `AutoencoderLearner.train()` on your dataset of numeric values.
+4. Inspect `learner.history` to see reconstruction losses.
+
 ## Where to Go Next
 
 The configuration file exposes many additional parameters covering memory management, neuromodulation, meta‑controller behaviour and more. Consult `CONFIGURABLE_PARAMETERS.md` for the complete list and see `yaml-manual.txt` for thorough descriptions such as the excerpt below:

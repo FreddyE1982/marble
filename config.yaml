@@ -274,3 +274,9 @@ adversarial_learning:
   batch_size: 4
   noise_dim: 1
 
+autoencoder_learning:
+  enabled: false
+  epochs: 1
+  batch_size: 4
+  noise_std: 0.1
+
