@@ -328,3 +328,8 @@ Each entry is listed under its section heading.
 - epochs
 - batch_size
 - freeze_fraction
+
+## continual_learning
+- enabled
+- epochs
+- memory_size

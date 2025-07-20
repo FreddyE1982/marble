@@ -686,3 +686,15 @@ transfer_learning:
   freeze_fraction: Fraction between ``0.0`` and ``1.0`` specifying the portion
     of synapses that remain unchanged.
 
+continual_learning:
+  # Replay-based continual learning that stores a limited set of
+  # previous examples and replays them during training on new data.
+  # This mitigates catastrophic forgetting when tasks arrive
+  # sequentially without requiring complex weight consolidation.
+  enabled: Set to ``true`` to activate continual learning.
+  epochs: Number of passes over each incoming dataset. Typically
+    ``1`` or ``2`` is sufficient when replay memory is used.
+  memory_size: Maximum number of examples retained for replay. Larger
+    values offer better retention of old tasks but increase memory
+    usage. Reasonable ranges are between ``10`` and ``100``.
+

@@ -11,6 +11,8 @@ rapid adaptation to new tasks by blending weights from short inner
 training loops back into the main network.
 Transfer learning is supported through a new learner that freezes a
 fraction of synapses while fine-tuning on a different dataset.
+Continual learning is enabled via a replay-based learner that revisits
+previous examples to prevent catastrophic forgetting between tasks.
 
 MARBLE can train on datasets provided as lists of ``(input, target)`` pairs or using PyTorch-style ``Dataset``/``DataLoader`` objects. Each sample must expose an ``input`` and ``target`` field. After training and saving a model, ``Brain.infer`` generates outputs when given only an input value.
 
