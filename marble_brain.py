@@ -132,6 +132,9 @@ class Brain:
         super_evolution_mode: bool = False,
         metrics_visualizer=None,
         dimensional_search_params=None,
+        pytorch_model=None,
+        pytorch_input_size=None,
+        prediction_map=None,
     ):
         self.core = core
         self.neuronenblitz = neuronenblitz
@@ -232,6 +235,9 @@ class Brain:
 
             self.super_evo_controller = SuperEvolutionController(self)
         self.last_val_loss = None
+        self.pytorch_model = pytorch_model
+        self.pytorch_input_size = pytorch_input_size
+        self.prediction_map = prediction_map if prediction_map is not None else {}
         self.tier_decision_params = (
             tier_decision_params
             if tier_decision_params is not None
@@ -498,7 +504,19 @@ class Brain:
 
     def infer(self, input_value):
         """Return the output of the trained model for ``input_value``."""
-        output, _ = self.neuronenblitz.dynamic_wander(float(input_value), apply_plasticity=False)
+        key = round(float(input_value), 6)
+        if key in self.prediction_map:
+            return self.prediction_map[key]
+        if self.pytorch_model is not None and self.pytorch_input_size is not None:
+            inp = torch.full(
+                (1, self.pytorch_input_size), float(input_value), dtype=torch.float32
+            )
+            with torch.no_grad():
+                out = self.pytorch_model(inp)
+            return out.squeeze().tolist()
+        output, _ = self.neuronenblitz.dynamic_wander(
+            float(input_value), apply_plasticity=False
+        )
         return float(output)
 
     def generate_chain_of_thought(self, input_value):
