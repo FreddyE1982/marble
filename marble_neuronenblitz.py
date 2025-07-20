@@ -1,5 +1,6 @@
 from marble_imports import *
 from marble_core import Neuron, SYNAPSE_TYPES, NEURON_TYPES, perform_message_passing
+from contrastive_learning import ContrastiveLearner
 from marble_base import MetricsVisualizer
 import threading
 import multiprocessing as mp
@@ -704,6 +705,23 @@ class Neuronenblitz:
 
     def get_training_history(self):
         return self.training_history
+
+    def contrastive_train(
+        self,
+        inputs: list,
+        epochs: int = 1,
+        batch_size: int = 4,
+        temperature: float = 0.5,
+        augment_fn=None,
+    ) -> float:
+        """Run self-supervised contrastive learning on the given inputs."""
+        learner = ContrastiveLearner(self.core, self, temperature, augment_fn)
+        last_loss = 0.0
+        for _ in range(int(epochs)):
+            for i in range(0, len(inputs), batch_size):
+                batch = inputs[i : i + batch_size]
+                last_loss = learner.train(batch)
+        return last_loss
 
     def update_synapse_type_attentions(self, path, loss, speed, size):
         for syn in path:

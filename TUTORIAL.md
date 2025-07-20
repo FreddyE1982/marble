@@ -109,6 +109,22 @@ This final project introduces the **GPT components**, **distillation**, and the 
    which demonstrates these helpers in action.
 3. Observe the total rewards returned after each episode to verify learning progress.
 
+## Project 7 – Contrastive Learning (Expert+)
+
+**Goal:** Learn robust representations without labels.
+
+1. Download the [STL-10 dataset](https://ai.stanford.edu/~acoates/stl10/) and
+   extract the unlabeled split.
+2. Enable `contrastive_learning.enabled` in `config.yaml` and set an appropriate
+   `batch_size` for your hardware.
+3. Create a simple augmentation function (e.g. random crop and flip) and pass it
+   to `Neuronenblitz.contrastive_train()` together with the images.
+4. After training, reuse the learned weights in a supervised task by fine-tuning
+   with the regular `train()` method.
+
+This project demonstrates the new **ContrastiveLearner** and how it integrates
+with the existing Core and Neuronenblitz components.
+
 
 ## Where to Go Next
 

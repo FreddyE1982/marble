@@ -572,3 +572,23 @@ reinforcement_learning:
   epsilon_start: Initial exploration rate for the epsilon-greedy policy.
   epsilon_decay: Multiplicative decay applied to ``epsilon`` after each update.
   epsilon_min: Lowest exploration rate allowed once ``epsilon`` has decayed.
+
+contrastive_learning:
+  # Self-supervised contrastive representation learning using the
+  # ``ContrastiveLearner``. Two augmented views of each sample are
+  # processed by Neuronenblitz and the InfoNCE objective adjusts
+  # synaptic weights via ``apply_weight_updates_and_attention``.
+  enabled: Set to ``true`` to run contrastive learning after standard
+    training. When enabled the ``contrastive_train`` method of
+    Neuronenblitz processes the dataset according to the parameters
+    below.
+  temperature: Softmax temperature applied to similarity scores when
+    computing the InfoNCE loss. Lower values sharpen the distribution.
+    Typical values range from ``0.1`` to ``1.0``.
+  epochs: Number of passes over the dataset for contrastive learning.
+    Each epoch iterates over the inputs in mini-batches of size
+    ``batch_size`` and updates weights after every batch.
+  batch_size: Number of original samples to include in each batch. Each
+    sample produces two augmented views, so the effective batch size for
+    the loss is ``2 * batch_size``. Values between ``2`` and ``32`` work
+    well depending on available memory.
