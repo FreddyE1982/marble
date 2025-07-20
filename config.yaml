@@ -306,3 +306,8 @@ transfer_learning:
   epochs: 1
   batch_size: 4
   freeze_fraction: 0.5
+
+continual_learning:
+  enabled: false
+  epochs: 1
+  memory_size: 10

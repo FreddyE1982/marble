@@ -217,3 +217,15 @@ a subset of synapses.**
 3. Provide your new `(input, target)` pairs to `TransferLearner.train()`.
 4. Adjust `freeze_fraction` to control how many synapses stay fixed during
    fine-tuning.
+
+## Project 16 – Continual Learning (Frontier)
+
+**Goal:** Train sequential tasks while replaying previous examples.**
+
+1. Enable `continual_learning.enabled` in `config.yaml` and set `epochs` and
+   `memory_size`.
+2. Instantiate a `ReplayContinualLearner` with your `Core` and `Neuronenblitz`
+   objects.
+3. For each dataset that arrives over time, call `ReplayContinualLearner.train()`
+   to update the model while old examples are replayed from memory.
+4. Examine `learner.history` to monitor reconstruction loss across tasks.
