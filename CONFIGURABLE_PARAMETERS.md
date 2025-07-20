@@ -338,3 +338,9 @@ Each entry is listed under its section heading.
 - enabled
 - epochs
 - max_history
+
+## harmonic_resonance_learning
+- enabled
+- epochs
+- base_frequency
+- decay

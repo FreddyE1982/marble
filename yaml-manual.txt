@@ -711,3 +711,16 @@ imitation_learning:
   max_history: Maximum number of demonstration pairs kept in memory. Older
     entries are removed once this limit is exceeded.
 
+
+harmonic_resonance_learning:
+  # Experimental paradigm that embeds inputs as sinusoidal phases.
+  # Each step encodes the current value using ``base_frequency`` and updates
+  # ``base_frequency`` by multiplying it with ``decay`` after training.
+  enabled: Enable harmonic resonance learning when set to ``true``.
+  epochs: Number of passes over the dataset. Usually ``1`` or ``2`` is enough
+    for quick experiments.
+  base_frequency: Initial frequency used when computing sine and cosine
+    representations. Values around ``1.0`` keep phase changes gradual while
+    larger numbers increase oscillation speed.
+  decay: Multiplicative factor applied to ``base_frequency`` after each
+    training step. ``0.99`` slowly lowers the frequency over time.
