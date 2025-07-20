@@ -174,6 +174,7 @@ class MARBLE:
         }
         if brain_params is not None:
             brain_defaults.update(brain_params)
+        ds_params = brain_defaults.pop("dimensional_search", None)
         self.brain = Brain(
             self.core,
             self.neuronenblitz,
@@ -183,7 +184,7 @@ class MARBLE:
             torrent_map=self.torrent_map,
             metrics_visualizer=self.metrics_visualizer,
             **brain_defaults,
-            dimensional_search_params=brain_defaults.get("dimensional_search"),
+            dimensional_search_params=ds_params,
         )
 
         self.benchmark_manager = BenchmarkManager(self)
