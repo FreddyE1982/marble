@@ -41,6 +41,8 @@ core:
   pretraining_epochs: 0
   min_cluster_k: 2
   cross_tier_migration: true
+  synapse_echo_length: 5
+  synapse_echo_decay: 0.9
 neuronenblitz:
   backtrack_probability: 0.3
   consolidation_probability: 0.2
@@ -92,6 +94,7 @@ neuronenblitz:
   fatigue_decay: 0.95
   lr_adjustment_factor: 0.1
   momentum_coefficient: 0.0
+  use_echo_modulation: false
   reinforcement_learning_enabled: false
   rl_discount: 0.9
   rl_epsilon: 1.0
@@ -320,3 +323,7 @@ harmonic_resonance_learning:
   epochs: 1
   base_frequency: 1.0
   decay: 0.99
+synaptic_echo_learning:
+  enabled: false
+  epochs: 1
+  echo_influence: 1.0

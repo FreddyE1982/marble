@@ -97,6 +97,7 @@ class Neuronenblitz:
         rl_epsilon=1.0,
         rl_epsilon_decay=0.95,
         rl_min_epsilon=0.1,
+        use_echo_modulation=False,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -157,6 +158,7 @@ class Neuronenblitz:
         self.rl_epsilon = rl_epsilon
         self.rl_epsilon_decay = rl_epsilon_decay
         self.rl_min_epsilon = rl_min_epsilon
+        self.use_echo_modulation = use_echo_modulation
 
         self.combine_fn = combine_fn if combine_fn is not None else default_combine_fn
         self.loss_fn = loss_fn if loss_fn is not None else default_loss_fn
@@ -327,6 +329,8 @@ class Neuronenblitz:
                 transmitted_value = self.combine_fn(current_neuron.value, w)
                 if hasattr(syn, "apply_side_effects"):
                     syn.apply_side_effects(self.core, current_neuron.value)
+                if hasattr(syn, "update_echo"):
+                    syn.update_echo(current_neuron.value, self.core.synapse_echo_decay)
                 if self.synaptic_fatigue_enabled and hasattr(syn, "update_fatigue"):
                     syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
                 inc = self.route_potential_increase
@@ -366,6 +370,8 @@ class Neuronenblitz:
             transmitted_value = self.combine_fn(current_neuron.value, w)
             if hasattr(syn, "apply_side_effects"):
                 syn.apply_side_effects(self.core, current_neuron.value)
+            if hasattr(syn, "update_echo"):
+                syn.update_echo(current_neuron.value, self.core.synapse_echo_decay)
             if self.synaptic_fatigue_enabled and hasattr(syn, "update_fatigue"):
                 syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
             inc = self.route_potential_increase
@@ -457,6 +463,8 @@ class Neuronenblitz:
                         next_neuron.value = raw_val
                     if hasattr(syn, "apply_side_effects"):
                         syn.apply_side_effects(self.core, entry_neuron.value)
+                    if hasattr(syn, "update_echo"):
+                        syn.update_echo(entry_neuron.value, self.core.synapse_echo_decay)
                     if self.synaptic_fatigue_enabled and hasattr(syn, "update_fatigue"):
                         syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
                     final_path = [(entry_neuron, None), (next_neuron, syn)]
@@ -588,6 +596,8 @@ class Neuronenblitz:
                 continue
             source_value = self.core.neurons[syn.source].value
             delta = self.weight_update_fn(source_value, error, path_length)
+            if self.use_echo_modulation and hasattr(syn, "get_echo_average"):
+                delta *= syn.get_echo_average()
             if self.gradient_noise_std > 0:
                 delta += np.random.normal(0.0, self.gradient_noise_std)
             clip = getattr(self.core, "gradient_clip_value", None)

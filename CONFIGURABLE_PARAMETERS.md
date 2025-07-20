@@ -46,6 +46,8 @@ Each entry is listed under its section heading.
 - pretraining_epochs
 - min_cluster_k
 - cross_tier_migration
+- synapse_echo_length
+- synapse_echo_decay
 
 ## neuronenblitz
 - backtrack_probability
@@ -98,6 +100,7 @@ Each entry is listed under its section heading.
 - fatigue_decay
 - lr_adjustment_factor
 - momentum_coefficient
+- use_echo_modulation
 - reinforcement_learning_enabled
 - rl_discount
 - rl_epsilon
@@ -344,3 +347,8 @@ Each entry is listed under its section heading.
 - epochs
 - base_frequency
 - decay
+
+## synaptic_echo_learning
+- enabled
+- epochs
+- echo_influence

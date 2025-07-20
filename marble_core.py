@@ -2,6 +2,7 @@ from marble_imports import *
 from marble_base import MetricsVisualizer
 from typing import Hashable
 import copy
+from collections import deque
 
 # Representation size for GNN-style message passing
 _REP_SIZE = 4
@@ -771,6 +772,7 @@ class Synapse:
         synapse_type="standard",
         fatigue=0.0,
         frozen: bool = False,
+        echo_length: int = 5,
     ):
         self.source = source
         self.target = target
@@ -782,10 +784,25 @@ class Synapse:
         self.created_at = datetime.now()
         self.fatigue = float(fatigue)
         self.frozen = bool(frozen)
+        self.echo_buffer: deque[float] = deque(maxlen=int(max(1, echo_length)))
 
     def update_fatigue(self, increase: float, decay: float) -> None:
         """Update fatigue using a decay factor and additive increase."""
         self.fatigue = max(0.0, min(1.0, self.fatigue * decay + increase))
+
+    def update_echo(self, value: float, decay: float) -> None:
+        """Store a decayed copy of ``value`` in the echo buffer."""
+        if isinstance(value, np.ndarray):
+            val = float(np.mean(value))
+        else:
+            val = float(value)
+        self.echo_buffer.append(val * decay)
+
+    def get_echo_average(self) -> float:
+        """Return the average of stored echo values."""
+        if not self.echo_buffer:
+            return 0.0
+        return float(sum(self.echo_buffer) / len(self.echo_buffer))
 
     def effective_weight(self, context=None):
         """Return the weight modified according to ``synapse_type`` and context."""
@@ -1076,6 +1093,8 @@ class Core:
         self.gradient_clip_value = params.get("gradient_clip_value", 1.0)
         self.message_passing_iterations = params.get("message_passing_iterations", 1)
         self.cluster_algorithm = params.get("cluster_algorithm", "kmeans")
+        self.synapse_echo_length = params.get("synapse_echo_length", 5)
+        self.synapse_echo_decay = params.get("synapse_echo_decay", 0.9)
         self.vram_limit_mb = params.get("vram_limit_mb", 100)
         self.ram_limit_mb = params.get("ram_limit_mb", 500)
         self.disk_limit_mb = params.get("disk_limit_mb", 10000)
@@ -1123,6 +1142,7 @@ class Core:
                 self.neurons[i + 1].id,
                 weight=weight,
                 synapse_type="standard",
+                echo_length=self.synapse_echo_length,
             )
 
         if not CUDA_AVAILABLE:
@@ -1191,6 +1211,7 @@ class Core:
         weight=1.0,
         synapse_type="standard",
         frozen: bool = False,
+        echo_length: int | None = None,
     ):
         syn = Synapse(
             source_id,
@@ -1198,6 +1219,9 @@ class Core:
             weight=weight,
             synapse_type=synapse_type,
             frozen=frozen,
+            echo_length=(
+                self.synapse_echo_length if echo_length is None else echo_length
+            ),
         )
         self.neurons[source_id].synapses.append(syn)
         self.synapses.append(syn)
@@ -1280,6 +1304,7 @@ class Core:
                     tgt,
                     weight=random.uniform(0.1, 1.0),
                     synapse_type=random.choice(SYNAPSE_TYPES),
+                    echo_length=self.synapse_echo_length,
                 )
 
         print(
