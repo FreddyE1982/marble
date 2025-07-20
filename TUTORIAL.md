@@ -101,8 +101,12 @@ This final project introduces the **GPT components**, **distillation**, and the 
 
 **Goal:** Solve a simple GridWorld using Q-learning built on top of MARBLE.
 
-1. Set `reinforcement_learning.enabled` in `config.yaml` to `true`.
-2. Use `reinforcement_learning.train_gridworld()` with a `MarbleQLearningAgent` created from your core and neuronenblitz instances.
+1. Enable `reinforcement_learning.enabled` in `config.yaml` and also set
+   `core.reinforcement_learning_enabled` and
+   `neuronenblitz.reinforcement_learning_enabled` to `true`.
+2. Either drive the environment manually using the new `rl_` methods on the
+   core and Neuronenblitz or call `reinforcement_learning.train_gridworld()`
+   which demonstrates these helpers in action.
 3. Observe the total rewards returned after each episode to verify learning progress.
 
 

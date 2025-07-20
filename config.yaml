@@ -31,6 +31,12 @@ core:
   message_passing_beta: 1.0
   attention_temperature: 1.0
   energy_threshold: 0.5
+  reinforcement_learning_enabled: false
+  rl_discount: 0.9
+  rl_learning_rate: 0.1
+  rl_epsilon: 1.0
+  rl_epsilon_decay: 0.95
+  rl_min_epsilon: 0.1
   early_cleanup_enabled: false
   pretraining_epochs: 0
   min_cluster_k: 2
@@ -86,6 +92,11 @@ neuronenblitz:
   fatigue_decay: 0.95
   lr_adjustment_factor: 0.1
   momentum_coefficient: 0.0
+  reinforcement_learning_enabled: false
+  rl_discount: 0.9
+  rl_epsilon: 1.0
+  rl_epsilon_decay: 0.95
+  rl_min_epsilon: 0.1
 brain:
   save_threshold: 0.05
   max_saved_models: 5

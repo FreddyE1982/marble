@@ -77,6 +77,16 @@ core:
     distributions. Must be greater than zero.
   energy_threshold: Minimum energy level required before neurons participate in
     message passing. Helps filter out inactive units.
+  reinforcement_learning_enabled: Enable or disable the internal Q-learning
+    engine in the core. Set to ``true`` to allow calling the ``rl_`` methods.
+  rl_discount: Discount factor applied to future rewards when updating the
+    core's Q-table. Typical values range from ``0.8`` to ``0.99``.
+  rl_learning_rate: Step size used for Q-value updates. Smaller values result in
+    slower but more stable learning.
+  rl_epsilon: Initial exploration rate for epsilon-greedy action selection.
+  rl_epsilon_decay: Multiplicative decay applied to ``rl_epsilon`` after each
+    update step.
+  rl_min_epsilon: Minimum exploration rate once decay has progressed.
   early_cleanup_enabled: If ``true``, unused neurons are removed before normal
     cleanup intervals, reducing memory usage.
   pretraining_epochs: Number of unsupervised epochs to run before regular
@@ -206,6 +216,14 @@ neuronenblitz:
     ``0.0`` and ``1.0`` accelerate training by smoothing updates. Momentum is
     applied in ``apply_weight_updates_and_attention`` and is stored per-synapse
     so that frequently updated connections gain additional inertia.
+  reinforcement_learning_enabled: Turn on Q-learning inside Neuronenblitz. When
+    enabled the ``rl_`` methods may be used to select actions and update
+    values directly through the network.
+  rl_discount: Discount factor for future rewards used by ``rl_update``.
+  rl_epsilon: Initial exploration probability for ``rl_select_action``.
+  rl_epsilon_decay: Multiplicative decay applied to ``rl_epsilon`` each time an
+    update occurs.
+  rl_min_epsilon: Smallest allowed exploration rate once decay has taken place.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the
