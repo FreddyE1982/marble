@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import math
 from typing import List, Tuple, Dict
 
 try:
@@ -234,6 +235,20 @@ class AdvancedGPT:
         return logits
 
 
+def _clip_gradients(params: List[Tensor], max_norm: float) -> float:
+    """Scale gradients so their global norm does not exceed ``max_norm``."""
+    total = 0.0
+    for p in params:
+        total += float((p.grad ** 2).sum())
+    norm = math.sqrt(total)
+    if norm > max_norm > 0.0:
+        scale = max_norm / (norm + 1e-6)
+        for p in params:
+            p.grad *= scale
+        norm = max_norm
+    return norm
+
+
 def train_advanced_gpt(
     dataset: List[xp.ndarray],
     vocab_size: int,
@@ -245,11 +260,14 @@ def train_advanced_gpt(
     lr: float = 1e-3,
     batch_size: int = 1,
     seed: int | None = None,
-) -> Tuple[AdvancedGPT, List[float]]:
+    max_grad_norm: float | None = None,
+    return_grad_norms: bool = False,
+) -> Tuple[AdvancedGPT, List[float]] | Tuple[AdvancedGPT, List[float], List[float]]:
     if seed is not None:
         xp.random.seed(seed)
     model = AdvancedGPT(vocab_size, block_size, num_layers, num_heads, hidden_dim)
     losses: List[float] = []
+    grad_norms: List[float] = []
     for _ in range(epochs):
         total = 0.0
         for start in range(0, len(dataset), batch_size):
@@ -260,11 +278,21 @@ def train_advanced_gpt(
                 logits = model(inp)
                 loss = cross_entropy(logits, target)
                 loss.backward()
+                if max_grad_norm is not None:
+                    norm = _clip_gradients(model.parameters(), max_grad_norm)
+                else:
+                    total = 0.0
+                    for p in model.parameters():
+                        total += float((p.grad ** 2).sum())
+                    norm = math.sqrt(total)
                 for p in model.parameters():
                     p.data -= lr * p.grad
                     p.grad = xp.zeros_like(p.grad)
+                grad_norms.append(norm)
                 total += float(loss.data)
         losses.append(total / max(len(dataset), 1))
+    if return_grad_norms:
+        return model, losses, grad_norms
     return model, losses
 
 
