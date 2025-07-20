@@ -287,3 +287,7 @@ Each entry is listed under its section heading.
 - temperature
 - epochs
 - batch_size
+
+## hebbian_learning
+- learning_rate
+- weight_decay

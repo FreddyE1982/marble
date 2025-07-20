@@ -264,3 +264,6 @@ contrastive_learning:
   temperature: 0.5
   epochs: 1
   batch_size: 4
+hebbian_learning:
+  learning_rate: 0.01
+  weight_decay: 0.0

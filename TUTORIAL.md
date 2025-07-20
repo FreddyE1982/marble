@@ -125,6 +125,16 @@ This final project introduces the **GPT components**, **distillation**, and the 
 This project demonstrates the new **ContrastiveLearner** and how it integrates
 with the existing Core and Neuronenblitz components.
 
+## Project 8 – Hebbian Learning (Research)
+
+**Goal:** Explore unsupervised Hebbian updates integrated with Neuronenblitz.
+
+1. Enable `hebbian_learning` settings in `config.yaml` to configure `learning_rate` and `weight_decay`.
+2. Instantiate `HebbianLearner` with the existing Core and Neuronenblitz objects.
+3. Call `HebbianLearner.train()` on a list of inputs without targets.
+4. Inspect weight changes along visited paths to verify correlation-based updates.
+
+
 
 ## Where to Go Next
 
