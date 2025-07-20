@@ -229,3 +229,15 @@ a subset of synapses.**
 3. For each dataset that arrives over time, call `ReplayContinualLearner.train()`
    to update the model while old examples are replayed from memory.
 4. Examine `learner.history` to monitor reconstruction loss across tasks.
+
+## Project 17 – Imitation Learning (Exploration)
+
+**Goal:** Learn a policy directly from demonstration pairs.**
+
+1. Enable `imitation_learning.enabled` in `config.yaml` and set `epochs` and
+   `max_history`.
+2. Instantiate an `ImitationLearner` with your `Core` and `Neuronenblitz`
+   objects.
+3. Record demonstrations using `ImitationLearner.record(input, action)` then
+   call `ImitationLearner.train()` or `Neuronenblitz.imitation_train()`.
+4. Query `dynamic_wander` with new inputs to evaluate the cloned policy.

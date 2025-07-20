@@ -1,6 +1,7 @@
 from marble_imports import *
 from marble_core import Neuron, SYNAPSE_TYPES, NEURON_TYPES, perform_message_passing
 from contrastive_learning import ContrastiveLearner
+from imitation_learning import ImitationLearner
 from marble_base import MetricsVisualizer
 import threading
 import multiprocessing as mp
@@ -725,6 +726,22 @@ class Neuronenblitz:
             for i in range(0, len(inputs), batch_size):
                 batch = inputs[i : i + batch_size]
                 last_loss = learner.train(batch)
+        return last_loss
+
+    def imitation_train(
+        self,
+        demonstrations: list[tuple[float, float]],
+        epochs: int = 1,
+        max_history: int = 100,
+    ) -> float:
+        """Train using behaviour cloning on demonstration pairs."""
+        learner = ImitationLearner(self.core, self, max_history=max_history)
+        for inp, act in demonstrations:
+            learner.record(float(inp), float(act))
+        last_loss = 0.0
+        for _ in range(int(epochs)):
+            for inp, act in demonstrations:
+                last_loss = learner.train_step(float(inp), float(act))
         return last_loss
 
     def update_synapse_type_attentions(self, path, loss, speed, size):

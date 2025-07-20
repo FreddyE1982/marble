@@ -698,3 +698,16 @@ continual_learning:
     values offer better retention of old tasks but increase memory
     usage. Reasonable ranges are between ``10`` and ``100``.
 
+imitation_learning:
+  # Behaviour cloning of expert demonstrations using the ``ImitationLearner``.
+  # Each demonstration contains an input value and the corresponding action
+  # taken by the expert. The learner replays these demonstrations and
+  # adjusts synaptic weights so that Neuronenblitz reproduces the expert's
+  # behaviour for the same inputs.
+  enabled: Enable imitation learning updates. Set to ``true`` to process
+    recorded demonstrations after normal training.
+  epochs: Number of passes over the stored demonstrations. Values between
+    ``1`` and ``10`` work well for small datasets.
+  max_history: Maximum number of demonstration pairs kept in memory. Older
+    entries are removed once this limit is exceeded.
+

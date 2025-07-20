@@ -311,3 +311,7 @@ continual_learning:
   enabled: false
   epochs: 1
   memory_size: 10
+imitation_learning:
+  enabled: false
+  epochs: 1
+  max_history: 10
