@@ -113,3 +113,37 @@ def test_weight_update_with_noise():
     expected = 1.0 + 0.5 + expected_noise
     assert np.isclose(syn.weight, expected)
 
+
+def test_potential_increase_capped():
+    random.seed(0)
+    np.random.seed(0)
+    core, syn = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        route_potential_increase=2.0,
+        synapse_potential_cap=1.5,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        plasticity_threshold=100.0,
+    )
+    nb.dynamic_wander(1.0)
+    assert np.isclose(syn.potential, 1.5)
+
+
+def test_prune_low_potential_synapses():
+    random.seed(0)
+    np.random.seed(0)
+    core, syn_main = create_simple_core()
+    weak = core.add_synapse(0, 0, weight=0.01)
+    weak.potential = 0.01
+    nb = Neuronenblitz(
+        core,
+        synapse_prune_interval=1,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        plasticity_threshold=100.0,
+    )
+    nb.dynamic_wander(1.0)
+    assert weak not in core.synapses
+    assert syn_main in core.synapses
+
