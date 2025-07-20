@@ -605,3 +605,19 @@ hebbian_learning:
   weight_decay: Fraction of the current weight subtracted during each
     update. Helps stabilise learning when set between ``0.0`` and
     ``0.01``.
+
+adversarial_learning:
+  # Generative adversarial training using two Neuronenblitz networks that
+  # share the same Core. The generator receives random noise and tries
+  # to produce values that the discriminator classifies as real.
+  enabled: Set to ``true`` to run adversarial updates after the standard
+    training loop. Both generator and discriminator are updated using
+    ``apply_weight_updates_and_attention``.
+  epochs: Number of passes over the provided real values. Values between
+    ``1`` and ``5`` work well for small experiments.
+  batch_size: Number of real samples processed before generator and
+    discriminator weights are updated. Typical range is ``4`` to ``64``.
+  noise_dim: Dimensionality of the random noise vector fed to the generator.
+    Higher values allow more variation but increase compute. Values of
+    ``1`` to ``10`` are common.
+
