@@ -1237,12 +1237,23 @@ class Core:
                     weight=random.uniform(0.1, 1.0),
                     synapse_type=random.choice(SYNAPSE_TYPES),
                 )
+
         print(
             f"Core expanded: {num_new_neurons} new neurons in tier '{target_tier}' and {num_new_synapses} new synapses added."
         )
         self.check_memory_usage()
         if self.tier_autotune_enabled:
             self.autotune_tiers()
+
+    def increase_representation_size(self, delta: int = 1) -> None:
+        """Increase representation dimensionality for all neurons."""
+        if delta <= 0:
+            return
+        new_size = self.rep_size + delta
+        configure_representation_size(new_size)
+        for neuron in self.neurons:
+            neuron.representation = np.pad(neuron.representation, (0, delta))
+        self.rep_size = new_size
 
     def cluster_neurons(self, k=3):
         if not self.neurons:

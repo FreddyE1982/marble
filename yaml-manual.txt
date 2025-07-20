@@ -321,6 +321,16 @@ brain:
     sampling replacements during pruning.
   lobe_decay_rate: Fraction by which lobe attention decays each epoch without
     activity.
+  dimensional_search:
+    enabled: Toggles automatic growth of the representation vector when
+      validation loss improvements stagnate. ``true`` enables monitoring.
+    max_size: Highest dimension the search may reach. Should exceed the initial
+      ``representation_size`` but remain manageable for available hardware.
+    improvement_threshold: Relative decrease in validation loss required to
+      deem a new dimension successful. Values around ``0.01`` to ``0.05`` are
+      typical.
+    plateau_epochs: Number of consecutive epochs below the improvement
+      threshold before another dimension is added.
   super_evolution_mode: When true, a controller records loss, speed, complexity
     and resource metrics each epoch and adjusts all configurable parameters via
     self-attention. This prioritizes minimising loss, then maximising speed,

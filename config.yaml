@@ -149,6 +149,11 @@ brain:
   neuron_reservoir_size: 1000
   lobe_decay_rate: 0.98
   super_evolution_mode: false
+  dimensional_search:
+    enabled: false
+    max_size: 12
+    improvement_threshold: 0.02
+    plateau_epochs: 2
 lobe_manager:
   attention_increase_factor: 1.05
   attention_decrease_factor: 0.95
