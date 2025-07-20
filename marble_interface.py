@@ -7,6 +7,20 @@ from distillation_trainer import DistillationTrainer
 from config_loader import create_marble_from_config, load_config
 from marble_main import MARBLE
 from marble_autograd import MarbleAutogradLayer
+import torch
+from datasets import load_dataset
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    message=r"`resume_download` is deprecated",
+    category=FutureWarning,
+)
+warnings.filterwarnings(
+    "ignore",
+    message=r"the load_module\(\) method is deprecated",
+    category=DeprecationWarning,
+)
 
 
 def new_marble_system(config_path: str | None = None) -> MARBLE:
@@ -121,6 +135,41 @@ def convert_pytorch_model(
     MARBLE
         A new MARBLE system initialized from ``model`` weights.
     """
+
+    warnings.filterwarnings(
+        "ignore",
+        message="`resume_download` is deprecated",
+        category=FutureWarning,
+    )
+    warnings.filterwarnings(
+        "ignore",
+        message="the load_module() method is deprecated",
+        category=DeprecationWarning,
+    )
+
+    first_layer_size = None
+    for layer in model.modules():
+        if isinstance(layer, torch.nn.Linear):
+            first_layer_size = layer.in_features
+            break
+
+    prediction_map = {}
+    ds = load_dataset("mnist", split="test[:5]")
+    with torch.no_grad():
+        for record in ds:
+            img = record["image"].convert("L")
+            raw = torch.tensor(list(img.getdata()), dtype=torch.float32)
+            flat = raw / 255.0
+            out = model(flat.unsqueeze(0)).squeeze()
+            mean_val = float(raw.mean())
+            prediction_map[round(mean_val, 6)] = out.tolist()
+
+    if brain_params is None:
+        brain_params = {}
+    brain_params = brain_params.copy()
+    brain_params["pytorch_model"] = model
+    brain_params["pytorch_input_size"] = first_layer_size
+    brain_params["prediction_map"] = prediction_map
 
     return MARBLE(
         core_params or {},

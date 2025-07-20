@@ -858,15 +858,25 @@ class MARBLE:
             'save_dir': "saved_models",
             'firing_interval_ms': 500,
             'offload_enabled': False,
-            'torrent_offload_enabled': False
+            'torrent_offload_enabled': False,
+            'pytorch_model': None,
+            'pytorch_input_size': None,
         }
         if brain_params is not None:
             brain_defaults.update(brain_params)
-        self.brain = Brain(self.core, self.neuronenblitz, self.dataloader,
-                           save_threshold=brain_defaults['save_threshold'],
-                           max_saved_models=brain_defaults['max_saved_models'],
-                           save_dir=brain_defaults['save_dir'],
-                           firing_interval_ms=brain_defaults['firing_interval_ms'])
+        self.brain = Brain(
+            self.core,
+            self.neuronenblitz,
+            self.dataloader,
+            save_threshold=brain_defaults['save_threshold'],
+            max_saved_models=brain_defaults['max_saved_models'],
+            save_dir=brain_defaults['save_dir'],
+            firing_interval_ms=brain_defaults['firing_interval_ms'],
+            offload_enabled=brain_defaults['offload_enabled'],
+            torrent_offload_enabled=brain_defaults['torrent_offload_enabled'],
+            pytorch_model=brain_defaults['pytorch_model'],
+            pytorch_input_size=brain_defaults['pytorch_input_size'],
+        )
         
         self.metrics_visualizer = MetricsVisualizer()
         self.benchmark_manager = BenchmarkManager(self)
