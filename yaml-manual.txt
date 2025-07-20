@@ -592,3 +592,16 @@ contrastive_learning:
     sample produces two augmented views, so the effective batch size for
     the loss is ``2 * batch_size``. Values between ``2`` and ``32`` work
     well depending on available memory.
+
+hebbian_learning:
+  # Unsupervised Hebbian update rule integrated with Neuronenblitz.
+  # After each wander the weights along the traversed path are
+  # adjusted based on the product of pre- and post-synaptic values.
+  # ``learning_rate`` scales the Hebbian update and ``weight_decay``
+  # applies an L2 style penalty to prevent unbounded growth.
+  learning_rate: Positive step size controlling how strongly synapse
+    weights are increased when correlated neuron activations are
+    observed. Typical values range from ``0.001`` to ``0.1``.
+  weight_decay: Fraction of the current weight subtracted during each
+    update. Helps stabilise learning when set between ``0.0`` and
+    ``0.01``.
