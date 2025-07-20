@@ -291,3 +291,10 @@ Each entry is listed under its section heading.
 ## hebbian_learning
 - learning_rate
 - weight_decay
+
+## adversarial_learning
+- enabled
+- epochs
+- batch_size
+- noise_dim
+

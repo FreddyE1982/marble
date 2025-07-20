@@ -136,6 +136,16 @@ with the existing Core and Neuronenblitz components.
 
 
 
+## Project 9 – Adversarial Learning (Cutting Edge)
+
+**Goal:** Train a generator and discriminator using Neuronenblitz.
+
+1. Enable `adversarial_learning` in `config.yaml` and configure `epochs`, `batch_size` and `noise_dim`.
+2. Instantiate two `Neuronenblitz` objects sharing the same Core.
+3. Create an `AdversarialLearner` with these objects.
+4. Call `AdversarialLearner.train()` on a list of real numeric values.
+5. Generate new samples by passing random noise to `dynamic_wander` of the generator.
+
 ## Where to Go Next
 
 The configuration file exposes many additional parameters covering memory management, neuromodulation, meta‑controller behaviour and more. Consult `CONFIGURABLE_PARAMETERS.md` for the complete list and see `yaml-manual.txt` for thorough descriptions such as the excerpt below:

@@ -267,3 +267,10 @@ contrastive_learning:
 hebbian_learning:
   learning_rate: 0.01
   weight_decay: 0.0
+
+adversarial_learning:
+  enabled: false
+  epochs: 1
+  batch_size: 4
+  noise_dim: 1
+
