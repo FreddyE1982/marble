@@ -471,8 +471,10 @@ class Brain:
         errors = []
         for input_val, target_val in validation_examples:
             output, _ = self.neuronenblitz.dynamic_wander(input_val)
-            errors.append(abs(target_val - output))
-        mean_val_loss = sum(errors) / len(errors) if errors else 0
+            pred = int(round(float(output)))
+            pred = max(0, min(9, pred))
+            errors.append((target_val - pred) ** 2)
+        mean_val_loss = sum(errors) / len(errors) if errors else 0.0
         print(f"Mean Validation Loss: {mean_val_loss:.4f}")
         return mean_val_loss
 
