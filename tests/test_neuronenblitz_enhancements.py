@@ -103,6 +103,7 @@ def test_weight_update_with_noise():
         consolidation_probability=0.0,
         weight_decay=0.0,
         gradient_noise_std=0.5,
+        synapse_update_cap=2.0,
     )
     nb.learning_rate = 1.0
     core.neurons[0].value = 1.0
@@ -231,4 +232,24 @@ def test_dropout_probability_decays():
     nb.train([(1.0, 0.0)], epochs=2)
     expected = 0.5 * 0.8 * 0.8
     assert np.isclose(nb.dropout_probability, expected)
+
+
+def test_synapse_update_cap_limits_change():
+    random.seed(0)
+    core, syn = create_simple_core()
+
+    def fixed_update(source, error, path_len):
+        return 10.0
+
+    nb = Neuronenblitz(
+        core,
+        consolidation_probability=0.0,
+        weight_decay=0.0,
+        synapse_update_cap=0.05,
+        weight_update_fn=fixed_update,
+    )
+    nb.learning_rate = 1.0
+    core.neurons[0].value = 1.0
+    nb.apply_weight_updates_and_attention([syn], error=1.0)
+    assert np.isclose(syn.weight, 1.05)
 

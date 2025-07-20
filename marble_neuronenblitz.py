@@ -5,6 +5,7 @@ import threading
 import multiprocessing as mp
 import pickle
 from collections import deque
+import math
 
 
 def _wander_worker(state_bytes, input_value, seed):
@@ -532,7 +533,10 @@ class Neuronenblitz:
             mom = self._momentum.get(syn, 0.0)
             mom = self.momentum_coefficient * mom + delta
             self._momentum[syn] = mom
-            syn.weight += self.learning_rate * mom
+            update = self.learning_rate * mom
+            if abs(update) > self.synapse_update_cap:
+                update = math.copysign(self.synapse_update_cap, update)
+            syn.weight += update
             if random.random() < self.consolidation_probability:
                 syn.weight *= self.consolidation_strength
             if syn.weight > self._weight_limit:
