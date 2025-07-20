@@ -333,3 +333,8 @@ Each entry is listed under its section heading.
 - enabled
 - epochs
 - memory_size
+
+## imitation_learning
+- enabled
+- epochs
+- max_history
