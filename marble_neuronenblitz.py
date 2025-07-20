@@ -195,7 +195,8 @@ class Neuronenblitz:
         if not self.synaptic_fatigue_enabled:
             return
         for syn in self.core.synapses:
-            syn.update_fatigue(0.0, self.fatigue_decay)
+            if hasattr(syn, "update_fatigue"):
+                syn.update_fatigue(0.0, self.fatigue_decay)
 
     def adjust_learning_rate(self) -> None:
         """Adapt learning rate based on recent error trends."""
@@ -244,12 +245,16 @@ class Neuronenblitz:
         ):
             for syn in current_neuron.synapses:
                 next_neuron = self.core.neurons[syn.target]
-                w = syn.effective_weight(self.last_context)
+                w = syn.effective_weight(self.last_context) if hasattr(syn, "effective_weight") else syn.weight
                 transmitted_value = self.combine_fn(current_neuron.value, w)
-                syn.apply_side_effects(self.core, current_neuron.value)
-                if self.synaptic_fatigue_enabled:
+                if hasattr(syn, "apply_side_effects"):
+                    syn.apply_side_effects(self.core, current_neuron.value)
+                if self.synaptic_fatigue_enabled and hasattr(syn, "update_fatigue"):
                     syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
-                next_neuron.value = next_neuron.process(transmitted_value)
+                if hasattr(next_neuron, "process"):
+                    next_neuron.value = next_neuron.process(transmitted_value)
+                else:
+                    next_neuron.value = transmitted_value
                 new_path = path + [(next_neuron, syn)]
                 new_continue_prob = current_continue_prob * self.continue_decay_rate
                 if next_neuron.tier == "remote" and self.remote_client is not None:
@@ -273,12 +278,16 @@ class Neuronenblitz:
         else:
             syn = self.weighted_choice(current_neuron.synapses)
             next_neuron = self.core.neurons[syn.target]
-            w = syn.effective_weight(self.last_context)
+            w = syn.effective_weight(self.last_context) if hasattr(syn, "effective_weight") else syn.weight
             transmitted_value = self.combine_fn(current_neuron.value, w)
-            syn.apply_side_effects(self.core, current_neuron.value)
-            if self.synaptic_fatigue_enabled:
+            if hasattr(syn, "apply_side_effects"):
+                syn.apply_side_effects(self.core, current_neuron.value)
+            if self.synaptic_fatigue_enabled and hasattr(syn, "update_fatigue"):
                 syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
-            next_neuron.value = next_neuron.process(transmitted_value)
+            if hasattr(next_neuron, "process"):
+                next_neuron.value = next_neuron.process(transmitted_value)
+            else:
+                next_neuron.value = transmitted_value
             new_path = path + [(next_neuron, syn)]
             new_continue_prob = current_continue_prob * self.continue_decay_rate
             if next_neuron.tier == "remote" and self.remote_client is not None:
@@ -316,7 +325,7 @@ class Neuronenblitz:
                 neuron.value = avg_value
                 merged.append((neuron, rep_path))
         final_neuron, final_path = max(merged, key=lambda tup: tup[0].value)
-        if final_path:
+        if final_path and hasattr(final_path[0][0], "created_at"):
             pathway_start_time = final_path[0][0].created_at
             pathway_age = (datetime.now() - pathway_start_time).total_seconds()
             print(f"Partial pathway age: {pathway_age:.2f} sec")
@@ -350,11 +359,15 @@ class Neuronenblitz:
                 if entry_neuron.synapses:
                     syn = self.weighted_choice(entry_neuron.synapses)
                     next_neuron = self.core.neurons[syn.target]
-                    w = syn.effective_weight(self.last_context)
+                    w = syn.effective_weight(self.last_context) if hasattr(syn, "effective_weight") else syn.weight
                     raw_val = self.combine_fn(entry_neuron.value, w)
-                    next_neuron.value = next_neuron.process(raw_val)
-                    syn.apply_side_effects(self.core, entry_neuron.value)
-                    if self.synaptic_fatigue_enabled:
+                    if hasattr(next_neuron, "process"):
+                        next_neuron.value = next_neuron.process(raw_val)
+                    else:
+                        next_neuron.value = raw_val
+                    if hasattr(syn, "apply_side_effects"):
+                        syn.apply_side_effects(self.core, entry_neuron.value)
+                    if self.synaptic_fatigue_enabled and hasattr(syn, "update_fatigue"):
                         syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
                     final_path = [(entry_neuron, None), (next_neuron, syn)]
                 else:
@@ -471,6 +484,11 @@ class Neuronenblitz:
         for syn in path:
             source_value = self.core.neurons[syn.source].value
             delta = self.weight_update_fn(source_value, error, path_length)
+            if self.gradient_noise_std > 0:
+                delta += np.random.normal(0.0, self.gradient_noise_std)
+            clip = getattr(self.core, "gradient_clip_value", None)
+            if clip is not None:
+                delta = float(np.clip(delta, -clip, clip))
             syn.weight += self.learning_rate * delta
             if random.random() < self.consolidation_probability:
                 syn.weight *= self.consolidation_strength

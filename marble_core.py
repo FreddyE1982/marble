@@ -133,7 +133,14 @@ def perform_message_passing(
     ]
     avg_change = float(np.mean(diffs)) if diffs else 0.0
     if metrics_visualizer is not None:
-        metrics_visualizer.update({"message_passing_change": avg_change})
+        rep_matrix = np.stack([n.representation for n in core.neurons])
+        variance = float(np.var(rep_matrix))
+        metrics_visualizer.update(
+            {
+                "message_passing_change": avg_change,
+                "representation_variance": variance,
+            }
+        )
     return avg_change
 
 

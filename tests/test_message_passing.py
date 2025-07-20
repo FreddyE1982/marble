@@ -4,6 +4,7 @@ import random
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import numpy as np
 from marble_core import Core, perform_message_passing
+from marble_base import MetricsVisualizer
 from tests.test_core_functions import minimal_params
 
 
@@ -138,3 +139,14 @@ def test_run_message_passing_iterations():
     )
     assert multi_diff > single_diff
     assert not np.isclose(multi_change, single_change)
+
+
+def test_representation_variance_metric_updated():
+    np.random.seed(0)
+    params = minimal_params()
+    core = Core(params)
+    mv = MetricsVisualizer()
+    for n in core.neurons:
+        n.representation = np.random.rand(4)
+    perform_message_passing(core, metrics_visualizer=mv)
+    assert mv.metrics["representation_variance"], "Metric not updated"

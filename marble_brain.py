@@ -498,7 +498,7 @@ class Brain:
 
     def infer(self, input_value):
         """Return the output of the trained model for ``input_value``."""
-        output, _ = self.neuronenblitz.dynamic_wander(float(input_value))
+        output, _ = self.neuronenblitz.dynamic_wander(float(input_value), apply_plasticity=False)
         return float(output)
 
     def generate_chain_of_thought(self, input_value):
