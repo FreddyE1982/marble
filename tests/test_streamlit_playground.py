@@ -45,6 +45,9 @@ from streamlit_playground import (
     list_example_projects,
     load_example_code,
     run_example_project,
+    start_remote_server,
+    create_remote_client,
+    create_torrent_system,
 )
 
 
@@ -315,3 +318,27 @@ def test_example_project_helpers():
         out = run_example_project(first)
     rp.assert_called_once()
     assert "done" in out
+
+
+def test_offloading_helpers(tmp_path):
+    server = start_remote_server(port=8010)
+    assert server.port == 8010
+    client = create_remote_client("http://localhost:8010")
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+    marble = initialize_marble(str(cfg_path))
+    marble.brain.remote_client = client
+    marble.brain.offload_enabled = True
+    marble.brain.lobe_manager.genesis(range(len(marble.core.neurons)))
+    marble.brain.offload_high_attention(threshold=-1.0)
+    assert server.core is not None
+    server.stop()
+
+    tracker, tclient = create_torrent_system("A", buffer_size=1)
+    marble.brain.torrent_client = tclient
+    marble.brain.torrent_offload_enabled = True
+    marble.brain.offload_high_attention_torrent(threshold=-1.0)
+    assert tclient.parts
+    tclient.disconnect()

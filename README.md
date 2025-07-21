@@ -74,6 +74,12 @@ YAML so you can verify exactly what will be used for training and inference.
 An additional **Visualization** tab renders an interactive graph of the core so
 you can inspect neuron connectivity in real time. The sidebar also contains a
 collapsible YAML manual for quick reference while experimenting.
+The playground now includes an **Offloading** tab. This lets you start a
+``RemoteBrainServer`` or create a ``RemoteBrainClient`` directly from the UI and
+attach it to the running system. You can also spin up a torrent client with its
+own tracker to distribute lobes among peers. High‑attention regions of the brain
+may then be offloaded to the remote server or shared via torrent with a single
+button press.
 
 ## Possible MARBLE Backcronyms
 
