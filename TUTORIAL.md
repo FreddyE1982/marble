@@ -1241,44 +1241,46 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    appear automatically after each run.
 7. **Save and load models** using the sidebar controls. You can also export or
    import the core JSON to share systems between sessions.
-8. **Switch to Advanced mode** to access every function in
+8. **Manage multiple instances** using the *Active Instance* selector. Create,
+   duplicate or delete systems from the sidebar to compare configurations.
+9. **Switch to Advanced mode** to access every function in
    ``marble_interface``. The playground displays each function's docstring and
    generates widgets for all parameters so you can call any operation directly.
-9. **Build pipelines** on the *Pipeline* tab. Add steps from
+10. **Build pipelines** on the *Pipeline* tab. Add steps from
    ``marble_interface`` or any repository module, then press **Run Pipeline** to
    execute them sequentially. This lets you combine training, evaluation and
    analysis commands without leaving the UI.
-10. **View the core graph** on the *Visualization* tab. Press **Generate Graph**
+11. **View the core graph** on the *Visualization* tab. Press **Generate Graph**
    to see an interactive display of neurons and synapses.
-11. **Edit configuration** from the *Config Editor* tab. Specify any dot-
+12. **Edit configuration** from the *Config Editor* tab. Specify any dot-
     separated parameter path and new value to update the YAML in place. Press
     **Reinitialize** to rebuild the system with the modified settings.
-12. **Consult the YAML manual** from the sidebar while adjusting parameters.
-13. **Convert Hugging Face models** on the *Model Conversion* tab. Enter a
+13. **Consult the YAML manual** from the sidebar while adjusting parameters.
+14. **Convert Hugging Face models** on the *Model Conversion* tab. Enter a
     model search query, preview the architecture and click **Convert to
     MARBLE** to initialize a system from the pretrained weights.
-14. **Experiment with offloading** using the *Offloading* tab. Start a
+15. **Experiment with offloading** using the *Offloading* tab. Start a
     ``RemoteBrainServer`` or create a torrent client directly from the
     interface and attach it to the active MARBLE instance. Use the provided
     buttons to offload high‑attention lobes to the remote server or share them
     with peers via torrent.
-15. **Monitor progress** on the *Metrics* tab. Loss, memory usage and other
+16. **Monitor progress** on the *Metrics* tab. Loss, memory usage and other
     statistics are plotted live so you can observe training behaviour.
-16. **Check system resources** on the *System Stats* tab. RAM and GPU usage are
+17. **Check system resources** on the *System Stats* tab. RAM and GPU usage are
     displayed so you can monitor consumption while experimenting.
-17. **Tune neuromodulatory signals** on the *Neuromodulation* tab. Adjust the
+18. **Tune neuromodulatory signals** on the *Neuromodulation* tab. Adjust the
     sliders for arousal, stress and reward or set an emotion string, then press
     **Update Signals** to modify MARBLE's internal context on the fly.
-18. **Read the documentation** on the *Documentation* tab. Every markdown file
+19. **Read the documentation** on the *Documentation* tab. Every markdown file
     in the repository, including the architecture overview, configurable
     parameters list and machine learning handbook, can be opened here for quick
     reference.
-19. **Browse source code** on the *Source Browser* tab. Select any module and
+20. **Browse source code** on the *Source Browser* tab. Select any module and
     click **Show Source** to view its implementation without leaving the
     playground.
-20. **Run unit tests** on the *Tests* tab. Select one or more test files and
+21. **Run unit tests** on the *Tests* tab. Select one or more test files and
     click **Run Tests** to verify everything works as expected.
-21. **Control asynchronous behaviour** on the *Async Training* tab. Start
+22. **Control asynchronous behaviour** on the *Async Training* tab. Start
     background training threads or enable auto-firing so MARBLE keeps learning
     while you explore other tabs. Use **Wait For Training** to block until the
     current session finishes or stop auto-firing at any time.
