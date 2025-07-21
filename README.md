@@ -71,6 +71,9 @@ applied immediately and you can re-initialise the system with the updated
 configuration without leaving the browser.
 The sidebar now previews uploaded datasets and shows the active configuration
 YAML so you can verify exactly what will be used for training and inference.
+You can also **search** the Hugging Face Hub directly from the sidebar. Enter a
+query, press **Search Datasets** and select a result to populate the dataset
+name field without leaving the playground.
 An additional **Visualization** tab renders an interactive graph of the core so
 you can inspect neuron connectivity in real time. The sidebar also contains a
 collapsible YAML manual for quick reference while experimenting.

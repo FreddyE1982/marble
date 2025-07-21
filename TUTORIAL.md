@@ -1233,28 +1233,31 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    `dataset.csv`/`dataset.json` or paired `inputs/` and `targets/` folders with
    images or audio files. Any mixture of numbers, text, images and audio is
    supported. Select the desired number of epochs and click **Train**.
-5. **Perform inference** by providing a numeric value, text, image or audio
+5. **Search Hugging Face datasets** using the sidebar field. Enter a query,
+   click **Search Datasets** and choose a result to fill the dataset name
+   automatically.
+6. **Perform inference** by providing a numeric value, text, image or audio
    sample under the *Inference* section and pressing **Infer**. Training metrics
    appear automatically after each run.
-6. **Save and load models** using the sidebar controls. You can also export or
+7. **Save and load models** using the sidebar controls. You can also export or
    import the core JSON to share systems between sessions.
-7. **Switch to Advanced mode** to access every function in
+8. **Switch to Advanced mode** to access every function in
    ``marble_interface``. The playground displays each function's docstring and
    generates widgets for all parameters so you can call any operation directly.
-8. **Build pipelines** on the *Pipeline* tab. Add steps from
+9. **Build pipelines** on the *Pipeline* tab. Add steps from
    ``marble_interface`` or any repository module, then press **Run Pipeline** to
    execute them sequentially. This lets you combine training, evaluation and
    analysis commands without leaving the UI.
-9. **View the core graph** on the *Visualization* tab. Press **Generate Graph**
+10. **View the core graph** on the *Visualization* tab. Press **Generate Graph**
    to see an interactive display of neurons and synapses.
-10. **Edit configuration** from the *Config Editor* tab. Specify any dot-
+11. **Edit configuration** from the *Config Editor* tab. Specify any dot-
     separated parameter path and new value to update the YAML in place. Press
     **Reinitialize** to rebuild the system with the modified settings.
-11. **Consult the YAML manual** from the sidebar while adjusting parameters.
-12. **Convert Hugging Face models** on the *Model Conversion* tab. Enter a
+12. **Consult the YAML manual** from the sidebar while adjusting parameters.
+13. **Convert Hugging Face models** on the *Model Conversion* tab. Enter a
     model name, preview its architecture and click **Convert to MARBLE** to
     initialize a system from the pretrained weights.
-13. **Experiment with offloading** using the *Offloading* tab. Start a
+14. **Experiment with offloading** using the *Offloading* tab. Start a
     ``RemoteBrainServer`` or create a torrent client directly from the
     interface and attach it to the active MARBLE instance. Use the provided
     buttons to offload high‑attention lobes to the remote server or share them
