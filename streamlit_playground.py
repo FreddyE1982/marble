@@ -290,6 +290,35 @@ def execute_function_sequence(
     return results
 
 
+def save_pipeline_to_json(pipeline: list[dict], path: str) -> None:
+    """Save a function pipeline to ``path`` as JSON."""
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(pipeline, f, indent=2)
+
+
+def load_pipeline_from_json(file) -> list[dict]:
+    """Load a function pipeline from a JSON file or file-like object."""
+    if hasattr(file, "read"):
+        data = file.read()
+    else:
+        with open(file, "r", encoding="utf-8") as f:
+            data = f.read()
+    return json.loads(data)
+
+
+def run_custom_code(code: str, marble=None) -> object:
+    """Execute arbitrary Python ``code`` with ``marble`` in scope.
+
+    The snippet may assign a variable named ``result`` which will be
+    returned from this function. Any printed output will appear in the
+    Streamlit interface when used there.
+    """
+
+    locals_dict: dict[str, object] = {"marble": marble}
+    exec(code, {}, locals_dict)
+    return locals_dict.get("result")
+
+
 def run_playground() -> None:
     """Launch the Streamlit MARBLE playground."""
     st.set_page_config(page_title="MARBLE Playground")
@@ -464,11 +493,9 @@ def run_playground() -> None:
             st.write(f"Output: {out}")
     else:
         st.header("Advanced Function Execution")
-        tab_iface, tab_mod, tab_pipe = st.tabs([
-            "marble_interface",
-            "Modules",
-            "Pipeline",
-        ])
+        tab_iface, tab_mod, tab_pipe, tab_code = st.tabs(
+            ["marble_interface", "Modules", "Pipeline", "Custom Code"]
+        )
 
         with tab_iface:
             funcs = list_marble_functions()
@@ -571,6 +598,14 @@ def run_playground() -> None:
                     st.markdown(
                         f"**{i+1}.** `{step.get('module') or 'marble_interface'}.{step['func']}`"
                     )
+            with st.expander("Load/Save Pipeline"):
+                pipe_up = st.file_uploader("Load Pipeline", type=["json"], key="pipe_load")
+                if st.button("Load", key="load_pipe") and pipe_up is not None:
+                    st.session_state["pipeline"] = load_pipeline_from_json(pipe_up)
+                    st.success("Pipeline loaded")
+                if st.session_state["pipeline"]:
+                    pipe_json = json.dumps(st.session_state["pipeline"], indent=2)
+                    st.download_button("Download pipeline.json", pipe_json, file_name="pipeline.json")
             with st.expander("Add Step"):
                 mode_sel = st.radio(
                     "Source", ["marble_interface", "module"], key="pipe_src"
@@ -637,6 +672,13 @@ def run_playground() -> None:
                     st.write(out)
             if st.button("Clear Pipeline"):
                 st.session_state["pipeline"] = []
+
+        with tab_code:
+            st.write("Execute custom Python code. Use the `marble` variable to access the system.")
+            code = st.text_area("Code", height=200, key="custom_code")
+            if st.button("Run Code", key="run_custom_code") and code.strip():
+                out = run_custom_code(code, marble)
+                st.write(out)
 
 
 if __name__ == "__main__":
