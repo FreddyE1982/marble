@@ -1233,5 +1233,11 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
 4. **Perform inference** by providing a numeric value, text, image or audio
    sample under the *Inference* section and pressing **Infer**. Training metrics
    appear automatically after each run.
+5. **Save and load models** using the sidebar controls. You can also export or
+   import the core JSON to share systems between sessions.
+6. **Switch to Advanced mode** to access every function in
+   ``marble_interface``. The playground displays each function's docstring and
+   generates widgets for all parameters so you can call any operation directly.
 
-The playground provides toggles for dreaming and autograd features so you can experiment with MARBLE's advanced capabilities without writing code.
+The playground provides toggles for dreaming and autograd features so you can
+experiment with MARBLE's advanced capabilities without writing code.

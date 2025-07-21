@@ -1,6 +1,7 @@
 import os
 import json
 import wave
+import tempfile
 from io import BytesIO
 
 import streamlit as st
@@ -18,6 +19,10 @@ from marble_interface import (
     infer_marble_system,
     set_dreaming,
     set_autograd,
+    save_marble_system,
+    load_marble_system,
+    export_core_to_json,
+    import_core_from_json,
 )
 
 
@@ -108,8 +113,6 @@ def load_examples(file) -> list[tuple]:
     raise ValueError("Unsupported dataset format")
 
 
-
-
 def initialize_marble(cfg_path: str):
     """Create a MARBLE system using a YAML configuration path."""
     return new_marble_system(cfg_path)
@@ -157,6 +160,34 @@ def run_playground() -> None:
         st.session_state["marble"] = initialize_marble(cfg_path)
         st.sidebar.success("System initialized")
 
+    save_path = st.sidebar.text_input("Save Path", "marble.pkl")
+    if st.sidebar.button("Save MARBLE") and st.session_state.get("marble") is not None:
+        save_marble_system(st.session_state["marble"], save_path)
+        st.sidebar.success("Model saved")
+
+    load_file = st.sidebar.file_uploader("Load MARBLE", type=["pkl"], key="load_marble")
+    if st.sidebar.button("Load MARBLE") and load_file is not None:
+        tmp = tempfile.NamedTemporaryFile(delete=False)
+        tmp.write(load_file.read())
+        tmp.close()
+        st.session_state["marble"] = load_marble_system(tmp.name)
+        st.sidebar.success("Model loaded")
+
+    if (
+        st.sidebar.button("Export Core JSON")
+        and st.session_state.get("marble") is not None
+    ):
+        js = export_core_to_json(st.session_state["marble"])
+        st.sidebar.download_button("Download core.json", js, file_name="core.json")
+
+    core_file = st.sidebar.file_uploader(
+        "Import Core JSON", type=["json"], key="load_core"
+    )
+    if st.sidebar.button("Load Core JSON") and core_file is not None:
+        js = core_file.getvalue().decode("utf-8")
+        st.session_state["marble"] = import_core_from_json(js)
+        st.sidebar.success("Core loaded")
+
     marble = st.session_state.get("marble")
     if marble is None:
         st.info("Initialize MARBLE to begin.")
@@ -167,7 +198,9 @@ def run_playground() -> None:
     dreaming = st.sidebar.checkbox("Dreaming", value=marble.get_brain().dreaming_active)
     set_dreaming(marble, dreaming)
 
-    autograd = st.sidebar.checkbox("Autograd", value=marble.get_autograd_layer() is not None)
+    autograd = st.sidebar.checkbox(
+        "Autograd", value=marble.get_autograd_layer() is not None
+    )
     set_autograd(marble, autograd)
 
     train_file = st.sidebar.file_uploader(
@@ -185,11 +218,15 @@ def run_playground() -> None:
         st.header("Inference")
         num_val = st.number_input("Numeric Input", value=0.0, format="%f")
         text_val = st.text_input("Text Input")
-        img_file = st.file_uploader("Image Input", type=["png", "jpg", "jpeg", "bmp"], key="img")
+        img_file = st.file_uploader(
+            "Image Input", type=["png", "jpg", "jpeg", "bmp"], key="img"
+        )
         audio_file = st.file_uploader("Audio Input", type=["wav"], key="aud")
         if st.button("Infer"):
             if img_file is not None:
-                input_value = _parse_value(img_file.name, ZipFile(BytesIO(img_file.read()), "r"))
+                input_value = _parse_value(
+                    img_file.name, ZipFile(BytesIO(img_file.read()), "r")
+                )
             elif audio_file is not None:
                 input_value = _load_audio(BytesIO(audio_file.read()))
             elif text_val:
@@ -203,21 +240,41 @@ def run_playground() -> None:
         funcs = list_marble_functions()
         selected = st.selectbox("Function", funcs)
         func_obj = getattr(marble_interface, selected)
+        doc = inspect.getdoc(func_obj) or ""
+        if doc:
+            st.markdown(doc)
         sig = inspect.signature(func_obj)
         inputs = {}
         for name, param in sig.parameters.items():
             if name == "marble":
                 continue
-            default = "" if param.default is inspect.Parameter.empty else str(param.default)
-            inputs[name] = st.text_input(name, value=default)
+            default = (
+                None if param.default is inspect.Parameter.empty else param.default
+            )
+            ann = param.annotation
+            widget = None
+            if ann is bool or isinstance(default, bool):
+                widget = st.checkbox(
+                    name, value=bool(default) if default is not None else False
+                )
+            elif ann in (int, float) or isinstance(default, (int, float)):
+                val = 0 if default is None else float(default)
+                widget = st.number_input(name, value=val)
+            else:
+                widget = st.text_input(
+                    name, value="" if default is None else str(default)
+                )
+            inputs[name] = widget
         if st.button("Execute"):
             parsed = {}
             for k, v in inputs.items():
-                if v != "":
+                if isinstance(v, str) and v != "":
                     try:
                         parsed[k] = json.loads(v)
                     except Exception:
                         parsed[k] = _parse_value(v)
+                else:
+                    parsed[k] = v
             result = execute_marble_function(selected, marble, **parsed)
             st.write(result)
 

@@ -49,7 +49,11 @@ streamlit run streamlit_playground.py
 
 Upload CSV, JSON or ZIP datasets containing any mix of numbers, text, images or
 audio. The inference panel accepts the same modalities so you can explore how
-different data types influence the system in real time.
+different data types influence the system in real time. Models may be saved and
+loaded from the sidebar, and you can export or import the core JSON for
+experimentation. Advanced mode now displays function docstrings and generates
+widgets for each parameter so every capability of the ``marble_interface`` can
+be invoked without writing code.
 
 ## Possible MARBLE Backcronyms
 
