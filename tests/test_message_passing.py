@@ -1,10 +1,12 @@
-import os, sys
+import os
 import random
+import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import numpy as np
-from marble_core import Core, perform_message_passing
+
 from marble_base import MetricsVisualizer
+from marble_core import Core, perform_message_passing
 from tests.test_core_functions import minimal_params
 
 
@@ -164,3 +166,16 @@ def test_representation_variance_metric_updated():
         n.representation = np.random.rand(4)
     perform_message_passing(core, metrics_visualizer=mv)
     assert mv.metrics["representation_variance"], "Metric not updated"
+
+
+def test_gating_blocks_zero_signal():
+    params = minimal_params()
+    core = Core(params)
+    for n in core.neurons:
+        n.representation = np.random.rand(4)
+    for s in core.synapses:
+        s.weight = 0.0
+    before = [n.representation.copy() for n in core.neurons]
+    perform_message_passing(core)
+    after = [n.representation.copy() for n in core.neurons]
+    assert all(np.allclose(b, a) for b, a in zip(before, after))

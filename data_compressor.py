@@ -1,7 +1,9 @@
-import numpy as np
-import zlib
-import struct
 import pickle
+import struct
+import zlib
+
+import numpy as np
+
 
 class DataCompressor:
     """Full transparent transitive binary compressor.
@@ -14,11 +16,21 @@ class DataCompressor:
     compression_enabled : bool, optional
         When ``False`` no compression or decompression is performed and data is
         returned unchanged.
+    delta_encoding : bool, optional
+        When ``True`` arrays are delta encoded prior to compression which can
+        substantially improve ratios on smoothly varying data. Defaults to
+        ``False``.
     """
 
-    def __init__(self, level: int = 6, compression_enabled: bool = True) -> None:
+    def __init__(
+        self,
+        level: int = 6,
+        compression_enabled: bool = True,
+        delta_encoding: bool = False,
+    ) -> None:
         self.level = level
         self.compression_enabled = compression_enabled
+        self.delta_encoding = delta_encoding
 
     @staticmethod
     def bytes_to_bits(data: bytes) -> np.ndarray:
@@ -53,9 +65,18 @@ class DataCompressor:
     def compress_array(self, array: np.ndarray) -> bytes:
         """Compress a NumPy array with metadata for lossless recovery."""
         metadata = {"shape": array.shape, "dtype": str(array.dtype)}
+        arr = array
+        if self.delta_encoding:
+            flat = arr.ravel()
+            deltas = np.diff(flat, prepend=flat[0]).astype(arr.dtype)
+            metadata["delta_encoding"] = True
+            metadata["first_value"] = flat[0].item()
+            arr_bytes = deltas.tobytes()
+        else:
+            arr_bytes = arr.tobytes()
         meta_bytes = pickle.dumps(metadata)
         header = struct.pack("<I", len(meta_bytes))
-        payload = header + meta_bytes + array.tobytes()
+        payload = header + meta_bytes + arr_bytes
         return self.compress(payload)
 
     def decompress_array(self, compressed: bytes) -> np.ndarray:
@@ -66,4 +87,8 @@ class DataCompressor:
         metadata = pickle.loads(meta_bytes)
         array_bytes = payload[4 + meta_len :]
         arr = np.frombuffer(array_bytes, dtype=np.dtype(metadata["dtype"]))
+        if metadata.get("delta_encoding"):
+            first_val = np.asarray(metadata.get("first_value"), dtype=arr.dtype)
+            arr = np.cumsum(arr)
+            arr = arr + first_val
         return arr.reshape(metadata["shape"])

@@ -1,13 +1,15 @@
-from marble_imports import *
-from marble_base import MetricsVisualizer
-from typing import Hashable
 import copy
-from collections import deque
-import numpy as np
 import os
 import pickle
 import random
+from collections import deque
 from datetime import datetime
+from typing import Hashable
+
+import numpy as np
+
+from marble_base import MetricsVisualizer
+from marble_imports import *
 
 # Representation size for GNN-style message passing
 _REP_SIZE = 4
@@ -139,6 +141,11 @@ def perform_message_passing(
         interm = alpha * target.representation + (1 - alpha) * _simple_mlp(
             agg, activation
         )
+        mag = float(np.linalg.norm(agg))
+        gate = 1.0 - np.exp(-mag)
+        if alpha == 0:
+            gate = 1.0 if mag > 0 else 0.0
+        interm = gate * interm + (1 - gate) * target.representation
         updated = beta * interm + (1 - beta) * target.representation
         if noise_std > 0:
             updated = updated + np.random.randn(*updated.shape) * noise_std
@@ -857,7 +864,9 @@ class Synapse:
                 val = 0.0
             core.neurons[self.source].value = val + source_value * self.weight
         elif self.synapse_type == "interconnection" and self.remote_core is not None:
-            tgt_id = self.remote_target if self.remote_target is not None else self.target
+            tgt_id = (
+                self.remote_target if self.remote_target is not None else self.target
+            )
             if 0 <= tgt_id < len(self.remote_core.neurons):
                 self.remote_core.neurons[tgt_id].value = source_value * self.weight
 
@@ -906,8 +915,9 @@ def compute_mandelbrot(
     C = X + 1j * Y
     Z = cp.zeros_like(C, dtype=cp.complex64)
     mandelbrot = cp.zeros(C.shape, dtype=cp.int32)
+    esc_sq = escape_radius * escape_radius
     for i in range(max_iter):
-        mask = cp.abs(Z) <= escape_radius
+        mask = (Z.real * Z.real + Z.imag * Z.imag) <= esc_sq
         if not mask.any():
             break
         Z[mask] = Z[mask] ** power + C[mask]
@@ -969,6 +979,7 @@ class MemorySystem:
         self.long_term = LongTermMemory(long_term_path)
         self.threshold = threshold
         self.consolidation_interval = consolidation_interval
+        self._since_consolidation = 0
 
     def consolidate(self):
         for k, v in list(self.short_term.data.items()):
@@ -982,6 +993,20 @@ class MemorySystem:
         ):
             return self.long_term
         return self.short_term
+
+    def store(self, key, value, context=None):
+        layer = self.choose_layer(context or {})
+        layer.store(key, value)
+        self._since_consolidation += 1
+        if self._since_consolidation >= self.consolidation_interval:
+            self.consolidate()
+            self._since_consolidation = 0
+
+    def retrieve(self, key):
+        val = self.short_term.retrieve(key)
+        if val is None:
+            val = self.long_term.retrieve(key)
+        return val
 
 
 class DataLoader:
@@ -1209,8 +1234,12 @@ class Core:
     def autotune_tiers(self) -> None:
         """Automatically migrate neurons between tiers when usage exceeds limits."""
         limits = {
-            "vram": self.params.get("vram_limit_mb", TIER_REGISTRY.get("vram", VramTier()).limit_mb),
-            "ram": self.params.get("ram_limit_mb", TIER_REGISTRY.get("ram", RamTier()).limit_mb),
+            "vram": self.params.get(
+                "vram_limit_mb", TIER_REGISTRY.get("vram", VramTier()).limit_mb
+            ),
+            "ram": self.params.get(
+                "ram_limit_mb", TIER_REGISTRY.get("ram", RamTier()).limit_mb
+            ),
         }
 
         def migrate(src: str, dst: str) -> None:
@@ -1396,10 +1425,16 @@ class Core:
         current = self.q_table.get((state, action), 0.0)
         next_q = 0.0
         if not done:
-            next_q = max(self.q_table.get((next_state, a), 0.0) for a in range(n_actions))
+            next_q = max(
+                self.q_table.get((next_state, a), 0.0) for a in range(n_actions)
+            )
         target = reward + self.rl_discount * next_q
-        self.q_table[(state, action)] = current + self.rl_learning_rate * (target - current)
-        self.rl_epsilon = max(self.rl_min_epsilon, self.rl_epsilon * self.rl_epsilon_decay)
+        self.q_table[(state, action)] = current + self.rl_learning_rate * (
+            target - current
+        )
+        self.rl_epsilon = max(
+            self.rl_min_epsilon, self.rl_epsilon * self.rl_epsilon_decay
+        )
 
     def cluster_neurons(self, k=3):
         if not self.neurons:
@@ -1416,8 +1451,20 @@ class Core:
                 val = float("nan")
             processed_vals.append(val)
         values = np.array(processed_vals, dtype=float)
+        values[~np.isfinite(values)] = 0.0
         k = int(min(k, len(values)))
-        centers = np.random.choice(values, k, replace=False)
+        if k == 0:
+            return
+        centers = [np.random.choice(values)]
+        for _ in range(1, k):
+            dists = np.array([min((v - c) ** 2 for c in centers) for v in values])
+            total = dists.sum()
+            if total <= 0 or not np.isfinite(total):
+                centers.append(np.random.choice(values))
+            else:
+                probs = dists / total
+                centers.append(np.random.choice(values, p=probs))
+        centers = np.array(centers)
         for _ in range(5):
             assignments = [
                 int(np.argmin([abs(v - c) for c in centers])) for v in values

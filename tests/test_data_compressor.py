@@ -1,4 +1,6 @@
-import os, sys
+import os
+import sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import numpy as np
 
@@ -36,3 +38,11 @@ def test_compression_toggle():
     compressed = dc.compress(data)
     assert compressed == data
     assert dc.decompress(compressed) == data
+
+
+def test_delta_encoding_roundtrip():
+    dc = DataCompressor(delta_encoding=True)
+    arr = np.arange(10, dtype=np.int32)
+    compressed = dc.compress_array(arr)
+    restored = dc.decompress_array(compressed)
+    assert np.array_equal(restored, arr)

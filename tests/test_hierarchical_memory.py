@@ -1,17 +1,18 @@
-import os, sys
+import os
+import sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from marble_core import MemorySystem, Core, DataLoader
-from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain
+from marble_core import Core, DataLoader, MemorySystem
+from marble_neuronenblitz import Neuronenblitz
 from neuromodulatory_system import NeuromodulatorySystem
 from tests.test_core_functions import minimal_params
 
 
 def test_memory_system_roundtrip(tmp_path):
     ms = MemorySystem(long_term_path=tmp_path / "lt.pkl")
-    layer = ms.choose_layer({})
-    layer.store("a", 1)
+    ms.store("a", 1, context={})
     assert ms.short_term.retrieve("a") == 1
     ms.consolidate()
     assert ms.short_term.retrieve("a") is None
@@ -31,6 +32,14 @@ def test_brain_memory_integration(tmp_path):
     brain.consolidate_memory()
     brain.store_memory("other", 7)
     assert brain.retrieve_memory("other") == 7
+
+
+def test_auto_consolidation(tmp_path):
+    ms = MemorySystem(long_term_path=tmp_path / "auto.pkl", consolidation_interval=2)
+    ms.store("k1", 1)
+    ms.store("k2", 2)
+    assert ms.long_term.retrieve("k1") == 1
+    assert ms.long_term.retrieve("k2") == 2
 
 
 def test_memory_system_threshold():
