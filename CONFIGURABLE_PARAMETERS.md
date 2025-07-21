@@ -285,6 +285,7 @@ Each entry is listed under its section heading.
 - epsilon_start
 - epsilon_decay
 - epsilon_min
+- seed
 
 ## contrastive_learning
 - enabled

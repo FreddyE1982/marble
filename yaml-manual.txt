@@ -583,6 +583,8 @@ reinforcement_learning:
   epsilon_start: Initial exploration rate for the epsilon-greedy policy.
   epsilon_decay: Multiplicative decay applied to ``epsilon`` after each update.
   epsilon_min: Lowest exploration rate allowed once ``epsilon`` has decayed.
+  seed: Integer random seed for reproducible training. Set to ``null`` to allow
+    nondeterministic runs.
 
 contrastive_learning:
   # Self-supervised contrastive representation learning using the

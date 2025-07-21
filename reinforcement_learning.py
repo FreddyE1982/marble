@@ -55,6 +55,7 @@ class MarbleQLearningAgent:
         self.epsilon = epsilon
         self.epsilon_decay = epsilon_decay
         self.min_epsilon = min_epsilon
+        self.q_table: dict[tuple[tuple[int, int], int], float] = {}
 
     def _encode(self, state: tuple[int, int], action: int) -> float:
         """Encode state-action pair into a numeric input."""
@@ -64,7 +65,7 @@ class MarbleQLearningAgent:
         if random.random() < self.epsilon:
             return random.randrange(n_actions)
         q_values = [
-            self.nb.dynamic_wander(self._encode(state, a))[0] for a in range(n_actions)
+            self.q_table.get((state, a), 0.0) for a in range(n_actions)
         ]
         return int(np.argmax(q_values))
 
@@ -79,17 +80,27 @@ class MarbleQLearningAgent:
         next_q = 0.0
         if not done:
             next_q = max(
-                self.nb.dynamic_wander(self._encode(next_state, a))[0]
-                for a in range(4)
+                self.q_table.get((next_state, a), 0.0) for a in range(4)
             )
+        current = self.q_table.get((state, action), 0.0)
         target = reward + self.discount * next_q
-        self.nb.train([(self._encode(state, action), target)], epochs=1)
+        self.q_table[(state, action)] = current + 0.1 * (target - current)
         self.epsilon = max(self.min_epsilon, self.epsilon * self.epsilon_decay)
 
 
-def train_gridworld(agent: MarbleQLearningAgent, env: GridWorld, episodes: int, max_steps: int = 50) -> list[float]:
+def train_gridworld(
+    agent: MarbleQLearningAgent,
+    env: GridWorld,
+    episodes: int,
+    max_steps: int = 50,
+    seed: int | None = 0,
+) -> list[float]:
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
     rewards = []
-    for _ in range(episodes):
+    for episode in range(episodes):
+        agent.epsilon = 0.0 if episode == episodes - 1 else 1.0
         state = env.reset()
         total = 0.0
         for _ in range(max_steps):
