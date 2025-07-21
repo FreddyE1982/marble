@@ -464,6 +464,11 @@ data_compressor:
     6 balances speed and ratio for general use.
   compression_enabled: Set to ``false`` to bypass compression entirely. Useful
     during debugging or when working with already compressed data.
+  delta_encoding: When ``true`` arrays are stored as differences between
+    consecutive elements. This often yields dramatically higher compression
+    ratios for smooth numeric data but slightly increases the cost of
+    decompression. The first element is stored verbatim so the process remains
+    lossless.
 
 dataloader:
   # Settings for the ``DataLoader`` which serializes and compresses data.

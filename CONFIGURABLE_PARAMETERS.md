@@ -209,6 +209,7 @@ Each entry is listed under its section heading.
 ## data_compressor
 - compression_level
 - compression_enabled
+- delta_encoding
 
 ## dataloader
 - tensor_dtype

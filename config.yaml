@@ -208,6 +208,7 @@ torrent_client:
 data_compressor:
   compression_level: 6
   compression_enabled: true
+  delta_encoding: false
 dataloader:
   tensor_dtype: "uint8"
 remote_server:

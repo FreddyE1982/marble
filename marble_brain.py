@@ -1,23 +1,21 @@
-from marble_imports import *
-from marble_core import TIER_REGISTRY, MemorySystem
-import torch
 import time
-from neuromodulatory_system import NeuromodulatorySystem
-from meta_parameter_controller import MetaParameterController
+
+import torch
+
 from marble_base import MetricsVisualizer
+from marble_core import TIER_REGISTRY, MemorySystem
+from marble_imports import *
 from marble_lobes import LobeManager
-from system_metrics import get_system_memory_usage, get_gpu_memory_usage
+from meta_parameter_controller import MetaParameterController
+from neuromodulatory_system import NeuromodulatorySystem
+from system_metrics import get_gpu_memory_usage, get_system_memory_usage
 
 
 def _parse_example(sample):
     """Return ``(input_value, target_value)`` from various sample formats."""
 
     if isinstance(sample, dict):
-        inp = (
-            sample.get("input")
-            or sample.get("inputs")
-            or sample.get("x")
-        )
+        inp = sample.get("input") or sample.get("inputs") or sample.get("x")
         tgt = (
             sample.get("target")
             or sample.get("output")
@@ -250,12 +248,17 @@ class Brain:
         os.makedirs(self.save_dir, exist_ok=True)
         self.metrics_visualizer = metrics_visualizer
         self.dim_search = None
-        if dimensional_search_params is not None and dimensional_search_params.get("enabled", False):
+        if dimensional_search_params is not None and dimensional_search_params.get(
+            "enabled", False
+        ):
             from dimensional_search import DimensionalitySearch
+
             self.dim_search = DimensionalitySearch(
                 self.core,
                 max_size=dimensional_search_params.get("max_size", self.core.rep_size),
-                improvement_threshold=dimensional_search_params.get("improvement_threshold", 0.02),
+                improvement_threshold=dimensional_search_params.get(
+                    "improvement_threshold", 0.02
+                ),
                 plateau_epochs=dimensional_search_params.get("plateau_epochs", 2),
                 metrics_visualizer=self.metrics_visualizer,
             )
@@ -268,7 +271,9 @@ class Brain:
                 self.core,
                 self.nb,
                 enabled=True,
-                target_dimensions=nd_params.get("target_dimensions", self.core.rep_size),
+                target_dimensions=nd_params.get(
+                    "target_dimensions", self.core.rep_size
+                ),
                 attention_threshold=nd_params.get("attention_threshold", 0.5),
                 loss_improve_threshold=nd_params.get("loss_improve_threshold", 0.01),
                 stagnation_epochs=nd_params.get("stagnation_epochs", 5),
@@ -562,16 +567,12 @@ class Brain:
         return output, chain
 
     def store_memory(self, key, value):
-        layer = self.memory_system.choose_layer(
-            self.neuromodulatory_system.get_context()
+        self.memory_system.store(
+            key, value, context=self.neuromodulatory_system.get_context()
         )
-        layer.store(key, value)
 
     def retrieve_memory(self, key):
-        val = self.memory_system.short_term.retrieve(key)
-        if val is None:
-            val = self.memory_system.long_term.retrieve(key)
-        return val
+        return self.memory_system.retrieve(key)
 
     def consolidate_memory(self):
         self.memory_system.consolidate()
@@ -825,7 +826,6 @@ class Brain:
                 pbar.set_postfix({"ValLoss": f"{val_loss:.4f}"})
         pbar.close()
 
-
     def __getstate__(self):
         state = self.__dict__.copy()
         state["training_thread"] = None
@@ -843,6 +843,7 @@ class Brain:
             from marble_base import MetricsVisualizer
 
             self.metrics_visualizer = MetricsVisualizer()
+
 
 class BenchmarkManager:
     def __init__(self, marble_system, target_metrics=None):
