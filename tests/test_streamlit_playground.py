@@ -22,6 +22,8 @@ from streamlit_playground import (
     execute_marble_function,
     list_repo_modules,
     list_module_functions,
+    list_module_classes,
+    create_module_object,
     execute_module_function,
     execute_function_sequence,
     save_marble_system,
@@ -239,6 +241,15 @@ def test_module_listing_and_execution():
     with mock.patch("importlib.import_module", return_value=dummy):
         out = execute_module_function("dummy", "test_func", x=1)
     assert out == 2
+
+    dummy_class = types.SimpleNamespace(
+        TestClass=type("C", (), {"__init__": lambda self, y=1: setattr(self, "y", y)})
+    )
+    with mock.patch("importlib.import_module", return_value=dummy_class):
+        classes = list_module_classes("dummy")
+        assert "TestClass" in classes
+        obj = create_module_object("dummy", "TestClass", None, y=2)
+        assert obj.y == 2
 
 
 def test_execute_function_sequence(tmp_path):
