@@ -741,3 +741,28 @@ synaptic_echo_learning:
     sufficient for simple experiments.
   echo_influence: Multiplier applied to the error signal before updating
     weights. Larger values amplify the effect of echoed activations.
+
+fractal_dimension_learning:
+  # Adjusts the representation size by estimating the fractal dimension of
+  # neuron embeddings. When the dimension exceeds ``target_dimension`` a new
+  # element is appended to each representation via ``Core.increase_representation_size``.
+  enabled: Enable fractal dimension learning when ``true``.
+  epochs: Number of passes over the dataset used to refine the estimate.
+  target_dimension: Threshold for the estimated dimension. Values between
+    2.0 and 6.0 work well for small graphs.
+
+quantum_flux_learning:
+  # Experimental rule associating a phase with every synapse. Weight updates
+  # are scaled by ``sin(phase)`` and the phase drifts by ``phase_rate``.
+  enabled: Activate quantum flux learning when set to ``true``.
+  epochs: Number of epochs using phase-modulated updates.
+  phase_rate: Amount added to each synapse's phase after each update.
+
+dream_reinforcement_learning:
+  # Combines regular reinforcement updates with short dream rollouts. After
+  # each real step ``dream_cycles`` additional wanders run using the last
+  # output as input and apply errors scaled by ``dream_strength``.
+  enabled: Enable dream reinforcement learning when ``true``.
+  episodes: Number of training episodes consisting of input-target pairs.
+  dream_cycles: How many dream updates follow each real step.
+  dream_strength: Multiplier applied to dream errors before weight updates.

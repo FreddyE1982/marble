@@ -327,3 +327,16 @@ synaptic_echo_learning:
   enabled: false
   epochs: 1
   echo_influence: 1.0
+fractal_dimension_learning:
+  enabled: false
+  epochs: 1
+  target_dimension: 4.0
+quantum_flux_learning:
+  enabled: false
+  epochs: 1
+  phase_rate: 0.1
+dream_reinforcement_learning:
+  enabled: false
+  episodes: 1
+  dream_cycles: 1
+  dream_strength: 0.5

@@ -266,3 +266,30 @@ a subset of synapses.**
    mechanism.
 4. Examine `learner.history` and synapse echo buffers to understand how
    past activations influence learning.
+
+## Project 20 – Fractal Dimension Learning (Novel)
+
+**Goal:** Let MARBLE expand its representations when activity becomes complex.**
+
+1. Enable `fractal_dimension_learning.enabled` in `config.yaml` and set `epochs` and `target_dimension`.
+2. Create a `FractalDimensionLearner` with your `Core` and `Neuronenblitz` objects.
+3. Provide `(input, target)` pairs to `FractalDimensionLearner.train()`.
+4. Observe `core.rep_size` in `learner.history` to see when dimensions grow.
+
+## Project 21 – Quantum Flux Learning (Novel)
+
+**Goal:** Explore phase-modulated weight updates.**
+
+1. Enable `quantum_flux_learning.enabled` in `config.yaml` and set `epochs` and `phase_rate`.
+2. Instantiate `QuantumFluxLearner` using existing `Core` and `Neuronenblitz` instances.
+3. Call `train_step(input, target)` repeatedly to apply flux-based updates.
+4. Inspect `learner.phases` to understand how synapse phases evolve.
+
+## Project 22 – Dream Reinforcement Synergy (Novel)
+
+**Goal:** Combine dreaming with reinforcement-like updates.**
+
+1. Enable `dream_reinforcement_learning.enabled` in `config.yaml` and set `episodes`, `dream_cycles` and `dream_strength`.
+2. Instantiate `DreamReinforcementLearner` with your `Core` and `Neuronenblitz` objects.
+3. Use `train_episode(input, target)` for each interaction step.
+4. The `dream_cycles` parameter controls how many imaginary updates occur after each real one.
