@@ -9,6 +9,9 @@ import numpy as np
 from PIL import Image
 from zipfile import ZipFile
 
+import inspect
+import marble_interface
+
 from marble_interface import (
     new_marble_system,
     train_marble_system,
@@ -112,6 +115,35 @@ def initialize_marble(cfg_path: str):
     return new_marble_system(cfg_path)
 
 
+def list_marble_functions() -> list[str]:
+    """Return a sorted list of public functions in :mod:`marble_interface`."""
+    funcs = []
+    for name, obj in inspect.getmembers(marble_interface, inspect.isfunction):
+        if not name.startswith("_"):
+            funcs.append(name)
+    return sorted(funcs)
+
+
+def execute_marble_function(func_name: str, marble=None, **params):
+    """Execute a ``marble_interface`` function by name."""
+    if not hasattr(marble_interface, func_name):
+        raise ValueError(f"Unknown function: {func_name}")
+    func = getattr(marble_interface, func_name)
+    sig = inspect.signature(func)
+    kwargs = {}
+    for name, p in sig.parameters.items():
+        if name == "marble" and marble is not None:
+            kwargs[name] = marble
+            continue
+        if name in params:
+            kwargs[name] = params[name]
+        elif p.default is not inspect.Parameter.empty:
+            kwargs[name] = p.default
+        else:
+            raise ValueError(f"Missing parameter: {name}")
+    return func(**kwargs)
+
+
 def run_playground() -> None:
     """Launch the Streamlit MARBLE playground."""
     st.set_page_config(page_title="MARBLE Playground")
@@ -130,6 +162,8 @@ def run_playground() -> None:
         st.info("Initialize MARBLE to begin.")
         return
 
+    mode = st.sidebar.radio("Mode", ["Basic", "Advanced"], key="mode")
+
     dreaming = st.sidebar.checkbox("Dreaming", value=marble.get_brain().dreaming_active)
     set_dreaming(marble, dreaming)
 
@@ -147,22 +181,45 @@ def run_playground() -> None:
         if marble.get_metrics_visualizer().fig:
             st.pyplot(marble.get_metrics_visualizer().fig)
 
-    st.header("Inference")
-    num_val = st.number_input("Numeric Input", value=0.0, format="%f")
-    text_val = st.text_input("Text Input")
-    img_file = st.file_uploader("Image Input", type=["png", "jpg", "jpeg", "bmp"], key="img")
-    audio_file = st.file_uploader("Audio Input", type=["wav"], key="aud")
-    if st.button("Infer"):
-        if img_file is not None:
-            input_value = _parse_value(img_file.name, ZipFile(BytesIO(img_file.read()), "r"))
-        elif audio_file is not None:
-            input_value = _load_audio(BytesIO(audio_file.read()))
-        elif text_val:
-            input_value = _parse_value(text_val)
-        else:
-            input_value = float(num_val)
-        out = infer_marble_system(marble, input_value)
-        st.write(f"Output: {out}")
+    if mode == "Basic":
+        st.header("Inference")
+        num_val = st.number_input("Numeric Input", value=0.0, format="%f")
+        text_val = st.text_input("Text Input")
+        img_file = st.file_uploader("Image Input", type=["png", "jpg", "jpeg", "bmp"], key="img")
+        audio_file = st.file_uploader("Audio Input", type=["wav"], key="aud")
+        if st.button("Infer"):
+            if img_file is not None:
+                input_value = _parse_value(img_file.name, ZipFile(BytesIO(img_file.read()), "r"))
+            elif audio_file is not None:
+                input_value = _load_audio(BytesIO(audio_file.read()))
+            elif text_val:
+                input_value = _parse_value(text_val)
+            else:
+                input_value = float(num_val)
+            out = infer_marble_system(marble, input_value)
+            st.write(f"Output: {out}")
+    else:
+        st.header("Advanced Function Execution")
+        funcs = list_marble_functions()
+        selected = st.selectbox("Function", funcs)
+        func_obj = getattr(marble_interface, selected)
+        sig = inspect.signature(func_obj)
+        inputs = {}
+        for name, param in sig.parameters.items():
+            if name == "marble":
+                continue
+            default = "" if param.default is inspect.Parameter.empty else str(param.default)
+            inputs[name] = st.text_input(name, value=default)
+        if st.button("Execute"):
+            parsed = {}
+            for k, v in inputs.items():
+                if v != "":
+                    try:
+                        parsed[k] = json.loads(v)
+                    except Exception:
+                        parsed[k] = _parse_value(v)
+            result = execute_marble_function(selected, marble, **parsed)
+            st.write(result)
 
 
 if __name__ == "__main__":

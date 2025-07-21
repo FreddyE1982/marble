@@ -11,7 +11,12 @@ import numpy as np
 
 from tests.test_core_functions import minimal_params
 
-from streamlit_playground import load_examples, initialize_marble
+from streamlit_playground import (
+    load_examples,
+    initialize_marble,
+    list_marble_functions,
+    execute_marble_function,
+)
 
 
 def test_load_examples_csv_and_json(tmp_path):
@@ -52,3 +57,15 @@ def test_initialize_marble(tmp_path):
         yaml.dump(cfg, f)
     m = initialize_marble(str(cfg_path))
     assert len(m.get_core().neurons) > 0
+
+
+def test_execute_marble_function(tmp_path):
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+    m = initialize_marble(str(cfg_path))
+    funcs = list_marble_functions()
+    assert "count_marble_synapses" in funcs
+    out = execute_marble_function("count_marble_synapses", m)
+    assert isinstance(out, int)
