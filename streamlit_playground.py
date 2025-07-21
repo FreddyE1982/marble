@@ -336,6 +336,25 @@ def save_pipeline_to_json(pipeline: list[dict], path: str) -> None:
         json.dump(pipeline, f, indent=2)
 
 
+def remove_pipeline_step(pipeline: list[dict], index: int) -> list[dict]:
+    """Return ``pipeline`` with the step at ``index`` removed."""
+    if index < 0 or index >= len(pipeline):
+        raise IndexError("index out of range")
+    pipeline.pop(index)
+    return pipeline
+
+
+def move_pipeline_step(pipeline: list[dict], old_index: int, new_index: int) -> list[dict]:
+    """Move a pipeline step from ``old_index`` to ``new_index`` and return it."""
+    if old_index < 0 or old_index >= len(pipeline):
+        raise IndexError("old_index out of range")
+    if new_index < 0 or new_index >= len(pipeline):
+        raise IndexError("new_index out of range")
+    step = pipeline.pop(old_index)
+    pipeline.insert(new_index, step)
+    return pipeline
+
+
 def load_yaml_manual() -> str:
     """Return the contents of ``yaml-manual.txt``."""
     path = os.path.join(os.path.dirname(__file__), "yaml-manual.txt")
@@ -726,9 +745,17 @@ def run_playground() -> None:
             st.write("Build a sequence of function calls.")
             if st.session_state["pipeline"]:
                 for i, step in enumerate(st.session_state["pipeline"]):
-                    st.markdown(
+                    cols = st.columns(4)
+                    cols[0].markdown(
                         f"**{i+1}.** `{step.get('module') or 'marble_interface'}.{step['func']}`"
                     )
+                    if cols[1].button("⬆", key=f"pipe_up_{i}") and i > 0:
+                        move_pipeline_step(st.session_state["pipeline"], i, i - 1)
+                    if cols[2].button("⬇", key=f"pipe_down_{i}") and i < len(st.session_state["pipeline"]) - 1:
+                        move_pipeline_step(st.session_state["pipeline"], i, i + 1)
+                    if cols[3].button("✕", key=f"pipe_rm_{i}"):
+                        remove_pipeline_step(st.session_state["pipeline"], i)
+                        st.experimental_rerun()
             with st.expander("Load/Save Pipeline"):
                 pipe_up = st.file_uploader("Load Pipeline", type=["json"], key="pipe_load")
                 if st.button("Load", key="load_pipe") and pipe_up is not None:
