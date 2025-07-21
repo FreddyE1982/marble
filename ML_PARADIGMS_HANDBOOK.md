@@ -62,8 +62,16 @@ MARBLE watches demonstrations and tries to mimic them. It stores pairs of inputs
 An experimental method where inputs are encoded as sine waves. The frequency gradually changes, guiding MARBLE to capture periodic relationships.
 
 ### Synaptic Echo Learning
-Another experimental approach that reuses recent neuron activity stored in "echo" buffers. Past activations influence how weights update.
+Each synapse maintains an echo buffer of recent activations. Weight updates scale the normal error term by the mean echo value: (Delta w = ta,	ext{echo}	imes	ext{error}). This links short-term memory with learning dynamics.
 
+### Fractal Dimension Learning
+MARBLE monitors the fractal dimension of activations and increases representation size when it grows too high.
+
+### Quantum Flux Learning
+Weights are updated with a sinusoidal phase factor that evolves over time, creating oscillatory plasticity.
+
+### Dream Reinforcement Learning
+After each real update the network performs short dream rollouts and learns from their errors.
 ---
 
 ## Version for ML Scientists
@@ -140,6 +148,14 @@ Demonstration pairs \((s,a)\) are recorded. Loss is \(\|a - f(s)\|^2\). Training
 Inputs are represented as sinusoidal embeddings: \(r=[\sin(\omega x), \cos(\omega x)]\). After each step, frequency \(\omega\) decays by `decay`, allowing exploration of resonant structures in the data.
 
 ### Synaptic Echo Learning
+### Fractal Dimension Learning
+MARBLE monitors the fractal dimension of activations and increases representation size when it grows too high.
+
+### Quantum Flux Learning
+Weights are updated with a sinusoidal phase factor that evolves over time, creating oscillatory plasticity.
+
+### Dream Reinforcement Learning
+After each real update the network performs short dream rollouts and learns from their errors.
 Each synapse maintains an echo buffer of recent activations. Weight updates scale the normal error term by the mean echo value: \(\Delta w = \eta\,\text{echo}\times\text{error}\). This links short-term memory with learning dynamics.
 
 ---
@@ -204,5 +220,13 @@ By watching an expert perform actions, MARBLE records those moves and practices 
 This experimental idea turns numbers into sine waves before feeding them into MARBLE. The frequency slowly changes, helping the system notice repeating patterns.
 
 ### Synaptic Echo Learning
+### Fractal Dimension Learning
+MARBLE monitors the fractal dimension of activations and increases representation size when it grows too high.
+
+### Quantum Flux Learning
+Weights are updated with a sinusoidal phase factor that evolves over time, creating oscillatory plasticity.
+
+### Dream Reinforcement Learning
+After each real update the network performs short dream rollouts and learns from their errors.
 MARBLE keeps short memories of recent neuron activity. These echoes influence how the connections change, giving the network a sense of its immediate past.
 

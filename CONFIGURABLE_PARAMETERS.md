@@ -352,3 +352,19 @@ Each entry is listed under its section heading.
 - enabled
 - epochs
 - echo_influence
+
+## fractal_dimension_learning
+- enabled
+- epochs
+- target_dimension
+
+## quantum_flux_learning
+- enabled
+- epochs
+- phase_rate
+
+## dream_reinforcement_learning
+- enabled
+- episodes
+- dream_cycles
+- dream_strength
