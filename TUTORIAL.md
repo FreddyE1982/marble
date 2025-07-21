@@ -1266,10 +1266,14 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
     statistics are plotted live so you can observe training behaviour.
 16. **Check system resources** on the *System Stats* tab. RAM and GPU usage are
     displayed so you can monitor consumption while experimenting.
-17. **Read the documentation** on the *Documentation* tab. The README, YAML
-    manual and tutorial are available directly in the browser for quick
+17. **Read the documentation** on the *Documentation* tab. Every markdown file
+    in the repository, including the architecture overview, configurable
+    parameters list and machine learning handbook, can be opened here for quick
     reference.
-18. **Run unit tests** on the *Tests* tab. Select one or more test files and
+18. **Browse source code** on the *Source Browser* tab. Select any module and
+    click **Show Source** to view its implementation without leaving the
+    playground.
+19. **Run unit tests** on the *Tests* tab. Select one or more test files and
     click **Run Tests** to verify everything works as expected.
 
 Uploaded datasets are previewed directly in the sidebar so you can verify their
