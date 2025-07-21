@@ -38,6 +38,19 @@ Any Python object can serve as an ``input`` or ``target`` because the built-in
 possible to train on multimodal pairs such as text-to-image, image-to-text or
 even audio and arbitrary byte blobs without additional conversion steps.
 
+### Playground
+
+An interactive Streamlit playground allows quick experimentation with all of
+MARBLE's capabilities. Launch it from the repository root with:
+
+```bash
+streamlit run streamlit_playground.py
+```
+
+Upload CSV, JSON or ZIP datasets containing any mix of numbers, text, images or
+audio. The inference panel accepts the same modalities so you can explore how
+different data types influence the system in real time.
+
 ## Possible MARBLE Backcronyms
 
 Below is a list of ideas explored when naming the project:

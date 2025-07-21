@@ -1226,7 +1226,12 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    ```bash
    streamlit run streamlit_playground.py
    ```
-3. **Upload a CSV dataset** with `input` and `target` columns in the sidebar, set the desired number of epochs and click **Train**.
-4. **Perform inference** by entering a numeric value under the *Inference* section and pressing **Infer**. Training metrics appear automatically after each run.
+3. **Upload a dataset** in CSV, JSON or ZIP format. ZIP archives may contain
+   `dataset.csv`/`dataset.json` or paired `inputs/` and `targets/` folders with
+   images or audio files. Any mixture of numbers, text, images and audio is
+   supported. Select the desired number of epochs and click **Train**.
+4. **Perform inference** by providing a numeric value, text, image or audio
+   sample under the *Inference* section and pressing **Infer**. Training metrics
+   appear automatically after each run.
 
 The playground provides toggles for dreaming and autograd features so you can experiment with MARBLE's advanced capabilities without writing code.
