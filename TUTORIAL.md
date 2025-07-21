@@ -1271,20 +1271,23 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
 18. **Tune neuromodulatory signals** on the *Neuromodulation* tab. Adjust the
     sliders for arousal, stress and reward or set an emotion string, then press
     **Update Signals** to modify MARBLE's internal context on the fly.
-19. **Read the documentation** on the *Documentation* tab. Every markdown file
+19. **Manage lobes** on the *Lobe Manager* tab. View attention scores for each
+    lobe, create new lobes from selected neuron IDs, reorganize the current
+    structure or apply self-attention updates with a single click.
+20. **Read the documentation** on the *Documentation* tab. Every markdown file
     in the repository, including the architecture overview, configurable
     parameters list and machine learning handbook, can be opened here for quick
     reference.
-20. **Browse source code** on the *Source Browser* tab. Select any module and
+21. **Browse source code** on the *Source Browser* tab. Select any module and
     click **Show Source** to view its implementation without leaving the
     playground.
-21. **Run unit tests** on the *Tests* tab. Select one or more test files and
+22. **Run unit tests** on the *Tests* tab. Select one or more test files and
     click **Run Tests** to verify everything works as expected.
-22. **Control asynchronous behaviour** on the *Async Training* tab. Start
+23. **Control asynchronous behaviour** on the *Async Training* tab. Start
     background training threads or enable auto-firing so MARBLE keeps learning
     while you explore other tabs. Use **Wait For Training** to block until the
     current session finishes or stop auto-firing at any time.
-23. **Explore reinforcement learning** on the *RL Sandbox* tab. Set the grid
+24. **Explore reinforcement learning** on the *RL Sandbox* tab. Set the grid
     size, number of episodes, step limit and optionally enable double
     Q-learning, then click **Run GridWorld** to train a
     `MarbleQLearningAgent`. The reward curve for each episode is displayed so

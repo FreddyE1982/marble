@@ -73,6 +73,11 @@ from streamlit_playground import (
     system_stats,
     get_neuromod_state,
     set_neuromod_state,
+    lobe_info,
+    add_lobe,
+    organize_lobes,
+    self_attention_lobes,
+    select_high_attention_neurons,
     list_test_files,
     run_tests,
     list_documentation_files,
@@ -542,3 +547,22 @@ def test_gridworld_helpers(tmp_path):
     assert env.size == 3
     rewards = run_gridworld_episode(marble, episodes=1, max_steps=2, size=3)
     assert isinstance(rewards, list) and len(rewards) == 1
+
+
+def test_lobe_manager_helpers(tmp_path):
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+    marble = initialize_marble(str(cfg_path))
+
+    assert lobe_info(marble) == []
+    lid = add_lobe(marble, [0, 1])
+    assert isinstance(lid, int)
+    info = lobe_info(marble)
+    assert len(info) == 1 and info[0]["neurons"] == 2
+    count = organize_lobes(marble)
+    assert isinstance(count, int)
+    self_attention_lobes(marble, loss=1.0)
+    ids = select_high_attention_neurons(marble, threshold=-1.0)
+    assert isinstance(ids, list)
