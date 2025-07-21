@@ -379,3 +379,8 @@ n_dimensional_topology:
   attention_threshold: 0.8
   loss_improve_threshold: 0.01
   stagnation_epochs: 5
+
+unified_learning:
+  enabled: false
+  gating_hidden: 8
+  log_path: "unified_log.json"

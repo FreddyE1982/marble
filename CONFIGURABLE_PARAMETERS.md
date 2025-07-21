@@ -408,3 +408,8 @@ Each entry is listed under its section heading.
 - attention_threshold
 - loss_improve_threshold
 - stagnation_epochs
+
+## unified_learning
+- enabled
+- gating_hidden
+- log_path
