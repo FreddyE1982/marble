@@ -15,15 +15,18 @@ This tutorial demonstrates every major component of MARBLE through a series of p
 
 **Goal:** Train MARBLE on a simple numeric dataset.
 
-1. **Download the data** using `wget` so that you have a local copy of the wine quality dataset. Run this in your working directory:
-   ```bash
-   wget https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv
+1. **Download the data programmatically** so you have a local copy of the wine quality dataset:
+   ```python
+   import urllib.request
+
+   url = "https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
+   urllib.request.urlretrieve(url, "winequality-red.csv")
    ```
    After the download completes you should see `winequality-red.csv` in the directory.
 2. **Prepare the dataset** by loading the CSV with `pandas` and converting each row into `(input, target)` pairs. `input` contains the feature columns and `target` is the quality score:
    ```python
    import pandas as pd
-   df = pd.read_csv('winequality-red.csv')
+   df = pd.read_csv('winequality-red.csv', sep=';')
    train_examples = [(row[:-1].to_numpy(), row[-1]) for row in df.to_numpy()]
    ```
 3. **Split the data** into training and validation sets so the training loop can monitor validation loss:
@@ -71,10 +74,16 @@ This project introduces the **Core**, **Neuronenblitz** and **Brain** objects al
 
 **Goal:** Use the built-in asynchronous training and evolutionary tools on an image dataset.
 
-1. **Download the dataset** so that you have the CIFAR‑10 archive locally:
-   ```bash
-   wget https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
-   tar -xzf cifar-10-python.tar.gz
+1. **Download the dataset programmatically** so that you have the CIFAR‑10 archive locally:
+   ```python
+   import urllib.request, tarfile, os
+
+   url = "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz"
+   archive = "cifar-10-python.tar.gz"
+   if not os.path.exists(archive):
+       urllib.request.urlretrieve(url, archive)
+       with tarfile.open(archive, "r:gz") as tar:
+           tar.extractall()
    ```
    The extracted directory contains Python pickles for each data batch.
 2. **Create training pairs** by loading each image array from the files and pairing it with the provided label to form `(input, target)` tuples. Normalise all pixel values into the range `[0, 1]` before continuing.
@@ -218,12 +227,15 @@ This project covers **autograd integration** and the **PyTorch challenge** mecha
 
 **Goal:** Train a tiny language model inside MARBLE.
 
-1. **Download the dataset** and place it in a `data/` directory:
-   ```bash
-   mkdir -p data
-   wget -O data/tinyshakespeare.txt https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt
+1. **Download the dataset** and place it in a `data/` directory using Python:
+   ```python
+   import os, urllib.request
+
+   os.makedirs('data', exist_ok=True)
+   url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'
+   urllib.request.urlretrieve(url, 'data/tinyshakespeare.txt')
    ```
-   The text file should now be located at `data/tinyshakespeare.txt`.
+   The text file will be located at `data/tinyshakespeare.txt`.
 2. **Enable the GPT components** by editing `config.yaml` and setting `gpt.enabled: true`. Also provide `dataset_path: data/tinyshakespeare.txt` in that section.
 3. **Tokenize and train** using the helper functions:
    ```python
@@ -288,7 +300,16 @@ Execute `python project6_reinforcement_learning.py` to run the built-in GridWorl
 
 **Goal:** Learn robust representations without labels.
 
-1. **Download and extract** the [STL‑10 dataset](https://ai.stanford.edu/~acoates/stl10/) using `wget` followed by `tar -xzf` to obtain the unlabeled split.
+1. **Download and extract** the [STL‑10 dataset](https://ai.stanford.edu/~acoates/stl10/) programmatically:
+   ```python
+   from torchvision.datasets import STL10
+   import numpy as np
+
+   unlabeled_ds = STL10(root='data', split='unlabeled', download=True)
+   unlabeled = [np.asarray(img) / 255.0 for img, _ in unlabeled_ds]
+   labeled_ds = STL10(root='data', split='train', download=True)
+   labeled = [(np.asarray(img) / 255.0, label) for img, label in labeled_ds]
+   ```
 2. **Enable the contrastive learner** by setting `contrastive_learning.enabled: true` in `config.yaml` and choose a `batch_size` that fits your GPU memory.
 3. **Define data augmentations** such as random cropping and horizontal flipping, then call `Neuronenblitz.contrastive_train(images, augment_fn)` to learn representations from the unlabeled images.
 4. **Fine-tune on labels** by reusing the trained weights and invoking the standard `train()` method on a labeled subset of STL‑10.
@@ -302,9 +323,14 @@ from marble_utils import augment_image
 
 cfg = load_config()
 marble = MARBLE(cfg['core'])
-unlabeled = load_unlabeled_images('stl10/train_X')
+from torchvision.datasets import STL10
+import numpy as np
+
+unlabeled_ds = STL10(root='data', split='unlabeled', download=True)
+unlabeled = [np.asarray(img) / 255.0 for img, _ in unlabeled_ds]
+labeled_ds = STL10(root='data', split='train', download=True)
+labeled = [(np.asarray(img) / 255.0, label) for img, label in labeled_ds]
 marble.neuronenblitz.contrastive_train(unlabeled, augment_image)
-labeled = load_labeled_images('stl10/train_y')
 marble.brain.train(labeled, epochs=5)
 ```
 Run this script to reproduce the contrastive learning workflow.
@@ -729,13 +755,14 @@ Run `python project17_imitation.py` to train from demonstrations.
    from harmonic_resonance_learning import HarmonicResonanceLearner
    learner = HarmonicResonanceLearner(core, neuronenblitz)
    ```
-3. **Download a real time series** such as the [Jena climate dataset](https://github.com/philipperemy/keras-tutorials/blob/master/resources/jena_climate_2009_2016.csv.zip) using `wget` and load it with `pandas`:
-   ```bash
-   wget -O jena.csv.zip https://github.com/philipperemy/keras-tutorials/raw/master/resources/jena_climate_2009_2016.csv.zip
-   unzip jena.csv.zip
-   ```
+3. **Download a real time series** such as the [Jena climate dataset](https://github.com/philipperemy/keras-tutorials/blob/master/resources/jena_climate_2009_2016.csv.zip) programmatically and load it with `pandas`:
    ```python
-   import pandas as pd
+   import urllib.request, zipfile, io, pandas as pd
+
+   url = "https://github.com/philipperemy/keras-tutorials/raw/master/resources/jena_climate_2009_2016.csv.zip"
+   with urllib.request.urlopen(url) as resp:
+       with zipfile.ZipFile(io.BytesIO(resp.read())) as zf:
+           zf.extractall()
    data = pd.read_csv('jena_climate_2009_2016.csv')
    values = list(zip(data['T (degC)'].values, data['p (mbar)'].values))
    ```
