@@ -1010,6 +1010,28 @@ learner.train(examples, epochs=5)
 ```
 Run `python project23_omni.py` to test all paradigms together.
 
+## Project 23b – Unified Multi-Paradigm Learning
+
+**Goal:** Dynamically choose which paradigm to emphasize during training.**
+
+1. **Enable unified learning** by setting `unified_learning.enabled: true` in
+   `config.yaml`.
+2. **Create a `UnifiedLearner`** using an existing core, Neuronenblitz and a
+   dictionary of sub-learners:
+   ```python
+   from unified_learning import UnifiedLearner
+   learners = {
+       'contrastive': ContrastiveLearner(core, nb),
+       'hebbian': HebbianLearner(core, nb),
+       'autoencoder': AutoencoderLearner(core, nb),
+   }
+   learner = UnifiedLearner(core, nb, learners)
+   ```
+3. **Train** normally using `learner.train_step((inp, tgt))` inside your loop.
+   The gating network assigns a weight to each learner every step, modulating
+   `neuronenblitz.plasticity_modulation`. Decisions are stored in the file set
+   by `log_path`.
+
 ## Project 24 – Continuous Weight Field Learning (Experimental)
 
 **Goal:** Train a smooth weight field that adapts to each input.**

@@ -854,3 +854,16 @@ n_dimensional_topology:
   attention_threshold: Minimum self-attention required before trying to grow.
   loss_improve_threshold: Relative loss decrease needed to keep the new dimension.
   stagnation_epochs: Number of stagnant epochs before another dimension may be added.
+
+unified_learning:
+  # The UnifiedLearner coordinates all paradigms using a gating network.
+  # At each step it constructs a context vector summarising memory usage,
+  # plasticity threshold, number of neurons and recent losses. A small neural
+  # network turns this context into softmax weights over the learners. The
+  # weights modulate ``neuronenblitz.plasticity_modulation`` so each paradigm's
+  # updates are scaled appropriately. When ``log_path`` is set every decision is
+  # appended to that JSONL file for later inspection.
+  enabled: When ``true`` the meta-controller runs during training.
+  gating_hidden: Number of hidden units in the gating network. Typical values
+    range from 4--32 depending on how many context features are used.
+  log_path: File path for the decision log. Set to ``null`` to disable logging.

@@ -97,6 +97,12 @@ to a symbolic database. Retrieval uses a learned attention mechanism that scores
 stored embeddings against the current dialogue context. Retrieved records prime
 the response and new information is written back after answering, allowing
 persistent recall across many turns.
+
+### Unified Multi-Paradigm Learning
+All paradigms share the same core and a gating network decides which learning
+rule to emphasise for each batch. The decision depends on memory usage and
+recent loss, ensuring stable progress. Results are logged so even beginners can
+trace why MARBLE chose a particular strategy.
 ---
 
 ## Version for ML Scientists
@@ -194,6 +200,12 @@ Whenever two active neurons exhibit low cosine similarity, the Core spawns a new
 neuron whose representation is \(\tanh(r_i \odot r_j)\). Synapses connect it to
 both parents so future activity can quickly activate the abstract blend.
 
+### Unified Multi-Paradigm Learning
+Context features such as recent validation loss and tier usage feed a small
+gating network. Its softmax output scales
+``neuronenblitz.plasticity_modulation`` for each learner, blending their
+gradients. Logs capture each decision for later analysis.
+
 ---
 
 ## Version for High School Students
@@ -286,4 +298,12 @@ During inference a cross-attention network ranks stored embeddings against the
 current context. The best matches retrieve their symbolic entries which are fed
 back into the model. After generating a reply the new information is embedded and
 written to disk for future recall.
+
+### Unified Multi-Paradigm Learning
+All MARBLE paradigms can now operate under a single meta-controller. A gating
+network observes context information like memory usage and recent loss then
+assigns weights to each learner. Their updates are combined through
+``neuronenblitz.plasticity_modulation`` so the most relevant paradigms influence
+training more heavily. Every decision is logged so users can inspect why the
+system emphasised one approach over another.
 

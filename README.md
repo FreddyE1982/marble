@@ -14,7 +14,11 @@ fraction of synapses while fine-tuning on a different dataset.
 Continual learning is enabled via a replay-based learner that revisits
 previous examples to prevent catastrophic forgetting between tasks.
 An ``OmniLearner`` paradigm seamlessly unifies all available learners so
-that multiple approaches can train the same model in concert.
+that multiple approaches can train the same model in concert. Building on
+this idea, the new ``UnifiedLearner`` introduces a gating network that
+dynamically selects or blends paradigms for every training step based on
+contextual cues. This meta-controller coordinates learning across all
+modules while logging its decisions for later inspection.
 Continuous Weight Field Learning introduces a variational method where each
 input has its own smoothly varying weight vector generated on the fly.
 Neural Schema Induction grows new neurons representing frequently repeated
