@@ -10,6 +10,9 @@ import numpy as np
 from PIL import Image
 from zipfile import ZipFile
 
+import networkx as nx
+import plotly.graph_objs as go
+
 import inspect
 import marble_interface
 
@@ -296,6 +299,62 @@ def save_pipeline_to_json(pipeline: list[dict], path: str) -> None:
         json.dump(pipeline, f, indent=2)
 
 
+def load_yaml_manual() -> str:
+    """Return the contents of ``yaml-manual.txt``."""
+    path = os.path.join(os.path.dirname(__file__), "yaml-manual.txt")
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+def core_to_networkx(core) -> nx.DiGraph:
+    """Return a NetworkX graph representing ``core``."""
+    g = nx.DiGraph()
+    for n in core.neurons:
+        g.add_node(n.id, neuron_type=n.neuron_type)
+    for s in core.synapses:
+        g.add_edge(s.source, s.target, weight=s.weight)
+    return g
+
+
+def core_figure(core, layout: str = "spring") -> go.Figure:
+    """Create a Plotly figure visualizing ``core``."""
+    g = core_to_networkx(core)
+    if layout == "circular":
+        pos = nx.circular_layout(g)
+    else:
+        pos = nx.spring_layout(g, seed=42)
+    edge_x, edge_y = [], []
+    for u, v in g.edges():
+        x0, y0 = pos[u]
+        x1, y1 = pos[v]
+        edge_x += [x0, x1, None]
+        edge_y += [y0, y1, None]
+    node_x, node_y, text = [], [], []
+    for n in g.nodes():
+        x, y = pos[n]
+        node_x.append(x)
+        node_y.append(y)
+        text.append(f"id={n}<br>{g.nodes[n].get('neuron_type')}")
+    edge_trace = go.Scatter(
+        x=edge_x,
+        y=edge_y,
+        mode="lines",
+        line=dict(width=0.5, color="#888"),
+        hoverinfo="none",
+    )
+    node_trace = go.Scatter(
+        x=node_x,
+        y=node_y,
+        mode="markers",
+        hoverinfo="text",
+        text=text,
+        marker=dict(size=6, color="#1f77b4"),
+    )
+    fig = go.Figure(data=[edge_trace, node_trace])
+    fig.update_layout(showlegend=False, margin=dict(l=0, r=0, t=0, b=0))
+    return fig
+
+
 def load_pipeline_from_json(file) -> list[dict]:
     """Load a function pipeline from a JSON file or file-like object."""
     if hasattr(file, "read"):
@@ -384,6 +443,8 @@ def run_playground() -> None:
     if "config_yaml" in st.session_state:
         with st.sidebar.expander("Current Config"):
             st.code(st.session_state["config_yaml"], language="yaml")
+    with st.sidebar.expander("YAML Manual"):
+        st.code(load_yaml_manual())
 
     marble = st.session_state.get("marble")
     if marble is None:
@@ -493,8 +554,14 @@ def run_playground() -> None:
             st.write(f"Output: {out}")
     else:
         st.header("Advanced Function Execution")
-        tab_iface, tab_mod, tab_pipe, tab_code = st.tabs(
-            ["marble_interface", "Modules", "Pipeline", "Custom Code"]
+        tab_iface, tab_mod, tab_pipe, tab_code, tab_vis = st.tabs(
+            [
+                "marble_interface",
+                "Modules",
+                "Pipeline",
+                "Custom Code",
+                "Visualization",
+            ]
         )
 
         with tab_iface:
@@ -679,6 +746,12 @@ def run_playground() -> None:
             if st.button("Run Code", key="run_custom_code") and code.strip():
                 out = run_custom_code(code, marble)
                 st.write(out)
+
+        with tab_vis:
+            st.write("Visualize the current MARBLE core.")
+            if st.button("Generate Graph", key="show_graph"):
+                fig = core_figure(marble.get_core())
+                st.plotly_chart(fig, use_container_width=True)
 
 
 if __name__ == "__main__":

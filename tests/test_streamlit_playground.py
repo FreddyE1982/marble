@@ -33,6 +33,9 @@ from streamlit_playground import (
     save_pipeline_to_json,
     load_pipeline_from_json,
     run_custom_code,
+    core_to_networkx,
+    core_figure,
+    load_yaml_manual,
 )
 
 
@@ -214,3 +217,20 @@ def test_run_custom_code(tmp_path):
     code = "result = len(marble.get_core().neurons)"
     out = run_custom_code(code, m)
     assert out == len(m.get_core().neurons)
+
+
+def test_core_network_visualization(tmp_path):
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+    m = initialize_marble(str(cfg_path))
+    g = core_to_networkx(m.get_core())
+    assert g.number_of_nodes() == len(m.get_core().neurons)
+    fig = core_figure(m.get_core())
+    assert hasattr(fig, "to_dict")
+
+
+def test_load_yaml_manual_text():
+    text = load_yaml_manual()
+    assert "core:" in text

@@ -62,6 +62,9 @@ Pipelines can be imported or exported as JSON and a **Custom Code** tab lets you
 run arbitrary Python snippets with the active MARBLE instance.
 The sidebar now previews uploaded datasets and shows the active configuration
 YAML so you can verify exactly what will be used for training and inference.
+An additional **Visualization** tab renders an interactive graph of the core so
+you can inspect neuron connectivity in real time. The sidebar also contains a
+collapsible YAML manual for quick reference while experimenting.
 
 ## Possible MARBLE Backcronyms
 
