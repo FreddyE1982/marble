@@ -27,6 +27,8 @@ from marble_interface import (
 )
 
 from metrics_dashboard import MetricsDashboard
+import pkgutil
+import importlib
 
 
 def _load_image(file_obj: BytesIO) -> np.ndarray:
@@ -209,6 +211,53 @@ def execute_marble_function(func_name: str, marble=None, **params):
     return func(**kwargs)
 
 
+def list_repo_modules() -> list[str]:
+    """Return a sorted list of top-level modules in the repository."""
+    root = os.path.dirname(__file__)
+    modules = []
+    for mod in pkgutil.iter_modules([root]):
+        if mod.ispkg:
+            continue
+        name = mod.name
+        if name.startswith("_") or name in {"streamlit_playground", "tests"}:
+            continue
+        modules.append(name)
+    return sorted(modules)
+
+
+def list_module_functions(module_name: str) -> list[str]:
+    """Return a sorted list of public functions in ``module_name``."""
+    module = importlib.import_module(module_name)
+    funcs = []
+    for name, obj in inspect.getmembers(module, inspect.isfunction):
+        if not name.startswith("_"):
+            funcs.append(name)
+    return sorted(funcs)
+
+
+def execute_module_function(
+    module_name: str, func_name: str, marble=None, **params
+) -> object:
+    """Execute ``func_name`` from ``module_name`` with ``params``."""
+    module = importlib.import_module(module_name)
+    if not hasattr(module, func_name):
+        raise ValueError(f"Unknown function: {func_name}")
+    func = getattr(module, func_name)
+    sig = inspect.signature(func)
+    kwargs = {}
+    for name, p in sig.parameters.items():
+        if name == "marble" and marble is not None:
+            kwargs[name] = marble
+            continue
+        if name in params:
+            kwargs[name] = params[name]
+        elif p.default is not inspect.Parameter.empty:
+            kwargs[name] = p.default
+        else:
+            raise ValueError(f"Missing parameter: {name}")
+    return func(**kwargs)
+
+
 def run_playground() -> None:
     """Launch the Streamlit MARBLE playground."""
     st.set_page_config(page_title="MARBLE Playground")
@@ -308,9 +357,7 @@ def run_playground() -> None:
         "Training Dataset", type=["csv", "json", "jsonl", "zip"]
     )
     if train_file is not None:
-        st.sidebar.dataframe(
-            preview_file_dataset(train_file), use_container_width=True
-        )
+        st.sidebar.dataframe(preview_file_dataset(train_file), use_container_width=True)
     hf_name = st.sidebar.text_input("HF Dataset Name")
     hf_split = st.sidebar.text_input("HF Split", "train[:100]")
     hf_input = st.sidebar.text_input("Input Key", "input")
@@ -354,9 +401,7 @@ def run_playground() -> None:
         "Evaluation Dataset", type=["csv", "json", "jsonl", "zip"], key="eval_file"
     )
     if eval_file is not None:
-        st.sidebar.dataframe(
-            preview_file_dataset(eval_file), use_container_width=True
-        )
+        st.sidebar.dataframe(preview_file_dataset(eval_file), use_container_width=True)
     if st.sidebar.button("Evaluate") and eval_file is not None:
         eval_examples = load_examples(eval_file)
         mse = marble_interface.evaluate_marble_system(marble, eval_examples)
@@ -385,46 +430,101 @@ def run_playground() -> None:
             st.write(f"Output: {out}")
     else:
         st.header("Advanced Function Execution")
-        funcs = list_marble_functions()
-        selected = st.selectbox("Function", funcs)
-        func_obj = getattr(marble_interface, selected)
-        doc = inspect.getdoc(func_obj) or ""
-        if doc:
-            st.markdown(doc)
-        sig = inspect.signature(func_obj)
-        inputs = {}
-        for name, param in sig.parameters.items():
-            if name == "marble":
-                continue
-            default = (
-                None if param.default is inspect.Parameter.empty else param.default
-            )
-            ann = param.annotation
-            widget = None
-            if ann is bool or isinstance(default, bool):
-                widget = st.checkbox(
-                    name, value=bool(default) if default is not None else False
+        tab_iface, tab_mod = st.tabs(["marble_interface", "Modules"])
+
+        with tab_iface:
+            funcs = list_marble_functions()
+            selected = st.selectbox("Function", funcs, key="iface_func")
+            func_obj = getattr(marble_interface, selected)
+            doc = inspect.getdoc(func_obj) or ""
+            if doc:
+                st.markdown(doc)
+            sig = inspect.signature(func_obj)
+            inputs = {}
+            for name, param in sig.parameters.items():
+                if name == "marble":
+                    continue
+                default = (
+                    None if param.default is inspect.Parameter.empty else param.default
                 )
-            elif ann in (int, float) or isinstance(default, (int, float)):
-                val = 0 if default is None else float(default)
-                widget = st.number_input(name, value=val)
-            else:
-                widget = st.text_input(
-                    name, value="" if default is None else str(default)
-                )
-            inputs[name] = widget
-        if st.button("Execute"):
-            parsed = {}
-            for k, v in inputs.items():
-                if isinstance(v, str) and v != "":
-                    try:
-                        parsed[k] = json.loads(v)
-                    except Exception:
-                        parsed[k] = _parse_value(v)
+                ann = param.annotation
+                widget = None
+                if ann is bool or isinstance(default, bool):
+                    widget = st.checkbox(
+                        name, value=bool(default) if default is not None else False
+                    )
+                elif ann in (int, float) or isinstance(default, (int, float)):
+                    val = 0 if default is None else float(default)
+                    widget = st.number_input(name, value=val)
                 else:
-                    parsed[k] = v
-            result = execute_marble_function(selected, marble, **parsed)
-            st.write(result)
+                    widget = st.text_input(
+                        name, value="" if default is None else str(default)
+                    )
+                inputs[name] = widget
+            if st.button("Execute", key="iface_execute"):
+                parsed = {}
+                for k, v in inputs.items():
+                    if isinstance(v, str) and v != "":
+                        try:
+                            parsed[k] = json.loads(v)
+                        except Exception:
+                            parsed[k] = _parse_value(v)
+                    else:
+                        parsed[k] = v
+                result = execute_marble_function(selected, marble, **parsed)
+                st.write(result)
+
+        with tab_mod:
+            modules = list_repo_modules()
+            module_choice = st.selectbox("Module", modules, key="mod_select")
+            funcs = list_module_functions(module_choice)
+            func_choice = st.selectbox("Function", funcs, key="mod_func")
+            func_obj = getattr(importlib.import_module(module_choice), func_choice)
+            doc = inspect.getdoc(func_obj) or ""
+            if doc:
+                st.markdown(doc)
+            sig = inspect.signature(func_obj)
+            inputs = {}
+            for name, param in sig.parameters.items():
+                if name == "marble":
+                    continue
+                default = (
+                    None if param.default is inspect.Parameter.empty else param.default
+                )
+                ann = param.annotation
+                widget = None
+                if ann is bool or isinstance(default, bool):
+                    widget = st.checkbox(
+                        name,
+                        value=bool(default) if default is not None else False,
+                        key=f"{module_choice}_{name}",
+                    )
+                elif ann in (int, float) or isinstance(default, (int, float)):
+                    val = 0 if default is None else float(default)
+                    widget = st.number_input(
+                        name, value=val, key=f"{module_choice}_{name}"
+                    )
+                else:
+                    widget = st.text_input(
+                        name,
+                        value="" if default is None else str(default),
+                        key=f"{module_choice}_{name}",
+                    )
+                inputs[name] = widget
+            if st.button("Execute", key="mod_execute"):
+                parsed = {}
+                for k, v in inputs.items():
+                    if isinstance(v, str) and v != "":
+                        try:
+                            parsed[k] = json.loads(v)
+                        except Exception:
+                            parsed[k] = _parse_value(v)
+                    else:
+                        parsed[k] = v
+                result = execute_module_function(
+                    module_choice, func_choice, marble, **parsed
+                )
+                st.write(result)
 
 
 if __name__ == "__main__":
