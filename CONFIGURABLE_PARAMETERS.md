@@ -387,6 +387,12 @@ Each entry is listed under its section heading.
 - reg_lambda
 - learning_rate
 
+## neural_schema_induction
+- enabled
+- epochs
+- support_threshold
+- max_schema_size
+
 ## n_dimensional_topology
 - enabled
 - target_dimensions
