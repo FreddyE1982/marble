@@ -1226,16 +1226,19 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    ```bash
    streamlit run streamlit_playground.py
    ```
-3. **Upload a dataset** in CSV, JSON or ZIP format. ZIP archives may contain
+3. **Provide a configuration.** Enter a YAML path, upload a YAML file or paste
+   YAML directly in the sidebar. Press **Initialize MARBLE** to create the
+   system.
+4. **Upload a dataset** in CSV, JSON or ZIP format. ZIP archives may contain
    `dataset.csv`/`dataset.json` or paired `inputs/` and `targets/` folders with
    images or audio files. Any mixture of numbers, text, images and audio is
    supported. Select the desired number of epochs and click **Train**.
-4. **Perform inference** by providing a numeric value, text, image or audio
+5. **Perform inference** by providing a numeric value, text, image or audio
    sample under the *Inference* section and pressing **Infer**. Training metrics
    appear automatically after each run.
-5. **Save and load models** using the sidebar controls. You can also export or
+6. **Save and load models** using the sidebar controls. You can also export or
    import the core JSON to share systems between sessions.
-6. **Switch to Advanced mode** to access every function in
+7. **Switch to Advanced mode** to access every function in
    ``marble_interface``. The playground displays each function's docstring and
    generates widgets for all parameters so you can call any operation directly.
 
