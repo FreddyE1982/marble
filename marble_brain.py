@@ -258,6 +258,21 @@ class Brain:
                 plateau_epochs=dimensional_search_params.get("plateau_epochs", 2),
                 metrics_visualizer=self.metrics_visualizer,
             )
+        nd_params = core.params.get("n_dimensional_topology", {})
+        self.nd_topology = None
+        if nd_params.get("enabled", False):
+            from n_dimensional_topology import NDimensionalTopologyManager
+
+            self.nd_topology = NDimensionalTopologyManager(
+                self.core,
+                self.nb,
+                enabled=True,
+                target_dimensions=nd_params.get("target_dimensions", self.core.rep_size),
+                attention_threshold=nd_params.get("attention_threshold", 0.5),
+                loss_improve_threshold=nd_params.get("loss_improve_threshold", 0.01),
+                stagnation_epochs=nd_params.get("stagnation_epochs", 5),
+                metrics_visualizer=self.metrics_visualizer,
+            )
 
     def set_autograd_layer(self, layer):
         """Attach an autograd layer for benchmarking."""
@@ -425,6 +440,8 @@ class Brain:
                 )
             if self.dim_search is not None and val_loss is not None:
                 self.dim_search.evaluate(val_loss)
+            if self.nd_topology is not None and val_loss is not None:
+                self.nd_topology.evaluate(val_loss)
 
             epoch_time = time.time() - start_time
             if self.super_evo_controller is not None:

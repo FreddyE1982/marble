@@ -370,3 +370,10 @@ Each entry is listed under its section heading.
 - episodes
 - dream_cycles
 - dream_strength
+
+## n_dimensional_topology
+- enabled
+- target_dimensions
+- attention_threshold
+- loss_improve_threshold
+- stagnation_epochs

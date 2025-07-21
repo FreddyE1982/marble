@@ -1338,6 +1338,20 @@ class Core:
             neuron.representation = np.pad(neuron.representation, (0, delta))
         self.rep_size = new_size
 
+    def decrease_representation_size(self, delta: int = 1) -> None:
+        """Decrease representation dimensionality for all neurons."""
+        if delta <= 0:
+            return
+        if self.rep_size - delta < 1:
+            delta = self.rep_size - 1
+        if delta <= 0:
+            return
+        new_size = self.rep_size - delta
+        configure_representation_size(new_size)
+        for neuron in self.neurons:
+            neuron.representation = neuron.representation[:new_size]
+        self.rep_size = new_size
+
     # Built-in reinforcement learning utilities
     def enable_rl(self) -> None:
         """Enable Q-learning inside the core."""
