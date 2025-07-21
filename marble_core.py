@@ -97,6 +97,7 @@ def perform_message_passing(
     beta = core.params.get("message_passing_beta", 1.0)
     dropout = core.params.get("message_passing_dropout", 0.0)
     activation = core.params.get("representation_activation", "tanh")
+    attn_dropout = core.params.get("attention_dropout", 0.0)
     energy_thr = core.params.get("energy_threshold", 0.0)
     noise_std = core.params.get("representation_noise_std", 0.0)
 
@@ -125,6 +126,15 @@ def perform_message_passing(
         attn = attention_module.compute(target_rep, neigh_reps)
         if attn.size == 0:
             continue
+        if attn_dropout > 0:
+            mask = np.random.rand(attn.size) >= attn_dropout
+            if not np.any(mask):
+                continue
+            attn = attn * mask
+            sum_attn = attn.sum()
+            if sum_attn == 0:
+                continue
+            attn = attn / sum_attn
         agg = sum(attn[i] * neigh_reps[i] for i in range(len(neigh_reps)))
         interm = alpha * target.representation + (1 - alpha) * _simple_mlp(
             agg, activation

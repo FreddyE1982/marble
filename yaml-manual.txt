@@ -75,6 +75,11 @@ core:
     during message passing. Lower values (<1.0) concentrate weight on the
     highest scoring neighbours while larger values produce smoother
     distributions. Must be greater than zero.
+  attention_dropout: Probability between 0.0 and 1.0 of ignoring an incoming
+    message during attention computation. A value of ``0.0`` disables dropout
+    while ``1.0`` results in no neighbours being considered. When messages are
+    dropped the remaining attention weights are renormalized so the sum equals
+    one.
   energy_threshold: Minimum energy level required before neurons participate in
     message passing. Helps filter out inactive units.
   reinforcement_learning_enabled: Enable or disable the internal Q-learning

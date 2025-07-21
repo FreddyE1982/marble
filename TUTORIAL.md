@@ -35,6 +35,7 @@ This tutorial demonstrates every major component of MARBLE through a series of p
    train_examples, val_examples = train_test_split(train_examples, test_size=0.1, random_state=42)
    ```
 4. **Edit configuration**. Open `config.yaml` and modify the values under `core` to adjust the representation size and other parameters. Save the file after your edits.
+   To experiment with sparser communication set `attention_dropout` to a value between `0.0` and `1.0`. Higher values randomly ignore more incoming messages during attention-based updates.
 5. **Create a MARBLE instance** from the configuration:
    ```python
    from marble_main import MARBLE

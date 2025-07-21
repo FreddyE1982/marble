@@ -35,6 +35,7 @@ Each entry is listed under its section heading.
 - weight_init_mean
 - message_passing_beta
 - attention_temperature
+- attention_dropout
 - energy_threshold
 - reinforcement_learning_enabled
 - rl_discount

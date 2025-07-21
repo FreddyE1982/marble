@@ -30,6 +30,7 @@ core:
   weight_init_mean: 0.0
   message_passing_beta: 1.0
   attention_temperature: 1.0
+  attention_dropout: 0.0
   energy_threshold: 0.5
   reinforcement_learning_enabled: false
   rl_discount: 0.9
