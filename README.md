@@ -58,6 +58,8 @@ generates widgets for each parameter so every capability of the
 repository are also exposed and you can construct a **pipeline** of function
 calls that execute sequentially. This makes it possible to combine training,
 evaluation and utility operations into a single workflow directly from the UI.
+Pipelines can be imported or exported as JSON and a **Custom Code** tab lets you
+run arbitrary Python snippets with the active MARBLE instance.
 The sidebar now previews uploaded datasets and shows the active configuration
 YAML so you can verify exactly what will be used for training and inference.
 

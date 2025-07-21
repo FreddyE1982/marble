@@ -21,6 +21,7 @@ from streamlit_playground import (
     list_repo_modules,
     list_module_functions,
     execute_module_function,
+    execute_function_sequence,
     save_marble_system,
     load_marble_system,
     export_core_to_json,
@@ -29,6 +30,9 @@ from streamlit_playground import (
     start_metrics_dashboard,
     preview_file_dataset,
     preview_hf_dataset,
+    save_pipeline_to_json,
+    load_pipeline_from_json,
+    run_custom_code,
 )
 
 
@@ -189,3 +193,24 @@ def test_execute_function_sequence(tmp_path):
     assert isinstance(results, list)
     assert len(results) == 2
     mod_exec.assert_called_once()
+
+
+def test_pipeline_save_load(tmp_path):
+    pipeline = [{"func": "count_marble_synapses"}]
+    path = tmp_path / "pipe.json"
+    save_pipeline_to_json(pipeline, path)
+    assert path.exists()
+    with open(path, "r", encoding="utf-8") as f:
+        loaded = load_pipeline_from_json(f)
+    assert loaded == pipeline
+
+
+def test_run_custom_code(tmp_path):
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+    m = initialize_marble(str(cfg_path))
+    code = "result = len(marble.get_core().neurons)"
+    out = run_custom_code(code, m)
+    assert out == len(m.get_core().neurons)
