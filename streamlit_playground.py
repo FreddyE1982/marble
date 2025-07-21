@@ -3,6 +3,9 @@ import json
 import wave
 import tempfile
 from io import BytesIO
+import io
+import runpy
+import contextlib
 
 import streamlit as st
 import pandas as pd
@@ -459,6 +462,32 @@ def run_custom_code(code: str, marble=None) -> object:
     return locals_dict.get("result")
 
 
+def list_example_projects() -> list[str]:
+    """Return available example project script names sorted alphabetically."""
+    ex_dir = os.path.join(os.path.dirname(__file__), "examples")
+    names = [f for f in os.listdir(ex_dir) if f.endswith(".py")]
+    return sorted(names)
+
+
+def load_example_code(project_name: str) -> str:
+    """Return the source code of ``project_name`` from the examples directory."""
+    ex_dir = os.path.join(os.path.dirname(__file__), "examples")
+    path = os.path.join(ex_dir, project_name)
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+def run_example_project(project_name: str) -> str:
+    """Execute an example project script and return captured output."""
+    ex_dir = os.path.join(os.path.dirname(__file__), "examples")
+    path = os.path.join(ex_dir, project_name)
+    out_buf = io.StringIO()
+    err_buf = io.StringIO()
+    with contextlib.redirect_stdout(out_buf), contextlib.redirect_stderr(err_buf):
+        runpy.run_path(path, run_name="__main__")
+    return out_buf.getvalue() + err_buf.getvalue()
+
+
 def run_playground() -> None:
     """Launch the Streamlit MARBLE playground."""
     st.set_page_config(page_title="MARBLE Playground")
@@ -635,7 +664,7 @@ def run_playground() -> None:
             st.write(f"Output: {out}")
     else:
         st.header("Advanced Function Execution")
-        tab_iface, tab_mod, tab_pipe, tab_code, tab_vis, tab_cfg, tab_model = st.tabs(
+        tab_iface, tab_mod, tab_pipe, tab_code, tab_vis, tab_cfg, tab_model, tab_proj = st.tabs(
             [
                 "marble_interface",
                 "Modules",
@@ -644,6 +673,7 @@ def run_playground() -> None:
                 "Visualization",
                 "Config Editor",
                 "Model Conversion",
+                "Projects",
             ]
         )
 
@@ -884,6 +914,19 @@ def run_playground() -> None:
                     marble = convert_hf_model(model_name)
                     st.session_state["marble"] = marble
                     st.success("Model converted")
+                except Exception as e:
+                    st.error(str(e))
+
+        with tab_proj:
+            st.write("Run example projects to explore MARBLE's capabilities.")
+            projs = list_example_projects()
+            proj = st.selectbox("Project Script", projs, key="proj_select")
+            with st.expander("Show Code"):
+                st.code(load_example_code(proj), language="python")
+            if st.button("Run Project", key="proj_run"):
+                try:
+                    output = run_example_project(proj)
+                    st.text(output if output else "Project finished with no output")
                 except Exception as e:
                     st.error(str(e))
 

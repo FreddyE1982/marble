@@ -42,6 +42,9 @@ from streamlit_playground import (
     load_hf_model,
     convert_hf_model,
     model_summary,
+    list_example_projects,
+    load_example_code,
+    run_example_project,
 )
 
 
@@ -297,3 +300,18 @@ def test_model_summary():
     model = torch.nn.Linear(2, 1)
     summary = model_summary(model)
     assert "Total parameters" in summary
+
+
+def test_example_project_helpers():
+    projs = list_example_projects()
+    assert any(p.startswith("project") for p in projs)
+
+    first = projs[0]
+    code = load_example_code(first)
+    assert "def" in code
+
+    with mock.patch("streamlit_playground.runpy.run_path") as rp:
+        rp.side_effect = lambda path, run_name: print("done")
+        out = run_example_project(first)
+    rp.assert_called_once()
+    assert "done" in out
