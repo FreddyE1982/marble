@@ -59,6 +59,7 @@ from streamlit_playground import (
     load_readme,
     load_tutorial,
     search_hf_models,
+    core_statistics,
     system_stats,
     list_test_files,
     run_tests,
@@ -431,6 +432,19 @@ def test_system_stats():
     ):
         stats = system_stats()
     assert stats == {"ram_mb": 123.0, "gpu_mb": 45.0}
+
+
+def test_core_statistics(tmp_path):
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+    marble = initialize_marble(str(cfg_path))
+    stats = core_statistics(marble)
+    assert stats["neurons"] == len(marble.get_core().neurons)
+    assert stats["synapses"] == len(marble.get_core().synapses)
+    tiers = {n.tier for n in marble.get_core().neurons}
+    assert stats["tiers"] == len(tiers)
 
 
 def test_list_tests_and_run(tmp_path):

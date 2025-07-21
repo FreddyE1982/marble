@@ -33,6 +33,15 @@ from marble_interface import (
     export_core_to_json,
     import_core_from_json,
     load_hf_dataset,
+    expand_marble_core,
+    add_neuron_to_marble,
+    add_synapse_to_marble,
+    freeze_synapses_fraction,
+    increase_marble_representation,
+    decrease_marble_representation,
+    run_core_message_passing,
+    reset_core_representations,
+    randomize_core_representations,
 )
 
 from metrics_dashboard import MetricsDashboard
@@ -497,6 +506,17 @@ def system_stats(device: int = 0) -> dict:
     }
 
 
+def core_statistics(marble) -> dict:
+    """Return neuron, synapse and tier counts for ``marble``."""
+    core = marble.get_core()
+    tiers = {n.tier for n in core.neurons}
+    return {
+        "neurons": len(core.neurons),
+        "synapses": len(core.synapses),
+        "tiers": len(tiers),
+    }
+
+
 def load_readme() -> str:
     """Return the repository ``README.md`` contents."""
     path = os.path.join(os.path.dirname(__file__), "README.md")
@@ -915,6 +935,7 @@ def run_playground() -> None:
             tab_vis,
             tab_metrics,
             tab_stats,
+            tab_core,
             tab_cfg,
             tab_model,
             tab_offload,
@@ -931,6 +952,7 @@ def run_playground() -> None:
                 "Visualization",
                 "Metrics",
                 "System Stats",
+                "Core Tools",
                 "Config Editor",
                 "Model Conversion",
                 "Offloading",
@@ -1215,6 +1237,94 @@ def run_playground() -> None:
             if st.button("Refresh Stats", key="stats_refresh"):
                 st.experimental_rerun()
 
+        with tab_core:
+            st.write("Manipulate and inspect the MARBLE core.")
+            stats = core_statistics(marble)
+            st.metric("Neurons", stats["neurons"])
+            st.metric("Synapses", stats["synapses"])
+            st.metric("Tiers", stats["tiers"])
+
+            st.subheader("Expand Core")
+            n_neurons = st.number_input(
+                "New Neurons", value=10, step=1, key="exp_neurons"
+            )
+            n_synapses = st.number_input(
+                "New Synapses", value=15, step=1, key="exp_synapses"
+            )
+            alt_prob = st.number_input(
+                "Alt Connection Prob", value=0.1, step=0.1, format="%f", key="exp_alt"
+            )
+            tier = st.text_input("Target Tier", "", key="exp_tier")
+            ntypes = st.text_input("Neuron Types (comma)", "", key="exp_types")
+            if st.button("Expand", key="do_expand"):
+                types = [s.strip() for s in ntypes.split(",") if s.strip()] or None
+                expand_marble_core(
+                    marble,
+                    num_new_neurons=int(n_neurons),
+                    num_new_synapses=int(n_synapses),
+                    alternative_connection_prob=float(alt_prob),
+                    target_tier=tier or None,
+                    neuron_types=types,
+                )
+                st.success("Core expanded")
+
+            st.subheader("Add Neuron")
+            n_type = st.text_input("Neuron Type", "standard", key="add_neuron_type")
+            n_tier = st.text_input("Tier", "", key="add_neuron_tier")
+            if st.button("Add Neuron", key="add_neuron_btn"):
+                nid = add_neuron_to_marble(
+                    marble, neuron_type=n_type, tier=n_tier or None
+                )
+                st.write(f"Neuron ID {nid} added")
+
+            st.subheader("Add Synapse")
+            src = st.number_input("Source ID", value=0, step=1, key="syn_src")
+            tgt = st.number_input("Target ID", value=1, step=1, key="syn_tgt")
+            weight = st.number_input("Weight", value=1.0, format="%f", key="syn_weight")
+            stype = st.text_input("Synapse Type", "standard", key="syn_type")
+            if st.button("Add Synapse", key="add_synapse_btn"):
+                add_synapse_to_marble(
+                    marble,
+                    int(src),
+                    int(tgt),
+                    weight=float(weight),
+                    synapse_type=stype,
+                )
+                st.success("Synapse added")
+
+            st.subheader("Freeze Synapses")
+            frac = st.number_input(
+                "Fraction", min_value=0.0, max_value=1.0, value=0.5, key="freeze_frac"
+            )
+            if st.button("Freeze", key="freeze_btn"):
+                freeze_synapses_fraction(marble, float(frac))
+                st.success("Synapses frozen")
+
+            st.subheader("Representation Size")
+            inc = st.number_input("Increase By", value=1, step=1, key="inc_rep")
+            if st.button("Increase Representation", key="inc_rep_btn"):
+                increase_marble_representation(marble, delta=int(inc))
+                st.success("Representation increased")
+            dec = st.number_input("Decrease By", value=1, step=1, key="dec_rep")
+            if st.button("Decrease Representation", key="dec_rep_btn"):
+                decrease_marble_representation(marble, delta=int(dec))
+                st.success("Representation decreased")
+
+            st.subheader("Message Passing")
+            mp_iter = st.number_input("Iterations", value=1, step=1, key="mp_iter")
+            if st.button("Run Message Passing", key="mp_btn"):
+                change = run_core_message_passing(marble, iterations=int(mp_iter))
+                st.write(f"Avg change: {change}")
+
+            st.subheader("Reset Representations")
+            if st.button("Reset Representations", key="reset_reps"):
+                reset_core_representations(marble)
+                st.success("Representations reset")
+            rand_std = st.number_input("Randomize STD", value=1.0, key="rand_std")
+            if st.button("Randomize Representations", key="rand_reps"):
+                randomize_core_representations(marble, std=float(rand_std))
+                st.success("Representations randomized")
+
         with tab_cfg:
             st.write("Edit the active YAML configuration.")
             param = st.text_input("Parameter Path", key="cfg_param")
@@ -1242,7 +1352,10 @@ def run_playground() -> None:
             model_query = st.text_input("Search Models", key="hf_model_query")
             if st.button("Search Models", key="hf_do_model_search") and model_query:
                 st.session_state["hf_model_results"] = search_hf_models(model_query)
-            if "hf_model_results" in st.session_state and st.session_state["hf_model_results"]:
+            if (
+                "hf_model_results" in st.session_state
+                and st.session_state["hf_model_results"]
+            ):
                 model_name = st.selectbox(
                     "Results",
                     st.session_state["hf_model_results"],
@@ -1370,7 +1483,11 @@ def run_playground() -> None:
             st.write("Run repository unit tests to verify functionality.")
             tests = list_test_files()
             selected = st.multiselect("Test Files", tests, key="test_select")
-            pattern = " or ".join(os.path.splitext(t)[0] for t in selected) if selected else None
+            pattern = (
+                " or ".join(os.path.splitext(t)[0] for t in selected)
+                if selected
+                else None
+            )
             if st.button("Run Tests", key="run_tests_btn"):
                 output = run_tests(pattern)
                 st.text(output if output else "No output")
