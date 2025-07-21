@@ -170,6 +170,49 @@ def search_hf_models(query: str, limit: int = 20) -> list[str]:
     return [m.id for m in models]
 
 
+def lobe_info(marble) -> list[dict]:
+    """Return information about all lobes in ``marble``."""
+    manager = marble.get_brain().get_lobe_manager()
+    manager.update_attention()
+    info = []
+    for lobe in manager.lobes:
+        info.append(
+            {
+                "id": lobe.id,
+                "neurons": len(lobe.neuron_ids),
+                "attention": float(lobe.attention_score),
+            }
+        )
+    return info
+
+
+def add_lobe(marble, neuron_ids: list[int]) -> int:
+    """Create a new lobe with ``neuron_ids`` and return its ID."""
+    manager = marble.get_brain().get_lobe_manager()
+    lobe = manager.genesis([int(n) for n in neuron_ids])
+    return lobe.id
+
+
+def organize_lobes(marble) -> int:
+    """Organize neurons into lobes and return the total count."""
+    manager = marble.get_brain().get_lobe_manager()
+    manager.organize()
+    return len(manager.lobes)
+
+
+def self_attention_lobes(marble, loss: float) -> None:
+    """Run self-attention on all lobes using ``loss`` as feedback."""
+    manager = marble.get_brain().get_lobe_manager()
+    manager.self_attention(float(loss))
+
+
+def select_high_attention_neurons(marble, threshold: float = 1.0) -> list[int]:
+    """Return neuron IDs from lobes with attention above ``threshold``."""
+    manager = marble.get_brain().get_lobe_manager()
+    ids = manager.select_high_attention(float(threshold))
+    return [int(i) for i in ids]
+
+
 def load_hf_model(model_name: str):
     """Return a pretrained model from the Hugging Face Hub."""
     return AutoModel.from_pretrained(model_name, trust_remote_code=True)
@@ -936,13 +979,20 @@ def run_playground() -> None:
         else:
             with open(cfg_path, "r", encoding="utf-8") as f:
                 yaml_data = f.read()
-        marble = registry.create(inst_name, cfg_path if not yaml_data else None, yaml_text=yaml_data)
+        marble = registry.create(
+            inst_name, cfg_path if not yaml_data else None, yaml_text=yaml_data
+        )
         st.session_state["marble"] = marble
         st.session_state["config_yaml"] = yaml_data
         st.sidebar.success(f"Instance '{inst_name}' created")
 
     if registry.list():
-        active = st.sidebar.selectbox("Active Instance", registry.list(), index=registry.list().index(registry.active or registry.list()[0]), key="active_instance")
+        active = st.sidebar.selectbox(
+            "Active Instance",
+            registry.list(),
+            index=registry.list().index(registry.active or registry.list()[0]),
+            key="active_instance",
+        )
         if st.sidebar.button("Switch Instance"):
             registry.set_active(active)
             st.session_state["marble"] = registry.get()
@@ -1135,6 +1185,7 @@ def run_playground() -> None:
             tab_metrics,
             tab_stats,
             tab_neuro,
+            tab_lobes,
             tab_core,
             tab_cfg,
             tab_model,
@@ -1156,6 +1207,7 @@ def run_playground() -> None:
                 "Metrics",
                 "System Stats",
                 "Neuromodulation",
+                "Lobe Manager",
                 "Core Tools",
                 "Config Editor",
                 "Model Conversion",
@@ -1485,6 +1537,31 @@ def run_playground() -> None:
                 st.success(
                     f"Signals updated: arousal={new_state['arousal']}, stress={new_state['stress']}, reward={new_state['reward']}, emotion={new_state['emotion']}"
                 )
+
+        with tab_lobes:
+            st.write("Inspect and control lobes.")
+            st.dataframe(pd.DataFrame(lobe_info(marble)), use_container_width=True)
+            with st.expander("Create Lobe"):
+                ids_str = st.text_input("Neuron IDs (comma)", key="lobe_ids")
+                if st.button("Create Lobe", key="lobe_create"):
+                    ids = [int(x.strip()) for x in ids_str.split(",") if x.strip()]
+                    lid = add_lobe(marble, ids)
+                    st.success(f"Lobe {lid} created")
+            if st.button("Organize Lobes", key="lobe_org"):
+                count = organize_lobes(marble)
+                st.success(f"{count} lobes organized")
+            loss_val = st.number_input(
+                "Self-Attention Loss", value=0.0, format="%f", key="lobe_loss"
+            )
+            if st.button("Apply Self-Attention", key="lobe_self"):
+                self_attention_lobes(marble, float(loss_val))
+                st.success("Self-attention applied")
+            thresh = st.number_input(
+                "Select Threshold", value=1.0, format="%f", key="lobe_thresh"
+            )
+            if st.button("Select High Attention", key="lobe_select"):
+                ids = select_high_attention_neurons(marble, float(thresh))
+                st.write(ids)
 
         with tab_core:
             st.write("Manipulate and inspect the MARBLE core.")
