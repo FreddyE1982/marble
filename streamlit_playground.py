@@ -448,6 +448,48 @@ def core_figure(core, layout: str = "spring") -> go.Figure:
     return fig
 
 
+def metrics_dataframe(marble) -> pd.DataFrame:
+    """Return the metrics collected by ``marble`` as a ``DataFrame``."""
+    mv = marble.get_metrics_visualizer()
+    metrics = mv.metrics
+    max_len = max((len(v) for v in metrics.values()), default=0)
+    data = {}
+    for k, v in metrics.items():
+        pad = [None] * (max_len - len(v))
+        data[k] = list(v) + pad
+    return pd.DataFrame(data)
+
+
+def metrics_figure(marble, window_size: int = 10) -> go.Figure:
+    """Return a Plotly figure visualizing live metrics from ``marble``."""
+    mv = marble.get_metrics_visualizer()
+    fig = go.Figure()
+    for name, values in mv.metrics.items():
+        if not values:
+            continue
+        smooth = []
+        for i in range(len(values)):
+            start = max(0, i - window_size + 1)
+            smooth.append(sum(values[start : i + 1]) / (i - start + 1))
+        fig.add_scatter(y=smooth, mode="lines", name=name)
+    fig.update_layout(xaxis_title="Updates", yaxis_title="Value")
+    return fig
+
+
+def load_readme() -> str:
+    """Return the repository ``README.md`` contents."""
+    path = os.path.join(os.path.dirname(__file__), "README.md")
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+def load_tutorial() -> str:
+    """Return the ``TUTORIAL.md`` contents."""
+    path = os.path.join(os.path.dirname(__file__), "TUTORIAL.md")
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
 def load_pipeline_from_json(file) -> list[dict]:
     """Load a function pipeline from a JSON file or file-like object."""
     if hasattr(file, "read"):
@@ -832,10 +874,12 @@ def run_playground() -> None:
             tab_pipe,
             tab_code,
             tab_vis,
+            tab_metrics,
             tab_cfg,
             tab_model,
             tab_offload,
             tab_proj,
+            tab_docs,
         ) = st.tabs(
             [
                 "marble_interface",
@@ -844,10 +888,12 @@ def run_playground() -> None:
                 "Pipeline",
                 "Custom Code",
                 "Visualization",
+                "Metrics",
                 "Config Editor",
                 "Model Conversion",
                 "Offloading",
                 "Projects",
+                "Documentation",
             ]
         )
 
@@ -1112,6 +1158,12 @@ def run_playground() -> None:
                 fig = core_figure(marble.get_core())
                 st.plotly_chart(fig, use_container_width=True)
 
+        with tab_metrics:
+            st.write("Live metrics from the current run.")
+            fig = metrics_figure(marble)
+            st.plotly_chart(fig, use_container_width=True)
+            st.button("Refresh", key="metrics_refresh")
+
         with tab_cfg:
             st.write("Edit the active YAML configuration.")
             param = st.text_input("Parameter Path", key="cfg_param")
@@ -1252,6 +1304,18 @@ def run_playground() -> None:
                     st.text(output if output else "Project finished with no output")
                 except Exception as e:
                     st.error(str(e))
+
+        with tab_docs:
+            st.write("View repository documentation.")
+            doc_choice = st.selectbox(
+                "Document", ["README", "TUTORIAL", "YAML Manual"], key="doc_select"
+            )
+            if doc_choice == "README":
+                st.code(load_readme(), language="markdown")
+            elif doc_choice == "TUTORIAL":
+                st.code(load_tutorial(), language="markdown")
+            else:
+                st.code(load_yaml_manual(), language="yaml")
 
 
 if __name__ == "__main__":

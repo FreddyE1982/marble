@@ -83,6 +83,10 @@ attach it to the running system. You can also spin up a torrent client with its
 own tracker to distribute lobes among peers. High‑attention regions of the brain
 may then be offloaded to the remote server or shared via torrent with a single
 button press.
+A dedicated **Metrics** tab graphs loss, memory usage and other statistics in
+real time inside the browser. Another **Documentation** tab provides quick
+access to the README, YAML manual and full tutorial without leaving the
+playground.
 
 ## Possible MARBLE Backcronyms
 

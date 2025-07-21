@@ -10,6 +10,7 @@ from PIL import Image
 from zipfile import ZipFile
 from io import BytesIO
 import numpy as np
+from plotly.graph_objs import Figure
 
 from tests.test_core_functions import minimal_params
 
@@ -53,6 +54,10 @@ from streamlit_playground import (
     list_learner_classes,
     create_learner,
     train_learner,
+    metrics_dataframe,
+    metrics_figure,
+    load_readme,
+    load_tutorial,
 )
 
 
@@ -375,3 +380,27 @@ def test_learner_helpers(tmp_path):
     learner = create_learner("contrastive_learning", "ContrastiveLearner", marble)
     data = [0.0, 1.0]
     train_learner(learner, data, epochs=1)
+
+
+def test_metrics_and_docs_helpers(tmp_path):
+    from marble_base import MetricsVisualizer
+
+    class DummyMarble:
+        def __init__(self):
+            self.mv = MetricsVisualizer()
+            self.mv.metrics["loss"] = [1.0, 0.5]
+
+        def get_metrics_visualizer(self):
+            return self.mv
+
+    marble = DummyMarble()
+    df = metrics_dataframe(marble)
+    fig = metrics_figure(marble)
+    assert isinstance(df, pd.DataFrame)
+    assert "loss" in df.columns
+    assert isinstance(fig, Figure)
+
+    readme = load_readme()
+    tutorial = load_tutorial()
+    assert "MARBLE" in readme
+    assert "Project" in tutorial

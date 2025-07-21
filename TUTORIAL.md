@@ -1262,6 +1262,11 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
     interface and attach it to the active MARBLE instance. Use the provided
     buttons to offload high‑attention lobes to the remote server or share them
     with peers via torrent.
+15. **Monitor progress** on the *Metrics* tab. Loss, memory usage and other
+    statistics are plotted live so you can observe training behaviour.
+16. **Read the documentation** on the *Documentation* tab. The README, YAML
+    manual and tutorial are available directly in the browser for quick
+    reference.
 
 Uploaded datasets are previewed directly in the sidebar so you can verify their
 contents before training. The currently active YAML configuration is also shown
