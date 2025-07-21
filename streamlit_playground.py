@@ -531,6 +531,26 @@ def load_tutorial() -> str:
         return f.read()
 
 
+def list_documentation_files() -> list[str]:
+    """Return available markdown documentation files."""
+    root = os.path.dirname(__file__)
+    files = [f for f in os.listdir(root) if f.endswith(".md")]
+    return sorted(files)
+
+
+def load_documentation(doc_name: str) -> str:
+    """Return the contents of ``doc_name`` located in the repository root."""
+    path = os.path.join(os.path.dirname(__file__), doc_name)
+    with open(path, "r", encoding="utf-8") as f:
+        return f.read()
+
+
+def load_module_source(module_name: str) -> str:
+    """Return source code for ``module_name``."""
+    module = importlib.import_module(module_name)
+    return inspect.getsource(module)
+
+
 def load_pipeline_from_json(file) -> list[dict]:
     """Load a function pipeline from a JSON file or file-like object."""
     if hasattr(file, "read"):
@@ -942,6 +962,7 @@ def run_playground() -> None:
             tab_proj,
             tab_tests,
             tab_docs,
+            tab_src,
         ) = st.tabs(
             [
                 "marble_interface",
@@ -959,6 +980,7 @@ def run_playground() -> None:
                 "Projects",
                 "Tests",
                 "Documentation",
+                "Source Browser",
             ]
         )
 
@@ -1494,15 +1516,19 @@ def run_playground() -> None:
 
         with tab_docs:
             st.write("View repository documentation.")
-            doc_choice = st.selectbox(
-                "Document", ["README", "TUTORIAL", "YAML Manual"], key="doc_select"
-            )
-            if doc_choice == "README":
-                st.code(load_readme(), language="markdown")
-            elif doc_choice == "TUTORIAL":
-                st.code(load_tutorial(), language="markdown")
-            else:
-                st.code(load_yaml_manual(), language="yaml")
+            docs = list_documentation_files()
+            doc_choice = st.selectbox("Document", docs, key="doc_select")
+            text = load_documentation(doc_choice)
+            lang = "markdown" if doc_choice.endswith(".md") else "yaml"
+            st.code(text, language=lang)
+
+        with tab_src:
+            st.write("Browse repository source code.")
+            modules = list_repo_modules()
+            mod_choice = st.selectbox("Module", modules, key="src_mod")
+            if st.button("Show Source", key="src_show"):
+                code = load_module_source(mod_choice)
+                st.code(code, language="python")
 
 
 if __name__ == "__main__":

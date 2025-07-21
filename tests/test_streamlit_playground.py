@@ -63,6 +63,9 @@ from streamlit_playground import (
     system_stats,
     list_test_files,
     run_tests,
+    list_documentation_files,
+    load_documentation,
+    load_module_source,
 )
 
 
@@ -454,3 +457,15 @@ def test_list_tests_and_run(tmp_path):
         out = run_tests("dummy")
     pm.assert_called_once_with(["-k", "dummy"])
     assert "Exit code" in out
+
+
+def test_documentation_helpers():
+    docs = list_documentation_files()
+    assert "README.md" in docs
+    text = load_documentation("README.md")
+    assert "MARBLE" in text
+
+
+def test_source_browser():
+    code = load_module_source("reinforcement_learning")
+    assert "def" in code
