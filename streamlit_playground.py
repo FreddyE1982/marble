@@ -8,6 +8,7 @@ from io import BytesIO
 import io
 import runpy
 import contextlib
+import glob
 
 import streamlit as st
 import pandas as pd
@@ -40,6 +41,7 @@ import importlib
 import yaml
 import torch
 from transformers import AutoModel
+import pytest
 
 
 def _load_image(file_obj: BytesIO) -> np.ndarray:
@@ -693,6 +695,24 @@ def train_learner(learner, samples, epochs: int = 1) -> None:
     raise ValueError("Learner has no train or train_step method")
 
 
+def list_test_files(pattern: str = "tests/test_*.py") -> list[str]:
+    """Return available pytest files matching ``pattern``."""
+    root = os.path.dirname(__file__)
+    paths = glob.glob(os.path.join(root, pattern))
+    return sorted(os.path.basename(p) for p in paths)
+
+
+def run_tests(pattern: str | None = None) -> str:
+    """Run ``pytest`` with an optional ``-k`` pattern and return output."""
+    args: list[str] = []
+    if pattern:
+        args.extend(["-k", pattern])
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(buf):
+        code = pytest.main(args)
+    return buf.getvalue() + f"\nExit code: {code}\n"
+
+
 def run_playground() -> None:
     """Launch the Streamlit MARBLE playground."""
     st.set_page_config(page_title="MARBLE Playground")
@@ -899,6 +919,7 @@ def run_playground() -> None:
             tab_model,
             tab_offload,
             tab_proj,
+            tab_tests,
             tab_docs,
         ) = st.tabs(
             [
@@ -914,6 +935,7 @@ def run_playground() -> None:
                 "Model Conversion",
                 "Offloading",
                 "Projects",
+                "Tests",
                 "Documentation",
             ]
         )
@@ -1343,6 +1365,15 @@ def run_playground() -> None:
                     st.text(output if output else "Project finished with no output")
                 except Exception as e:
                     st.error(str(e))
+
+        with tab_tests:
+            st.write("Run repository unit tests to verify functionality.")
+            tests = list_test_files()
+            selected = st.multiselect("Test Files", tests, key="test_select")
+            pattern = " or ".join(os.path.splitext(t)[0] for t in selected) if selected else None
+            if st.button("Run Tests", key="run_tests_btn"):
+                output = run_tests(pattern)
+                st.text(output if output else "No output")
 
         with tab_docs:
             st.write("View repository documentation.")

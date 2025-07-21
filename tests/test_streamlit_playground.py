@@ -60,6 +60,8 @@ from streamlit_playground import (
     load_tutorial,
     search_hf_models,
     system_stats,
+    list_test_files,
+    run_tests,
 )
 
 
@@ -429,3 +431,12 @@ def test_system_stats():
     ):
         stats = system_stats()
     assert stats == {"ram_mb": 123.0, "gpu_mb": 45.0}
+
+
+def test_list_tests_and_run(tmp_path):
+    files = list_test_files()
+    assert "test_streamlit_playground.py" in files
+    with mock.patch("streamlit_playground.pytest.main", return_value=0) as pm:
+        out = run_tests("dummy")
+    pm.assert_called_once_with(["-k", "dummy"])
+    assert "Exit code" in out
