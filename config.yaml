@@ -194,6 +194,9 @@ memory_system:
   long_term_path: "long_term_memory.pkl"
   threshold: 0.5
   consolidation_interval: 10
+hybrid_memory:
+  vector_store_path: "vector_store.pkl"
+  symbolic_store_path: "symbolic_memory.pkl"
 remote_client:
   url: "http://localhost:8001"
   timeout: 5.0

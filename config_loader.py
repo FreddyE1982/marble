@@ -60,6 +60,8 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
         consolidation_interval=consolidation_interval,
     )
 
+    hybrid_memory_params = cfg.get("hybrid_memory", {})
+
     # Data compressor
     compressor_cfg = cfg.get("data_compressor", {})
     compression_level = compressor_cfg.get("compression_level", 6)
@@ -81,6 +83,7 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
             "neuromodulatory_system": neuromod_system,
             "meta_controller": meta_controller,
             "memory_system": memory_system,
+            "hybrid_memory_params": hybrid_memory_params,
             "initial_neurogenesis_factor": initial_neurogenesis_factor,
             "dream_num_cycles": dream_num_cycles,
             "dream_interval": dream_interval,
@@ -137,6 +140,7 @@ def create_marble_from_config(path: str | None = None) -> MARBLE:
         dashboard_params=dashboard_params,
         autograd_params=autograd_params,
         pytorch_challenge_params=pytorch_challenge_params,
+        hybrid_memory_params=hybrid_memory_params,
     )
     if remote_server is not None:
         marble.remote_server = remote_server
