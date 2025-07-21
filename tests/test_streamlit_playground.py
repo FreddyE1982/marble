@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import yaml
@@ -23,6 +24,8 @@ from streamlit_playground import (
     import_core_from_json,
     load_hf_examples,
     start_metrics_dashboard,
+    preview_file_dataset,
+    preview_hf_dataset,
 )
 
 
@@ -125,3 +128,21 @@ def test_load_hf_examples_and_dashboard(tmp_path):
         dash = start_metrics_dashboard(DummyMarble(), port=8062)
         start.assert_called_once()
         assert dash.port == 8062
+
+
+def test_dataset_previews(tmp_path):
+    csv_path = tmp_path / "data.csv"
+    csv_path.write_text("input,target\n1,2\n3,4\n")
+    with open(csv_path, "rb") as f:
+        df = preview_file_dataset(f)
+    assert isinstance(df, pd.DataFrame)
+    assert list(df.columns) == ["input", "target"]
+    assert df.shape[0] == 2
+
+    with mock.patch(
+        "streamlit_playground.load_hf_examples",
+        return_value=[(0.1, 0.2), (0.2, 0.4)],
+    ):
+        df2 = preview_hf_dataset("dummy", "train")
+    assert isinstance(df2, pd.DataFrame)
+    assert df2.shape == (2, 2)

@@ -1242,5 +1242,10 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    ``marble_interface``. The playground displays each function's docstring and
    generates widgets for all parameters so you can call any operation directly.
 
+Uploaded datasets are previewed directly in the sidebar so you can verify their
+contents before training. The currently active YAML configuration is also shown
+in an expandable panel for quick reference. Use these previews to ensure your
+data and settings are correct before experimenting.
+
 The playground provides toggles for dreaming and autograd features so you can
 experiment with MARBLE's advanced capabilities without writing code.
