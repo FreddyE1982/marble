@@ -353,6 +353,49 @@ def list_module_functions(module_name: str) -> list[str]:
     return sorted(funcs)
 
 
+def list_module_classes(module_name: str) -> list[str]:
+    """Return a sorted list of public classes in ``module_name``."""
+    module = importlib.import_module(module_name)
+    classes = []
+    for name, obj in inspect.getmembers(module, inspect.isclass):
+        if not name.startswith("_"):
+            classes.append(name)
+    return sorted(classes)
+
+
+def create_module_object(module_name: str, class_name: str, marble=None, **params):
+    """Instantiate ``class_name`` from ``module_name`` using ``params``."""
+    module = importlib.import_module(module_name)
+    if not hasattr(module, class_name):
+        raise ValueError(f"Unknown class: {class_name}")
+    cls = getattr(module, class_name)
+    sig = inspect.signature(cls.__init__)
+    kwargs = {}
+    for name, p in sig.parameters.items():
+        if name == "self":
+            continue
+        if marble is not None:
+            if name == "marble":
+                kwargs[name] = marble
+                continue
+            if name == "core":
+                kwargs[name] = marble.get_core()
+                continue
+            if name in {"nb", "neuronenblitz"}:
+                kwargs[name] = marble.get_neuronenblitz()
+                continue
+            if name == "brain":
+                kwargs[name] = marble.get_brain()
+                continue
+        if name in params:
+            kwargs[name] = params[name]
+        elif p.default is not inspect.Parameter.empty:
+            kwargs[name] = p.default
+        else:
+            raise ValueError(f"Missing parameter: {name}")
+    return cls(**kwargs)
+
+
 def execute_module_function(
     module_name: str, func_name: str, marble=None, **params
 ) -> object:
@@ -1178,6 +1221,7 @@ def run_playground() -> None:
         (
             tab_iface,
             tab_mod,
+            tab_cls,
             tab_learner,
             tab_pipe,
             tab_code,
@@ -1200,6 +1244,7 @@ def run_playground() -> None:
             [
                 "marble_interface",
                 "Modules",
+                "Classes",
                 "Learners",
                 "Pipeline",
                 "Custom Code",
@@ -1314,6 +1359,42 @@ def run_playground() -> None:
                     module_choice, func_choice, marble, **parsed
                 )
                 st.write(result)
+
+        with tab_cls:
+            st.write("Instantiate any class from repository modules.")
+            cls_module = st.selectbox("Module", list_repo_modules(), key="cls_mod")
+            classes = list_module_classes(cls_module)
+            cls_choice = st.selectbox("Class", classes, key="cls_choice")
+            cls_obj = getattr(importlib.import_module(cls_module), cls_choice)
+            sig = inspect.signature(cls_obj.__init__)
+            cparams = {}
+            for name, param in sig.parameters.items():
+                if name == "self":
+                    continue
+                default = (
+                    None if param.default is inspect.Parameter.empty else param.default
+                )
+                cparams[name] = st.text_input(
+                    name,
+                    value="" if default is None else str(default),
+                    key=f"cls_{name}",
+                )
+            if st.button("Create Instance", key="cls_create"):
+                parsed = {}
+                for k, v in cparams.items():
+                    if v == "":
+                        continue
+                    try:
+                        parsed[k] = json.loads(v)
+                    except Exception:
+                        try:
+                            parsed[k] = float(v)
+                        except Exception:
+                            parsed[k] = v
+                obj = create_module_object(cls_module, cls_choice, marble, **parsed)
+                st.session_state["last_object"] = obj
+                st.success(f"Created {cls_choice}")
+                st.write(repr(obj))
 
         with tab_learner:
             st.write("Create and train built-in learner classes.")
