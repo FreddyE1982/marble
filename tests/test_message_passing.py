@@ -88,6 +88,20 @@ def test_message_passing_dropout():
     assert all(np.allclose(b, a) for b, a in zip(before, after))
 
 
+def test_attention_dropout_blocks_all_messages():
+    random.seed(0)
+    np.random.seed(0)
+    params = minimal_params()
+    params["attention_dropout"] = 1.0
+    core = Core(params)
+    for n in core.neurons:
+        n.representation = np.random.rand(4)
+    before = [n.representation.copy() for n in core.neurons]
+    perform_message_passing(core)
+    after = [n.representation.copy() for n in core.neurons]
+    assert all(np.allclose(b, a) for b, a in zip(before, after))
+
+
 def test_representation_activation_relu():
     np.random.seed(0)
     params = minimal_params()
