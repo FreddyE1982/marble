@@ -18,6 +18,7 @@ from quantum_flux_learning import QuantumFluxLearner
 from fractal_dimension_learning import FractalDimensionLearner
 from continuous_weight_field_learning import ContinuousWeightFieldLearner
 from neural_schema_induction import NeuralSchemaInductionLearner
+from conceptual_integration import ConceptualIntegrationLearner
 
 
 class OmniLearner:
@@ -44,6 +45,7 @@ class OmniLearner:
         self.fractal = FractalDimensionLearner(core, nb)
         self.weight_field = ContinuousWeightFieldLearner(core, nb)
         self.schema = NeuralSchemaInductionLearner(core, nb)
+        self.cip = ConceptualIntegrationLearner(core, nb)
         self.env = GridWorld()
         self.rl_agent = MarbleQLearningAgent(core, nb)
 
@@ -67,6 +69,7 @@ class OmniLearner:
         self.fractal.train_step(inp, target)
         self.weight_field.train_step(inp, target)
         self.schema.train_step(inp)
+        self.cip.train_step(inp)
         state = self.env.reset()
         action = self.rl_agent.select_action(state, self.env.n_actions)
         next_state, reward, done = self.env.step(action)

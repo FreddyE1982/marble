@@ -365,6 +365,11 @@ neural_schema_induction:
   support_threshold: 2
   max_schema_size: 3
 
+conceptual_integration:
+  enabled: false
+  blend_probability: 0.1
+  similarity_threshold: 0.3
+
 n_dimensional_topology:
   enabled: false
   target_dimensions: 6

@@ -1083,3 +1083,44 @@ print(len(learner.schemas))
 ```
 Run `python project25_nsi.py` to see schema neurons emerge.
 
+## Project 26 – Conceptual Integration
+
+**Goal:** Blend concepts structurally to spur creative abstractions.**
+
+1. **Enable conceptual integration** by setting `conceptual_integration.enabled: true` in `config.yaml`.
+2. **Instantiate the learner**:
+   ```python
+   from conceptual_integration import ConceptualIntegrationLearner
+   learner = ConceptualIntegrationLearner(core, neuronenblitz,
+                                          blend_probability=0.5,
+                                          similarity_threshold=0.2)
+   ```
+3. **Download any regression dataset** such as Boston housing:
+   ```python
+   from sklearn.datasets import load_boston
+   ds = load_boston()
+   samples = list(ds.data[:, 0])
+   ```
+4. **Train** with `learner.train(samples, epochs=2)` and observe
+   that `len(core.neurons)` grows as new concept nodes are inserted.
+
+**Complete Example**
+```python
+# project26_cip.py
+from config_loader import load_config
+from marble_main import MARBLE
+from conceptual_integration import ConceptualIntegrationLearner
+from sklearn.datasets import load_boston
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+learner = ConceptualIntegrationLearner(marble.core, marble.neuronenblitz,
+                                       blend_probability=0.5,
+                                       similarity_threshold=0.2)
+ds = load_boston()
+samples = list(ds.data[:, 0])
+learner.train(samples, epochs=2)
+print(len(marble.core.neurons))
+```
+Run `python project26_cip.py` to watch concepts emerge through blending.
+
