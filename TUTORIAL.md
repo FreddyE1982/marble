@@ -1213,3 +1213,20 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    ```
 
 
+
+## Project 29 – Streamlit Playground (Easy)
+
+**Goal:** Interactively explore MARBLE through a web-based GUI.
+
+1. **Install Streamlit** (already in `requirements.txt`).
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. **Launch the playground** from the repository root:
+   ```bash
+   streamlit run streamlit_playground.py
+   ```
+3. **Upload a CSV dataset** with `input` and `target` columns in the sidebar, set the desired number of epochs and click **Train**.
+4. **Perform inference** by entering a numeric value under the *Inference* section and pressing **Infer**. Training metrics appear automatically after each run.
+
+The playground provides toggles for dreaming and autograd features so you can experiment with MARBLE's advanced capabilities without writing code.
