@@ -1,4 +1,5 @@
 from marble_imports import *
+from system_metrics import get_system_memory_usage, get_gpu_memory_usage
 
 
 def clear_output(wait: bool = True) -> None:
@@ -101,6 +102,7 @@ class MetricsVisualizer:
         color_scheme="default",
         show_neuron_ids=False,
         dpi=100,
+        track_memory_usage=False,
     ):
         self.metrics = {
             "loss": [],
@@ -116,6 +118,8 @@ class MetricsVisualizer:
             "compression_ratio": [],
             "meta_loss_avg": [],
             "representation_variance": [],
+            "ram_usage": [],
+            "gpu_usage": [],
         }
         self.fig_width = fig_width
         self.fig_height = fig_height
@@ -123,6 +127,7 @@ class MetricsVisualizer:
         self.color_scheme = color_scheme
         self.show_neuron_ids = show_neuron_ids
         self.dpi = dpi
+        self.track_memory_usage = track_memory_usage
         self.setup_plot()
 
     def setup_plot(self):
@@ -137,6 +142,9 @@ class MetricsVisualizer:
             if key not in self.metrics:
                 self.metrics[key] = []
             self.metrics[key].append(value)
+        if self.track_memory_usage:
+            self.metrics["ram_usage"].append(get_system_memory_usage())
+            self.metrics["gpu_usage"].append(get_gpu_memory_usage())
         clear_output(wait=True)
         self.plot_metrics()
 
@@ -145,6 +153,14 @@ class MetricsVisualizer:
         self.ax.plot(self.metrics["loss"], "b-", label="Loss")
         self.ax_twin = self.ax.twinx()
         self.ax_twin.plot(self.metrics["vram_usage"], "r-", label="VRAM (MB)")
+        if self.track_memory_usage and self.metrics["ram_usage"]:
+            self.ax_twin.plot(
+                self.metrics["ram_usage"], "g-", label="RAM (MB)"
+            )
+        if self.track_memory_usage and self.metrics["gpu_usage"]:
+            self.ax_twin.plot(
+                self.metrics["gpu_usage"], "c-", label="GPU (MB)"
+            )
         if self.metrics["arousal"]:
             self.ax_twin.plot(self.metrics["arousal"], "g--", label="Arousal")
         if self.metrics["stress"]:

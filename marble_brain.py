@@ -6,6 +6,7 @@ from neuromodulatory_system import NeuromodulatorySystem
 from meta_parameter_controller import MetaParameterController
 from marble_base import MetricsVisualizer
 from marble_lobes import LobeManager
+from system_metrics import get_system_memory_usage, get_gpu_memory_usage
 
 
 def _parse_example(sample):
@@ -425,6 +426,8 @@ class Brain:
                     {
                         "loss": val_loss if val_loss is not None else 0.0,
                         "vram_usage": self.core.get_usage_by_tier("vram"),
+                        "ram_usage": get_system_memory_usage(),
+                        "gpu_usage": get_gpu_memory_usage(),
                         "arousal": ctx.get("arousal", 0.0),
                         "stress": ctx.get("stress", 0.0),
                         "reward": ctx.get("reward", 0.0),

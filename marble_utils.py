@@ -62,3 +62,5 @@ def core_from_json(json_str: str) -> Core:
         core.synapses.append(syn)
         core.neurons[syn.source].synapses.append(syn)
     return core
+
+

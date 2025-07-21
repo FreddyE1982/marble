@@ -227,6 +227,7 @@ metrics_visualizer:
   color_scheme: "default"
   show_neuron_ids: false
   dpi: 100
+  track_memory_usage: false
 metrics_dashboard:
   enabled: false
   host: "localhost"

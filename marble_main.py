@@ -43,12 +43,18 @@ class MARBLE:
             "color_scheme": "default",
             "show_neuron_ids": False,
             "dpi": 100,
+            "track_memory_usage": False,
         }
         if mv_params is not None:
             mv_defaults.update(mv_params)
         self.metrics_visualizer = MetricsVisualizer(
             fig_width=mv_defaults["fig_width"],
             fig_height=mv_defaults["fig_height"],
+            refresh_rate=mv_defaults["refresh_rate"],
+            color_scheme=mv_defaults["color_scheme"],
+            show_neuron_ids=mv_defaults["show_neuron_ids"],
+            dpi=mv_defaults["dpi"],
+            track_memory_usage=mv_defaults["track_memory_usage"],
         )
         self.metrics_dashboard = None
         if dashboard_params is not None and dashboard_params.get("enabled", False):
