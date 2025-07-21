@@ -1247,7 +1247,10 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    analysis commands without leaving the UI.
 9. **View the core graph** on the *Visualization* tab. Press **Generate Graph**
    to see an interactive display of neurons and synapses.
-10. **Consult the YAML manual** from the sidebar while adjusting parameters.
+10. **Edit configuration** from the *Config Editor* tab. Specify any dot-
+    separated parameter path and new value to update the YAML in place. Press
+    **Reinitialize** to rebuild the system with the modified settings.
+11. **Consult the YAML manual** from the sidebar while adjusting parameters.
 
 Uploaded datasets are previewed directly in the sidebar so you can verify their
 contents before training. The currently active YAML configuration is also shown

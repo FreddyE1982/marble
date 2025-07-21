@@ -32,6 +32,7 @@ from marble_interface import (
 from metrics_dashboard import MetricsDashboard
 import pkgutil
 import importlib
+import yaml
 
 
 def _load_image(file_obj: BytesIO) -> np.ndarray:
@@ -306,6 +307,31 @@ def load_yaml_manual() -> str:
         return f.read()
 
 
+def set_yaml_value(yaml_text: str, path: str, value: object) -> str:
+    """Return ``yaml_text`` with ``path`` updated to ``value``.
+
+    Parameters
+    ----------
+    yaml_text:
+        YAML configuration as text.
+    path:
+        Dot-separated key path specifying where to insert the value.
+    value:
+        Value to assign. Strings are inserted as-is while other types are
+        serialized using ``json`` when possible.
+    """
+
+    data = yaml.safe_load(yaml_text) if yaml_text else {}
+    cur = data
+    keys = path.split(".")
+    for k in keys[:-1]:
+        if k not in cur or not isinstance(cur[k], dict):
+            cur[k] = {}
+        cur = cur[k]
+    cur[keys[-1]] = value
+    return yaml.safe_dump(data, sort_keys=False)
+
+
 def core_to_networkx(core) -> nx.DiGraph:
     """Return a NetworkX graph representing ``core``."""
     g = nx.DiGraph()
@@ -554,13 +580,14 @@ def run_playground() -> None:
             st.write(f"Output: {out}")
     else:
         st.header("Advanced Function Execution")
-        tab_iface, tab_mod, tab_pipe, tab_code, tab_vis = st.tabs(
+        tab_iface, tab_mod, tab_pipe, tab_code, tab_vis, tab_cfg = st.tabs(
             [
                 "marble_interface",
                 "Modules",
                 "Pipeline",
                 "Custom Code",
                 "Visualization",
+                "Config Editor",
             ]
         )
 
@@ -752,6 +779,28 @@ def run_playground() -> None:
             if st.button("Generate Graph", key="show_graph"):
                 fig = core_figure(marble.get_core())
                 st.plotly_chart(fig, use_container_width=True)
+
+        with tab_cfg:
+            st.write("Edit the active YAML configuration.")
+            param = st.text_input("Parameter Path", key="cfg_param")
+            val = st.text_input("Value", key="cfg_value")
+            if st.button("Update Config", key="cfg_update"):
+                if "config_yaml" not in st.session_state:
+                    st.error("No configuration loaded")
+                else:
+                    new_yaml = set_yaml_value(
+                        st.session_state["config_yaml"], param, _parse_value(val)
+                    )
+                    st.session_state["config_yaml"] = new_yaml
+                    st.code(new_yaml, language="yaml")
+            if st.button("Reinitialize", key="cfg_reinit"):
+                if "config_yaml" not in st.session_state:
+                    st.error("No configuration loaded")
+                else:
+                    st.session_state["marble"] = initialize_marble(
+                        None, yaml_text=st.session_state["config_yaml"]
+                    )
+                    st.success("Reinitialized MARBLE")
 
 
 if __name__ == "__main__":
