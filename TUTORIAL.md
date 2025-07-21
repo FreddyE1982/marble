@@ -1,40 +1,51 @@
 # MARBLE Step-by-Step Tutorial
 
-This tutorial demonstrates every major component of MARBLE through a series of projects. Each project builds on the previous one and introduces new functionality. By the end you will have explored all options listed in `CONFIGURABLE_PARAMETERS.md` and documented in detail in `yaml-manual.txt`.
+This tutorial demonstrates every major component of MARBLE through a series of projects. Each project builds on the previous one and introduces new functionality. The instructions below walk through every step in detail so that you can replicate the experiments exactly.
 
 ## Prerequisites
 
-1. Install dependencies:
+1. **Install dependencies** so that all modules are available. Run the following command inside the repository root and wait for the installation to finish:
    ```bash
    pip install -r requirements.txt
    ```
-2. Review the architecture overview in [ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md) and the configuration reference in [yaml-manual.txt](yaml-manual.txt).
+   After the packages are installed you can verify the environment by running `python -c "import marble_main"` which should finish silently.
+2. **Review the documentation**. Read [ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md) for a high level view of MARBLE and consult [yaml-manual.txt](yaml-manual.txt) for an explanation of every configuration option.
 
 ## Project 1 – Numeric Regression (Easy)
 
 **Goal:** Train MARBLE on a simple numeric dataset.
 
-1. **Download the data** using `wget`:
+1. **Download the data** using `wget` so that you have a local copy of the wine quality dataset. Run this in your working directory:
    ```bash
    wget https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv
    ```
-2. **Prepare the dataset** by loading the CSV with `pandas` and converting rows into `(input, target)` pairs where `input` contains all feature columns and `target` is the quality score.
-3. **Split the data** into training and validation sets using `train_test_split` from `sklearn.model_selection` so that the training loop can monitor validation loss.
-4. **Edit configuration**. Open `config.yaml` and modify values under `core` to adjust the representation size and other parameters. Save the file when done.
-5. **Create a MARBLE instance**:
+   After the download completes you should see `winequality-red.csv` in the directory.
+2. **Prepare the dataset** by loading the CSV with `pandas` and converting each row into `(input, target)` pairs. `input` contains the feature columns and `target` is the quality score:
+   ```python
+   import pandas as pd
+   df = pd.read_csv('winequality-red.csv')
+   train_examples = [(row[:-1].to_numpy(), row[-1]) for row in df.to_numpy()]
+   ```
+3. **Split the data** into training and validation sets so the training loop can monitor validation loss:
+   ```python
+   from sklearn.model_selection import train_test_split
+   train_examples, val_examples = train_test_split(train_examples, test_size=0.1, random_state=42)
+   ```
+4. **Edit configuration**. Open `config.yaml` and modify the values under `core` to adjust the representation size and other parameters. Save the file after your edits.
+5. **Create a MARBLE instance** from the configuration:
    ```python
    from marble_main import MARBLE
    from config_loader import load_config
 
    cfg = load_config()
-   marble = MARBLE(cfg["core"])
+   marble = MARBLE(cfg['core'])
    ```
-6. **Train the model**:
+6. **Train the model** on the prepared data:
    ```python
    marble.brain.train(train_examples, epochs=10, validation_examples=val_examples)
    ```
-7. **Monitor progress** with the `MetricsVisualizer` which plots loss and memory usage. The `fig_width` and `color_scheme` options in `config.yaml` under `metrics_visualizer` control the visual appearance.
-8. **Gradually reduce regularization** by setting `dropout_probability` and `dropout_decay_rate` under `neuronenblitz`. A decay rate below `1.0` multiplies the current dropout after each epoch.
+7. **Monitor progress** with `MetricsVisualizer` which plots loss and memory usage. Adjust the `fig_width` and `color_scheme` options under `metrics_visualizer` in `config.yaml` to change the appearance.
+8. **Gradually reduce regularization** by setting `dropout_probability` and `dropout_decay_rate` under `neuronenblitz`. A decay rate below `1.0` multiplies the current dropout value after each epoch.
 
 This project introduces the **Core**, **Neuronenblitz** and **Brain** objects along with the data compression pipeline.
 
@@ -42,22 +53,24 @@ This project introduces the **Core**, **Neuronenblitz** and **Brain** objects al
 
 **Goal:** Use the built-in asynchronous training and evolutionary tools on an image dataset.
 
-1. **Download the dataset**:
+1. **Download the dataset** so that you have the CIFAR‑10 archive locally:
    ```bash
    wget https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
    tar -xzf cifar-10-python.tar.gz
    ```
-2. **Create training pairs** by loading each image array from the extracted files and pairing it with the provided label to form `(input, target)` tuples. Normalise the image values to the range `[0, 1]`.
+   The extracted directory contains Python pickles for each data batch.
+2. **Create training pairs** by loading each image array from the files and pairing it with the provided label to form `(input, target)` tuples. Normalise all pixel values into the range `[0, 1]` before continuing.
 3. **Start asynchronous training** by calling:
    ```python
    marble.brain.start_training(train_examples, epochs=20, validation_examples=val_examples)
    ```
-   You can continue executing code while training occurs in a background thread. When ready to wait for completion call `marble.brain.wait_for_training()`.
+   Training now runs in a background thread so you can execute other code in the meantime. When you need to wait for completion call `marble.brain.wait_for_training()`.
 4. **Run inference concurrently** with `marble.brain.dynamic_wander(sample)` to test the partially trained network while training is still running.
 5. **Experiment with evolutionary functions** to mutate or prune synapses:
    ```python
    mutated, pruned = marble.brain.evolve(mutation_rate=0.02, prune_threshold=0.05)
    ```
+   Mutations add noise to synapses while pruning removes the least useful ones.
 6. **Enable dreaming** by setting `dream_enabled: true` in `config.yaml`. Parameters like `dream_num_cycles` and `dream_interval` determine how often memory consolidation happens in the background.
 
 This project makes use of **asynchronous training**, **dreaming**, and the **evolutionary mechanisms** such as mutation and pruning.
@@ -66,18 +79,18 @@ This project makes use of **asynchronous training**, **dreaming**, and the **evo
 
 **Goal:** Run part of the brain on a different machine.
 
-1. **Start the remote server** on another machine:
+1. **Start the remote server** on another machine that has MARBLE installed:
    ```python
    from remote_offload import RemoteBrainServer
    server = RemoteBrainServer(port=8000)
    server.start()
    ```
-   Make sure this machine has the same dependencies installed so the brain lobes can be executed remotely.
-2. **Create a remote client** on your training machine and pass it to MARBLE:
+   Ensure the remote machine has the same dependencies installed so the brain lobes can be executed remotely.
+2. **Create a remote client** on your training machine and pass it when constructing MARBLE:
    ```python
    from remote_offload import RemoteBrainClient
-   client = RemoteBrainClient("http://remote_host:8000")
-   marble = MARBLE(cfg["core"], remote_client=client)
+   client = RemoteBrainClient('http://remote_host:8000')
+   marble = MARBLE(cfg['core'], remote_client=client)
    ```
 3. **Enable offloading** by setting `marble.brain.offload_enabled = True` and then call:
    ```python
@@ -117,23 +130,23 @@ This project covers **autograd integration** and the **PyTorch challenge** mecha
    mkdir -p data
    wget -O data/tinyshakespeare.txt https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt
    ```
+   The text file should now be located at `data/tinyshakespeare.txt`.
 2. **Enable the GPT components** by editing `config.yaml` and setting `gpt.enabled: true`. Also provide `dataset_path: data/tinyshakespeare.txt` in that section.
 3. **Tokenize and train** using the helper functions:
    ```python
-   dataset = advanced_gpt.load_text_dataset(cfg["gpt"]["dataset_path"])
+   dataset = advanced_gpt.load_text_dataset(cfg['gpt']['dataset_path'])
    advanced_gpt.train_advanced_gpt(marble.brain, dataset, epochs=5)
    ```
-4. **Generate text** once training completes by calling `advanced_gpt.generate_text(marble.brain, "Once upon a time")`.
+4. **Generate text** once training completes by calling `advanced_gpt.generate_text(marble.brain, 'Once upon a time')`.
 5. **Optionally distill** the knowledge to a smaller network with `DistillationTrainer` by loading a saved model and training a student brain against it.
 
 This final project introduces the **GPT components**, **distillation**, and the **dimensional search** capability if `dimensional_search.enabled` is set in the configuration.
+
 ## Project 6 – Reinforcement Learning (Master)
 
 **Goal:** Solve a simple GridWorld using Q-learning built on top of MARBLE.
 
-1. **Enable reinforcement learning** by editing `config.yaml` and setting `reinforcement_learning.enabled: true`. Also set
-   `core.reinforcement_learning_enabled` and
-   `neuronenblitz.reinforcement_learning_enabled` to `true` so that all components are prepared for Q‑learning updates.
+1. **Enable reinforcement learning** by editing `config.yaml` and setting `reinforcement_learning.enabled: true`. Also set `core.reinforcement_learning_enabled` and `neuronenblitz.reinforcement_learning_enabled` to `true` so that all components are prepared for Q‑learning updates.
 2. **Run the built-in GridWorld example** with:
    ```python
    from reinforcement_learning import train_gridworld
@@ -151,8 +164,7 @@ This final project introduces the **GPT components**, **distillation**, and the 
 3. **Define data augmentations** such as random cropping and horizontal flipping, then call `Neuronenblitz.contrastive_train(images, augment_fn)` to learn representations from the unlabeled images.
 4. **Fine-tune on labels** by reusing the trained weights and invoking the standard `train()` method on a labeled subset of STL‑10.
 
-This project demonstrates the new **ContrastiveLearner** and how it integrates
-with the existing Core and Neuronenblitz components.
+This project demonstrates the new **ContrastiveLearner** and how it integrates with the existing Core and Neuronenblitz components.
 
 ## Project 8 – Hebbian Learning (Research)
 
@@ -166,8 +178,6 @@ with the existing Core and Neuronenblitz components.
    ```
 3. **Train on unlabeled data** by passing a list of input vectors to `learner.train(inputs)`.
 4. **Review synapse adjustments** in `learner.history` to see how correlations between activations strengthen or weaken connections.
-
-
 
 ## Project 9 – Adversarial Learning (Cutting Edge)
 
@@ -204,17 +214,6 @@ with the existing Core and Neuronenblitz components.
 3. **Train** using two lists: one containing `(input, target)` pairs and the other containing unlabeled inputs. Call `learner.train(labeled, unlabeled)`.
 4. **Inspect history** for both supervised and consistency losses recorded in `learner.history` to gauge progress.
 
-## Where to Go Next
-
-The configuration file exposes many additional parameters covering memory management, neuromodulation, meta‑controller behaviour and more. Consult `CONFIGURABLE_PARAMETERS.md` for the complete list and see `yaml-manual.txt` for thorough descriptions such as the excerpt below:
-```yaml
-The configuration YAML file controls all components of MARBLE.  Each top-level
-section corresponds to a subsystem and exposes parameters that can be tuned to
-alter its behaviour.
-```
-
-Experiment by modifying these options and combining features from multiple projects. The test suite (`pytest`) exercises every component and can be run to verify your setup.
-
 ## Project 12 – Federated Learning (Frontier)
 
 **Goal:** Train multiple Neuronenblitz networks on separate datasets and combine them using federated averaging.**
@@ -223,7 +222,6 @@ Experiment by modifying these options and combining features from multiple proje
 2. **Instantiate clients**: create a separate `Core` and `Neuronenblitz` for each participant and pass these to a `FederatedAveragingTrainer` instance.
 3. **Train round by round** by providing a list of datasets to `trainer.train_round(client_data)` for each round. The trainer aggregates parameters after every local training phase.
 4. **Check synchronisation** by comparing synapse weights across clients after training to ensure the averaging step worked.
-
 
 ## Project 13 – Curriculum Learning (Frontier)
 
@@ -254,8 +252,7 @@ Experiment by modifying these options and combining features from multiple proje
 
 ## Project 15 – Transfer Learning (Frontier)
 
-**Goal:** Fine-tune a pretrained MARBLE model on a new dataset while freezing
-a subset of synapses.**
+**Goal:** Fine-tune a pretrained MARBLE model on a new dataset while freezing a subset of synapses.**
 
 1. **Enable transfer learning** by setting `transfer_learning.enabled: true` in `config.yaml`. Choose `epochs`, `batch_size` and a `freeze_fraction` specifying what portion of synapses remain unchanged.
 2. **Create the transfer learner** after loading an existing model (or training a base model) and passing the `Core` and `Neuronenblitz` objects to `TransferLearner`.
@@ -362,3 +359,4 @@ a subset of synapses.**
 3. **Create an `OmniLearner`** with the merged core and single Neuronenblitz instance.
 4. **Train** by providing a list of `(input, target)` samples and calling `learner.train(data, epochs=5)`.
 5. **All paradigms run sequentially**, leveraging interconnection synapses so multiple cores behave as one integrated system.
+

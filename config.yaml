@@ -263,6 +263,7 @@ reinforcement_learning:
   epsilon_start: 1.0
   epsilon_decay: 0.95
   epsilon_min: 0.1
+  seed: 0
 contrastive_learning:
   enabled: false
   temperature: 0.5
