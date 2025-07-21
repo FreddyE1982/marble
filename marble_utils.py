@@ -1,4 +1,5 @@
 import json
+import numpy as np
 from marble_core import Core, Neuron, Synapse
 
 
@@ -8,7 +9,7 @@ def core_to_json(core: Core) -> str:
         "neurons": [
             {
                 "id": n.id,
-                "value": n.value,
+                "value": n.value.tolist() if hasattr(n.value, "tolist") else n.value,
                 "tier": n.tier,
                 "formula": str(n.formula) if n.formula is not None else None,
             }
@@ -47,7 +48,10 @@ def core_from_json(json_str: str) -> Core:
     core.neurons = []
     core.synapses = []
     for n in payload.get("neurons", []):
-        neuron = Neuron(n["id"], value=n["value"], tier=n.get("tier", "vram"))
+        val = n["value"]
+        if isinstance(val, list):
+            val = np.array(val)
+        neuron = Neuron(n["id"], value=val, tier=n.get("tier", "vram"))
         if n.get("formula"):
             neuron.formula = n["formula"]
         core.neurons.append(neuron)

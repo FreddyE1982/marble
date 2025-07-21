@@ -3,10 +3,14 @@ from __future__ import annotations
 import pickle
 from typing import Any, Iterable
 
+import pandas as pd
+import numpy as np
+
 from distillation_trainer import DistillationTrainer
 from config_loader import create_marble_from_config, load_config
 from marble_main import MARBLE
 from marble_autograd import MarbleAutogradLayer
+from marble_utils import core_to_json, core_from_json
 import torch
 from datasets import load_dataset
 import warnings
@@ -179,3 +183,61 @@ def convert_pytorch_model(
         dataloader_params=dataloader_params,
         init_from_weights=True,
     )
+
+
+def load_hf_dataset(
+    dataset_name: str,
+    split: str,
+    input_key: str = "input",
+    target_key: str = "target",
+    limit: int | None = None,
+) -> list[tuple[Any, Any]]:
+    """Load a Hugging Face dataset and return ``(input, target)`` pairs."""
+    ds = load_dataset(dataset_name, split=split)
+    examples: list[tuple[Any, Any]] = []
+    for record in ds:
+        examples.append((record[input_key], record[target_key]))
+        if limit is not None and len(examples) >= limit:
+            break
+    return examples
+
+
+def train_from_dataframe(marble: MARBLE, df: pd.DataFrame, epochs: int = 1) -> None:
+    """Train ``marble`` using pairs from a :class:`pandas.DataFrame`."""
+    examples = list(zip(df["input"].tolist(), df["target"].tolist()))
+    train_marble_system(marble, examples, epochs=epochs)
+
+
+def evaluate_marble_system(marble: MARBLE, examples: Iterable[tuple[Any, Any]]) -> float:
+    """Return mean squared error of ``marble`` predictions on ``examples``."""
+    preds = []
+    targets = []
+    for inp, tgt in examples:
+        preds.append(infer_marble_system(marble, inp))
+        targets.append(tgt)
+    arr_p = np.array(preds, dtype=float)
+    arr_t = np.array(targets, dtype=float)
+    return float(np.mean((arr_p - arr_t) ** 2))
+
+
+def export_core_to_json(marble: MARBLE) -> str:
+    """Serialize ``marble``\'s core to a JSON string."""
+    return core_to_json(marble.get_core())
+
+
+def import_core_from_json(
+    json_str: str,
+    nb_params: dict | None = None,
+    brain_params: dict | None = None,
+    dataloader_params: dict | None = None,
+) -> MARBLE:
+    """Create a new MARBLE instance from a core JSON string."""
+    core = core_from_json(json_str)
+    marble = MARBLE(
+        core.params,
+        nb_params=nb_params,
+        brain_params=brain_params,
+        dataloader_params=dataloader_params,
+    )
+    marble.core = core
+    return marble
