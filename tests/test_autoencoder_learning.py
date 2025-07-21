@@ -13,3 +13,12 @@ def test_autoencoder_learning_runs():
     assert isinstance(loss, float)
     assert loss >= 0.0
     assert len(learner.history) == 1
+
+
+def test_noise_std_decays_over_epochs():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    learner = AutoencoderLearner(core, nb, noise_std=1.0, noise_decay=0.5)
+    learner.train([0.1], epochs=2)
+    assert learner.noise_std < 1.0

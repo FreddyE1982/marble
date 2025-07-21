@@ -67,6 +67,9 @@ core:
     regularize learning. ``0.0`` disables dropout.
   representation_activation: Activation function used by the internal MLP for
     message passing. Typical values are ``"tanh"`` or ``"relu"``.
+  apply_layer_norm: When true the hidden layer of ``_simple_mlp`` is normalised
+    to zero mean and unit variance before the final activation. This often
+    stabilises training dynamics. Set ``false`` to disable.
   weight_init_mean: Mean of the normal distribution used to initialize
     synaptic weights.
   message_passing_beta: Secondary mixing factor controlling how quickly new
@@ -211,6 +214,10 @@ neuronenblitz:
     achieves the greatest loss reduction, path speed improvement and model size
     decrease is replayed in the main process to apply its weight updates and
     structural plasticity.
+  beam_width: Number of candidate paths retained at each depth during the
+    beam search variant of ``dynamic_wander``. Wider beams explore more options
+    but increase computation time. A value of ``1`` disables beam search and
+    reverts to the original recursive wander.
   synaptic_fatigue_enabled: When true each synapse maintains a temporary
     fatigue value that reduces its effective weight after repeated use. This
     models biological short-term depression and can help prevent domination by
@@ -524,6 +531,8 @@ metrics_dashboard:
   host: Interface address for the Dash server, usually ``"localhost"``.
   port: TCP port used by the dashboard. Ensure this port is free.
   update_interval: Milliseconds between refreshes of the dashboard graphs.
+  window_size: Number of recent points used to compute the moving average shown
+    on each graph. Larger windows smooth the curves more aggressively.
 
 lobe_manager:
   # Parameters controlling how strongly neuron attention is adjusted when the
@@ -598,6 +607,9 @@ reinforcement_learning:
   epsilon_min: Lowest exploration rate allowed once ``epsilon`` has decayed.
   seed: Integer random seed for reproducible training. Set to ``null`` to allow
     nondeterministic runs.
+  double_q: Enable Double Q-learning which maintains two separate Q-tables.
+    During updates one table selects the greedy action while the other
+    evaluates it. This reduces overestimation bias at the cost of extra memory.
 
 contrastive_learning:
   # Self-supervised contrastive representation learning using the
@@ -658,6 +670,9 @@ autoencoder_learning:
     ``4`` to ``64`` work well in practice.
   noise_std: Standard deviation of Gaussian noise added to inputs. A range
     from ``0.0`` (no noise) to ``0.5`` encourages robust representations.
+  noise_decay: Multiplicative factor applied to ``noise_std`` after each epoch.
+    Values below ``1.0`` gradually reduce corruption as training progresses,
+    allowing the model to focus on fine-grained reconstruction.
 
 semi_supervised_learning:
   # Semi-supervised learning using consistency regularization. Each step

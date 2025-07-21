@@ -32,6 +32,7 @@ Each entry is listed under its section heading.
 - random_seed
 - message_passing_dropout
 - representation_activation
+- apply_layer_norm
 - weight_init_mean
 - message_passing_beta
 - attention_temperature
@@ -97,6 +98,7 @@ Each entry is listed under its section heading.
 - max_learning_rate
 - top_k_paths
 - parallel_wanderers
+- beam_width
 - synaptic_fatigue_enabled
 - fatigue_increase
 - fatigue_decay
@@ -243,6 +245,7 @@ Each entry is listed under its section heading.
 - host
 - port
 - update_interval
+- window_size
 
 ## lobe_manager
 - attention_increase_factor
@@ -289,6 +292,7 @@ Each entry is listed under its section heading.
 - epsilon_decay
 - epsilon_min
 - seed
+- double_q
 
 ## contrastive_learning
 - enabled
@@ -311,6 +315,7 @@ Each entry is listed under its section heading.
 - epochs
 - batch_size
 - noise_std
+- noise_decay
 
 ## semi_supervised_learning
 - enabled

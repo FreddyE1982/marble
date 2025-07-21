@@ -44,12 +44,22 @@ def _apply_activation(arr: np.ndarray, activation: str) -> np.ndarray:
     return np.tanh(arr)
 
 
-def _simple_mlp(x: np.ndarray, activation: str = "tanh") -> np.ndarray:
+def _layer_norm(arr: np.ndarray) -> np.ndarray:
+    """Return array normalized to zero mean and unit variance."""
+    mean = arr.mean(axis=-1, keepdims=True)
+    var = arr.var(axis=-1, keepdims=True) + 1e-6
+    return (arr - mean) / np.sqrt(var)
+
+
+def _simple_mlp(x: np.ndarray, activation: str = "tanh", *, apply_layer_norm: bool = True) -> np.ndarray:
     """Tiny MLP with one hidden layer and configurable activations."""
     # Handle potential NaNs or infinities to avoid runtime warnings
     x = np.nan_to_num(x, nan=0.0, posinf=0.0, neginf=0.0)
     h = _apply_activation(x @ _W1 + _B1, activation)
-    return _apply_activation(h @ _W2 + _B2, activation)
+    if apply_layer_norm:
+        h = _layer_norm(h)
+    out = _apply_activation(h @ _W2 + _B2, activation)
+    return out
 
 
 class AttentionModule:
@@ -138,8 +148,9 @@ def perform_message_passing(
                 continue
             attn = attn / sum_attn
         agg = sum(attn[i] * neigh_reps[i] for i in range(len(neigh_reps)))
+        ln_enabled = core.params.get("apply_layer_norm", True)
         interm = alpha * target.representation + (1 - alpha) * _simple_mlp(
-            agg, activation
+            agg, activation, apply_layer_norm=ln_enabled
         )
         mag = float(np.linalg.norm(agg))
         gate = 1.0 - np.exp(-mag)

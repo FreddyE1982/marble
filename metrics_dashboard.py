@@ -17,14 +17,25 @@ class MetricsDashboard:
         host: str = "localhost",
         port: int = 8050,
         update_interval: int = 1000,
+        window_size: int = 10,
     ) -> None:
         self.metrics_source = metrics_source
         self.host = host
         self.port = port
         self.update_interval = update_interval
+        self.window_size = max(1, int(window_size))
         self.app = Dash(__name__)
         self.thread: threading.Thread | None = None
         self._setup_layout()
+
+    def smooth(self, data):
+        if len(data) <= self.window_size:
+            return data
+        result = []
+        for i in range(len(data)):
+            start = max(0, i - self.window_size + 1)
+            result.append(sum(data[start : i + 1]) / (i - start + 1))
+        return result
 
     def _setup_layout(self) -> None:
         self.app.layout = html.Div(
@@ -43,32 +54,32 @@ class MetricsDashboard:
             metrics = self.metrics_source.metrics
             fig = go.Figure()
             if metrics.get("loss"):
-                fig.add_scatter(y=metrics["loss"], mode="lines", name="Loss")
+                fig.add_scatter(y=self.smooth(metrics["loss"]), mode="lines", name="Loss")
             if metrics.get("vram_usage"):
                 fig.add_scatter(
-                    y=metrics["vram_usage"], mode="lines", name="VRAM Usage"
+                    y=self.smooth(metrics["vram_usage"]), mode="lines", name="VRAM Usage"
                 )
             if metrics.get("arousal"):
-                fig.add_scatter(y=metrics["arousal"], mode="lines", name="Arousal")
+                fig.add_scatter(y=self.smooth(metrics["arousal"]), mode="lines", name="Arousal")
             if metrics.get("stress"):
-                fig.add_scatter(y=metrics["stress"], mode="lines", name="Stress")
+                fig.add_scatter(y=self.smooth(metrics["stress"]), mode="lines", name="Stress")
             if metrics.get("reward"):
-                fig.add_scatter(y=metrics["reward"], mode="lines", name="Reward")
+                fig.add_scatter(y=self.smooth(metrics["reward"]), mode="lines", name="Reward")
             if metrics.get("plasticity_threshold"):
                 fig.add_scatter(
-                    y=metrics["plasticity_threshold"], mode="lines", name="Plasticity"
+                    y=self.smooth(metrics["plasticity_threshold"]), mode="lines", name="Plasticity"
                 )
             if metrics.get("message_passing_change"):
                 fig.add_scatter(
-                    y=metrics["message_passing_change"], mode="lines", name="MsgPass"
+                    y=self.smooth(metrics["message_passing_change"]), mode="lines", name="MsgPass"
                 )
             if metrics.get("compression_ratio"):
                 fig.add_scatter(
-                    y=metrics["compression_ratio"], mode="lines", name="Compression"
+                    y=self.smooth(metrics["compression_ratio"]), mode="lines", name="Compression"
                 )
             if metrics.get("meta_loss_avg"):
                 fig.add_scatter(
-                    y=metrics["meta_loss_avg"], mode="lines", name="MetaLossAvg"
+                    y=self.smooth(metrics["meta_loss_avg"]), mode="lines", name="MetaLossAvg"
                 )
             fig.update_layout(xaxis_title="Updates", yaxis_title="Value")
             return fig

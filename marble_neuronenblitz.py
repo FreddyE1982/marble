@@ -94,6 +94,7 @@ class Neuronenblitz:
         max_learning_rate=0.1,
         top_k_paths=5,
         parallel_wanderers=1,
+        beam_width=1,
         synaptic_fatigue_enabled=True,
         fatigue_increase=0.05,
         fatigue_decay=0.95,
@@ -155,6 +156,7 @@ class Neuronenblitz:
         self.max_learning_rate = max_learning_rate
         self.top_k_paths = top_k_paths
         self.parallel_wanderers = parallel_wanderers
+        self.beam_width = max(1, int(beam_width))
         self.synaptic_fatigue_enabled = synaptic_fatigue_enabled
         self.fatigue_increase = fatigue_increase
         self.fatigue_decay = fatigue_decay
@@ -434,6 +436,34 @@ class Neuronenblitz:
             print(f"Partial pathway age: {pathway_age:.2f} sec")
         return final_neuron, final_path
 
+    def _beam_wander(self, start_neuron, depth_limit):
+        beams = [(start_neuron, [(start_neuron, None)], 0.0)]
+        for _ in range(depth_limit):
+            candidates = []
+            for neuron, path, score in beams:
+                if not neuron.synapses:
+                    candidates.append((neuron, path, score))
+                    continue
+                for syn in neuron.synapses:
+                    next_neuron = self.core.neurons[syn.target]
+                    w = syn.effective_weight(self.last_context) if hasattr(syn, "effective_weight") else syn.weight
+                    val = self.combine_fn(neuron.value, w)
+                    if hasattr(syn, "apply_side_effects"):
+                        syn.apply_side_effects(self.core, neuron.value)
+                    if hasattr(next_neuron, "process"):
+                        next_neuron.value = next_neuron.process(val)
+                    else:
+                        next_neuron.value = val
+                    new_path = path + [(next_neuron, syn)]
+                    new_score = score + syn.potential
+                    candidates.append((next_neuron, new_path, new_score))
+            if not candidates:
+                break
+            candidates.sort(key=lambda x: x[2], reverse=True)
+            beams = candidates[: self.beam_width]
+        best = max(beams, key=lambda x: x[2])
+        return best[0], best[1]
+
     def dynamic_wander(self, input_value, apply_plasticity=True):
         with self.lock:
             for neuron in self.core.neurons:
@@ -456,8 +486,11 @@ class Neuronenblitz:
                     ),
                 )
             )
-            results = self._wander(entry_neuron, initial_path, 1.0, depth_limit)
-            final_neuron, final_path = self._merge_results(results)
+            if self.beam_width > 1:
+                final_neuron, final_path = self._beam_wander(entry_neuron, depth_limit)
+            else:
+                results = self._wander(entry_neuron, initial_path, 1.0, depth_limit)
+                final_neuron, final_path = self._merge_results(results)
             if not final_path or all(s is None for _, s in final_path):
                 if entry_neuron.synapses and self.dropout_probability < 1.0:
                     syn = self.weighted_choice(entry_neuron.synapses)

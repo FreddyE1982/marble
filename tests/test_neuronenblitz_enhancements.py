@@ -253,3 +253,20 @@ def test_synapse_update_cap_limits_change():
     nb.apply_weight_updates_and_attention([syn], error=1.0)
     assert np.isclose(syn.weight, 1.05)
 
+
+def test_beam_wander_selects_best_path():
+    random.seed(0)
+    core, syn = create_simple_core()
+    core.add_synapse(0, 1, weight=0.5)
+    nb = Neuronenblitz(
+        core,
+        beam_width=2,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        backtrack_probability=0.0,
+        backtrack_enabled=False,
+    )
+    out, path = nb.dynamic_wander(1.0)
+    assert isinstance(out, float)
+    assert path
+

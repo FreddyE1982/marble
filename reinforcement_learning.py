@@ -48,6 +48,7 @@ class MarbleQLearningAgent:
         epsilon: float = 1.0,
         epsilon_decay: float = 0.95,
         min_epsilon: float = 0.1,
+        double_q: bool = False,
     ) -> None:
         self.core = core
         self.nb = nb
@@ -55,7 +56,12 @@ class MarbleQLearningAgent:
         self.epsilon = epsilon
         self.epsilon_decay = epsilon_decay
         self.min_epsilon = min_epsilon
-        self.q_table: dict[tuple[tuple[int, int], int], float] = {}
+        self.double_q = double_q
+        if double_q:
+            self.q_table_a: dict[tuple[tuple[int, int], int], float] = {}
+            self.q_table_b: dict[tuple[tuple[int, int], int], float] = {}
+        else:
+            self.q_table: dict[tuple[tuple[int, int], int], float] = {}
 
     def _encode(self, state: tuple[int, int], action: int) -> float:
         """Encode state-action pair into a numeric input."""
@@ -64,9 +70,19 @@ class MarbleQLearningAgent:
     def select_action(self, state: tuple[int, int], n_actions: int) -> int:
         if random.random() < self.epsilon:
             return random.randrange(n_actions)
-        q_values = [
-            self.q_table.get((state, a), 0.0) for a in range(n_actions)
-        ]
+        if self.double_q:
+            q_values = [
+                (
+                    self.q_table_a.get((state, a), 0.0)
+                    + self.q_table_b.get((state, a), 0.0)
+                )
+                / 2
+                for a in range(n_actions)
+            ]
+        else:
+            q_values = [
+                self.q_table.get((state, a), 0.0) for a in range(n_actions)
+            ]
         return int(np.argmax(q_values))
 
     def update(
@@ -77,14 +93,29 @@ class MarbleQLearningAgent:
         next_state: tuple[int, int],
         done: bool,
     ) -> None:
-        next_q = 0.0
-        if not done:
-            next_q = max(
-                self.q_table.get((next_state, a), 0.0) for a in range(4)
-            )
-        current = self.q_table.get((state, action), 0.0)
-        target = reward + self.discount * next_q
-        self.q_table[(state, action)] = current + 0.1 * (target - current)
+        if self.double_q:
+            tables = [(self.q_table_a, self.q_table_b), (self.q_table_b, self.q_table_a)]
+            update_table, eval_table = random.choice(tables)
+            if not done:
+                best_a = max(
+                    range(4),
+                    key=lambda a: update_table.get((next_state, a), 0.0),
+                )
+                next_q = eval_table.get((next_state, best_a), 0.0)
+            else:
+                next_q = 0.0
+            current = update_table.get((state, action), 0.0)
+            target = reward + self.discount * next_q
+            update_table[(state, action)] = current + 0.1 * (target - current)
+        else:
+            next_q = 0.0
+            if not done:
+                next_q = max(
+                    self.q_table.get((next_state, a), 0.0) for a in range(4)
+                )
+            current = self.q_table.get((state, action), 0.0)
+            target = reward + self.discount * next_q
+            self.q_table[(state, action)] = current + 0.1 * (target - current)
         self.epsilon = max(self.min_epsilon, self.epsilon * self.epsilon_decay)
 
 
