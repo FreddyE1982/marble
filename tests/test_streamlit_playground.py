@@ -85,6 +85,8 @@ from streamlit_playground import (
     list_documentation_files,
     load_documentation,
     load_module_source,
+    wander_neuronenblitz,
+    parallel_wander_neuronenblitz,
 )
 
 
@@ -577,3 +579,20 @@ def test_lobe_manager_helpers(tmp_path):
     self_attention_lobes(marble, loss=1.0)
     ids = select_high_attention_neurons(marble, threshold=-1.0)
     assert isinstance(ids, list)
+
+
+def test_neuronenblitz_wander_helpers(tmp_path):
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+    marble = initialize_marble(str(cfg_path))
+
+    out, path = wander_neuronenblitz(marble, 0.1)
+    assert isinstance(out, float)
+    assert isinstance(path, list)
+
+    res = parallel_wander_neuronenblitz(marble, 0.2, processes=1)
+    assert isinstance(res, list) and res
+    assert isinstance(res[0][0], float)
+    assert isinstance(res[0][1], int)

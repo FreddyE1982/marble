@@ -959,6 +959,47 @@ def run_gridworld_episode(
     return [float(r) for r in rewards]
 
 
+def wander_neuronenblitz(
+    marble,
+    input_value: float | str | bytes,
+    apply_plasticity: bool = True,
+) -> tuple[float, list[int]]:
+    """Run ``Neuronenblitz.dynamic_wander`` and return output and path.
+
+    Parameters
+    ----------
+    marble:
+        Active MARBLE instance.
+    input_value:
+        Value provided to the wanderer. Can be numeric or any value accepted by
+        :func:`_parse_value` when used through the playground.
+    apply_plasticity:
+        Whether synaptic plasticity should be applied while wandering.
+
+    Returns
+    -------
+    tuple
+        Output value and list of neuron IDs visited in order.
+    """
+
+    nb = marble.get_neuronenblitz()
+    out, path = nb.dynamic_wander(input_value, apply_plasticity=bool(apply_plasticity))
+    ids = [int(s.target) for s in path]
+    return float(out), ids
+
+
+def parallel_wander_neuronenblitz(
+    marble,
+    input_value: float | str | bytes,
+    processes: int = 2,
+) -> list[tuple[float, int]]:
+    """Run ``dynamic_wander_parallel`` and return ``(output, seed)`` pairs."""
+
+    nb = marble.get_neuronenblitz()
+    results = nb.dynamic_wander_parallel(input_value, num_processes=int(processes))
+    return [(float(o), int(s)) for o, s in results]
+
+
 def start_auto_firing(marble, interval_ms: int = 1000) -> None:
     """Start MARBLE's auto-firing thread."""
 
@@ -1236,6 +1277,7 @@ def run_playground() -> None:
             tab_offload,
             tab_async,
             tab_rl,
+            tab_nbexp,
             tab_proj,
             tab_tests,
             tab_docs,
@@ -1259,6 +1301,7 @@ def run_playground() -> None:
                 "Offloading",
                 "Async Training",
                 "RL Sandbox",
+                "NB Explorer",
                 "Projects",
                 "Tests",
                 "Documentation",
@@ -1916,6 +1959,27 @@ def run_playground() -> None:
                 fig.add_scatter(y=rewards, mode="lines+markers")
                 fig.update_layout(xaxis_title="Episode", yaxis_title="Total Reward")
                 st.plotly_chart(fig, use_container_width=True)
+
+        with tab_nbexp:
+            st.write("Explore Neuronenblitz wander behaviour.")
+            nb_input = st.text_input("Input", value="0.0", key="nb_in")
+            plast = st.checkbox("Apply Plasticity", value=True, key="nb_plast")
+            procs = st.number_input("Processes", min_value=1, value=1, step=1, key="nb_proc")
+            if st.button("Wander", key="nb_wander"):
+                val = _parse_value(nb_input)
+                out, ids = wander_neuronenblitz(marble, val, apply_plasticity=plast)
+                st.write(f"Output: {out}")
+                st.write(f"Path: {ids}")
+            if st.button("Parallel Wander", key="nb_pwander"):
+                val = _parse_value(nb_input)
+                res = parallel_wander_neuronenblitz(marble, val, processes=int(procs))
+                st.write(res)
+            if st.button("Show Training History", key="nb_hist"):
+                hist = marble.get_neuronenblitz().get_training_history()
+                if hist:
+                    st.dataframe(pd.DataFrame(hist), use_container_width=True)
+                else:
+                    st.info("No history available")
 
         with tab_proj:
             st.write("Run example projects to explore MARBLE's capabilities.")
