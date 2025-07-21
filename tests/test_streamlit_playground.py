@@ -61,6 +61,8 @@ from streamlit_playground import (
     search_hf_models,
     core_statistics,
     system_stats,
+    get_neuromod_state,
+    set_neuromod_state,
     list_test_files,
     run_tests,
     list_documentation_files,
@@ -448,6 +450,20 @@ def test_core_statistics(tmp_path):
     assert stats["synapses"] == len(marble.get_core().synapses)
     tiers = {n.tier for n in marble.get_core().neurons}
     assert stats["tiers"] == len(tiers)
+
+
+def test_neuromod_state_helpers(tmp_path):
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+    marble = initialize_marble(str(cfg_path))
+
+    state = get_neuromod_state(marble)
+    assert state["arousal"] == 0.0
+    updated = set_neuromod_state(marble, arousal=0.5, emotion="happy")
+    assert updated["arousal"] == 0.5
+    assert updated["emotion"] == "happy"
 
 
 def test_list_tests_and_run(tmp_path):
