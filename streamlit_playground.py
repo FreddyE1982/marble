@@ -23,7 +23,10 @@ from marble_interface import (
     load_marble_system,
     export_core_to_json,
     import_core_from_json,
+    load_hf_dataset,
 )
+
+from metrics_dashboard import MetricsDashboard
 
 
 def _load_image(file_obj: BytesIO) -> np.ndarray:
@@ -113,6 +116,36 @@ def load_examples(file) -> list[tuple]:
     raise ValueError("Unsupported dataset format")
 
 
+def load_hf_examples(
+    dataset_name: str,
+    split: str,
+    input_key: str = "input",
+    target_key: str = "target",
+    limit: int | None = None,
+) -> list[tuple]:
+    """Load ``(input, target)`` pairs from a Hugging Face dataset."""
+    return load_hf_dataset(dataset_name, split, input_key, target_key, limit)
+
+
+def start_metrics_dashboard(
+    marble,
+    host: str = "localhost",
+    port: int = 8050,
+    update_interval: int = 1000,
+    window_size: int = 10,
+) -> MetricsDashboard:
+    """Start a live metrics dashboard for ``marble`` and return it."""
+    dash = MetricsDashboard(
+        marble.get_metrics_visualizer(),
+        host=host,
+        port=port,
+        update_interval=update_interval,
+        window_size=window_size,
+    )
+    dash.start()
+    return dash
+
+
 def initialize_marble(cfg_path: str | None = None, yaml_text: str | None = None):
     """Create a MARBLE system from a YAML path or inline YAML text."""
     if yaml_text is not None:
@@ -160,9 +193,15 @@ def run_playground() -> None:
 
     if "marble" not in st.session_state:
         st.session_state["marble"] = None
+    if "dashboard" not in st.session_state:
+        st.session_state["dashboard"] = None
+    if "hf_examples" not in st.session_state:
+        st.session_state["hf_examples"] = []
 
     cfg_path = st.sidebar.text_input("Config YAML Path", "config.yaml")
-    cfg_upload = st.sidebar.file_uploader("Upload YAML", type=["yaml", "yml"], key="cfg_file")
+    cfg_upload = st.sidebar.file_uploader(
+        "Upload YAML", type=["yaml", "yml"], key="cfg_file"
+    )
     cfg_text = st.sidebar.text_area("Or paste YAML", key="cfg_text")
     if st.sidebar.button("Initialize MARBLE"):
         yaml_data = None
@@ -170,7 +209,9 @@ def run_playground() -> None:
             yaml_data = cfg_upload.getvalue().decode("utf-8")
         elif cfg_text.strip():
             yaml_data = cfg_text
-        st.session_state["marble"] = initialize_marble(cfg_path if not yaml_data else None, yaml_text=yaml_data)
+        st.session_state["marble"] = initialize_marble(
+            cfg_path if not yaml_data else None, yaml_text=yaml_data
+        )
         st.sidebar.success("System initialized")
 
     save_path = st.sidebar.text_input("Save Path", "marble.pkl")
@@ -216,16 +257,63 @@ def run_playground() -> None:
     )
     set_autograd(marble, autograd)
 
+    dash_toggle = st.sidebar.checkbox("Metrics Dashboard")
+    dash_host = st.sidebar.text_input("Dashboard Host", "localhost")
+    dash_port = st.sidebar.number_input("Dashboard Port", value=8050, step=1)
+    dash_interval = st.sidebar.number_input("Dashboard Interval", value=1000, step=100)
+    if dash_toggle and st.session_state.get("dashboard") is None:
+        st.session_state["dashboard"] = start_metrics_dashboard(
+            marble,
+            host=dash_host,
+            port=int(dash_port),
+            update_interval=int(dash_interval),
+        )
+        st.sidebar.success("Dashboard started")
+    if not dash_toggle and st.session_state.get("dashboard") is not None:
+        st.session_state["dashboard"].stop()
+        st.session_state["dashboard"] = None
+
     train_file = st.sidebar.file_uploader(
         "Training Dataset", type=["csv", "json", "jsonl", "zip"]
     )
+    hf_name = st.sidebar.text_input("HF Dataset Name")
+    hf_split = st.sidebar.text_input("HF Split", "train[:100]")
+    hf_input = st.sidebar.text_input("Input Key", "input")
+    hf_target = st.sidebar.text_input("Target Key", "target")
+    hf_limit = st.sidebar.number_input("HF Limit", min_value=1, value=100, step=1)
+    if st.sidebar.button("Load HF Dataset") and hf_name and hf_split:
+        st.session_state["hf_examples"] = load_hf_examples(
+            hf_name,
+            hf_split,
+            input_key=hf_input,
+            target_key=hf_target,
+            limit=int(hf_limit),
+        )
+        st.sidebar.success(
+            f"Loaded {len(st.session_state['hf_examples'])} examples from HF"
+        )
     epochs = st.sidebar.number_input("Epochs", min_value=1, value=1, step=1)
-    if st.sidebar.button("Train") and train_file is not None:
-        examples = load_examples(train_file)
-        train_marble_system(marble, examples, epochs=epochs)
-        st.sidebar.success("Training complete")
-        if marble.get_metrics_visualizer().fig:
-            st.pyplot(marble.get_metrics_visualizer().fig)
+    if st.sidebar.button("Train"):
+        examples = []
+        if train_file is not None:
+            examples = load_examples(train_file)
+        elif "hf_examples" in st.session_state:
+            examples = st.session_state["hf_examples"]
+        if not examples:
+            st.sidebar.error("No dataset loaded")
+        else:
+            train_marble_system(marble, examples, epochs=epochs)
+            st.sidebar.success("Training complete")
+            if marble.get_metrics_visualizer().fig:
+                st.pyplot(marble.get_metrics_visualizer().fig)
+
+    eval_file = st.sidebar.file_uploader(
+        "Evaluation Dataset", type=["csv", "json", "jsonl", "zip"], key="eval_file"
+    )
+    if st.sidebar.button("Evaluate") and eval_file is not None:
+        eval_examples = load_examples(eval_file)
+        mse = marble_interface.evaluate_marble_system(marble, eval_examples)
+        st.sidebar.write(f"MSE: {mse}")
 
     if mode == "Basic":
         st.header("Inference")

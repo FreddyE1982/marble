@@ -21,6 +21,8 @@ from streamlit_playground import (
     load_marble_system,
     export_core_to_json,
     import_core_from_json,
+    load_hf_examples,
+    start_metrics_dashboard,
 )
 
 
@@ -100,3 +102,26 @@ def test_save_load_and_core_roundtrip(tmp_path):
     js = export_core_to_json(m)
     m3 = import_core_from_json(js)
     assert len(m3.get_core().neurons) == len(m.get_core().neurons)
+
+
+def test_load_hf_examples_and_dashboard(tmp_path):
+    with mock.patch(
+        "streamlit_playground.load_hf_dataset",
+        return_value=[(0.1, 0.2), (0.2, 0.4)],
+    ):
+        ex = load_hf_examples("dummy", "train")
+    assert ex == [(0.1, 0.2), (0.2, 0.4)]
+
+    class DummyMarble:
+        def __init__(self):
+            from marble_base import MetricsVisualizer
+
+            self.mv = MetricsVisualizer()
+
+        def get_metrics_visualizer(self):
+            return self.mv
+
+    with mock.patch("streamlit_playground.MetricsDashboard.start") as start:
+        dash = start_metrics_dashboard(DummyMarble(), port=8062)
+        start.assert_called_once()
+        assert dash.port == 8062
