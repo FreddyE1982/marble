@@ -113,8 +113,14 @@ def load_examples(file) -> list[tuple]:
     raise ValueError("Unsupported dataset format")
 
 
-def initialize_marble(cfg_path: str):
-    """Create a MARBLE system using a YAML configuration path."""
+def initialize_marble(cfg_path: str | None = None, yaml_text: str | None = None):
+    """Create a MARBLE system from a YAML path or inline YAML text."""
+    if yaml_text is not None:
+        with tempfile.NamedTemporaryFile("w", delete=False, suffix=".yaml") as tmp:
+            tmp.write(yaml_text)
+            cfg_path = tmp.name
+    if cfg_path is None:
+        raise ValueError("Either cfg_path or yaml_text must be provided")
     return new_marble_system(cfg_path)
 
 
@@ -155,9 +161,16 @@ def run_playground() -> None:
     if "marble" not in st.session_state:
         st.session_state["marble"] = None
 
-    cfg_path = st.sidebar.text_input("Config YAML", "config.yaml")
+    cfg_path = st.sidebar.text_input("Config YAML Path", "config.yaml")
+    cfg_upload = st.sidebar.file_uploader("Upload YAML", type=["yaml", "yml"], key="cfg_file")
+    cfg_text = st.sidebar.text_area("Or paste YAML", key="cfg_text")
     if st.sidebar.button("Initialize MARBLE"):
-        st.session_state["marble"] = initialize_marble(cfg_path)
+        yaml_data = None
+        if cfg_upload is not None:
+            yaml_data = cfg_upload.getvalue().decode("utf-8")
+        elif cfg_text.strip():
+            yaml_data = cfg_text
+        st.session_state["marble"] = initialize_marble(cfg_path if not yaml_data else None, yaml_text=yaml_data)
         st.sidebar.success("System initialized")
 
     save_path = st.sidebar.text_input("Save Path", "marble.pkl")

@@ -64,6 +64,13 @@ def test_initialize_marble(tmp_path):
     assert len(m.get_core().neurons) > 0
 
 
+def test_initialize_marble_with_yaml_text(tmp_path):
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    yaml_str = yaml.dump(cfg)
+    m = initialize_marble(None, yaml_text=yaml_str)
+    assert len(m.get_core().neurons) > 0
+
+
 def test_execute_marble_function(tmp_path):
     cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
     cfg_path = tmp_path / "cfg.yaml"
