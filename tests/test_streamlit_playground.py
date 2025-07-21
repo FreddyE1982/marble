@@ -37,6 +37,9 @@ from streamlit_playground import (
     core_figure,
     load_yaml_manual,
     set_yaml_value,
+    load_hf_model,
+    convert_hf_model,
+    model_summary,
 )
 
 
@@ -249,3 +252,34 @@ def test_set_yaml_value_nested_creation():
     new = set_yaml_value(yaml_text, "a.c.d", 5)
     cfg = yaml.safe_load(new)
     assert cfg["a"]["c"]["d"] == 5
+
+
+def test_load_hf_model_and_convert():
+    dummy_model = object()
+    with mock.patch(
+        "streamlit_playground.AutoModel.from_pretrained",
+        return_value=dummy_model,
+    ) as auto:
+        model = load_hf_model("dummy")
+    auto.assert_called_once_with("dummy", trust_remote_code=True)
+    assert model is dummy_model
+
+    with mock.patch(
+        "streamlit_playground.load_hf_model",
+        return_value=dummy_model,
+    ) as loader, mock.patch(
+        "streamlit_playground.marble_interface.convert_pytorch_model",
+        return_value="marble",
+    ) as conv:
+        out = convert_hf_model("dummy")
+    loader.assert_called_once_with("dummy")
+    conv.assert_called_once()
+    assert out == "marble"
+
+
+def test_model_summary():
+    import torch
+
+    model = torch.nn.Linear(2, 1)
+    summary = model_summary(model)
+    assert "Total parameters" in summary

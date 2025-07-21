@@ -58,6 +58,9 @@ generates widgets for each parameter so every capability of the
 repository are also exposed and you can construct a **pipeline** of function
 calls that execute sequentially. This makes it possible to combine training,
 evaluation and utility operations into a single workflow directly from the UI.
+The playground now also includes a **Model Conversion** tab for loading any
+pretrained model from the Hugging Face Hub and converting it into a MARBLE
+system with one click.
 Pipelines can be imported or exported as JSON and a **Custom Code** tab lets you
 run arbitrary Python snippets with the active MARBLE instance.
 The advanced interface now features a **Config Editor** tab where any
