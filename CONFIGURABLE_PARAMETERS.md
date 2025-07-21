@@ -193,6 +193,10 @@ Each entry is listed under its section heading.
 - threshold
 - consolidation_interval
 
+## hybrid_memory
+- vector_store_path
+- symbolic_store_path
+
 ## remote_client
 - url
 - timeout

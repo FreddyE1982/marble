@@ -25,6 +25,7 @@ class MARBLE:
         dashboard_params=None,
         autograd_params=None,
         pytorch_challenge_params=None,
+        hybrid_memory_params=None,
     ):
         if converter_model is not None:
             self.core = MarbleConverter.convert(
@@ -181,6 +182,7 @@ class MARBLE:
         if brain_params is not None:
             brain_defaults.update(brain_params)
         ds_params = brain_defaults.pop("dimensional_search", None)
+        hybrid_memory_params = brain_defaults.pop("hybrid_memory_params", None)
         self.brain = Brain(
             self.core,
             self.neuronenblitz,
@@ -192,6 +194,14 @@ class MARBLE:
             **brain_defaults,
             dimensional_search_params=ds_params,
         )
+
+        self.hybrid_memory = None
+        if hybrid_memory_params:
+            from hybrid_memory import HybridMemory
+
+            vector_path = hybrid_memory_params.get("vector_store_path", "vector_store.pkl")
+            symbolic_path = hybrid_memory_params.get("symbolic_store_path", "symbolic_memory.pkl")
+            self.hybrid_memory = HybridMemory(self.core, self.neuronenblitz, vector_path, symbolic_path)
 
         self.benchmark_manager = BenchmarkManager(self)
 

@@ -436,6 +436,14 @@ memory_system:
   consolidation_interval: Number of operations between calls to
     ``consolidate``. Larger values delay writes to disk but reduce I/O.
 
+hybrid_memory:
+  # Optional long-range memory combining vector search with symbolic storage.
+  vector_store_path: File path for storing dense embeddings of each memory
+    entry. If omitted defaults to ``vector_store.pkl`` in the working
+    directory.
+  symbolic_store_path: File used to persist key/value pairs and timestamps.
+    This mirrors the vector store so recalls can return the original data.
+
 remote_client:
   # Configuration for forwarding parts of the brain to a remote server. When
   # ``offload_enabled`` is true the brain serializes a subcore and sends it to

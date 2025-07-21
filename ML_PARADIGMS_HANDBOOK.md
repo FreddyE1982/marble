@@ -90,6 +90,13 @@ input has its own weights, derived from radial basis functions. Neuronenblitz
 provides features \(\phi(x)\) and the prediction is \(\phi(x) \cdot W(x)\). A
 variational loss with a gradient regulariser ensures the field changes smoothly
 across \(x\).
+
+### Hybrid Memory Architecture
+Conversation turns are embedded into a vector store while key facts are written
+to a symbolic database. Retrieval uses a learned attention mechanism that scores
+stored embeddings against the current dialogue context. Retrieved records prime
+the response and new information is written back after answering, allowing
+persistent recall across many turns.
 ---
 
 ## Version for ML Scientists
@@ -272,4 +279,11 @@ combines them. This helps it imagine ideas that were never shown in the data.
 Each input has its own weights generated from a smooth field. MARBLE uses the
 current neuron representations to compute a prediction and adjusts the field so
 nearby inputs share similar weights while matching their targets.
+
+### Hybrid Memory Architecture
+Dialogue history is stored both as dense embeddings and as exact symbolic facts.
+During inference a cross-attention network ranks stored embeddings against the
+current context. The best matches retrieve their symbolic entries which are fed
+back into the model. After generating a reply the new information is embedded and
+written to disk for future recall.
 

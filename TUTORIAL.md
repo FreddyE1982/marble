@@ -1124,3 +1124,31 @@ print(len(marble.core.neurons))
 ```
 Run `python project26_cip.py` to watch concepts emerge through blending.
 
+## Project 27 – Hybrid Memory Architecture (Advanced)
+
+**Goal:** Demonstrate storing and recalling information with the new hybrid memory system.
+
+1. **Prepare a configuration** enabling the hybrid memory:
+   ```yaml
+   hybrid_memory:
+     vector_store_path: "vectors.pkl"
+     symbolic_store_path: "symbols.pkl"
+   ```
+2. **Create the training script.** It saves a few values and then queries them:
+   ```python
+   # project27_hybrid_memory.py
+   from config_loader import load_config, create_marble_from_config
+
+   cfg = load_config()
+   cfg["hybrid_memory"] = {
+       "vector_store_path": "vectors.pkl",
+       "symbolic_store_path": "symbols.pkl",
+   }
+   marble = create_marble_from_config(cfg)
+   marble.hybrid_memory.store("a", 1.0)
+   marble.hybrid_memory.store("b", 2.0)
+   print(marble.hybrid_memory.retrieve(1.0, top_k=1))
+   ```
+3. **Run the script** with `python project27_hybrid_memory.py`. The retrieved list should contain the key `'a'` showing the memory system found the correct entry.
+
+
