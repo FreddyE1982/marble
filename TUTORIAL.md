@@ -305,8 +305,13 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
    from hebbian_learning import HebbianLearner
    learner = HebbianLearner(core, neuronenblitz)
    ```
-3. **Train on unlabeled data** by passing a list of input vectors to `learner.train(inputs)`.
-4. **Review synapse adjustments** in `learner.history` to see how correlations between activations strengthen or weaken connections.
+3. **Download real unlabeled data** using the [Fashion‑MNIST](https://github.com/zalandoresearch/fashion-mnist) dataset:
+   ```python
+   from datasets import load_dataset
+   ds = load_dataset('fashion_mnist', split='train')
+   inputs = [x['image'].reshape(-1).numpy() / 255.0 for x in ds]
+   ```
+4. **Train** on these vectors with `learner.train(inputs)` and review `learner.history` to see how correlations strengthen or weaken connections.
 
 **Complete Example**
 ```python
@@ -318,7 +323,9 @@ from hebbian_learning import HebbianLearner
 cfg = load_config()
 marble = MARBLE(cfg['core'])
 learner = HebbianLearner(marble.core, marble.neuronenblitz)
-inputs = load_unlabeled_vectors()
+from datasets import load_dataset
+ds = load_dataset('fashion_mnist', split='train')
+inputs = [x['image'].reshape(-1).numpy() / 255.0 for x in ds]
 learner.train(inputs)
 print(learner.history[-1])
 ```
@@ -330,8 +337,14 @@ Execute this file to observe Hebbian updates on your data.
 
 1. **Activate adversarial mode** by setting `adversarial_learning.enabled: true` in `config.yaml` and specify `epochs`, `batch_size` and the latent `noise_dim` used by the generator.
 2. **Create the networks** by instantiating two `Neuronenblitz` objects that share the same Core: one acts as generator and the other as discriminator.
-3. **Construct an `AdversarialLearner`** with these networks and call `learner.train(real_values)` to alternate generator and discriminator updates.
-4. **Sample new data** after training by passing random noise vectors to the generator's `dynamic_wander` method.
+3. **Download real samples** from the [MNIST](http://yann.lecun.com/exdb/mnist/) dataset using `datasets.load_dataset`:
+   ```python
+   from datasets import load_dataset
+   ds = load_dataset('mnist', split='train')
+   real_values = [x['image'].reshape(-1).numpy() / 255.0 for x in ds]
+   ```
+4. **Construct an `AdversarialLearner`** and call `learner.train(real_values)` to alternate generator and discriminator updates.
+5. **Sample new data** after training by passing random noise vectors to the generator's `dynamic_wander` method.
 
 **Complete Example**
 ```python
@@ -344,7 +357,9 @@ cfg = load_config()
 generator = MARBLE(cfg['core']).neuronenblitz
 discriminator = MARBLE(cfg['core']).neuronenblitz
 learner = AdversarialLearner(generator, discriminator)
-real_values = load_real_samples()
+from datasets import load_dataset
+ds = load_dataset('mnist', split='train')
+real_values = [x['image'].reshape(-1).numpy() / 255.0 for x in ds]
 learner.train(real_values)
 noise = sample_noise(len(real_values[0][0]))
 print(generator.dynamic_wander(noise))
@@ -361,8 +376,13 @@ Run this script to see generator and discriminator training in action.
    from autoencoder_learning import AutoencoderLearner
    auto = AutoencoderLearner(core, neuronenblitz)
    ```
-3. **Train** using `auto.train(values)` where `values` is a list of numeric vectors. The learner corrupts inputs with Gaussian noise of standard deviation `noise_std` and learns to reconstruct the originals.
-4. **Inspect progress** in `auto.history` to see reconstruction losses decreasing over epochs.
+3. **Download a real dataset**. The `load_digits` function from `sklearn.datasets` fetches handwritten digits as 8×8 images:
+   ```python
+   from sklearn.datasets import load_digits
+   digits = load_digits()
+   values = [img / 16.0 for img in digits.data]
+   ```
+4. **Train** using `auto.train(values)` and inspect `auto.history` to see reconstruction losses decreasing over epochs.
 
 **Complete Example**
 ```python
@@ -374,7 +394,9 @@ from autoencoder_learning import AutoencoderLearner
 cfg = load_config()
 marble = MARBLE(cfg['core'])
 auto = AutoencoderLearner(marble.core, marble.neuronenblitz)
-values = load_noisy_vectors()
+from sklearn.datasets import load_digits
+digits = load_digits()
+values = [img / 16.0 for img in digits.data]
 auto.train(values)
 print(auto.history[-1])
 ```
@@ -390,8 +412,17 @@ Launch with `python project10_autoencoder.py` after enabling the module.
    from semi_supervised_learning import SemiSupervisedLearner
    learner = SemiSupervisedLearner(core, neuronenblitz)
    ```
-3. **Train** using two lists: one containing `(input, target)` pairs and the other containing unlabeled inputs. Call `learner.train(labeled, unlabeled)`.
-4. **Inspect history** for both supervised and consistency losses recorded in `learner.history` to gauge progress.
+3. **Download the digits dataset** and split it so only a fraction retains labels:
+   ```python
+   from sklearn.datasets import load_digits
+   from sklearn.model_selection import train_test_split
+   digits = load_digits()
+   X_train, X_unlabeled, y_train, _ = train_test_split(
+       digits.data, digits.target, test_size=0.8, random_state=42)
+   labeled = list(zip(X_train, y_train))
+   unlabeled = list(X_unlabeled)
+   ```
+4. **Train** using these lists with `learner.train(labeled, unlabeled)` and inspect `learner.history` to gauge progress.
 
 **Complete Example**
 ```python
@@ -403,7 +434,13 @@ from semi_supervised_learning import SemiSupervisedLearner
 cfg = load_config()
 marble = MARBLE(cfg['core'])
 learner = SemiSupervisedLearner(marble.core, marble.neuronenblitz)
-labeled, unlabeled = load_labeled_and_unlabeled()
+from sklearn.datasets import load_digits
+from sklearn.model_selection import train_test_split
+digits = load_digits()
+X_train, X_unlabeled, y_train, _ = train_test_split(
+    digits.data, digits.target, test_size=0.8, random_state=42)
+labeled = list(zip(X_train, y_train))
+unlabeled = list(X_unlabeled)
 learner.train(labeled, unlabeled)
 print(learner.history[-1])
 ```
@@ -415,8 +452,15 @@ Execute `python project11_semi_supervised.py` once the module is enabled.
 
 1. **Enable federated mode** by setting `federated_learning.enabled: true` in `config.yaml`. Define the number of communication `rounds` and how many `local_epochs` each client trains before averaging.
 2. **Instantiate clients**: create a separate `Core` and `Neuronenblitz` for each participant and pass these to a `FederatedAveragingTrainer` instance.
-3. **Train round by round** by providing a list of datasets to `trainer.train_round(client_data)` for each round. The trainer aggregates parameters after every local training phase.
-4. **Check synchronisation** by comparing synapse weights across clients after training to ensure the averaging step worked.
+3. **Download a real dataset** to distribute among the clients. The MNIST digits can be fetched once and partitioned equally:
+   ```python
+   from datasets import load_dataset
+   mnist = load_dataset('mnist', split='train')
+   data_parts = np.array_split(list(mnist), len(clients))
+   datasets = [[(x['image'].reshape(-1).numpy() / 255.0, x['label']) for x in part]
+               for part in data_parts]
+   ```
+4. **Train round by round** by passing each client's portion to `trainer.train_round(client_data)` and check synchronisation by comparing synapse weights after training.
 
 **Complete Example**
 ```python
@@ -428,7 +472,12 @@ from marble_main import MARBLE
 cfg = load_config()
 clients = [MARBLE(cfg['core']) for _ in range(3)]
 trainer = FederatedAveragingTrainer([c.neuronenblitz for c in clients])
-datasets = load_client_datasets()
+from datasets import load_dataset
+import numpy as np
+mnist = load_dataset('mnist', split='train')
+data_parts = np.array_split(list(mnist), len(clients))
+datasets = [[(x['image'].reshape(-1).numpy() / 255.0, x['label']) for x in part]
+            for part in data_parts]
 for round_data in datasets:
     trainer.train_round(round_data)
 ```
@@ -444,8 +493,15 @@ This script launches a simple three‑client federated session.
    from curriculum_learning import CurriculumLearner
    learner = CurriculumLearner(core, neuronenblitz)
    ```
-3. **Order your dataset** by difficulty and call `learner.train(sorted_samples)` to progressively feed in harder examples.
-4. **Track progress** via `learner.history`, which records the loss as each stage of the curriculum is reached.
+3. **Download a dataset** such as the handwritten digits and rank samples by the number of activated pixels to approximate difficulty:
+   ```python
+   from sklearn.datasets import load_digits
+   digits = load_digits()
+   difficulty = digits.data.sum(axis=1)
+   sorted_idx = difficulty.argsort()
+   sorted_samples = [(digits.data[i], digits.target[i]) for i in sorted_idx]
+   ```
+4. **Call** `learner.train(sorted_samples)` to progressively feed in harder examples and track progress via `learner.history`.
 
 **Complete Example**
 ```python
@@ -457,7 +513,11 @@ from curriculum_learning import CurriculumLearner
 cfg = load_config()
 marble = MARBLE(cfg['core'])
 learner = CurriculumLearner(marble.core, marble.neuronenblitz)
-sorted_samples = load_curriculum_samples()
+from sklearn.datasets import load_digits
+digits = load_digits()
+difficulty = digits.data.sum(axis=1)
+sorted_idx = difficulty.argsort()
+sorted_samples = [(digits.data[i], digits.target[i]) for i in sorted_idx]
 learner.train(sorted_samples)
 print(learner.history[-1])
 ```
@@ -468,7 +528,16 @@ Run `python project13_curriculum.py` to try curriculum learning.
 **Goal:** Adapt quickly to new tasks using the Reptile algorithm.**
 
 1. **Activate meta learning** in `config.yaml` by setting `meta_learning.enabled: true` and specify `epochs`, `inner_steps` and a meta learning rate `meta_lr`.
-2. **Prepare tasks**: each task should provide its own list of `(input, target)` pairs. Gather them into a list named `tasks`.
+2. **Prepare tasks** using real data. Split the digits dataset into per-class tasks so each contains only samples from one digit:
+   ```python
+   from sklearn.datasets import load_digits
+   digits = load_digits()
+   tasks = []
+   for digit in range(10):
+       mask = digits.target == digit
+       pairs = list(zip(digits.data[mask], digits.target[mask]))
+       tasks.append(pairs)
+   ```
 3. **Create the meta learner**:
    ```python
    from meta_learning import MetaLearner
@@ -487,7 +556,13 @@ from meta_learning import MetaLearner
 cfg = load_config()
 marble = MARBLE(cfg['core'])
 learner = MetaLearner(marble.core, marble.neuronenblitz)
-tasks = load_meta_tasks()
+from sklearn.datasets import load_digits
+digits = load_digits()
+tasks = []
+for digit in range(10):
+    mask = digits.target == digit
+    pairs = list(zip(digits.data[mask], digits.target[mask]))
+    tasks.append(pairs)
 for _ in range(cfg['meta_learning']['epochs']):
     learner.train_step(tasks)
 print(learner.history[-1])
@@ -500,8 +575,14 @@ Launch the script to practice Reptile-style meta learning.
 
 1. **Enable transfer learning** by setting `transfer_learning.enabled: true` in `config.yaml`. Choose `epochs`, `batch_size` and a `freeze_fraction` specifying what portion of synapses remain unchanged.
 2. **Create the transfer learner** after loading an existing model (or training a base model) and passing the `Core` and `Neuronenblitz` objects to `TransferLearner`.
-3. **Fine-tune** on a new dataset by calling `learner.train(new_pairs)` where `new_pairs` is your list of `(input, target)` examples.
-4. **Tune `freeze_fraction`** to control how many synapses stay fixed during fine‑tuning and monitor `learner.history` to check performance on the new task.
+3. **Download a new dataset** such as Fashion‑MNIST and prepare `(input, target)` tuples:
+   ```python
+   from datasets import load_dataset
+   ds = load_dataset('fashion_mnist', split='train')
+   new_pairs = [(x['image'].reshape(-1).numpy() / 255.0, x['label']) for x in ds]
+   ```
+4. **Fine-tune** on these pairs by calling `learner.train(new_pairs)`.
+5. **Tune `freeze_fraction`** to control how many synapses stay fixed during fine‑tuning and monitor `learner.history` to check performance on the new task.
 
 **Complete Example**
 ```python
@@ -513,7 +594,9 @@ from transfer_learning import TransferLearner
 cfg = load_config()
 base = MARBLE(cfg['core'])
 learner = TransferLearner(base.core, base.neuronenblitz)
-new_pairs = load_new_dataset()
+from datasets import load_dataset
+ds = load_dataset('fashion_mnist', split='train')
+new_pairs = [(x['image'].reshape(-1).numpy() / 255.0, x['label']) for x in ds]
 learner.train(new_pairs)
 print(learner.history[-1])
 ```
@@ -529,8 +612,16 @@ Run `python project15_transfer.py` after enabling transfer learning.
    from continual_learning import ReplayContinualLearner
    learner = ReplayContinualLearner(core, neuronenblitz)
    ```
-3. **Train sequentially**. For each new dataset that becomes available call `learner.train(data)`; the learner automatically mixes in examples from its replay memory.
-4. **Monitor reconstruction loss** via `learner.history` to see how well the model retains previous knowledge across tasks.
+3. **Download a sequence of datasets** such as Digits, Iris and Wine from `sklearn.datasets`:
+   ```python
+   from sklearn.datasets import load_digits, load_iris, load_wine
+   datasets = [
+       list(zip(load_digits().data, load_digits().target)),
+       list(zip(load_iris().data, load_iris().target)),
+       list(zip(load_wine().data, load_wine().target))
+   ]
+   ```
+4. **Train sequentially** by calling `learner.train(data)` for each dataset and monitor reconstruction loss via `learner.history` to see how well the model retains previous knowledge.
 
 **Complete Example**
 ```python
@@ -542,7 +633,12 @@ from continual_learning import ReplayContinualLearner
 cfg = load_config()
 marble = MARBLE(cfg['core'])
 learner = ReplayContinualLearner(marble.core, marble.neuronenblitz)
-datasets = load_task_sequence()
+from sklearn.datasets import load_digits, load_iris, load_wine
+datasets = [
+    list(zip(load_digits().data, load_digits().target)),
+    list(zip(load_iris().data, load_iris().target)),
+    list(zip(load_wine().data, load_wine().target))
+]
 for data in datasets:
     learner.train(data)
 print(learner.history[-1])
@@ -559,7 +655,19 @@ Execute the file to reproduce continual learning across tasks.
    from imitation_learning import ImitationLearner
    imitator = ImitationLearner(core, neuronenblitz)
    ```
-3. **Record demonstrations** using `imitator.record(input, action)` for each step of the task, then call `imitator.train()` (or `neuronenblitz.imitation_train()`) to learn from the history.
+3. **Record demonstrations** from a real environment such as `CartPole-v1` using `gymnasium`:
+   ```python
+   import gymnasium as gym
+   env = gym.make('CartPole-v1')
+   for _ in range(50):
+       obs, _ = env.reset()
+       done = False
+       while not done:
+           action = env.action_space.sample()
+           imitator.record(obs, action)
+           obs, _, done, _, _ = env.step(action)
+   ```
+   After recording, call `imitator.train()` (or `neuronenblitz.imitation_train()`) to learn from the history.
 4. **Evaluate** the cloned policy by passing new inputs to `dynamic_wander` and observing the predicted actions.
 
 **Complete Example**
@@ -572,8 +680,15 @@ from imitation_learning import ImitationLearner
 cfg = load_config()
 marble = MARBLE(cfg['core'])
 imitator = ImitationLearner(marble.core, marble.neuronenblitz)
-for inp, act in demonstration_data():
-    imitator.record(inp, act)
+import gymnasium as gym
+env = gym.make('CartPole-v1')
+for _ in range(50):
+    obs, _ = env.reset()
+    done = False
+    while not done:
+        action = env.action_space.sample()
+        imitator.record(obs, action)
+        obs, _, done, _, _ = env.step(action)
 imitator.train()
 print(marble.brain.dynamic_wander(new_input))
 ```
@@ -589,8 +704,17 @@ Run `python project17_imitation.py` to train from demonstrations.
    from harmonic_resonance_learning import HarmonicResonanceLearner
    learner = HarmonicResonanceLearner(core, neuronenblitz)
    ```
-3. **Train** by repeatedly calling `learner.train_step(value, target)` for the specified number of epochs.
-4. **Observe frequency error** in `learner.history` to understand how phase alignment evolves.
+3. **Download a real time series** such as the [Jena climate dataset](https://github.com/philipperemy/keras-tutorials/blob/master/resources/jena_climate_2009_2016.csv.zip) using `wget` and load it with `pandas`:
+   ```bash
+   wget -O jena.csv.zip https://github.com/philipperemy/keras-tutorials/raw/master/resources/jena_climate_2009_2016.csv.zip
+   unzip jena.csv.zip
+   ```
+   ```python
+   import pandas as pd
+   data = pd.read_csv('jena_climate_2009_2016.csv')
+   values = list(zip(data['T (degC)'].values, data['p (mbar)'].values))
+   ```
+4. **Train** by repeatedly calling `learner.train_step(value, target)` for the specified number of epochs and observe frequency error in `learner.history` to understand how phase alignment evolves.
 
 **Complete Example**
 ```python
@@ -602,7 +726,10 @@ from harmonic_resonance_learning import HarmonicResonanceLearner
 cfg = load_config()
 marble = MARBLE(cfg['core'])
 learner = HarmonicResonanceLearner(marble.core, marble.neuronenblitz)
-for value, target in harmonic_data():
+import pandas as pd
+data = pd.read_csv('jena_climate_2009_2016.csv')
+values = list(zip(data['T (degC)'].values, data['p (mbar)'].values))
+for value, target in values[:1000]:
     learner.train_step(value, target)
 print(learner.history[-1])
 ```
@@ -618,8 +745,13 @@ Run `python project18_harmonic.py` to explore harmonic resonance learning.
    from synaptic_echo_learning import SynapticEchoLearner
    learner = SynapticEchoLearner(core, neuronenblitz)
    ```
-3. **Train repeatedly** with `learner.train_step(value, target)` to apply the echo-modulated updates.
-4. **Inspect** both `learner.history` and the synapse echo buffers in the Neuronenblitz object to see how past activations influence current learning.
+3. **Download data** with clear sequential patterns such as the digits dataset and repeatedly call `learner.train_step(value, target)`:
+   ```python
+   from sklearn.datasets import load_digits
+   digits = load_digits()
+   values = list(zip(digits.data, digits.target))
+   ```
+4. **Train** by iterating over `values` and calling `learner.train_step(v, t)` while monitoring `learner.history` and the synapse echo buffers to see how past activations influence current learning.
 
 **Complete Example**
 ```python
@@ -631,7 +763,10 @@ from synaptic_echo_learning import SynapticEchoLearner
 cfg = load_config()
 marble = MARBLE(cfg['core'])
 learner = SynapticEchoLearner(marble.core, marble.neuronenblitz)
-for value, target in echo_data():
+from sklearn.datasets import load_digits
+digits = load_digits()
+values = list(zip(digits.data, digits.target))
+for value, target in values:
     learner.train_step(value, target)
 print(learner.history[-1])
 ```
@@ -647,8 +782,13 @@ Run `python project19_synaptic_echo.py` with echo modulation enabled.
    from fractal_dimension_learning import FractalDimensionLearner
    learner = FractalDimensionLearner(core, neuronenblitz)
    ```
-3. **Train** with `learner.train(pairs)` where `pairs` are the usual `(input, target)` tuples.
-4. **Watch representation size** via `core.rep_size` or `learner.history` to see when new dimensions are added.
+3. **Download real training pairs** from the digits dataset:
+   ```python
+   from sklearn.datasets import load_digits
+   digits = load_digits()
+   pairs = list(zip(digits.data, digits.target))
+   ```
+4. **Train** with `learner.train(pairs)` and watch representation size via `core.rep_size` or `learner.history` to see when new dimensions are added.
 
 **Complete Example**
 ```python
@@ -660,7 +800,9 @@ from fractal_dimension_learning import FractalDimensionLearner
 cfg = load_config()
 marble = MARBLE(cfg['core'])
 learner = FractalDimensionLearner(marble.core, marble.neuronenblitz)
-pairs = load_training_pairs()
+from sklearn.datasets import load_digits
+digits = load_digits()
+pairs = list(zip(digits.data, digits.target))
 learner.train(pairs)
 print(marble.core.rep_size)
 ```
@@ -676,8 +818,13 @@ Run `python project20_fractal.py` to see representations grow over time.
    from quantum_flux_learning import QuantumFluxLearner
    learner = QuantumFluxLearner(core, neuronenblitz)
    ```
-3. **Train** by repeatedly calling `learner.train_step(input, target)` which applies phase-modulated updates to the synapses.
-4. **Track phases** in `learner.phases` to understand how the system evolves over time.
+3. **Download a dataset** such as the digits and iterate over the pairs:
+   ```python
+   from sklearn.datasets import load_digits
+   digits = load_digits()
+   examples = list(zip(digits.data, digits.target))
+   ```
+4. **Train** by repeatedly calling `learner.train_step(inp, tgt)` for each pair and track phases in `learner.phases` to understand how the system evolves over time.
 
 **Complete Example**
 ```python
@@ -689,7 +836,10 @@ from quantum_flux_learning import QuantumFluxLearner
 cfg = load_config()
 marble = MARBLE(cfg['core'])
 learner = QuantumFluxLearner(marble.core, marble.neuronenblitz)
-for inp, tgt in quantum_dataset():
+from sklearn.datasets import load_digits
+digits = load_digits()
+examples = list(zip(digits.data, digits.target))
+for inp, tgt in examples:
     learner.train_step(inp, tgt)
 print(learner.phases[-1])
 ```
@@ -705,8 +855,20 @@ Run `python project21_quantum_flux.py` to experiment with quantum flux updates.
    from dream_reinforcement_learning import DreamReinforcementLearner
    learner = DreamReinforcementLearner(core, neuronenblitz)
    ```
-3. **Train episodes** by repeatedly calling `learner.train_episode(input, target)` for every interaction step.
-4. **Imaginary updates** occur after each real step; `dream_cycles` controls how many of these dreaming iterations happen.
+3. **Use a real environment** such as `CartPole-v1` to generate `(input, target)` pairs:
+   ```python
+   import gymnasium as gym
+   env = gym.make('CartPole-v1')
+   def sample_episode():
+       obs, _ = env.reset()
+       done = False
+       while not done:
+           action = env.action_space.sample()
+           next_obs, reward, done, _, _ = env.step(action)
+           yield obs, reward
+           obs = next_obs
+   ```
+4. **Train episodes** by repeatedly calling `learner.train_episode(inp, tgt)` for each step. Imaginary updates occur after each real step; `dream_cycles` controls how many of these dreaming iterations happen.
 
 **Complete Example**
 ```python
@@ -718,6 +880,16 @@ from dream_reinforcement_learning import DreamReinforcementLearner
 cfg = load_config()
 marble = MARBLE(cfg['core'])
 learner = DreamReinforcementLearner(marble.core, marble.neuronenblitz)
+import gymnasium as gym
+env = gym.make('CartPole-v1')
+def sample_episode():
+    obs, _ = env.reset()
+    done = False
+    while not done:
+        action = env.action_space.sample()
+        next_obs, reward, done, _, _ = env.step(action)
+        yield obs, reward
+        obs = next_obs
 for episode in range(cfg['dream_reinforcement_learning']['episodes']):
     for inp, tgt in sample_episode():
         learner.train_episode(inp, tgt)
@@ -731,8 +903,13 @@ Execute `python project22_dream_reinforcement.py` to see the synergy in action.
 1. **Combine cores** by creating several `Core` objects and merging them with `interconnect_cores` from `core_interconnect`.
 2. **Instantiate one Neuronenblitz** using the combined core so the learner sees a unified network.
 3. **Create an `OmniLearner`** with the merged core and single Neuronenblitz instance.
-4. **Train** by providing a list of `(input, target)` samples and calling `learner.train(data, epochs=5)`.
-5. **All paradigms run sequentially**, leveraging interconnection synapses so multiple cores behave as one integrated system.
+4. **Download a dataset** such as MNIST and prepare training examples shared by all paradigms:
+   ```python
+   from datasets import load_dataset
+   ds = load_dataset('mnist', split='train')
+   examples = [(x['image'].reshape(-1).numpy() / 255.0, x['label']) for x in ds]
+   ```
+5. **Train** by providing these examples to `learner.train(examples, epochs=5)`. All paradigms run sequentially, leveraging interconnection synapses so multiple cores behave as one integrated system.
 
 **Complete Example**
 ```python
@@ -747,7 +924,9 @@ cores = [MARBLE(cfg['core']).core for _ in range(3)]
 combined = interconnect_cores(cores)
 neuronenblitz = MARBLE(cfg['core']).neuronenblitz
 learner = OmniLearner(combined, neuronenblitz)
-examples = load_omni_dataset()
+from datasets import load_dataset
+ds = load_dataset('mnist', split='train')
+examples = [(x['image'].reshape(-1).numpy() / 255.0, x['label']) for x in ds]
 learner.train(examples, epochs=5)
 ```
 Run `python project23_omni.py` to test all paradigms together.
