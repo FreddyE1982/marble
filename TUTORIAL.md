@@ -47,6 +47,24 @@ This tutorial demonstrates every major component of MARBLE through a series of p
 7. **Monitor progress** with `MetricsVisualizer` which plots loss and memory usage. Adjust the `fig_width` and `color_scheme` options under `metrics_visualizer` in `config.yaml` to change the appearance.
 8. **Gradually reduce regularization** by setting `dropout_probability` and `dropout_decay_rate` under `neuronenblitz`. A decay rate below `1.0` multiplies the current dropout value after each epoch.
 
+**Complete Example**
+```python
+# project1_numeric_regression.py
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from marble_main import MARBLE
+from config_loader import load_config
+
+df = pd.read_csv('winequality-red.csv')
+examples = [(row[:-1].to_numpy(), row[-1]) for row in df.to_numpy()]
+train_examples, val_examples = train_test_split(examples, test_size=0.1, random_state=42)
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+marble.brain.train(train_examples, epochs=10, validation_examples=val_examples)
+```
+Run this script with `python project1_numeric_regression.py` to reproduce the first project end-to-end.
+
 This project introduces the **Core**, **Neuronenblitz** and **Brain** objects along with the data compression pipeline.
 
 ## Project 2 – Image Classification (Medium)
@@ -72,6 +90,32 @@ This project introduces the **Core**, **Neuronenblitz** and **Brain** objects al
    ```
    Mutations add noise to synapses while pruning removes the least useful ones.
 6. **Enable dreaming** by setting `dream_enabled: true` in `config.yaml`. Parameters like `dream_num_cycles` and `dream_interval` determine how often memory consolidation happens in the background.
+
+**Complete Example**
+```python
+# project2_image_classification.py
+import pickle
+import numpy as np
+from marble_main import MARBLE
+from config_loader import load_config
+
+def load_cifar_batches(path):
+    data, labels = [], []
+    for i in range(1, 6):
+        with open(f"{path}/data_batch_{i}", "rb") as f:
+            batch = pickle.load(f, encoding="bytes")
+        data.append(batch[b'data'])
+        labels.extend(batch[b'labels'])
+    data = np.vstack(data).reshape(-1, 3, 32, 32) / 255.0
+    return list(zip(data, labels))
+
+train_examples = load_cifar_batches('cifar-10-batches-py')
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+marble.brain.start_training(train_examples, epochs=20)
+marble.brain.wait_for_training()
+```
+Running `python project2_image_classification.py` trains MARBLE on CIFAR‑10 with asynchronous execution.
 
 This project makes use of **asynchronous training**, **dreaming**, and the **evolutionary mechanisms** such as mutation and pruning.
 
@@ -99,6 +143,26 @@ This project makes use of **asynchronous training**, **dreaming**, and the **evo
    This migrates the most heavily used lobes to the remote machine.
 4. **Use the torrent client** in the same way by configuring the `torrent_client` section of `config.yaml` and calling `marble.brain.offload_high_attention()` to distribute lobes through peer‑to‑peer transfer.
 
+**Complete Example**
+```python
+# project3_remote_offloading.py
+from remote_offload import RemoteBrainServer, RemoteBrainClient
+from marble_main import MARBLE
+from config_loader import load_config
+
+# Run this on the remote machine
+server = RemoteBrainServer(port=8000)
+server.start()
+
+# On the training machine
+cfg = load_config()
+client = RemoteBrainClient('http://remote_host:8000')
+marble = MARBLE(cfg['core'], remote_client=client)
+marble.brain.offload_enabled = True
+marble.brain.offload_high_attention(threshold=0.5)
+```
+Execute the file on each machine as indicated to experiment with remote offloading.
+
 Remote offloading demonstrates **RemoteBrainServer**, **RemoteBrainClient** and the optional torrent‑based distribution.
 
 ## Project 4 – Autograd and PyTorch Challenge (Advanced)
@@ -118,6 +182,26 @@ Remote offloading demonstrates **RemoteBrainServer**, **RemoteBrainClient** and 
    layer = MarbleAutogradLayer(marble.brain)
    out = layer(torch.tensor(1.0, requires_grad=True))
    ```
+
+**Complete Example**
+```python
+# project4_autograd_challenge.py
+from sklearn.datasets import load_digits
+from config_loader import load_config
+from marble_main import MARBLE
+from marble_autograd import MarbleAutogradLayer
+import pytorch_challenge
+
+digits = load_digits(return_X_y=True)
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+pretrained = pytorch_challenge.load_pretrained_model()
+pytorch_challenge.run_challenge(digits, pretrained_model=pretrained, cfg=cfg)
+
+layer = MarbleAutogradLayer(marble.brain)
+out = layer(torch.tensor(1.0, requires_grad=True))
+```
+Run `python project4_autograd_challenge.py` to reproduce the integration with PyTorch.
 
 This project covers **autograd integration** and the **PyTorch challenge** mechanism.
 
@@ -140,6 +224,21 @@ This project covers **autograd integration** and the **PyTorch challenge** mecha
 4. **Generate text** once training completes by calling `advanced_gpt.generate_text(marble.brain, 'Once upon a time')`.
 5. **Optionally distill** the knowledge to a smaller network with `DistillationTrainer` by loading a saved model and training a student brain against it.
 
+**Complete Example**
+```python
+# project5_gpt_training.py
+from config_loader import load_config
+from marble_main import MARBLE
+import advanced_gpt
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+dataset = advanced_gpt.load_text_dataset(cfg['gpt']['dataset_path'])
+advanced_gpt.train_advanced_gpt(marble.brain, dataset, epochs=5)
+print(advanced_gpt.generate_text(marble.brain, 'Once upon a time'))
+```
+Run `python project5_gpt_training.py` after enabling GPT settings in `config.yaml`.
+
 This final project introduces the **GPT components**, **distillation**, and the **dimensional search** capability if `dimensional_search.enabled` is set in the configuration.
 
 ## Project 6 – Reinforcement Learning (Master)
@@ -155,6 +254,20 @@ This final project introduces the **GPT components**, **distillation**, and the 
    This uses helper functions that drive the environment and update the Q-table stored inside the Neuronenblitz object.
 3. **Check rewards** in `history` after each episode to verify that the policy improves over time.
 
+**Complete Example**
+```python
+# project6_reinforcement_learning.py
+from config_loader import load_config
+from marble_main import MARBLE
+from reinforcement_learning import train_gridworld
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+history = train_gridworld(marble.brain, episodes=50)
+print('Final reward:', history[-1])
+```
+Execute `python project6_reinforcement_learning.py` to run the built-in GridWorld.
+
 ## Project 7 – Contrastive Learning (Expert+)
 
 **Goal:** Learn robust representations without labels.
@@ -163,6 +276,22 @@ This final project introduces the **GPT components**, **distillation**, and the 
 2. **Enable the contrastive learner** by setting `contrastive_learning.enabled: true` in `config.yaml` and choose a `batch_size` that fits your GPU memory.
 3. **Define data augmentations** such as random cropping and horizontal flipping, then call `Neuronenblitz.contrastive_train(images, augment_fn)` to learn representations from the unlabeled images.
 4. **Fine-tune on labels** by reusing the trained weights and invoking the standard `train()` method on a labeled subset of STL‑10.
+
+**Complete Example**
+```python
+# project7_contrastive_learning.py
+from config_loader import load_config
+from marble_main import MARBLE
+from marble_utils import augment_image
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+unlabeled = load_unlabeled_images('stl10/train_X')
+marble.neuronenblitz.contrastive_train(unlabeled, augment_image)
+labeled = load_labeled_images('stl10/train_y')
+marble.brain.train(labeled, epochs=5)
+```
+Run this script to reproduce the contrastive learning workflow.
 
 This project demonstrates the new **ContrastiveLearner** and how it integrates with the existing Core and Neuronenblitz components.
 
@@ -179,6 +308,22 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
 3. **Train on unlabeled data** by passing a list of input vectors to `learner.train(inputs)`.
 4. **Review synapse adjustments** in `learner.history` to see how correlations between activations strengthen or weaken connections.
 
+**Complete Example**
+```python
+# project8_hebbian_learning.py
+from config_loader import load_config
+from marble_main import MARBLE
+from hebbian_learning import HebbianLearner
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+learner = HebbianLearner(marble.core, marble.neuronenblitz)
+inputs = load_unlabeled_vectors()
+learner.train(inputs)
+print(learner.history[-1])
+```
+Execute this file to observe Hebbian updates on your data.
+
 ## Project 9 – Adversarial Learning (Cutting Edge)
 
 **Goal:** Train a generator and discriminator using Neuronenblitz.
@@ -187,6 +332,24 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
 2. **Create the networks** by instantiating two `Neuronenblitz` objects that share the same Core: one acts as generator and the other as discriminator.
 3. **Construct an `AdversarialLearner`** with these networks and call `learner.train(real_values)` to alternate generator and discriminator updates.
 4. **Sample new data** after training by passing random noise vectors to the generator's `dynamic_wander` method.
+
+**Complete Example**
+```python
+# project9_adversarial_learning.py
+from config_loader import load_config
+from marble_main import MARBLE
+from adversarial_learning import AdversarialLearner
+
+cfg = load_config()
+generator = MARBLE(cfg['core']).neuronenblitz
+discriminator = MARBLE(cfg['core']).neuronenblitz
+learner = AdversarialLearner(generator, discriminator)
+real_values = load_real_samples()
+learner.train(real_values)
+noise = sample_noise(len(real_values[0][0]))
+print(generator.dynamic_wander(noise))
+```
+Run this script to see generator and discriminator training in action.
 
 ## Project 10 – Autoencoder Learning (Frontier)
 
@@ -201,6 +364,22 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
 3. **Train** using `auto.train(values)` where `values` is a list of numeric vectors. The learner corrupts inputs with Gaussian noise of standard deviation `noise_std` and learns to reconstruct the originals.
 4. **Inspect progress** in `auto.history` to see reconstruction losses decreasing over epochs.
 
+**Complete Example**
+```python
+# project10_autoencoder.py
+from config_loader import load_config
+from marble_main import MARBLE
+from autoencoder_learning import AutoencoderLearner
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+auto = AutoencoderLearner(marble.core, marble.neuronenblitz)
+values = load_noisy_vectors()
+auto.train(values)
+print(auto.history[-1])
+```
+Launch with `python project10_autoencoder.py` after enabling the module.
+
 ## Project 11 – Semi-Supervised Learning (Frontier)
 
 **Goal:** Combine labeled and unlabeled data using the `SemiSupervisedLearner`.
@@ -214,6 +393,22 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
 3. **Train** using two lists: one containing `(input, target)` pairs and the other containing unlabeled inputs. Call `learner.train(labeled, unlabeled)`.
 4. **Inspect history** for both supervised and consistency losses recorded in `learner.history` to gauge progress.
 
+**Complete Example**
+```python
+# project11_semi_supervised.py
+from config_loader import load_config
+from marble_main import MARBLE
+from semi_supervised_learning import SemiSupervisedLearner
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+learner = SemiSupervisedLearner(marble.core, marble.neuronenblitz)
+labeled, unlabeled = load_labeled_and_unlabeled()
+learner.train(labeled, unlabeled)
+print(learner.history[-1])
+```
+Execute `python project11_semi_supervised.py` once the module is enabled.
+
 ## Project 12 – Federated Learning (Frontier)
 
 **Goal:** Train multiple Neuronenblitz networks on separate datasets and combine them using federated averaging.**
@@ -222,6 +417,22 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
 2. **Instantiate clients**: create a separate `Core` and `Neuronenblitz` for each participant and pass these to a `FederatedAveragingTrainer` instance.
 3. **Train round by round** by providing a list of datasets to `trainer.train_round(client_data)` for each round. The trainer aggregates parameters after every local training phase.
 4. **Check synchronisation** by comparing synapse weights across clients after training to ensure the averaging step worked.
+
+**Complete Example**
+```python
+# project12_federated.py
+from config_loader import load_config
+from federated_learning import FederatedAveragingTrainer
+from marble_main import MARBLE
+
+cfg = load_config()
+clients = [MARBLE(cfg['core']) for _ in range(3)]
+trainer = FederatedAveragingTrainer([c.neuronenblitz for c in clients])
+datasets = load_client_datasets()
+for round_data in datasets:
+    trainer.train_round(round_data)
+```
+This script launches a simple three‑client federated session.
 
 ## Project 13 – Curriculum Learning (Frontier)
 
@@ -235,6 +446,22 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
    ```
 3. **Order your dataset** by difficulty and call `learner.train(sorted_samples)` to progressively feed in harder examples.
 4. **Track progress** via `learner.history`, which records the loss as each stage of the curriculum is reached.
+
+**Complete Example**
+```python
+# project13_curriculum.py
+from config_loader import load_config
+from marble_main import MARBLE
+from curriculum_learning import CurriculumLearner
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+learner = CurriculumLearner(marble.core, marble.neuronenblitz)
+sorted_samples = load_curriculum_samples()
+learner.train(sorted_samples)
+print(learner.history[-1])
+```
+Run `python project13_curriculum.py` to try curriculum learning.
 
 ## Project 14 – Meta Learning (Frontier)
 
@@ -250,6 +477,23 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
 4. **Iterate over epochs** calling `learner.train_step(tasks)` each time to perform the Reptile update.
 5. **Review meta-loss** from `learner.history` to see how quickly the model adapts across tasks.
 
+**Complete Example**
+```python
+# project14_meta_learning.py
+from config_loader import load_config
+from marble_main import MARBLE
+from meta_learning import MetaLearner
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+learner = MetaLearner(marble.core, marble.neuronenblitz)
+tasks = load_meta_tasks()
+for _ in range(cfg['meta_learning']['epochs']):
+    learner.train_step(tasks)
+print(learner.history[-1])
+```
+Launch the script to practice Reptile-style meta learning.
+
 ## Project 15 – Transfer Learning (Frontier)
 
 **Goal:** Fine-tune a pretrained MARBLE model on a new dataset while freezing a subset of synapses.**
@@ -258,6 +502,22 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
 2. **Create the transfer learner** after loading an existing model (or training a base model) and passing the `Core` and `Neuronenblitz` objects to `TransferLearner`.
 3. **Fine-tune** on a new dataset by calling `learner.train(new_pairs)` where `new_pairs` is your list of `(input, target)` examples.
 4. **Tune `freeze_fraction`** to control how many synapses stay fixed during fine‑tuning and monitor `learner.history` to check performance on the new task.
+
+**Complete Example**
+```python
+# project15_transfer.py
+from config_loader import load_config
+from marble_main import MARBLE
+from transfer_learning import TransferLearner
+
+cfg = load_config()
+base = MARBLE(cfg['core'])
+learner = TransferLearner(base.core, base.neuronenblitz)
+new_pairs = load_new_dataset()
+learner.train(new_pairs)
+print(learner.history[-1])
+```
+Run `python project15_transfer.py` after enabling transfer learning.
 
 ## Project 16 – Continual Learning (Frontier)
 
@@ -272,6 +532,23 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
 3. **Train sequentially**. For each new dataset that becomes available call `learner.train(data)`; the learner automatically mixes in examples from its replay memory.
 4. **Monitor reconstruction loss** via `learner.history` to see how well the model retains previous knowledge across tasks.
 
+**Complete Example**
+```python
+# project16_continual.py
+from config_loader import load_config
+from marble_main import MARBLE
+from continual_learning import ReplayContinualLearner
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+learner = ReplayContinualLearner(marble.core, marble.neuronenblitz)
+datasets = load_task_sequence()
+for data in datasets:
+    learner.train(data)
+print(learner.history[-1])
+```
+Execute the file to reproduce continual learning across tasks.
+
 ## Project 17 – Imitation Learning (Exploration)
 
 **Goal:** Learn a policy directly from demonstration pairs.**
@@ -284,6 +561,23 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
    ```
 3. **Record demonstrations** using `imitator.record(input, action)` for each step of the task, then call `imitator.train()` (or `neuronenblitz.imitation_train()`) to learn from the history.
 4. **Evaluate** the cloned policy by passing new inputs to `dynamic_wander` and observing the predicted actions.
+
+**Complete Example**
+```python
+# project17_imitation.py
+from config_loader import load_config
+from marble_main import MARBLE
+from imitation_learning import ImitationLearner
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+imitator = ImitationLearner(marble.core, marble.neuronenblitz)
+for inp, act in demonstration_data():
+    imitator.record(inp, act)
+imitator.train()
+print(marble.brain.dynamic_wander(new_input))
+```
+Run `python project17_imitation.py` to train from demonstrations.
 
 ## Project 18 – Harmonic Resonance Learning (Novel)
 
@@ -298,6 +592,22 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
 3. **Train** by repeatedly calling `learner.train_step(value, target)` for the specified number of epochs.
 4. **Observe frequency error** in `learner.history` to understand how phase alignment evolves.
 
+**Complete Example**
+```python
+# project18_harmonic.py
+from config_loader import load_config
+from marble_main import MARBLE
+from harmonic_resonance_learning import HarmonicResonanceLearner
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+learner = HarmonicResonanceLearner(marble.core, marble.neuronenblitz)
+for value, target in harmonic_data():
+    learner.train_step(value, target)
+print(learner.history[-1])
+```
+Run `python project18_harmonic.py` to explore harmonic resonance learning.
+
 ## Project 19 – Synaptic Echo Learning (Novel)
 
 **Goal:** Experiment with echo-modulated weight updates.**
@@ -310,6 +620,22 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
    ```
 3. **Train repeatedly** with `learner.train_step(value, target)` to apply the echo-modulated updates.
 4. **Inspect** both `learner.history` and the synapse echo buffers in the Neuronenblitz object to see how past activations influence current learning.
+
+**Complete Example**
+```python
+# project19_synaptic_echo.py
+from config_loader import load_config
+from marble_main import MARBLE
+from synaptic_echo_learning import SynapticEchoLearner
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+learner = SynapticEchoLearner(marble.core, marble.neuronenblitz)
+for value, target in echo_data():
+    learner.train_step(value, target)
+print(learner.history[-1])
+```
+Run `python project19_synaptic_echo.py` with echo modulation enabled.
 
 ## Project 20 – Fractal Dimension Learning (Novel)
 
@@ -324,6 +650,22 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
 3. **Train** with `learner.train(pairs)` where `pairs` are the usual `(input, target)` tuples.
 4. **Watch representation size** via `core.rep_size` or `learner.history` to see when new dimensions are added.
 
+**Complete Example**
+```python
+# project20_fractal.py
+from config_loader import load_config
+from marble_main import MARBLE
+from fractal_dimension_learning import FractalDimensionLearner
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+learner = FractalDimensionLearner(marble.core, marble.neuronenblitz)
+pairs = load_training_pairs()
+learner.train(pairs)
+print(marble.core.rep_size)
+```
+Run `python project20_fractal.py` to see representations grow over time.
+
 ## Project 21 – Quantum Flux Learning (Novel)
 
 **Goal:** Explore phase-modulated weight updates.**
@@ -336,6 +678,22 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
    ```
 3. **Train** by repeatedly calling `learner.train_step(input, target)` which applies phase-modulated updates to the synapses.
 4. **Track phases** in `learner.phases` to understand how the system evolves over time.
+
+**Complete Example**
+```python
+# project21_quantum_flux.py
+from config_loader import load_config
+from marble_main import MARBLE
+from quantum_flux_learning import QuantumFluxLearner
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+learner = QuantumFluxLearner(marble.core, marble.neuronenblitz)
+for inp, tgt in quantum_dataset():
+    learner.train_step(inp, tgt)
+print(learner.phases[-1])
+```
+Run `python project21_quantum_flux.py` to experiment with quantum flux updates.
 
 ## Project 22 – Dream Reinforcement Synergy (Novel)
 
@@ -350,6 +708,22 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
 3. **Train episodes** by repeatedly calling `learner.train_episode(input, target)` for every interaction step.
 4. **Imaginary updates** occur after each real step; `dream_cycles` controls how many of these dreaming iterations happen.
 
+**Complete Example**
+```python
+# project22_dream_reinforcement.py
+from config_loader import load_config
+from marble_main import MARBLE
+from dream_reinforcement_learning import DreamReinforcementLearner
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+learner = DreamReinforcementLearner(marble.core, marble.neuronenblitz)
+for episode in range(cfg['dream_reinforcement_learning']['episodes']):
+    for inp, tgt in sample_episode():
+        learner.train_episode(inp, tgt)
+```
+Execute `python project22_dream_reinforcement.py` to see the synergy in action.
+
 ## Project 23 – Omni Learning Paradigm (Advanced)
 
 **Goal:** Train using every supported paradigm at once.**
@@ -359,4 +733,22 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
 3. **Create an `OmniLearner`** with the merged core and single Neuronenblitz instance.
 4. **Train** by providing a list of `(input, target)` samples and calling `learner.train(data, epochs=5)`.
 5. **All paradigms run sequentially**, leveraging interconnection synapses so multiple cores behave as one integrated system.
+
+**Complete Example**
+```python
+# project23_omni.py
+from config_loader import load_config
+from marble_main import MARBLE
+from core_interconnect import interconnect_cores
+from omni_learning import OmniLearner
+
+cfg = load_config()
+cores = [MARBLE(cfg['core']).core for _ in range(3)]
+combined = interconnect_cores(cores)
+neuronenblitz = MARBLE(cfg['core']).neuronenblitz
+learner = OmniLearner(combined, neuronenblitz)
+examples = load_omni_dataset()
+learner.train(examples, epochs=5)
+```
+Run `python project23_omni.py` to test all paradigms together.
 
