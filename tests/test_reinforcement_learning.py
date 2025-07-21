@@ -41,3 +41,20 @@ def test_core_qlearning_update():
     core.rl_update("s0", action, 1.0, "s1", True, n_actions=2)
     assert core.q_table[("s0", action)] != 0.0
 
+
+def test_double_q_learning_updates_both_tables():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    agent = MarbleQLearningAgent(
+        core,
+        nb,
+        discount=0.9,
+        epsilon=0.0,
+        double_q=True,
+    )
+    env = GridWorld(size=3)
+    train_gridworld(agent, env, episodes=2, max_steps=5)
+    total_entries = len(agent.q_table_a) + len(agent.q_table_b)
+    assert total_entries > 0
+

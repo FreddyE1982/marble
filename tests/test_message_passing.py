@@ -7,6 +7,7 @@ import numpy as np
 
 from marble_base import MetricsVisualizer
 from marble_core import Core, perform_message_passing
+import marble_core
 from tests.test_core_functions import minimal_params
 
 
@@ -155,6 +156,13 @@ def test_run_message_passing_iterations():
     )
     assert multi_diff > single_diff
     assert not np.isclose(multi_change, single_change)
+
+
+def test_layer_norm_functionality():
+    arr = np.array([[1.0, 2.0, 3.0]])
+    normed = marble_core._layer_norm(arr)
+    assert np.allclose(normed.mean(), 0.0)
+    assert np.allclose(normed.var(), 1.0)
 
 
 def test_representation_variance_metric_updated():

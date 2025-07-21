@@ -27,6 +27,7 @@ core:
   random_seed: 42
   message_passing_dropout: 0.0
   representation_activation: "tanh"
+  apply_layer_norm: true
   weight_init_mean: 0.0
   message_passing_beta: 1.0
   attention_temperature: 1.0
@@ -91,6 +92,7 @@ neuronenblitz:
   max_learning_rate: 0.1
   top_k_paths: 5
   parallel_wanderers: 1
+  beam_width: 1
   synaptic_fatigue_enabled: true
   fatigue_increase: 0.05
   fatigue_decay: 0.95
@@ -235,6 +237,7 @@ metrics_dashboard:
   host: "localhost"
   port: 8050
   update_interval: 1000
+  window_size: 10
 autograd:
   enabled: false
   learning_rate: 0.01
@@ -267,6 +270,7 @@ reinforcement_learning:
   epsilon_decay: 0.95
   epsilon_min: 0.1
   seed: 0
+  double_q: false
 contrastive_learning:
   enabled: false
   temperature: 0.5
@@ -287,6 +291,7 @@ autoencoder_learning:
   epochs: 1
   batch_size: 4
   noise_std: 0.1
+  noise_decay: 0.99
 
 
 semi_supervised_learning:

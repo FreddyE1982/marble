@@ -6,10 +6,17 @@ from marble_neuronenblitz import Neuronenblitz
 class AutoencoderLearner:
     """Denoising autoencoder training using Neuronenblitz and MARBLE Core."""
 
-    def __init__(self, core: Core, nb: Neuronenblitz, noise_std: float = 0.1) -> None:
+    def __init__(
+        self,
+        core: Core,
+        nb: Neuronenblitz,
+        noise_std: float = 0.1,
+        noise_decay: float = 0.99,
+    ) -> None:
         self.core = core
         self.nb = nb
         self.noise_std = float(noise_std)
+        self.noise_decay = float(noise_decay)
         self.history: list[dict] = []
 
     def _noisy_input(self, value: float) -> float:
@@ -29,3 +36,4 @@ class AutoencoderLearner:
         for _ in range(int(epochs)):
             for v in values:
                 self.train_step(float(v))
+            self.noise_std *= self.noise_decay

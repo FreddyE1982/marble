@@ -49,7 +49,8 @@ This tutorial demonstrates every major component of MARBLE through a series of p
    marble.brain.train(train_examples, epochs=10, validation_examples=val_examples)
    ```
 7. **Monitor progress** with `MetricsVisualizer` which plots loss and memory usage. Adjust the `fig_width` and `color_scheme` options under `metrics_visualizer` in `config.yaml` to change the appearance.
-8. **Gradually reduce regularization** by setting `dropout_probability` and `dropout_decay_rate` under `neuronenblitz`. A decay rate below `1.0` multiplies the current dropout value after each epoch.
+8. **View metrics in your browser** by enabling `metrics_dashboard.enabled`. Set `window_size` to control the moving-average smoothing of the curves.
+9. **Gradually reduce regularization** by setting `dropout_probability` and `dropout_decay_rate` under `neuronenblitz`. A decay rate below `1.0` multiplies the current dropout value after each epoch.
 
 **Complete Example**
 ```python
@@ -427,7 +428,7 @@ Run this script to see generator and discriminator training in action.
 
 **Goal:** Reconstruct noisy inputs using an autoencoder built with Neuronenblitz.
 
-1. **Enable the autoencoder module** by setting `autoencoder_learning.enabled: true` in `config.yaml` and choose values for `epochs`, `batch_size` and `noise_std` which controls how much noise is added during training.
+1. **Enable the autoencoder module** by setting `autoencoder_learning.enabled: true` in `config.yaml` and choose values for `epochs`, `batch_size`, `noise_std` and `noise_decay`. The `noise_std` parameter sets the initial noise level while `noise_decay` reduces it after each epoch.
 2. **Instantiate the classes**:
    ```python
    from autoencoder_learning import AutoencoderLearner
