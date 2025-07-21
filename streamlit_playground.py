@@ -388,6 +388,59 @@ def move_pipeline_step(
     return pipeline
 
 
+def pipeline_to_networkx(pipeline: list[dict]) -> nx.DiGraph:
+    """Return a NetworkX graph representing ``pipeline`` sequentially."""
+    g = nx.DiGraph()
+    for i, step in enumerate(pipeline):
+        label = step.get("func")
+        module = step.get("module")
+        if module:
+            label = f"{module}.{label}"
+        g.add_node(i, label=f"{i + 1}. {label}", params=step.get("params", {}))
+        if i > 0:
+            g.add_edge(i - 1, i)
+    return g
+
+
+def pipeline_figure(pipeline: list[dict], layout: str = "spring") -> go.Figure:
+    """Return a Plotly figure visualizing the function pipeline."""
+    g = pipeline_to_networkx(pipeline)
+    if layout == "circular":
+        pos = nx.circular_layout(g)
+    else:
+        pos = nx.spring_layout(g, seed=42)
+    edge_x, edge_y = [], []
+    for u, v in g.edges():
+        x0, y0 = pos[u]
+        x1, y1 = pos[v]
+        edge_x += [x0, x1, None]
+        edge_y += [y0, y1, None]
+    node_x, node_y, text = [], [], []
+    for n in g.nodes():
+        x, y = pos[n]
+        node_x.append(x)
+        node_y.append(y)
+        text.append(g.nodes[n]["label"])
+    fig = go.Figure()
+    fig.add_scatter(
+        x=edge_x,
+        y=edge_y,
+        mode="lines",
+        line=dict(width=0.5, color="#888"),
+        hoverinfo="none",
+    )
+    fig.add_scatter(
+        x=node_x,
+        y=node_y,
+        mode="markers+text",
+        text=text,
+        textposition="top center",
+        marker=dict(size=10, color="#2ca02c"),
+    )
+    fig.update_layout(showlegend=False, margin=dict(l=0, r=0, t=0, b=0))
+    return fig
+
+
 def load_yaml_manual() -> str:
     """Return the contents of ``yaml-manual.txt``."""
     path = os.path.join(os.path.dirname(__file__), "yaml-manual.txt")
@@ -1321,6 +1374,9 @@ def run_playground() -> None:
                     st.session_state["pipeline"].append(
                         {"module": mod, "func": func, "params": parsed}
                     )
+            if st.button("Show Pipeline Graph") and st.session_state["pipeline"]:
+                fig = pipeline_figure(st.session_state["pipeline"])
+                st.plotly_chart(fig, use_container_width=True)
             if st.button("Run Pipeline") and st.session_state["pipeline"]:
                 res = execute_function_sequence(st.session_state["pipeline"], marble)
                 for out in res:

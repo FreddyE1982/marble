@@ -36,6 +36,8 @@ from streamlit_playground import (
     load_pipeline_from_json,
     move_pipeline_step,
     remove_pipeline_step,
+    pipeline_to_networkx,
+    pipeline_figure,
     run_custom_code,
     core_to_networkx,
     core_figure,
@@ -278,6 +280,19 @@ def test_pipeline_move_and_remove():
     assert [s["func"] for s in pipe] == ["c", "a", "b"]
     remove_pipeline_step(pipe, 1)
     assert [s["func"] for s in pipe] == ["c", "b"]
+
+
+def test_pipeline_visualization():
+    pipe = [
+        {"func": "a"},
+        {"func": "b"},
+        {"func": "c"},
+    ]
+    g = pipeline_to_networkx(pipe)
+    assert g.number_of_nodes() == 3
+    assert g.number_of_edges() == 2
+    fig = pipeline_figure(pipe)
+    assert hasattr(fig, "to_dict")
 
 
 def test_run_custom_code(tmp_path):
