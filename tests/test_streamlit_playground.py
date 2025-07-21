@@ -62,6 +62,8 @@ from streamlit_playground import (
     training_in_progress,
     start_auto_firing,
     stop_auto_firing,
+    create_gridworld_env,
+    run_gridworld_episode,
     metrics_dataframe,
     metrics_figure,
     load_readme,
@@ -528,3 +530,15 @@ def test_documentation_helpers():
 def test_source_browser():
     code = load_module_source("reinforcement_learning")
     assert "def" in code
+
+
+def test_gridworld_helpers(tmp_path):
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+    marble = initialize_marble(str(cfg_path))
+    env = create_gridworld_env(size=3)
+    assert env.size == 3
+    rewards = run_gridworld_episode(marble, episodes=1, max_steps=2, size=3)
+    assert isinstance(rewards, list) and len(rewards) == 1

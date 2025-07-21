@@ -841,6 +841,38 @@ def training_in_progress(marble) -> bool:
     return bool(marble.get_brain().training_active)
 
 
+def create_gridworld_env(size: int = 4):
+    """Return a GridWorld environment of ``size`` x ``size``."""
+
+    from reinforcement_learning import GridWorld
+
+    return GridWorld(size=int(size))
+
+
+def run_gridworld_episode(
+    marble,
+    episodes: int = 10,
+    max_steps: int = 50,
+    size: int = 4,
+    double_q: bool = False,
+) -> list[float]:
+    """Train a :class:`MarbleQLearningAgent` in GridWorld and return rewards."""
+
+    from reinforcement_learning import MarbleQLearningAgent, train_gridworld
+
+    env = create_gridworld_env(size)
+    agent = MarbleQLearningAgent(
+        marble.get_core(), marble.get_neuronenblitz(), double_q=bool(double_q)
+    )
+    rewards = train_gridworld(
+        agent,
+        env,
+        episodes=int(episodes),
+        max_steps=int(max_steps),
+    )
+    return [float(r) for r in rewards]
+
+
 def start_auto_firing(marble, interval_ms: int = 1000) -> None:
     """Start MARBLE's auto-firing thread."""
 
@@ -1108,6 +1140,7 @@ def run_playground() -> None:
             tab_model,
             tab_offload,
             tab_async,
+            tab_rl,
             tab_proj,
             tab_tests,
             tab_docs,
@@ -1128,6 +1161,7 @@ def run_playground() -> None:
                 "Model Conversion",
                 "Offloading",
                 "Async Training",
+                "RL Sandbox",
                 "Projects",
                 "Tests",
                 "Documentation",
@@ -1705,6 +1739,25 @@ def run_playground() -> None:
             if st.button("Stop Auto-Firing", key="af_stop"):
                 stop_auto_firing(marble)
                 st.success("Auto-firing stopped")
+
+        with tab_rl:
+            st.write("Run reinforcement learning experiments in GridWorld.")
+            size = st.number_input("Grid Size", min_value=2, value=4, step=1)
+            episodes = st.number_input("Episodes", min_value=1, value=10, step=1)
+            max_steps = st.number_input("Max Steps", min_value=1, value=50, step=1)
+            double_q = st.checkbox("Double Q-learning")
+            if st.button("Run GridWorld", key="run_gridworld"):
+                rewards = run_gridworld_episode(
+                    marble,
+                    episodes=int(episodes),
+                    max_steps=int(max_steps),
+                    size=int(size),
+                    double_q=double_q,
+                )
+                fig = go.Figure()
+                fig.add_scatter(y=rewards, mode="lines+markers")
+                fig.update_layout(xaxis_title="Episode", yaxis_title="Total Reward")
+                st.plotly_chart(fig, use_container_width=True)
 
         with tab_proj:
             st.write("Run example projects to explore MARBLE's capabilities.")

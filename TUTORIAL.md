@@ -1284,6 +1284,11 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
     background training threads or enable auto-firing so MARBLE keeps learning
     while you explore other tabs. Use **Wait For Training** to block until the
     current session finishes or stop auto-firing at any time.
+23. **Explore reinforcement learning** on the *RL Sandbox* tab. Set the grid
+    size, number of episodes, step limit and optionally enable double
+    Q-learning, then click **Run GridWorld** to train a
+    `MarbleQLearningAgent`. The reward curve for each episode is displayed so
+    you can observe learning progress.
 
 Uploaded datasets are previewed directly in the sidebar so you can verify their
 contents before training. The currently active YAML configuration is also shown
