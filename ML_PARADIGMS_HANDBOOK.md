@@ -72,6 +72,13 @@ Weights are updated with a sinusoidal phase factor that evolves over time, creat
 
 ### Dream Reinforcement Learning
 After each real update the network performs short dream rollouts and learns from their errors.
+
+### Continuous Weight Field Learning
+Instead of a fixed weight vector, MARBLE learns a smooth function \(W(x)\). Each
+input has its own weights, derived from radial basis functions. Neuronenblitz
+provides features \(\phi(x)\) and the prediction is \(\phi(x) \cdot W(x)\). A
+variational loss with a gradient regulariser ensures the field changes smoothly
+across \(x\).
 ---
 
 ## Version for ML Scientists
@@ -229,4 +236,9 @@ Weights are updated with a sinusoidal phase factor that evolves over time, creat
 ### Dream Reinforcement Learning
 After each real update the network performs short dream rollouts and learns from their errors.
 MARBLE keeps short memories of recent neuron activity. These echoes influence how the connections change, giving the network a sense of its immediate past.
+
+### Continuous Weight Field Learning
+Each input has its own weights generated from a smooth field. MARBLE uses the
+current neuron representations to compute a prediction and adjusts the field so
+nearby inputs share similar weights while matching their targets.
 

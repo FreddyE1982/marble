@@ -379,6 +379,14 @@ Each entry is listed under its section heading.
 - dream_cycles
 - dream_strength
 
+## continuous_weight_field_learning
+- enabled
+- epochs
+- num_basis
+- bandwidth
+- reg_lambda
+- learning_rate
+
 ## n_dimensional_topology
 - enabled
 - target_dimensions

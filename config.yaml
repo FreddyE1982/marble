@@ -351,6 +351,14 @@ dream_reinforcement_learning:
   dream_cycles: 1
   dream_strength: 0.5
 
+continuous_weight_field_learning:
+  enabled: false
+  epochs: 1
+  num_basis: 10
+  bandwidth: 1.0
+  reg_lambda: 0.01
+  learning_rate: 0.01
+
 n_dimensional_topology:
   enabled: false
   target_dimensions: 6
