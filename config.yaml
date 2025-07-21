@@ -359,6 +359,12 @@ continuous_weight_field_learning:
   reg_lambda: 0.01
   learning_rate: 0.01
 
+neural_schema_induction:
+  enabled: false
+  epochs: 1
+  support_threshold: 2
+  max_schema_size: 3
+
 n_dimensional_topology:
   enabled: false
   target_dimensions: 6

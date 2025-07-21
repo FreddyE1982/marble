@@ -1045,3 +1045,41 @@ learner.train(samples, epochs=2)
 ```
 Run `python project24_cwfl.py` to see the field adapt across the dataset.
 
+## Project 25 – Neural Schema Induction (Theory)
+
+**Goal:** Demonstrate structural learning of repeated reasoning patterns.**
+
+1. **Enable schema induction** by setting `neural_schema_induction.enabled: true`
+   in `config.yaml` and adjust `support_threshold` if needed.
+2. **Instantiate the learner**:
+   ```python
+   from neural_schema_induction import NeuralSchemaInductionLearner
+   learner = NeuralSchemaInductionLearner(core, neuronenblitz)
+   ```
+3. **Download a dataset** such as the digits and create a list of inputs only:
+   ```python
+   from sklearn.datasets import load_digits
+   digits = load_digits()
+   inputs = [x.reshape(-1).astype(float) for x in digits.data]
+   ```
+4. **Train** using `learner.train(inputs, epochs=2)` and inspect
+   `learner.schemas` to see the discovered patterns.
+
+**Complete Example**
+```python
+# project25_nsi.py
+from config_loader import load_config
+from marble_main import MARBLE
+from neural_schema_induction import NeuralSchemaInductionLearner
+from sklearn.datasets import load_digits
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+learner = NeuralSchemaInductionLearner(marble.core, marble.neuronenblitz)
+digits = load_digits()
+inputs = [x.reshape(-1).astype(float) for x in digits.data]
+learner.train(inputs, epochs=2)
+print(len(learner.schemas))
+```
+Run `python project25_nsi.py` to see schema neurons emerge.
+

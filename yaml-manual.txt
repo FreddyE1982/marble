@@ -815,6 +815,17 @@ continuous_weight_field_learning:
   reg_lambda: Strength of L2 regularisation on the basis coefficients.
   learning_rate: Step size for gradient descent updates of the field weights.
 
+neural_schema_induction:
+  # Structural learner that grows new "schema" neurons representing frequent
+  # reasoning patterns discovered during dynamic wanders. When a subsequence
+  # of neuron activations appears in at least ``support_threshold`` examples,
+  # the learner adds a new neuron connected to all participants in that
+  # sequence.
+  enabled: Enable neural schema induction when set to ``true``.
+  epochs: Number of passes over the dataset used for pattern collection.
+  support_threshold: Minimum number of occurrences before creating a schema.
+  max_schema_size: Maximum length of activation patterns considered.
+
 n_dimensional_topology:
   # Dynamically expands the representation size when learning stalls.
   # A self-attention score compared with ``attention_threshold`` decides whether

@@ -73,6 +73,11 @@ Weights are updated with a sinusoidal phase factor that evolves over time, creat
 ### Dream Reinforcement Learning
 After each real update the network performs short dream rollouts and learns from their errors.
 
+### Neural Schema Induction
+Neuronenblitz traces are mined for frequent activation patterns. When a sequence
+appears in many examples the Core adds a new schema neuron connected to every
+step, allowing the full pattern to trigger as one concept in future reasoning.
+
 ### Continuous Weight Field Learning
 Instead of a fixed weight vector, MARBLE learns a smooth function \(W(x)\). Each
 input has its own weights, derived from radial basis functions. Neuronenblitz
@@ -165,6 +170,12 @@ Weights are updated with a sinusoidal phase factor that evolves over time, creat
 After each real update the network performs short dream rollouts and learns from their errors.
 Each synapse maintains an echo buffer of recent activations. Weight updates scale the normal error term by the mean echo value: \(\Delta w = \eta\,\text{echo}\times\text{error}\). This links short-term memory with learning dynamics.
 
+### Neural Schema Induction
+Let \(G_t\) be the set of observed activation graphs. Any subgraph \(P\) with
+\(\text{count}(P)\geq\tau\) triggers creation of an abstract node \(N_P\). This
+node connects to each vertex in \(P\), enabling higher-level reasoning chunks
+without gradient updates.
+
 ---
 
 ## Version for High School Students
@@ -236,6 +247,11 @@ Weights are updated with a sinusoidal phase factor that evolves over time, creat
 ### Dream Reinforcement Learning
 After each real update the network performs short dream rollouts and learns from their errors.
 MARBLE keeps short memories of recent neuron activity. These echoes influence how the connections change, giving the network a sense of its immediate past.
+
+### Neural Schema Induction
+The system spots repeating chains of reasoning steps. When a pattern shows up
+often enough it becomes its own neuron, so future tasks can recall the whole
+idea at once without relearning it.
 
 ### Continuous Weight Field Learning
 Each input has its own weights generated from a smooth field. MARBLE uses the
