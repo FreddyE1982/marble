@@ -127,6 +127,29 @@ def load_hf_examples(
     return load_hf_dataset(dataset_name, split, input_key, target_key, limit)
 
 
+def preview_file_dataset(file, limit: int = 5) -> pd.DataFrame:
+    """Return a DataFrame preview of a local dataset file."""
+    if hasattr(file, "getvalue"):
+        data = file.getvalue()
+    else:
+        data = file.read()
+    buf = BytesIO(data)
+    df = pd.DataFrame(load_examples(buf)[:limit], columns=["input", "target"])
+    return df
+
+
+def preview_hf_dataset(
+    dataset_name: str,
+    split: str,
+    input_key: str = "input",
+    target_key: str = "target",
+    limit: int = 5,
+) -> pd.DataFrame:
+    """Return a DataFrame preview of a Hugging Face dataset."""
+    ex = load_hf_examples(dataset_name, split, input_key, target_key, limit=limit)
+    return pd.DataFrame(ex, columns=["input", "target"])
+
+
 def start_metrics_dashboard(
     marble,
     host: str = "localhost",
@@ -209,9 +232,13 @@ def run_playground() -> None:
             yaml_data = cfg_upload.getvalue().decode("utf-8")
         elif cfg_text.strip():
             yaml_data = cfg_text
+        else:
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                yaml_data = f.read()
         st.session_state["marble"] = initialize_marble(
             cfg_path if not yaml_data else None, yaml_text=yaml_data
         )
+        st.session_state["config_yaml"] = yaml_data
         st.sidebar.success("System initialized")
 
     save_path = st.sidebar.text_input("Save Path", "marble.pkl")
@@ -241,6 +268,10 @@ def run_playground() -> None:
         js = core_file.getvalue().decode("utf-8")
         st.session_state["marble"] = import_core_from_json(js)
         st.sidebar.success("Core loaded")
+
+    if "config_yaml" in st.session_state:
+        with st.sidebar.expander("Current Config"):
+            st.code(st.session_state["config_yaml"], language="yaml")
 
     marble = st.session_state.get("marble")
     if marble is None:
@@ -276,6 +307,10 @@ def run_playground() -> None:
     train_file = st.sidebar.file_uploader(
         "Training Dataset", type=["csv", "json", "jsonl", "zip"]
     )
+    if train_file is not None:
+        st.sidebar.dataframe(
+            preview_file_dataset(train_file), use_container_width=True
+        )
     hf_name = st.sidebar.text_input("HF Dataset Name")
     hf_split = st.sidebar.text_input("HF Split", "train[:100]")
     hf_input = st.sidebar.text_input("Input Key", "input")
@@ -291,6 +326,14 @@ def run_playground() -> None:
         )
         st.sidebar.success(
             f"Loaded {len(st.session_state['hf_examples'])} examples from HF"
+        )
+    if st.session_state.get("hf_examples"):
+        st.sidebar.dataframe(
+            pd.DataFrame(
+                st.session_state["hf_examples"][:5],
+                columns=["input", "target"],
+            ),
+            use_container_width=True,
         )
     epochs = st.sidebar.number_input("Epochs", min_value=1, value=1, step=1)
     if st.sidebar.button("Train"):
@@ -310,6 +353,10 @@ def run_playground() -> None:
     eval_file = st.sidebar.file_uploader(
         "Evaluation Dataset", type=["csv", "json", "jsonl", "zip"], key="eval_file"
     )
+    if eval_file is not None:
+        st.sidebar.dataframe(
+            preview_file_dataset(eval_file), use_container_width=True
+        )
     if st.sidebar.button("Evaluate") and eval_file is not None:
         eval_examples = load_examples(eval_file)
         mse = marble_interface.evaluate_marble_system(marble, eval_examples)

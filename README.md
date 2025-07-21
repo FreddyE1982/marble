@@ -54,7 +54,9 @@ can explore how different data types influence the system in real time. Models
 may be saved and loaded from the sidebar, and you can export or import the core
 JSON for experimentation. Advanced mode displays function docstrings and
 generates widgets for each parameter so every capability of the
-``marble_interface`` can be invoked without writing code.
+``marble_interface`` can be invoked without writing code. The sidebar now
+previews uploaded datasets and shows the active configuration YAML so you can
+verify exactly what will be used for training and inference.
 
 ## Possible MARBLE Backcronyms
 
