@@ -33,6 +33,8 @@ from metrics_dashboard import MetricsDashboard
 import pkgutil
 import importlib
 import yaml
+import torch
+from transformers import AutoModel
 
 
 def _load_image(file_obj: BytesIO) -> np.ndarray:
@@ -131,6 +133,40 @@ def load_hf_examples(
 ) -> list[tuple]:
     """Load ``(input, target)`` pairs from a Hugging Face dataset."""
     return load_hf_dataset(dataset_name, split, input_key, target_key, limit)
+
+
+def load_hf_model(model_name: str):
+    """Return a pretrained model from the Hugging Face Hub."""
+    return AutoModel.from_pretrained(model_name, trust_remote_code=True)
+
+
+def model_summary(model: torch.nn.Module) -> str:
+    """Return a textual summary of ``model`` parameters."""
+    lines = ["Layer | Shape | Params"]
+    total = 0
+    for name, param in model.named_parameters():
+        lines.append(f"{name} | {tuple(param.shape)} | {param.numel()}")
+        total += param.numel()
+    lines.append(f"Total parameters: {total}")
+    return "\n".join(lines)
+
+
+def convert_hf_model(
+    model_name: str,
+    core_params: dict | None = None,
+    nb_params: dict | None = None,
+    brain_params: dict | None = None,
+    dataloader_params: dict | None = None,
+) -> marble_interface.MARBLE:
+    """Convert ``model_name`` from HF Hub into a MARBLE system."""
+    model = load_hf_model(model_name)
+    return marble_interface.convert_pytorch_model(
+        model,
+        core_params=core_params,
+        nb_params=nb_params,
+        brain_params=brain_params,
+        dataloader_params=dataloader_params,
+    )
 
 
 def preview_file_dataset(file, limit: int = 5) -> pd.DataFrame:
@@ -580,7 +616,7 @@ def run_playground() -> None:
             st.write(f"Output: {out}")
     else:
         st.header("Advanced Function Execution")
-        tab_iface, tab_mod, tab_pipe, tab_code, tab_vis, tab_cfg = st.tabs(
+        tab_iface, tab_mod, tab_pipe, tab_code, tab_vis, tab_cfg, tab_model = st.tabs(
             [
                 "marble_interface",
                 "Modules",
@@ -588,6 +624,7 @@ def run_playground() -> None:
                 "Custom Code",
                 "Visualization",
                 "Config Editor",
+                "Model Conversion",
             ]
         )
 
@@ -801,6 +838,27 @@ def run_playground() -> None:
                         None, yaml_text=st.session_state["config_yaml"]
                     )
                     st.success("Reinitialized MARBLE")
+
+        with tab_model:
+            st.write("Convert a pretrained Hugging Face model into MARBLE.")
+            model_name = st.text_input("Model Name", key="hf_model_name")
+            if st.button("Preview Model", key="hf_preview") and model_name:
+                try:
+                    mdl = load_hf_model(model_name)
+                    st.session_state["hf_model"] = mdl
+                    st.text(model_summary(mdl))
+                except Exception as e:
+                    st.error(str(e))
+            if (
+                st.button("Convert to MARBLE", key="hf_convert")
+                and model_name
+            ):
+                try:
+                    marble = convert_hf_model(model_name)
+                    st.session_state["marble"] = marble
+                    st.success("Model converted")
+                except Exception as e:
+                    st.error(str(e))
 
 
 if __name__ == "__main__":
