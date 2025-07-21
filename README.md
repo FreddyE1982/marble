@@ -91,6 +91,9 @@ GPU memory usage. Another **Documentation** tab provides quick access to the
 README, YAML manual and full tutorial without leaving the playground. A **Tests**
 tab lets you run the repository's pytest suite directly from the UI so you can
 validate changes after each experiment.
+The new **Neuromodulation** tab exposes sliders for arousal, stress and reward
+signals along with an emotion field so you can tweak the brain's internal state
+interactively.
 
 ## Possible MARBLE Backcronyms
 

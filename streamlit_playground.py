@@ -517,6 +517,33 @@ def core_statistics(marble) -> dict:
     }
 
 
+def get_neuromod_state(marble) -> dict:
+    """Return the current neuromodulatory signal levels."""
+    return marble.brain.neuromodulatory_system.get_context()
+
+
+def set_neuromod_state(
+    marble,
+    arousal: float | None = None,
+    stress: float | None = None,
+    reward: float | None = None,
+    emotion: str | None = None,
+) -> dict:
+    """Update neuromodulatory signals and return the new state."""
+    updates: dict[str, object] = {}
+    if arousal is not None:
+        updates["arousal"] = float(arousal)
+    if stress is not None:
+        updates["stress"] = float(stress)
+    if reward is not None:
+        updates["reward"] = float(reward)
+    if emotion is not None:
+        updates["emotion"] = str(emotion)
+    if updates:
+        marble.brain.neuromodulatory_system.update_signals(**updates)
+    return marble.brain.neuromodulatory_system.get_context()
+
+
 def load_readme() -> str:
     """Return the repository ``README.md`` contents."""
     path = os.path.join(os.path.dirname(__file__), "README.md")
@@ -955,6 +982,7 @@ def run_playground() -> None:
             tab_vis,
             tab_metrics,
             tab_stats,
+            tab_neuro,
             tab_core,
             tab_cfg,
             tab_model,
@@ -973,6 +1001,7 @@ def run_playground() -> None:
                 "Visualization",
                 "Metrics",
                 "System Stats",
+                "Neuromodulation",
                 "Core Tools",
                 "Config Editor",
                 "Model Conversion",
@@ -1258,6 +1287,45 @@ def run_playground() -> None:
             st.metric("GPU", f"{stats['gpu_mb']:.1f} MB")
             if st.button("Refresh Stats", key="stats_refresh"):
                 st.experimental_rerun()
+
+        with tab_neuro:
+            st.write("Adjust neuromodulatory signals.")
+            state = get_neuromod_state(marble)
+            arousal = st.slider(
+                "Arousal",
+                min_value=0.0,
+                max_value=1.0,
+                value=float(state.get("arousal", 0.0)),
+                step=0.01,
+            )
+            stress = st.slider(
+                "Stress",
+                min_value=0.0,
+                max_value=1.0,
+                value=float(state.get("stress", 0.0)),
+                step=0.01,
+            )
+            reward = st.slider(
+                "Reward",
+                min_value=0.0,
+                max_value=1.0,
+                value=float(state.get("reward", 0.0)),
+                step=0.01,
+            )
+            emotion = st.text_input(
+                "Emotion", value=str(state.get("emotion", "neutral"))
+            )
+            if st.button("Update Signals", key="neuro_update"):
+                new_state = set_neuromod_state(
+                    marble,
+                    arousal=arousal,
+                    stress=stress,
+                    reward=reward,
+                    emotion=emotion,
+                )
+                st.success(
+                    f"Signals updated: arousal={new_state['arousal']}, stress={new_state['stress']}, reward={new_state['reward']}, emotion={new_state['emotion']}"
+                )
 
         with tab_core:
             st.write("Manipulate and inspect the MARBLE core.")
