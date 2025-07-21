@@ -58,6 +58,8 @@ from streamlit_playground import (
     metrics_figure,
     load_readme,
     load_tutorial,
+    search_hf_models,
+    system_stats,
 )
 
 
@@ -189,6 +191,17 @@ def test_search_hf_datasets():
     api.assert_called_once()
     inst.list_datasets.assert_called_once_with(search="cats", limit=3)
     assert names == ["ds0", "ds1", "ds2"]
+
+
+def test_search_hf_models():
+    dummy = [mock.Mock(id=f"m{i}") for i in range(2)]
+    with mock.patch("huggingface_hub.HfApi") as api:
+        inst = api.return_value
+        inst.list_models.return_value = dummy
+        names = search_hf_models("bert", limit=2)
+    api.assert_called_once()
+    inst.list_models.assert_called_once_with(search="bert", limit=2)
+    assert names == ["m0", "m1"]
 
 
 def test_module_listing_and_execution():
@@ -404,3 +417,15 @@ def test_metrics_and_docs_helpers(tmp_path):
     tutorial = load_tutorial()
     assert "MARBLE" in readme
     assert "Project" in tutorial
+
+
+def test_system_stats():
+    with mock.patch(
+        "system_metrics.get_system_memory_usage",
+        return_value=123.0,
+    ), mock.patch(
+        "system_metrics.get_gpu_memory_usage",
+        return_value=45.0,
+    ):
+        stats = system_stats()
+    assert stats == {"ram_mb": 123.0, "gpu_mb": 45.0}

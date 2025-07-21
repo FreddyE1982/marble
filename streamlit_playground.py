@@ -149,6 +149,15 @@ def search_hf_datasets(query: str, limit: int = 20) -> list[str]:
     return [d.id for d in datasets]
 
 
+def search_hf_models(query: str, limit: int = 20) -> list[str]:
+    """Return model IDs from the Hugging Face Hub matching ``query``."""
+    from huggingface_hub import HfApi
+
+    api = HfApi()
+    models = api.list_models(search=query, limit=limit)
+    return [m.id for m in models]
+
+
 def load_hf_model(model_name: str):
     """Return a pretrained model from the Hugging Face Hub."""
     return AutoModel.from_pretrained(model_name, trust_remote_code=True)
@@ -474,6 +483,16 @@ def metrics_figure(marble, window_size: int = 10) -> go.Figure:
         fig.add_scatter(y=smooth, mode="lines", name=name)
     fig.update_layout(xaxis_title="Updates", yaxis_title="Value")
     return fig
+
+
+def system_stats(device: int = 0) -> dict:
+    """Return current CPU and GPU memory usage in megabytes."""
+    from system_metrics import get_system_memory_usage, get_gpu_memory_usage
+
+    return {
+        "ram_mb": get_system_memory_usage(),
+        "gpu_mb": get_gpu_memory_usage(device),
+    }
 
 
 def load_readme() -> str:
@@ -875,6 +894,7 @@ def run_playground() -> None:
             tab_code,
             tab_vis,
             tab_metrics,
+            tab_stats,
             tab_cfg,
             tab_model,
             tab_offload,
@@ -889,6 +909,7 @@ def run_playground() -> None:
                 "Custom Code",
                 "Visualization",
                 "Metrics",
+                "System Stats",
                 "Config Editor",
                 "Model Conversion",
                 "Offloading",
@@ -1164,6 +1185,14 @@ def run_playground() -> None:
             st.plotly_chart(fig, use_container_width=True)
             st.button("Refresh", key="metrics_refresh")
 
+        with tab_stats:
+            st.write("System resource usage in megabytes.")
+            stats = system_stats()
+            st.metric("RAM", f"{stats['ram_mb']:.1f} MB")
+            st.metric("GPU", f"{stats['gpu_mb']:.1f} MB")
+            if st.button("Refresh Stats", key="stats_refresh"):
+                st.experimental_rerun()
+
         with tab_cfg:
             st.write("Edit the active YAML configuration.")
             param = st.text_input("Parameter Path", key="cfg_param")
@@ -1188,7 +1217,17 @@ def run_playground() -> None:
 
         with tab_model:
             st.write("Convert a pretrained Hugging Face model into MARBLE.")
-            model_name = st.text_input("Model Name", key="hf_model_name")
+            model_query = st.text_input("Search Models", key="hf_model_query")
+            if st.button("Search Models", key="hf_do_model_search") and model_query:
+                st.session_state["hf_model_results"] = search_hf_models(model_query)
+            if "hf_model_results" in st.session_state and st.session_state["hf_model_results"]:
+                model_name = st.selectbox(
+                    "Results",
+                    st.session_state["hf_model_results"],
+                    key="hf_model_choice",
+                )
+            else:
+                model_name = st.text_input("Model Name", key="hf_model_name")
             if st.button("Preview Model", key="hf_preview") and model_name:
                 try:
                     mdl = load_hf_model(model_name)

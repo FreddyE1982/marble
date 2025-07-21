@@ -1255,8 +1255,8 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
     **Reinitialize** to rebuild the system with the modified settings.
 12. **Consult the YAML manual** from the sidebar while adjusting parameters.
 13. **Convert Hugging Face models** on the *Model Conversion* tab. Enter a
-    model name, preview its architecture and click **Convert to MARBLE** to
-    initialize a system from the pretrained weights.
+    model search query, preview the architecture and click **Convert to
+    MARBLE** to initialize a system from the pretrained weights.
 14. **Experiment with offloading** using the *Offloading* tab. Start a
     ``RemoteBrainServer`` or create a torrent client directly from the
     interface and attach it to the active MARBLE instance. Use the provided
@@ -1264,7 +1264,9 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
     with peers via torrent.
 15. **Monitor progress** on the *Metrics* tab. Loss, memory usage and other
     statistics are plotted live so you can observe training behaviour.
-16. **Read the documentation** on the *Documentation* tab. The README, YAML
+16. **Check system resources** on the *System Stats* tab. RAM and GPU usage are
+    displayed so you can monitor consumption while experimenting.
+17. **Read the documentation** on the *Documentation* tab. The README, YAML
     manual and tutorial are available directly in the browser for quick
     reference.
 

@@ -74,6 +74,8 @@ YAML so you can verify exactly what will be used for training and inference.
 You can also **search** the Hugging Face Hub directly from the sidebar. Enter a
 query, press **Search Datasets** and select a result to populate the dataset
 name field without leaving the playground.
+The Model Conversion tab now supports searching the Hub for pretrained models so
+they can be converted with a single click.
 An additional **Visualization** tab renders an interactive graph of the core so
 you can inspect neuron connectivity in real time. The sidebar also contains a
 collapsible YAML manual for quick reference while experimenting.
@@ -84,9 +86,9 @@ own tracker to distribute lobes among peers. High‑attention regions of the bra
 may then be offloaded to the remote server or shared via torrent with a single
 button press.
 A dedicated **Metrics** tab graphs loss, memory usage and other statistics in
-real time inside the browser. Another **Documentation** tab provides quick
-access to the README, YAML manual and full tutorial without leaving the
-playground.
+real time inside the browser. A **System Stats** tab displays current CPU and
+GPU memory usage. Another **Documentation** tab provides quick access to the
+README, YAML manual and full tutorial without leaving the playground.
 
 ## Possible MARBLE Backcronyms
 
