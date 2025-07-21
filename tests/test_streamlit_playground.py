@@ -36,6 +36,7 @@ from streamlit_playground import (
     core_to_networkx,
     core_figure,
     load_yaml_manual,
+    set_yaml_value,
 )
 
 
@@ -234,3 +235,17 @@ def test_core_network_visualization(tmp_path):
 def test_load_yaml_manual_text():
     text = load_yaml_manual()
     assert "core:" in text
+
+
+def test_set_yaml_value_simple():
+    yaml_text = "a:\n  b: 1\n"
+    new = set_yaml_value(yaml_text, "a.b", 2)
+    cfg = yaml.safe_load(new)
+    assert cfg["a"]["b"] == 2
+
+
+def test_set_yaml_value_nested_creation():
+    yaml_text = "a: {}\n"
+    new = set_yaml_value(yaml_text, "a.c.d", 5)
+    cfg = yaml.safe_load(new)
+    assert cfg["a"]["c"]["d"] == 5

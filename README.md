@@ -60,6 +60,10 @@ calls that execute sequentially. This makes it possible to combine training,
 evaluation and utility operations into a single workflow directly from the UI.
 Pipelines can be imported or exported as JSON and a **Custom Code** tab lets you
 run arbitrary Python snippets with the active MARBLE instance.
+The advanced interface now features a **Config Editor** tab where any
+parameter from the YAML configuration can be modified on the fly.  Changes are
+applied immediately and you can re-initialise the system with the updated
+configuration without leaving the browser.
 The sidebar now previews uploaded datasets and shows the active configuration
 YAML so you can verify exactly what will be used for training and inference.
 An additional **Visualization** tab renders an interactive graph of the core so
