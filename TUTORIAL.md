@@ -53,12 +53,15 @@ This tutorial demonstrates every major component of MARBLE through a series of p
 **Complete Example**
 ```python
 # project1_numeric_regression.py
+import urllib.request
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from marble_main import MARBLE
 from config_loader import load_config
 
-df = pd.read_csv('winequality-red.csv')
+url = "https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
+urllib.request.urlretrieve(url, "winequality-red.csv")
+df = pd.read_csv('winequality-red.csv', sep=';')
 examples = [(row[:-1].to_numpy(), row[-1]) for row in df.to_numpy()]
 train_examples, val_examples = train_test_split(examples, test_size=0.1, random_state=42)
 
@@ -103,10 +106,17 @@ This project introduces the **Core**, **Neuronenblitz** and **Brain** objects al
 **Complete Example**
 ```python
 # project2_image_classification.py
-import pickle
+import urllib.request, tarfile, os, pickle
 import numpy as np
 from marble_main import MARBLE
 from config_loader import load_config
+
+url = "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz"
+archive = "cifar-10-python.tar.gz"
+if not os.path.exists(archive):
+    urllib.request.urlretrieve(url, archive)
+    with tarfile.open(archive, "r:gz") as tar:
+        tar.extractall()
 
 def load_cifar_batches(path):
     data, labels = [], []
@@ -251,9 +261,13 @@ This project covers **autograd integration** and the **PyTorch challenge** mecha
 from config_loader import load_config
 from marble_main import MARBLE
 import advanced_gpt
+import os, urllib.request
 
 cfg = load_config()
 marble = MARBLE(cfg['core'])
+os.makedirs('data', exist_ok=True)
+url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'
+urllib.request.urlretrieve(url, 'data/tinyshakespeare.txt')
 dataset = advanced_gpt.load_text_dataset(cfg['gpt']['dataset_path'])
 advanced_gpt.train_advanced_gpt(marble.brain, dataset, epochs=5)
 print(advanced_gpt.generate_text(marble.brain, 'Once upon a time'))
@@ -774,11 +788,15 @@ Run `python project17_imitation.py` to train from demonstrations.
 from config_loader import load_config
 from marble_main import MARBLE
 from harmonic_resonance_learning import HarmonicResonanceLearner
+import urllib.request, zipfile, io, pandas as pd
 
 cfg = load_config()
 marble = MARBLE(cfg['core'])
 learner = HarmonicResonanceLearner(marble.core, marble.neuronenblitz)
-import pandas as pd
+url = "https://github.com/philipperemy/keras-tutorials/raw/master/resources/jena_climate_2009_2016.csv.zip"
+with urllib.request.urlopen(url) as resp:
+    with zipfile.ZipFile(io.BytesIO(resp.read())) as zf:
+        zf.extractall()
 data = pd.read_csv('jena_climate_2009_2016.csv')
 values = list(zip(data['T (degC)'].values, data['p (mbar)'].values))
 for value, target in values[:1000]:
