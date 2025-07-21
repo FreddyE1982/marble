@@ -657,6 +657,34 @@ def core_statistics(marble) -> dict:
     }
 
 
+def core_weight_matrix(core, limit: int | None = None) -> np.ndarray:
+    """Return a synaptic weight matrix for ``core``."""
+
+    n = len(core.neurons)
+    mat = np.zeros((n, n), dtype=np.float32)
+    for s in core.synapses:
+        if s.source < n and s.target < n:
+            mat[s.source, s.target] = float(s.weight)
+    if limit is not None:
+        mat = mat[:limit, :limit]
+    return mat
+
+
+def core_heatmap_figure(
+    core, limit: int | None = None, color_scale: str = "Viridis"
+) -> go.Figure:
+    """Return a Plotly heatmap visualizing synaptic weights."""
+
+    mat = core_weight_matrix(core, limit=limit)
+    fig = go.Figure(data=go.Heatmap(z=mat, colorscale=color_scale))
+    fig.update_layout(
+        xaxis_title="Target Neuron",
+        yaxis_title="Source Neuron",
+        margin=dict(l=0, r=0, t=0, b=0),
+    )
+    return fig
+
+
 def get_neuromod_state(marble) -> dict:
     """Return the current neuromodulatory signal levels."""
     return marble.brain.neuromodulatory_system.get_context()
@@ -1267,6 +1295,7 @@ def run_playground() -> None:
             tab_pipe,
             tab_code,
             tab_vis,
+            tab_heat,
             tab_metrics,
             tab_stats,
             tab_neuro,
@@ -1291,6 +1320,7 @@ def run_playground() -> None:
                 "Pipeline",
                 "Custom Code",
                 "Visualization",
+                "Weight Heatmap",
                 "Metrics",
                 "System Stats",
                 "Neuromodulation",
@@ -1607,6 +1637,15 @@ def run_playground() -> None:
             st.write("Visualize the current MARBLE core.")
             if st.button("Generate Graph", key="show_graph"):
                 fig = core_figure(marble.get_core())
+                st.plotly_chart(fig, use_container_width=True)
+
+        with tab_heat:
+            st.write("Display a heatmap of synaptic weights.")
+            limit = st.number_input(
+                "Max Neurons", min_value=1, value=100, step=1, key="heat_limit"
+            )
+            if st.button("Generate Heatmap", key="show_heatmap"):
+                fig = core_heatmap_figure(marble.get_core(), limit=int(limit))
                 st.plotly_chart(fig, use_container_width=True)
 
         with tab_metrics:

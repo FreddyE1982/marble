@@ -1252,42 +1252,45 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    analysis commands without leaving the UI.
 11. **View the core graph** on the *Visualization* tab. Press **Generate Graph**
    to see an interactive display of neurons and synapses.
-12. **Edit configuration** from the *Config Editor* tab. Specify any dot-
-    separated parameter path and new value to update the YAML in place. Press
-    **Reinitialize** to rebuild the system with the modified settings.
-13. **Consult the YAML manual** from the sidebar while adjusting parameters.
-14. **Convert Hugging Face models** on the *Model Conversion* tab. Enter a
+12. **Inspect synaptic weights** on the *Weight Heatmap* tab. Set a maximum
+   number of neurons and press **Generate Heatmap** to visualize connection
+   strengths.
+13. **Edit configuration** from the *Config Editor* tab. Specify any dot-
+   separated parameter path and new value to update the YAML in place. Press
+   **Reinitialize** to rebuild the system with the modified settings.
+14. **Consult the YAML manual** from the sidebar while adjusting parameters.
+15. **Convert Hugging Face models** on the *Model Conversion* tab. Enter a
     model search query, preview the architecture and click **Convert to
     MARBLE** to initialize a system from the pretrained weights.
-15. **Experiment with offloading** using the *Offloading* tab. Start a
+16. **Experiment with offloading** using the *Offloading* tab. Start a
     ``RemoteBrainServer`` or create a torrent client directly from the
     interface and attach it to the active MARBLE instance. Use the provided
     buttons to offload high‑attention lobes to the remote server or share them
     with peers via torrent.
-16. **Monitor progress** on the *Metrics* tab. Loss, memory usage and other
+17. **Monitor progress** on the *Metrics* tab. Loss, memory usage and other
     statistics are plotted live so you can observe training behaviour.
-17. **Check system resources** on the *System Stats* tab. RAM and GPU usage are
+18. **Check system resources** on the *System Stats* tab. RAM and GPU usage are
     displayed so you can monitor consumption while experimenting.
-18. **Tune neuromodulatory signals** on the *Neuromodulation* tab. Adjust the
+19. **Tune neuromodulatory signals** on the *Neuromodulation* tab. Adjust the
     sliders for arousal, stress and reward or set an emotion string, then press
     **Update Signals** to modify MARBLE's internal context on the fly.
-19. **Manage lobes** on the *Lobe Manager* tab. View attention scores for each
+20. **Manage lobes** on the *Lobe Manager* tab. View attention scores for each
     lobe, create new lobes from selected neuron IDs, reorganize the current
     structure or apply self-attention updates with a single click.
-20. **Read the documentation** on the *Documentation* tab. Every markdown file
+21. **Read the documentation** on the *Documentation* tab. Every markdown file
     in the repository, including the architecture overview, configurable
     parameters list and machine learning handbook, can be opened here for quick
     reference.
-21. **Browse source code** on the *Source Browser* tab. Select any module and
+22. **Browse source code** on the *Source Browser* tab. Select any module and
     click **Show Source** to view its implementation without leaving the
     playground.
-22. **Run unit tests** on the *Tests* tab. Select one or more test files and
+23. **Run unit tests** on the *Tests* tab. Select one or more test files and
     click **Run Tests** to verify everything works as expected.
-23. **Control asynchronous behaviour** on the *Async Training* tab. Start
+24. **Control asynchronous behaviour** on the *Async Training* tab. Start
     background training threads or enable auto-firing so MARBLE keeps learning
     while you explore other tabs. Use **Wait For Training** to block until the
     current session finishes or stop auto-firing at any time.
-24. **Explore reinforcement learning** on the *RL Sandbox* tab. Set the grid
+25. **Explore reinforcement learning** on the *RL Sandbox* tab. Set the grid
     size, number of episodes, step limit and optionally enable double
     Q-learning, then click **Run GridWorld** to train a
     `MarbleQLearningAgent`. The reward curve for each episode is displayed so

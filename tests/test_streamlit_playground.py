@@ -87,6 +87,8 @@ from streamlit_playground import (
     load_module_source,
     wander_neuronenblitz,
     parallel_wander_neuronenblitz,
+    core_weight_matrix,
+    core_heatmap_figure,
 )
 
 
@@ -335,6 +337,19 @@ def test_core_network_visualization(tmp_path):
     g = core_to_networkx(m.get_core())
     assert g.number_of_nodes() == len(m.get_core().neurons)
     fig = core_figure(m.get_core())
+    assert hasattr(fig, "to_dict")
+
+
+def test_core_weight_matrix_and_heatmap(tmp_path):
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+    m = initialize_marble(str(cfg_path))
+    mat = core_weight_matrix(m.get_core())
+    assert mat.shape[0] == len(m.get_core().neurons)
+    assert mat.shape[1] == len(m.get_core().neurons)
+    fig = core_heatmap_figure(m.get_core(), limit=2)
     assert hasattr(fig, "to_dict")
 
 
