@@ -65,6 +65,9 @@ Pipelines can be imported or exported as JSON and a **Custom Code** tab lets you
 run arbitrary Python snippets with the active MARBLE instance.
 Pipeline steps may also be reordered or removed directly from the UI so complex
 workflows can be iterated on quickly.
+Multiple MARBLE systems can be created in one session. Use the *Active Instance*
+selector in the sidebar to switch between them, duplicate a system for
+comparison or delete instances you no longer need.
 The advanced interface now features a **Config Editor** tab where any
 parameter from the YAML configuration can be modified on the fly.  Changes are
 applied immediately and you can re-initialise the system with the updated

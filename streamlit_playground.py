@@ -21,6 +21,7 @@ import plotly.graph_objs as go
 
 import inspect
 import marble_interface
+from marble_registry import MarbleRegistry
 
 from marble_interface import (
     new_marble_system,
@@ -823,6 +824,9 @@ def run_playground() -> None:
     st.set_page_config(page_title="MARBLE Playground")
     st.title("MARBLE Playground")
 
+    if "registry" not in st.session_state:
+        st.session_state["registry"] = MarbleRegistry()
+    registry: MarbleRegistry = st.session_state["registry"]
     if "marble" not in st.session_state:
         st.session_state["marble"] = None
     if "dashboard" not in st.session_state:
@@ -837,7 +841,8 @@ def run_playground() -> None:
         "Upload YAML", type=["yaml", "yml"], key="cfg_file"
     )
     cfg_text = st.sidebar.text_area("Or paste YAML", key="cfg_text")
-    if st.sidebar.button("Initialize MARBLE"):
+    inst_name = st.sidebar.text_input("Instance Name", value=registry.active or "main")
+    if st.sidebar.button("Create Instance"):
         yaml_data = None
         if cfg_upload is not None:
             yaml_data = cfg_upload.getvalue().decode("utf-8")
@@ -846,15 +851,37 @@ def run_playground() -> None:
         else:
             with open(cfg_path, "r", encoding="utf-8") as f:
                 yaml_data = f.read()
-        st.session_state["marble"] = initialize_marble(
-            cfg_path if not yaml_data else None, yaml_text=yaml_data
-        )
+        marble = registry.create(inst_name, cfg_path if not yaml_data else None, yaml_text=yaml_data)
+        st.session_state["marble"] = marble
         st.session_state["config_yaml"] = yaml_data
-        st.sidebar.success("System initialized")
+        st.sidebar.success(f"Instance '{inst_name}' created")
+
+    if registry.list():
+        active = st.sidebar.selectbox("Active Instance", registry.list(), index=registry.list().index(registry.active or registry.list()[0]), key="active_instance")
+        if st.sidebar.button("Switch Instance"):
+            registry.set_active(active)
+            st.session_state["marble"] = registry.get()
+        if st.sidebar.button("Duplicate Instance"):
+            base = active
+            new_name = base + "_copy"
+            counter = 1
+            while new_name in registry.list():
+                new_name = f"{base}_copy{counter}"
+                counter += 1
+            registry.duplicate(base, new_name)
+            st.sidebar.success(f"Instance duplicated as {new_name}")
+        if st.sidebar.button("Delete Instance"):
+            registry.delete(active)
+            if registry.active:
+                st.session_state["marble"] = registry.get()
+            else:
+                st.session_state["marble"] = None
+            st.sidebar.success("Instance deleted")
 
     save_path = st.sidebar.text_input("Save Path", "marble.pkl")
     if st.sidebar.button("Save MARBLE") and st.session_state.get("marble") is not None:
         save_marble_system(st.session_state["marble"], save_path)
+        registry.instances[registry.active] = st.session_state["marble"]
         st.sidebar.success("Model saved")
 
     load_file = st.sidebar.file_uploader("Load MARBLE", type=["pkl"], key="load_marble")
@@ -863,6 +890,7 @@ def run_playground() -> None:
         tmp.write(load_file.read())
         tmp.close()
         st.session_state["marble"] = load_marble_system(tmp.name)
+        registry.instances[registry.active] = st.session_state["marble"]
         st.sidebar.success("Model loaded")
 
     if (
@@ -878,6 +906,7 @@ def run_playground() -> None:
     if st.sidebar.button("Load Core JSON") and core_file is not None:
         js = core_file.getvalue().decode("utf-8")
         st.session_state["marble"] = import_core_from_json(js)
+        registry.instances[registry.active] = st.session_state["marble"]
         st.sidebar.success("Core loaded")
 
     if "config_yaml" in st.session_state:
