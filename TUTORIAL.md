@@ -1278,6 +1278,10 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
     playground.
 20. **Run unit tests** on the *Tests* tab. Select one or more test files and
     click **Run Tests** to verify everything works as expected.
+21. **Control asynchronous behaviour** on the *Async Training* tab. Start
+    background training threads or enable auto-firing so MARBLE keeps learning
+    while you explore other tabs. Use **Wait For Training** to block until the
+    current session finishes or stop auto-firing at any time.
 
 Uploaded datasets are previewed directly in the sidebar so you can verify their
 contents before training. The currently active YAML configuration is also shown

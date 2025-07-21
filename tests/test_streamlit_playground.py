@@ -10,6 +10,7 @@ from PIL import Image
 from zipfile import ZipFile
 from io import BytesIO
 import numpy as np
+import time
 from plotly.graph_objs import Figure
 
 from tests.test_core_functions import minimal_params
@@ -54,6 +55,11 @@ from streamlit_playground import (
     list_learner_classes,
     create_learner,
     train_learner,
+    start_background_training,
+    wait_for_training,
+    training_in_progress,
+    start_auto_firing,
+    stop_auto_firing,
     metrics_dataframe,
     metrics_figure,
     load_readme,
@@ -464,6 +470,28 @@ def test_neuromod_state_helpers(tmp_path):
     updated = set_neuromod_state(marble, arousal=0.5, emotion="happy")
     assert updated["arousal"] == 0.5
     assert updated["emotion"] == "happy"
+
+
+def test_async_helpers(tmp_path):
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+    marble = initialize_marble(str(cfg_path))
+
+    start_background_training(marble, [(0.1, 0.2)], epochs=1)
+    timeout = time.time() + 5
+    while not training_in_progress(marble) and time.time() < timeout:
+        time.sleep(0.01)
+    assert training_in_progress(marble)
+    wait_for_training(marble)
+    assert not training_in_progress(marble)
+
+    start_auto_firing(marble, interval_ms=10)
+    time.sleep(0.05)
+    assert marble.brain.auto_fire_active
+    stop_auto_firing(marble)
+    assert not marble.brain.auto_fire_active
 
 
 def test_list_tests_and_run(tmp_path):
