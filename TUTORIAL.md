@@ -1254,6 +1254,11 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
 12. **Convert Hugging Face models** on the *Model Conversion* tab. Enter a
     model name, preview its architecture and click **Convert to MARBLE** to
     initialize a system from the pretrained weights.
+13. **Experiment with offloading** using the *Offloading* tab. Start a
+    ``RemoteBrainServer`` or create a torrent client directly from the
+    interface and attach it to the active MARBLE instance. Use the provided
+    buttons to offload high‑attention lobes to the remote server or share them
+    with peers via torrent.
 
 Uploaded datasets are previewed directly in the sidebar so you can verify their
 contents before training. The currently active YAML configuration is also shown

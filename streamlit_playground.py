@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import json
 import wave
@@ -488,6 +490,62 @@ def run_example_project(project_name: str) -> str:
     return out_buf.getvalue() + err_buf.getvalue()
 
 
+def start_remote_server(
+    host: str = "localhost",
+    port: int = 8000,
+    remote_url: str | None = None,
+    compression_level: int = 6,
+    compression_enabled: bool = True,
+) -> object:
+    """Start and return a ``RemoteBrainServer`` instance."""
+    from remote_offload import RemoteBrainServer
+
+    server = RemoteBrainServer(
+        host=host,
+        port=port,
+        remote_url=remote_url,
+        compression_level=compression_level,
+        compression_enabled=compression_enabled,
+    )
+    server.start()
+    return server
+
+
+def create_remote_client(
+    url: str,
+    timeout: float = 5.0,
+    max_retries: int = 3,
+    compression_level: int = 6,
+    compression_enabled: bool = True,
+) -> object:
+    """Return a configured ``RemoteBrainClient``."""
+    from remote_offload import RemoteBrainClient
+
+    return RemoteBrainClient(
+        url,
+        timeout=timeout,
+        max_retries=max_retries,
+        compression_level=compression_level,
+        compression_enabled=compression_enabled,
+    )
+
+
+def create_torrent_system(
+    client_id: str = "main",
+    buffer_size: int = 10,
+    heartbeat_interval: int = 30,
+) -> tuple[object, object]:
+    """Return a tracker and connected ``BrainTorrentClient``."""
+    from torrent_offload import BrainTorrentTracker, BrainTorrentClient
+
+    tracker = BrainTorrentTracker()
+    client = BrainTorrentClient(
+        client_id, tracker, buffer_size=buffer_size, heartbeat_interval=heartbeat_interval
+    )
+    client.connect()
+    return tracker, client
+
+
 def run_playground() -> None:
     """Launch the Streamlit MARBLE playground."""
     st.set_page_config(page_title="MARBLE Playground")
@@ -664,7 +722,7 @@ def run_playground() -> None:
             st.write(f"Output: {out}")
     else:
         st.header("Advanced Function Execution")
-        tab_iface, tab_mod, tab_pipe, tab_code, tab_vis, tab_cfg, tab_model, tab_proj = st.tabs(
+        tab_iface, tab_mod, tab_pipe, tab_code, tab_vis, tab_cfg, tab_model, tab_offload, tab_proj = st.tabs(
             [
                 "marble_interface",
                 "Modules",
@@ -673,6 +731,7 @@ def run_playground() -> None:
                 "Visualization",
                 "Config Editor",
                 "Model Conversion",
+                "Offloading",
                 "Projects",
             ]
         )
@@ -906,6 +965,74 @@ def run_playground() -> None:
                     st.text(model_summary(mdl))
                 except Exception as e:
                     st.error(str(e))
+
+        with tab_offload:
+            st.write("Manage remote and torrent offloading for the current MARBLE instance.")
+            if "remote_server" not in st.session_state:
+                st.session_state["remote_server"] = None
+            if "remote_client" not in st.session_state:
+                st.session_state["remote_client"] = None
+            if "torrent_tracker" not in st.session_state:
+                st.session_state["torrent_tracker"] = None
+            if "torrent_client" not in st.session_state:
+                st.session_state["torrent_client"] = None
+
+            with st.expander("Remote Server"):
+                host = st.text_input("Host", "localhost", key="srv_host")
+                port = st.number_input("Port", value=8000, step=1, key="srv_port")
+                remote_url = st.text_input("Remote URL", key="srv_remote")
+                if st.button("Start Server", key="srv_start") and st.session_state["remote_server"] is None:
+                    st.session_state["remote_server"] = start_remote_server(
+                        host=host,
+                        port=int(port),
+                        remote_url=remote_url or None,
+                    )
+                    st.success("Server started")
+                if st.button("Stop Server", key="srv_stop") and st.session_state["remote_server"] is not None:
+                    st.session_state["remote_server"].stop()
+                    st.session_state["remote_server"] = None
+                    st.success("Server stopped")
+
+            with st.expander("Remote Client"):
+                url = st.text_input("Server URL", "http://localhost:8000", key="cli_url")
+                if st.button("Create Client", key="cli_create"):
+                    st.session_state["remote_client"] = create_remote_client(url)
+                    st.success("Client created")
+                if (
+                    st.button("Attach to MARBLE", key="cli_attach")
+                    and st.session_state.get("remote_client") is not None
+                ):
+                    marble.brain.remote_client = st.session_state["remote_client"]
+                    marble.brain.offload_enabled = True
+                    st.success("Client attached")
+
+            with st.expander("Torrent Client"):
+                client_id = st.text_input("Client ID", "main", key="tor_id")
+                bufsize = st.number_input("Buffer Size", value=10, step=1, key="tor_buf")
+                beat = st.number_input("Heartbeat", value=30, step=1, key="tor_hb")
+                if st.button("Start Torrent", key="tor_start") and st.session_state["torrent_client"] is None:
+                    tracker, client = create_torrent_system(
+                        client_id,
+                        buffer_size=int(bufsize),
+                        heartbeat_interval=int(beat),
+                    )
+                    st.session_state["torrent_tracker"] = tracker
+                    st.session_state["torrent_client"] = client
+                    marble.brain.torrent_client = client
+                    marble.brain.torrent_offload_enabled = True
+                    st.success("Torrent client started")
+                if st.button("Stop Torrent", key="tor_stop") and st.session_state["torrent_client"] is not None:
+                    st.session_state["torrent_client"].disconnect()
+                    st.session_state["torrent_client"] = None
+                    st.session_state["torrent_tracker"] = None
+                    marble.brain.torrent_client = None
+                    marble.brain.torrent_offload_enabled = False
+                    st.success("Torrent client stopped")
+            st.divider()
+            if st.button("Offload High Attention", key="do_remote"):
+                marble.brain.offload_high_attention(marble.brain.offload_threshold)
+            if st.button("Offload via Torrent", key="do_torrent"):
+                marble.brain.offload_high_attention_torrent(marble.brain.torrent_offload_threshold)
             if (
                 st.button("Convert to MARBLE", key="hf_convert")
                 and model_name
