@@ -78,6 +78,12 @@ Neuronenblitz traces are mined for frequent activation patterns. When a sequence
 appears in many examples the Core adds a new schema neuron connected to every
 step, allowing the full pattern to trigger as one concept in future reasoning.
 
+### Conceptual Integration
+Two active neurons with low similarity are blended into a new concept neuron.
+Its representation is a nonlinear combination of the originals and links back to
+both parents. Over time these blends create higher-order abstractions without
+optimizing a loss.
+
 ### Continuous Weight Field Learning
 Instead of a fixed weight vector, MARBLE learns a smooth function \(W(x)\). Each
 input has its own weights, derived from radial basis functions. Neuronenblitz
@@ -176,6 +182,11 @@ Let \(G_t\) be the set of observed activation graphs. Any subgraph \(P\) with
 node connects to each vertex in \(P\), enabling higher-level reasoning chunks
 without gradient updates.
 
+### Conceptual Integration
+Whenever two active neurons exhibit low cosine similarity, the Core spawns a new
+neuron whose representation is \(\tanh(r_i \odot r_j)\). Synapses connect it to
+both parents so future activity can quickly activate the abstract blend.
+
 ---
 
 ## Version for High School Students
@@ -252,6 +263,10 @@ MARBLE keeps short memories of recent neuron activity. These echoes influence ho
 The system spots repeating chains of reasoning steps. When a pattern shows up
 often enough it becomes its own neuron, so future tasks can recall the whole
 idea at once without relearning it.
+
+### Conceptual Integration
+If two different neurons light up together, MARBLE might create a new one that
+combines them. This helps it imagine ideas that were never shown in the data.
 
 ### Continuous Weight Field Learning
 Each input has its own weights generated from a smooth field. MARBLE uses the

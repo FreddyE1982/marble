@@ -20,6 +20,9 @@ input has its own smoothly varying weight vector generated on the fly.
 Neural Schema Induction grows new neurons representing frequently repeated
 reasoning patterns so the network can recall entire inference chains as single
 concepts.
+Conceptual Integration goes a step further by blending the representations of
+two dissimilar neurons into a new "concept" neuron, allowing MARBLE to invent
+abstract ideas not present in the training data.
 
 MARBLE can train on datasets provided as lists of ``(input, target)`` pairs or using PyTorch-style ``Dataset``/``DataLoader`` objects. Each sample must expose an ``input`` and ``target`` field. After training and saving a model, ``Brain.infer`` generates outputs when given only an input value.
 

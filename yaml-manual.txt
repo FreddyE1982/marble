@@ -826,6 +826,15 @@ neural_schema_induction:
   support_threshold: Minimum number of occurrences before creating a schema.
   max_schema_size: Maximum length of activation patterns considered.
 
+conceptual_integration:
+  # Creates new "concept" neurons by blending the representations of
+  # two dissimilar active neurons. This structural learner relies on
+  # Neuronenblitz activation traces and does not use any gradient optimisation.
+  enabled: When ``true`` the learner periodically attempts concept blending.
+  blend_probability: Chance of triggering a blend at each training step.
+  similarity_threshold: Maximum cosine similarity allowed between parent
+    neurons for blending. Lower values encourage more diverse concepts.
+
 n_dimensional_topology:
   # Dynamically expands the representation size when learning stalls.
   # A self-attention score compared with ``attention_threshold`` decides whether

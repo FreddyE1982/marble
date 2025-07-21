@@ -393,6 +393,11 @@ Each entry is listed under its section heading.
 - support_threshold
 - max_schema_size
 
+## conceptual_integration
+- enabled
+- blend_probability
+- similarity_threshold
+
 ## n_dimensional_topology
 - enabled
 - target_dimensions
