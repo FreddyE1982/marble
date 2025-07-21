@@ -80,7 +80,8 @@ name field without leaving the playground.
 The Model Conversion tab now supports searching the Hub for pretrained models so
 they can be converted with a single click.
 An additional **Visualization** tab renders an interactive graph of the core so
-you can inspect neuron connectivity in real time. The sidebar also contains a
+you can inspect neuron connectivity in real time. The new **Weight Heatmap** tab
+displays synaptic strengths as a heatmap for deeper analysis. The sidebar also contains a
 collapsible YAML manual for quick reference while experimenting.
 The playground now includes an **Offloading** tab. This lets you start a
 ``RemoteBrainServer`` or create a ``RemoteBrainClient`` directly from the UI and
