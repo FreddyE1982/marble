@@ -195,6 +195,7 @@ SYNAPSE_TYPES = [
     "excitatory",
     "inhibitory",
     "modulatory",
+    "interconnection",
 ]
 
 # Global registry for all tiers
@@ -778,6 +779,8 @@ class Synapse:
         fatigue=0.0,
         frozen: bool = False,
         echo_length: int = 5,
+        remote_core: "Core | None" = None,
+        remote_target: int | None = None,
     ):
         self.source = source
         self.target = target
@@ -790,6 +793,8 @@ class Synapse:
         self.fatigue = float(fatigue)
         self.frozen = bool(frozen)
         self.echo_buffer: deque[float] = deque(maxlen=int(max(1, echo_length)))
+        self.remote_core = remote_core
+        self.remote_target = remote_target
 
     def update_fatigue(self, increase: float, decay: float) -> None:
         """Update fatigue using a decay factor and additive increase."""
@@ -841,6 +846,10 @@ class Synapse:
             if val is None:
                 val = 0.0
             core.neurons[self.source].value = val + source_value * self.weight
+        elif self.synapse_type == "interconnection" and self.remote_core is not None:
+            tgt_id = self.remote_target if self.remote_target is not None else self.target
+            if 0 <= tgt_id < len(self.remote_core.neurons):
+                self.remote_core.neurons[tgt_id].value = source_value * self.weight
 
     def transmit(self, source_value, core=None, context=None):
         """Compute the transmitted value and apply side effects."""

@@ -293,3 +293,13 @@ a subset of synapses.**
 2. Instantiate `DreamReinforcementLearner` with your `Core` and `Neuronenblitz` objects.
 3. Use `train_episode(input, target)` for each interaction step.
 4. The `dream_cycles` parameter controls how many imaginary updates occur after each real one.
+
+## Project 23 – Omni Learning Paradigm (Advanced)
+
+**Goal:** Train using every supported paradigm at once.**
+
+1. Create multiple `Core` objects and merge them using `interconnect_cores` from `core_interconnect`.
+2. Instantiate a single `Neuronenblitz` with the combined core.
+3. Create an `OmniLearner` using that core and neuronenblitz.
+4. Provide a list of `(input, target)` samples and call `learner.train(data, epochs=5)`.
+5. The learner sequentially executes all paradigms, leveraging interconnection synapses so the multiple cores behave like one.
