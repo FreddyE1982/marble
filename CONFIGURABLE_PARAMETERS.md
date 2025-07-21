@@ -235,6 +235,7 @@ Each entry is listed under its section heading.
 - color_scheme
 - show_neuron_ids
 - dpi
+- track_memory_usage
 ## metrics_dashboard
 - enabled
 - host

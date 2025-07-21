@@ -500,6 +500,9 @@ metrics_visualizer:
   show_neuron_ids: If true the plot displays neuron identifiers next to data
     points.
   dpi: Resolution of the output figure in dots per inch.
+  track_memory_usage: When true the visualizer records both system RAM and GPU
+    memory consumption after each training epoch. This requires the ``psutil``
+    package and uses ``torch.cuda`` when a CUDA-capable device is available.
 
 metrics_dashboard:
   # Optional web dashboard built with Plotly Dash for real-time monitoring.
