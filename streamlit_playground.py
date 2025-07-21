@@ -546,6 +546,78 @@ def create_torrent_system(
     return tracker, client
 
 
+def list_learner_modules() -> list[str]:
+    """Return module names that define ``*Learner`` or ``*Agent`` classes."""
+    root = os.path.dirname(__file__)
+    modules = set()
+    for mod in pkgutil.iter_modules([root]):
+        if mod.ispkg or mod.name.startswith("_") or mod.name in {"streamlit_playground", "tests", "examples"}:
+            continue
+        module = importlib.import_module(mod.name)
+        for _name, obj in inspect.getmembers(module, inspect.isclass):
+            if obj.__name__.endswith("Learner") or obj.__name__.endswith("Agent"):
+                modules.add(mod.name)
+                break
+    return sorted(modules)
+
+
+def list_learner_classes(module_name: str) -> list[str]:
+    """Return learner class names in ``module_name``."""
+    module = importlib.import_module(module_name)
+    classes = []
+    for name, obj in inspect.getmembers(module, inspect.isclass):
+        if name.endswith("Learner") or name.endswith("Agent"):
+            classes.append(name)
+    return sorted(classes)
+
+
+def create_learner(module_name: str, class_name: str, marble, **params):
+    """Instantiate a learner class using components from ``marble``."""
+    module = importlib.import_module(module_name)
+    if not hasattr(module, class_name):
+        raise ValueError(f"Unknown class: {class_name}")
+    cls = getattr(module, class_name)
+    sig = inspect.signature(cls.__init__)
+    kwargs = {}
+    for name, p in sig.parameters.items():
+        if name == "self":
+            continue
+        if name == "core":
+            kwargs[name] = marble.get_core()
+            continue
+        if name in {"nb", "neuronenblitz"}:
+            kwargs[name] = marble.get_neuronenblitz()
+            continue
+        if name in params:
+            kwargs[name] = params[name]
+        elif p.default is not inspect.Parameter.empty:
+            kwargs[name] = p.default
+        else:
+            raise ValueError(f"Missing parameter: {name}")
+    return cls(**kwargs)
+
+
+def train_learner(learner, samples, epochs: int = 1) -> None:
+    """Train ``learner`` on ``samples`` for ``epochs``."""
+    if hasattr(learner, "train"):
+        sig = inspect.signature(learner.train)
+        if "epochs" in sig.parameters:
+            learner.train(samples, epochs=epochs)
+        else:
+            for _ in range(int(epochs)):
+                learner.train(samples)
+        return
+    if hasattr(learner, "train_step"):
+        for _ in range(int(epochs)):
+            for sample in samples:
+                if isinstance(sample, tuple):
+                    learner.train_step(*sample)
+                else:
+                    learner.train_step(sample)
+        return
+    raise ValueError("Learner has no train or train_step method")
+
+
 def run_playground() -> None:
     """Launch the Streamlit MARBLE playground."""
     st.set_page_config(page_title="MARBLE Playground")
@@ -722,10 +794,11 @@ def run_playground() -> None:
             st.write(f"Output: {out}")
     else:
         st.header("Advanced Function Execution")
-        tab_iface, tab_mod, tab_pipe, tab_code, tab_vis, tab_cfg, tab_model, tab_offload, tab_proj = st.tabs(
+        tab_iface, tab_mod, tab_learner, tab_pipe, tab_code, tab_vis, tab_cfg, tab_model, tab_offload, tab_proj = st.tabs(
             [
                 "marble_interface",
                 "Modules",
+                "Learners",
                 "Pipeline",
                 "Custom Code",
                 "Visualization",
@@ -829,6 +902,55 @@ def run_playground() -> None:
                     module_choice, func_choice, marble, **parsed
                 )
                 st.write(result)
+
+        with tab_learner:
+            st.write("Create and train built-in learner classes.")
+            if "active_learner" not in st.session_state:
+                st.session_state["active_learner"] = None
+            learn_mods = list_learner_modules()
+            mod_sel = st.selectbox("Module", learn_mods, key="learn_mod")
+            classes = list_learner_classes(mod_sel)
+            cls_sel = st.selectbox("Learner Class", classes, key="learn_cls")
+            cls_obj = getattr(importlib.import_module(mod_sel), cls_sel)
+            sig = inspect.signature(cls_obj)
+            lparams = {}
+            for name, param in sig.parameters.items():
+                if name in {"self", "core", "nb", "neuronenblitz"}:
+                    continue
+                default = None if param.default is inspect.Parameter.empty else param.default
+                widget = st.text_input(
+                    name,
+                    value="" if default is None else str(default),
+                    key=f"learn_{name}",
+                )
+                lparams[name] = widget
+            if st.button("Create Learner", key="create_learner"):
+                parsed = {}
+                for k, v in lparams.items():
+                    if v == "":
+                        continue
+                    try:
+                        parsed[k] = json.loads(v)
+                    except Exception:
+                        try:
+                            parsed[k] = float(v)
+                        except Exception:
+                            parsed[k] = v
+                st.session_state["active_learner"] = create_learner(
+                    mod_sel, cls_sel, marble, **parsed
+                )
+                st.success("Learner created")
+            if st.session_state.get("active_learner") is not None:
+                lfile = st.file_uploader(
+                    "Training Data", type=["csv", "json", "jsonl", "zip"], key="learn_data"
+                )
+                lepochs = st.number_input("Epochs", value=1, min_value=1, step=1, key="learn_epochs")
+                if st.button("Train", key="train_learner") and lfile is not None:
+                    examples = load_examples(lfile)
+                    train_learner(
+                        st.session_state["active_learner"], examples, epochs=int(lepochs)
+                    )
+                    st.success("Training complete")
 
         with tab_pipe:
             st.write("Build a sequence of function calls.")

@@ -48,6 +48,10 @@ from streamlit_playground import (
     start_remote_server,
     create_remote_client,
     create_torrent_system,
+    list_learner_modules,
+    list_learner_classes,
+    create_learner,
+    train_learner,
 )
 
 
@@ -342,3 +346,20 @@ def test_offloading_helpers(tmp_path):
     marble.brain.offload_high_attention_torrent(threshold=-1.0)
     assert tclient.parts
     tclient.disconnect()
+
+
+def test_learner_helpers(tmp_path):
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+    marble = initialize_marble(str(cfg_path))
+
+    modules = list_learner_modules()
+    assert "contrastive_learning" in modules
+    classes = list_learner_classes("contrastive_learning")
+    assert "ContrastiveLearner" in classes
+
+    learner = create_learner("contrastive_learning", "ContrastiveLearner", marble)
+    data = [0.0, 1.0]
+    train_learner(learner, data, epochs=1)
