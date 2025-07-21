@@ -18,6 +18,9 @@ from streamlit_playground import (
     initialize_marble,
     list_marble_functions,
     execute_marble_function,
+    list_repo_modules,
+    list_module_functions,
+    execute_module_function,
     save_marble_system,
     load_marble_system,
     export_core_to_json,
@@ -146,3 +149,17 @@ def test_dataset_previews(tmp_path):
         df2 = preview_hf_dataset("dummy", "train")
     assert isinstance(df2, pd.DataFrame)
     assert df2.shape == (2, 2)
+
+
+def test_module_listing_and_execution():
+    mods = list_repo_modules()
+    assert "reinforcement_learning" in mods
+    funcs = list_module_functions("reinforcement_learning")
+    assert "train_gridworld" in funcs
+
+    import types
+
+    dummy = types.SimpleNamespace(test_func=lambda x: x + 1)
+    with mock.patch("importlib.import_module", return_value=dummy):
+        out = execute_module_function("dummy", "test_func", x=1)
+    assert out == 2
