@@ -136,12 +136,18 @@ This project makes use of **asynchronous training**, **dreaming**, and the **evo
    client = RemoteBrainClient('http://remote_host:8000')
    marble = MARBLE(cfg['core'], remote_client=client)
    ```
-3. **Enable offloading** by setting `marble.brain.offload_enabled = True` and then call:
+3. **Download a dataset** such as digits using `sklearn.datasets.load_digits()` for offloaded training:
+   ```python
+   from sklearn.datasets import load_digits
+   digits = load_digits()
+   train_pairs = [(x, y) for x, y in zip(digits.data, digits.target)]
+   ```
+4. **Enable offloading** by setting `marble.brain.offload_enabled = True` and then call:
    ```python
    marble.brain.offload_high_attention(threshold=0.5)
    ```
    This migrates the most heavily used lobes to the remote machine.
-4. **Use the torrent client** in the same way by configuring the `torrent_client` section of `config.yaml` and calling `marble.brain.offload_high_attention()` to distribute lobes through peer‑to‑peer transfer.
+5. **Use the torrent client** in the same way by configuring the `torrent_client` section of `config.yaml` and calling `marble.brain.offload_high_attention()` to distribute lobes through peer‑to‑peer transfer.
 
 **Complete Example**
 ```python
@@ -158,6 +164,9 @@ server.start()
 cfg = load_config()
 client = RemoteBrainClient('http://remote_host:8000')
 marble = MARBLE(cfg['core'], remote_client=client)
+from sklearn.datasets import load_digits
+digits = load_digits()
+train_pairs = [(x, y) for x, y in zip(digits.data, digits.target)]
 marble.brain.offload_enabled = True
 marble.brain.offload_high_attention(threshold=0.5)
 ```
@@ -246,13 +255,18 @@ This final project introduces the **GPT components**, **distillation**, and the 
 **Goal:** Solve a simple GridWorld using Q-learning built on top of MARBLE.
 
 1. **Enable reinforcement learning** by editing `config.yaml` and setting `reinforcement_learning.enabled: true`. Also set `core.reinforcement_learning_enabled` and `neuronenblitz.reinforcement_learning_enabled` to `true` so that all components are prepared for Q‑learning updates.
-2. **Run the built-in GridWorld example** with:
+2. **Download an expert trajectory dataset** using the Hugging Face `datasets` library:
+   ```python
+   from datasets import load_dataset
+   expert = load_dataset("deep-rl-datasets", "cartpole-expert-v1")
+   ```
+3. **Run the built-in GridWorld example** with:
    ```python
    from reinforcement_learning import train_gridworld
    history = train_gridworld(marble.brain, episodes=50)
    ```
    This uses helper functions that drive the environment and update the Q-table stored inside the Neuronenblitz object.
-3. **Check rewards** in `history` after each episode to verify that the policy improves over time.
+4. **Check rewards** in `history` after each episode to verify that the policy improves over time.
 
 **Complete Example**
 ```python
@@ -263,6 +277,8 @@ from reinforcement_learning import train_gridworld
 
 cfg = load_config()
 marble = MARBLE(cfg['core'])
+from datasets import load_dataset
+expert = load_dataset("deep-rl-datasets", "cartpole-expert-v1")
 history = train_gridworld(marble.brain, episodes=50)
 print('Final reward:', history[-1])
 ```
@@ -655,7 +671,12 @@ Execute the file to reproduce continual learning across tasks.
    from imitation_learning import ImitationLearner
    imitator = ImitationLearner(core, neuronenblitz)
    ```
-3. **Record demonstrations** from a real environment such as `CartPole-v1` using `gymnasium`:
+3. **Download demonstration data** using the Hugging Face `datasets` library:
+   ```python
+   from datasets import load_dataset
+   demos = load_dataset("deep-rl-datasets", "cartpole-expert-v1")
+   ```
+4. **Record demonstrations** from a real environment such as `CartPole-v1` using `gymnasium`:
    ```python
    import gymnasium as gym
    env = gym.make('CartPole-v1')
@@ -668,7 +689,7 @@ Execute the file to reproduce continual learning across tasks.
            obs, _, done, _, _ = env.step(action)
    ```
    After recording, call `imitator.train()` (or `neuronenblitz.imitation_train()`) to learn from the history.
-4. **Evaluate** the cloned policy by passing new inputs to `dynamic_wander` and observing the predicted actions.
+5. **Evaluate** the cloned policy by passing new inputs to `dynamic_wander` and observing the predicted actions.
 
 **Complete Example**
 ```python
@@ -680,6 +701,10 @@ from imitation_learning import ImitationLearner
 cfg = load_config()
 marble = MARBLE(cfg['core'])
 imitator = ImitationLearner(marble.core, marble.neuronenblitz)
+from datasets import load_dataset
+demos = load_dataset("deep-rl-datasets", "cartpole-expert-v1")
+for step in demos["train"]:
+    imitator.record(step["obs"], step["action"])
 import gymnasium as gym
 env = gym.make('CartPole-v1')
 for _ in range(50):
@@ -855,7 +880,12 @@ Run `python project21_quantum_flux.py` to experiment with quantum flux updates.
    from dream_reinforcement_learning import DreamReinforcementLearner
    learner = DreamReinforcementLearner(core, neuronenblitz)
    ```
-3. **Use a real environment** such as `CartPole-v1` to generate `(input, target)` pairs:
+3. **Download a demonstration dataset** using the Hugging Face `datasets` library:
+   ```python
+   from datasets import load_dataset
+   dream_demo = load_dataset("deep-rl-datasets", "cartpole-expert-v1")
+   ```
+4. **Use a real environment** such as `CartPole-v1` to generate `(input, target)` pairs:
    ```python
    import gymnasium as gym
    env = gym.make('CartPole-v1')
@@ -868,7 +898,7 @@ Run `python project21_quantum_flux.py` to experiment with quantum flux updates.
            yield obs, reward
            obs = next_obs
    ```
-4. **Train episodes** by repeatedly calling `learner.train_episode(inp, tgt)` for each step. Imaginary updates occur after each real step; `dream_cycles` controls how many of these dreaming iterations happen.
+5. **Train episodes** by repeatedly calling `learner.train_episode(inp, tgt)` for each step. Imaginary updates occur after each real step; `dream_cycles` controls how many of these dreaming iterations happen.
 
 **Complete Example**
 ```python
@@ -880,6 +910,8 @@ from dream_reinforcement_learning import DreamReinforcementLearner
 cfg = load_config()
 marble = MARBLE(cfg['core'])
 learner = DreamReinforcementLearner(marble.core, marble.neuronenblitz)
+from datasets import load_dataset
+dream_demo = load_dataset("deep-rl-datasets", "cartpole-expert-v1")
 import gymnasium as gym
 env = gym.make('CartPole-v1')
 def sample_episode():
