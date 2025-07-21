@@ -1269,6 +1269,8 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
 17. **Read the documentation** on the *Documentation* tab. The README, YAML
     manual and tutorial are available directly in the browser for quick
     reference.
+18. **Run unit tests** on the *Tests* tab. Select one or more test files and
+    click **Run Tests** to verify everything works as expected.
 
 Uploaded datasets are previewed directly in the sidebar so you can verify their
 contents before training. The currently active YAML configuration is also shown

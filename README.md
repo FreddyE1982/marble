@@ -88,7 +88,9 @@ button press.
 A dedicated **Metrics** tab graphs loss, memory usage and other statistics in
 real time inside the browser. A **System Stats** tab displays current CPU and
 GPU memory usage. Another **Documentation** tab provides quick access to the
-README, YAML manual and full tutorial without leaving the playground.
+README, YAML manual and full tutorial without leaving the playground. A **Tests**
+tab lets you run the repository's pytest suite directly from the UI so you can
+validate changes after each experiment.
 
 ## Possible MARBLE Backcronyms
 
