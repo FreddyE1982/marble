@@ -63,6 +63,8 @@ pretrained model from the Hugging Face Hub and converting it into a MARBLE
 system with one click.
 Pipelines can be imported or exported as JSON and a **Custom Code** tab lets you
 run arbitrary Python snippets with the active MARBLE instance.
+Pipeline steps may also be reordered or removed directly from the UI so complex
+workflows can be iterated on quickly.
 The advanced interface now features a **Config Editor** tab where any
 parameter from the YAML configuration can be modified on the fly.  Changes are
 applied immediately and you can re-initialise the system with the updated

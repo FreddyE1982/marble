@@ -32,6 +32,8 @@ from streamlit_playground import (
     preview_hf_dataset,
     save_pipeline_to_json,
     load_pipeline_from_json,
+    move_pipeline_step,
+    remove_pipeline_step,
     run_custom_code,
     core_to_networkx,
     core_figure,
@@ -210,6 +212,18 @@ def test_pipeline_save_load(tmp_path):
     with open(path, "r", encoding="utf-8") as f:
         loaded = load_pipeline_from_json(f)
     assert loaded == pipeline
+
+
+def test_pipeline_move_and_remove():
+    pipe = [
+        {"func": "a"},
+        {"func": "b"},
+        {"func": "c"},
+    ]
+    move_pipeline_step(pipe, 2, 0)
+    assert [s["func"] for s in pipe] == ["c", "a", "b"]
+    remove_pipeline_step(pipe, 1)
+    assert [s["func"] for s in pipe] == ["c", "b"]
 
 
 def test_run_custom_code(tmp_path):
