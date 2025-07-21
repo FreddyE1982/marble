@@ -163,3 +163,29 @@ def test_module_listing_and_execution():
     with mock.patch("importlib.import_module", return_value=dummy):
         out = execute_module_function("dummy", "test_func", x=1)
     assert out == 2
+
+
+def test_execute_function_sequence(tmp_path):
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+    m = initialize_marble(str(cfg_path))
+
+    steps = [
+        {"func": "count_marble_synapses"},
+        {
+            "module": "reinforcement_learning",
+            "func": "train_gridworld",
+            "params": {"episodes": 1},
+        },
+    ]
+
+    with mock.patch(
+        "streamlit_playground.execute_module_function",
+        return_value="ok",
+    ) as mod_exec:
+        results = execute_function_sequence(steps, m)
+    assert isinstance(results, list)
+    assert len(results) == 2
+    mod_exec.assert_called_once()

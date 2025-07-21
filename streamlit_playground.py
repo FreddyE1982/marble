@@ -258,6 +258,38 @@ def execute_module_function(
     return func(**kwargs)
 
 
+def execute_function_sequence(
+    steps: list[dict], marble=None
+) -> list[object]:
+    """Execute a sequence of functions defined in ``steps``.
+
+    Each step is a dictionary with keys:
+
+    ``module`` (optional): module name containing the function
+    ``func``: function name
+    ``params`` (optional): dictionary of parameters
+
+    If ``module`` is omitted or ``None``, the function is looked up in
+    :mod:`marble_interface`. Results from each step are collected and
+    returned in order.
+    """
+
+    results: list[object] = []
+    for step in steps:
+        module_name = step.get("module")
+        func_name = step["func"]
+        params = step.get("params", {})
+        if module_name:
+            results.append(
+                execute_module_function(module_name, func_name, marble, **params)
+            )
+        else:
+            results.append(
+                execute_marble_function(func_name, marble, **params)
+            )
+    return results
+
+
 def run_playground() -> None:
     """Launch the Streamlit MARBLE playground."""
     st.set_page_config(page_title="MARBLE Playground")
@@ -269,6 +301,8 @@ def run_playground() -> None:
         st.session_state["dashboard"] = None
     if "hf_examples" not in st.session_state:
         st.session_state["hf_examples"] = []
+    if "pipeline" not in st.session_state:
+        st.session_state["pipeline"] = []
 
     cfg_path = st.sidebar.text_input("Config YAML Path", "config.yaml")
     cfg_upload = st.sidebar.file_uploader(
@@ -430,7 +464,11 @@ def run_playground() -> None:
             st.write(f"Output: {out}")
     else:
         st.header("Advanced Function Execution")
-        tab_iface, tab_mod = st.tabs(["marble_interface", "Modules"])
+        tab_iface, tab_mod, tab_pipe = st.tabs([
+            "marble_interface",
+            "Modules",
+            "Pipeline",
+        ])
 
         with tab_iface:
             funcs = list_marble_functions()
@@ -525,6 +563,80 @@ def run_playground() -> None:
                     module_choice, func_choice, marble, **parsed
                 )
                 st.write(result)
+
+        with tab_pipe:
+            st.write("Build a sequence of function calls.")
+            if st.session_state["pipeline"]:
+                for i, step in enumerate(st.session_state["pipeline"]):
+                    st.markdown(
+                        f"**{i+1}.** `{step.get('module') or 'marble_interface'}.{step['func']}`"
+                    )
+            with st.expander("Add Step"):
+                mode_sel = st.radio(
+                    "Source", ["marble_interface", "module"], key="pipe_src"
+                )
+                if mode_sel == "module":
+                    mod = st.selectbox("Module", list_repo_modules(), key="pipe_mod")
+                    funcs = list_module_functions(mod)
+                    func = st.selectbox("Function", funcs, key="pipe_func")
+                else:
+                    mod = None
+                    funcs = list_marble_functions()
+                    func = st.selectbox("Function", funcs, key="pipe_iface_func")
+                func_obj = (
+                    getattr(importlib.import_module(mod), func)
+                    if mod
+                    else getattr(marble_interface, func)
+                )
+                sig = inspect.signature(func_obj)
+                params = {}
+                for name, param in sig.parameters.items():
+                    if name == "marble":
+                        continue
+                    default = (
+                        None if param.default is inspect.Parameter.empty else param.default
+                    )
+                    ann = param.annotation
+                    widget = None
+                    if ann is bool or isinstance(default, bool):
+                        widget = st.checkbox(
+                            name,
+                            value=bool(default) if default is not None else False,
+                            key=f"pipe_{name}",
+                        )
+                    elif ann in (int, float) or isinstance(default, (int, float)):
+                        val = 0 if default is None else float(default)
+                        widget = st.number_input(
+                            name, value=val, key=f"pipe_{name}"
+                        )
+                    else:
+                        widget = st.text_input(
+                            name,
+                            value="" if default is None else str(default),
+                            key=f"pipe_{name}",
+                        )
+                    params[name] = widget
+                if st.button("Add to Pipeline", key="add_pipe"):
+                    parsed = {}
+                    for k, v in params.items():
+                        if isinstance(v, str) and v != "":
+                            try:
+                                parsed[k] = json.loads(v)
+                            except Exception:
+                                parsed[k] = _parse_value(v)
+                        else:
+                            parsed[k] = v
+                    st.session_state["pipeline"].append(
+                        {"module": mod, "func": func, "params": parsed}
+                    )
+            if st.button("Run Pipeline") and st.session_state["pipeline"]:
+                res = execute_function_sequence(
+                    st.session_state["pipeline"], marble
+                )
+                for out in res:
+                    st.write(out)
+            if st.button("Clear Pipeline"):
+                st.session_state["pipeline"] = []
 
 
 if __name__ == "__main__":
