@@ -4,18 +4,45 @@ import yaml
 from unittest import mock
 
 import pandas as pd
+from PIL import Image
+from zipfile import ZipFile
+from io import BytesIO
+import numpy as np
 
 from tests.test_core_functions import minimal_params
 
 from streamlit_playground import load_examples, initialize_marble
 
 
-def test_load_examples(tmp_path):
-    path = tmp_path / "data.csv"
-    path.write_text("input,target\n0.1,0.2\n0.2,0.4\n")
-    with open(path, "r", encoding="utf-8") as f:
+def test_load_examples_csv_and_json(tmp_path):
+    csv_path = tmp_path / "data.csv"
+    csv_path.write_text("input,target\n0.1,0.2\n0.2,0.4\n")
+    with open(csv_path, "r", encoding="utf-8") as f:
         ex = load_examples(f)
     assert ex == [(0.1, 0.2), (0.2, 0.4)]
+
+    json_path = tmp_path / "data.json"
+    pd.DataFrame({"input": [1, 2], "target": [2, 4]}).to_json(json_path)
+    with open(json_path, "r", encoding="utf-8") as f:
+        ex = load_examples(f)
+    assert ex == [(1.0, 2.0), (2.0, 4.0)]
+
+
+def test_load_examples_zip(tmp_path):
+    img = Image.new("RGB", (2, 2), color=(255, 0, 0))
+    buf = BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+
+    zip_path = tmp_path / "data.zip"
+    with ZipFile(zip_path, "w") as zf:
+        zf.writestr("inputs/img1.png", buf.getvalue())
+        zf.writestr("targets/img1.png", buf.getvalue())
+
+    with open(zip_path, "rb") as f:
+        ex = load_examples(f)
+    assert len(ex) == 1
+    assert isinstance(ex[0][0], np.ndarray)
 
 
 def test_initialize_marble(tmp_path):

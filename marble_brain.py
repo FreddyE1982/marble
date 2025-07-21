@@ -31,11 +31,21 @@ def _parse_example(sample):
         inp = inp.detach().cpu().float().mean().item()
     elif isinstance(inp, np.ndarray):
         inp = float(np.mean(inp))
+    elif isinstance(inp, str):
+        try:
+            inp = float(inp)
+        except ValueError:
+            inp = float(np.mean([ord(c) for c in inp]))
 
     if torch.is_tensor(tgt):
         tgt = tgt.detach().cpu().float().mean().item()
     elif isinstance(tgt, np.ndarray):
         tgt = float(np.mean(tgt))
+    elif isinstance(tgt, str):
+        try:
+            tgt = float(tgt)
+        except ValueError:
+            tgt = float(np.mean([ord(c) for c in tgt]))
 
     return float(inp), float(tgt)
 
