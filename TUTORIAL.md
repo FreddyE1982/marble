@@ -1241,6 +1241,10 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
 7. **Switch to Advanced mode** to access every function in
    ``marble_interface``. The playground displays each function's docstring and
    generates widgets for all parameters so you can call any operation directly.
+8. **Build pipelines** on the *Pipeline* tab. Add steps from
+   ``marble_interface`` or any repository module, then press **Run Pipeline** to
+   execute them sequentially. This lets you combine training, evaluation and
+   analysis commands without leaving the UI.
 
 Uploaded datasets are previewed directly in the sidebar so you can verify their
 contents before training. The currently active YAML configuration is also shown
