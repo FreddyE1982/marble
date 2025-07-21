@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import pickle
-from typing import Any, Iterable
+from typing import Any, Iterable, Hashable
 
 import pandas as pd
 import numpy as np
@@ -241,3 +241,163 @@ def import_core_from_json(
     )
     marble.core = core
     return marble
+
+
+def save_core_json_file(marble: MARBLE, path: str) -> None:
+    """Save the core of ``marble`` to ``path`` as JSON."""
+    js = export_core_to_json(marble)
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(js)
+
+
+def load_core_json_file(
+    path: str,
+    nb_params: dict | None = None,
+    brain_params: dict | None = None,
+    dataloader_params: dict | None = None,
+) -> MARBLE:
+    """Load a MARBLE system from a core JSON file."""
+    with open(path, "r", encoding="utf-8") as f:
+        js = f.read()
+    return import_core_from_json(js, nb_params, brain_params, dataloader_params)
+
+
+def add_neuron_to_marble(
+    marble: MARBLE,
+    neuron_type: str = "standard",
+    tier: str | None = None,
+) -> int:
+    """Add a neuron to ``marble`` and return its ID."""
+    core = marble.get_core()
+    start = len(core.neurons)
+    target = tier if tier is not None else core.choose_new_tier()
+    core.expand(num_new_neurons=1, num_new_synapses=0, target_tier=target, neuron_types=neuron_type)
+    return start
+
+
+def add_synapse_to_marble(
+    marble: MARBLE,
+    source_id: int,
+    target_id: int,
+    weight: float = 1.0,
+    synapse_type: str = "standard",
+) -> None:
+    """Create a synapse in ``marble`` between two neurons."""
+    marble.get_core().add_synapse(source_id, target_id, weight=weight, synapse_type=synapse_type)
+
+
+def freeze_synapses_fraction(marble: MARBLE, fraction: float) -> None:
+    """Freeze a fraction of synapses in ``marble``."""
+    marble.get_core().freeze_fraction_of_synapses(fraction)
+
+
+def expand_marble_core(
+    marble: MARBLE,
+    num_new_neurons: int = 10,
+    num_new_synapses: int = 15,
+    alternative_connection_prob: float = 0.1,
+    target_tier: str | None = None,
+    neuron_types: list[str] | str | None = None,
+) -> None:
+    """Expand the core of ``marble`` with new neurons and synapses."""
+    marble.get_core().expand(
+        num_new_neurons=num_new_neurons,
+        num_new_synapses=num_new_synapses,
+        alternative_connection_prob=alternative_connection_prob,
+        target_tier=target_tier,
+        neuron_types=neuron_types,
+    )
+
+
+def run_core_message_passing(marble: MARBLE, iterations: int = 1) -> float:
+    """Run message passing on ``marble`` and return average change."""
+    return marble.get_core().run_message_passing(iterations=iterations)
+
+
+def increase_marble_representation(marble: MARBLE, delta: int = 1) -> None:
+    """Increase representation size of ``marble``."""
+    marble.get_core().increase_representation_size(delta)
+
+
+def decrease_marble_representation(marble: MARBLE, delta: int = 1) -> None:
+    """Decrease representation size of ``marble``."""
+    marble.get_core().decrease_representation_size(delta)
+
+
+def enable_marble_rl(marble: MARBLE) -> None:
+    """Enable reinforcement learning inside ``marble``."""
+    marble.get_core().enable_rl()
+
+
+def disable_marble_rl(marble: MARBLE) -> None:
+    """Disable reinforcement learning inside ``marble``."""
+    marble.get_core().disable_rl()
+
+
+def marble_select_action(marble: MARBLE, state: Hashable, n_actions: int) -> int:
+    """Select an action using marble's Q-learning table."""
+    return marble.get_core().rl_select_action(state, n_actions)
+
+
+def marble_update_q(
+    marble: MARBLE,
+    state: Hashable,
+    action: int,
+    reward: float,
+    next_state: Hashable,
+    done: bool,
+    n_actions: int = 4,
+) -> None:
+    """Update Q-table for marble's reinforcement learner."""
+    marble.get_core().rl_update(state, action, reward, next_state, done, n_actions)
+
+
+def cluster_marble_neurons(marble: MARBLE, k: int = 3) -> None:
+    """Cluster marble's neurons into ``k`` groups."""
+    marble.get_core().cluster_neurons(k)
+
+
+def relocate_marble_clusters(marble: MARBLE, high: float = 1.0, medium: float = 0.1) -> None:
+    """Relocate neuron clusters based on attention scores."""
+    marble.get_core().relocate_clusters(high, medium)
+
+
+def extract_submarble(
+    marble: MARBLE,
+    neuron_ids: list[int],
+    nb_params: dict | None = None,
+    brain_params: dict | None = None,
+    dataloader_params: dict | None = None,
+) -> MARBLE:
+    """Return a new MARBLE built from a subset of ``marble``'s neurons."""
+    subcore = marble.get_core().extract_subcore(neuron_ids)
+    new_marble = MARBLE(
+        subcore.params,
+        nb_params=nb_params,
+        brain_params=brain_params,
+        dataloader_params=dataloader_params,
+    )
+    new_marble.core = subcore
+    return new_marble
+
+
+def get_marble_status(marble: MARBLE) -> dict:
+    """Return a detailed status dictionary of ``marble``'s core."""
+    return marble.get_core().get_detailed_status()
+
+
+def reset_core_representations(marble: MARBLE) -> None:
+    """Reset all neuron representations in ``marble`` to zero."""
+    for n in marble.get_core().neurons:
+        n.representation[:] = 0
+
+
+def randomize_core_representations(marble: MARBLE, std: float = 1.0) -> None:
+    """Fill neuron representations with random values."""
+    for n in marble.get_core().neurons:
+        n.representation[:] = np.random.randn(*n.representation.shape) * std
+
+
+def count_marble_synapses(marble: MARBLE) -> int:
+    """Return the number of synapses in ``marble``."""
+    return len(marble.get_core().synapses)
