@@ -1173,4 +1173,43 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    ```
 3. **Run the script** with `python project27_hybrid_memory.py`. The retrieved list should contain the key `'a'` showing the memory system found the correct entry.
 
+## Project 28 – Convenience Interface Functions (Easy)
+
+**Goal:** Utilise the high-level helper functions in `marble_interface` for rapid experiments.
+
+1. **Load a small dataset** directly from Hugging Face:
+   ```python
+   from marble_interface import load_hf_dataset
+
+   train_pairs = load_hf_dataset(
+       "mnist", "train[:100]", input_key="image", target_key="label"
+   )
+   ```
+2. **Create and train a MARBLE system** using a pandas dataframe:
+   ```python
+   import pandas as pd
+   from marble_interface import new_marble_system, train_from_dataframe
+
+   df = pd.DataFrame({"input": [0.1, 0.2], "target": [0.2, 0.4]})
+   marble = new_marble_system()
+   train_from_dataframe(marble, df, epochs=1)
+   ```
+3. **Evaluate and serialise the core** for later use:
+   ```python
+   from marble_interface import evaluate_marble_system, export_core_to_json
+
+   mse = evaluate_marble_system(marble, train_pairs[:10])
+   json_core = export_core_to_json(marble)
+   with open("core.json", "w", encoding="utf-8") as f:
+       f.write(json_core)
+   ```
+4. **Restore the core** to a fresh system when needed:
+   ```python
+   from marble_interface import import_core_from_json
+
+   with open("core.json", "r", encoding="utf-8") as f:
+       loaded_json = f.read()
+   restored = import_core_from_json(loaded_json)
+   ```
+
 
