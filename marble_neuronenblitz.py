@@ -30,6 +30,10 @@ def default_loss_fn(target, output):
 
 
 def default_weight_update_fn(source, error, path_len):
+    if source is None:
+        source = 0.0
+    if error is None:
+        error = 0.0
     return (error * source) / (path_len + 1)
 
 

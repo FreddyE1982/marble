@@ -20,7 +20,11 @@ class FederatedAveragingTrainer:
 
     def _average_weights(self) -> list[float]:
         weight_lists = [self._get_weights(c) for c, _ in self.clients]
-        return list(np.mean(weight_lists, axis=0))
+        if not weight_lists:
+            return []
+        min_len = min(len(w) for w in weight_lists)
+        trimmed = [w[:min_len] for w in weight_lists]
+        return list(np.mean(trimmed, axis=0))
 
     def aggregate(self) -> None:
         """Average synapse weights across clients."""

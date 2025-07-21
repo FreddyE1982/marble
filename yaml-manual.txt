@@ -100,6 +100,9 @@ core:
   synapse_echo_decay: Multiplicative factor applied to incoming activations
     before they are appended to the echo buffer. Values in ``0.0``–``1.0``
     gradually forget older activity.
+  interconnection_prob: Probability of creating an interconnection synapse when
+    multiple cores are combined. ``0.0`` keeps cores isolated while higher
+    values densely link neurons across cores.
 
 neuronenblitz:
   backtrack_probability: Probability between 0 and 1 that the wandering

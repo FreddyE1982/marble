@@ -48,6 +48,7 @@ Each entry is listed under its section heading.
 - cross_tier_migration
 - synapse_echo_length
 - synapse_echo_decay
+- interconnection_prob
 
 ## neuronenblitz
 - backtrack_probability

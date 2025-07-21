@@ -43,6 +43,7 @@ core:
   cross_tier_migration: true
   synapse_echo_length: 5
   synapse_echo_decay: 0.9
+  interconnection_prob: 0.05
 neuronenblitz:
   backtrack_probability: 0.3
   consolidation_probability: 0.2
