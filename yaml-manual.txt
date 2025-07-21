@@ -800,6 +800,21 @@ dream_reinforcement_learning:
   dream_cycles: How many dream updates follow each real step.
   dream_strength: Multiplier applied to dream errors before weight updates.
 
+continuous_weight_field_learning:
+  # Optimises a weight vector ``W(x)`` that varies smoothly with the input ``x``.
+  # The weight field is represented with radial basis functions whose centres
+  # span the input space. For each training sample MARBLE uses Neuronenblitz to
+  # produce a feature representation ``phi(x)`` from the core, then predicts
+  # ``phi(x) \cdot W(x)``. Weight field coefficients are updated via gradient
+  # descent with optional L2 regularisation.
+  enabled: Enable continuous weight field learning when set to ``true``.
+  epochs: Number of passes over the dataset to fit the field.
+  num_basis: Number of radial basis functions forming the field.
+  bandwidth: Standard deviation controlling basis width. Larger values make
+    the field smoother across inputs.
+  reg_lambda: Strength of L2 regularisation on the basis coefficients.
+  learning_rate: Step size for gradient descent updates of the field weights.
+
 n_dimensional_topology:
   # Dynamically expands the representation size when learning stalls.
   # A self-attention score compared with ``attention_threshold`` decides whether

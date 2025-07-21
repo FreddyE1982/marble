@@ -1010,3 +1010,38 @@ learner.train(examples, epochs=5)
 ```
 Run `python project23_omni.py` to test all paradigms together.
 
+## Project 24 – Continuous Weight Field Learning (Experimental)
+
+**Goal:** Train a smooth weight field that adapts to each input.**
+
+1. **Enable the learner** by setting `continuous_weight_field_learning.enabled: true` in `config.yaml` and optionally tweak `num_basis` or `bandwidth`.
+2. **Instantiate the learner**:
+   ```python
+   from continuous_weight_field_learning import ContinuousWeightFieldLearner
+   learner = ContinuousWeightFieldLearner(core, neuronenblitz)
+   ```
+3. **Download a dataset**. The diabetes set from scikit-learn provides real regression targets:
+   ```python
+   from sklearn.datasets import load_diabetes
+   ds = load_diabetes()
+   samples = list(zip(ds.data[:, 0], ds.target))
+   ```
+4. **Train** using `learner.train(samples, epochs=2)` and monitor `learner.history` for the squared error over time.
+
+**Complete Example**
+```python
+# project24_cwfl.py
+from config_loader import load_config
+from marble_main import MARBLE
+from continuous_weight_field_learning import ContinuousWeightFieldLearner
+from sklearn.datasets import load_diabetes
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+learner = ContinuousWeightFieldLearner(marble.core, marble.neuronenblitz)
+ds = load_diabetes()
+samples = list(zip(ds.data[:, 0], ds.target))
+learner.train(samples, epochs=2)
+```
+Run `python project24_cwfl.py` to see the field adapt across the dataset.
+
