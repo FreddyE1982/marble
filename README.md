@@ -94,6 +94,9 @@ validate changes after each experiment.
 The new **Neuromodulation** tab exposes sliders for arousal, stress and reward
 signals along with an emotion field so you can tweak the brain's internal state
 interactively.
+A new **Async Training** tab lets you launch background training threads and
+enable MARBLE's auto-firing mechanism so learning continues while you explore
+other features.
 
 ## Possible MARBLE Backcronyms
 

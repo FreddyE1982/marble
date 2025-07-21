@@ -762,6 +762,44 @@ def train_learner(learner, samples, epochs: int = 1) -> None:
     raise ValueError("Learner has no train or train_step method")
 
 
+def start_background_training(
+    marble,
+    samples: list[tuple] | list,
+    epochs: int = 1,
+    validation_samples: list[tuple] | list | None = None,
+) -> None:
+    """Start training ``marble`` in a background thread."""
+
+    marble.get_brain().start_training(
+        samples, epochs=epochs, validation_examples=validation_samples
+    )
+
+
+def wait_for_training(marble) -> None:
+    """Block until ``marble`` finishes background training."""
+
+    marble.get_brain().wait_for_training()
+
+
+def training_in_progress(marble) -> bool:
+    """Return ``True`` if ``marble`` is currently training."""
+
+    return bool(marble.get_brain().training_active)
+
+
+def start_auto_firing(marble, interval_ms: int = 1000) -> None:
+    """Start MARBLE's auto-firing thread."""
+
+    marble.get_brain().firing_interval_ms = int(interval_ms)
+    marble.get_brain().start_auto_firing()
+
+
+def stop_auto_firing(marble) -> None:
+    """Stop MARBLE's auto-firing thread."""
+
+    marble.get_brain().stop_auto_firing()
+
+
 def list_test_files(pattern: str = "tests/test_*.py") -> list[str]:
     """Return available pytest files matching ``pattern``."""
     root = os.path.dirname(__file__)
@@ -987,6 +1025,7 @@ def run_playground() -> None:
             tab_cfg,
             tab_model,
             tab_offload,
+            tab_async,
             tab_proj,
             tab_tests,
             tab_docs,
@@ -1006,6 +1045,7 @@ def run_playground() -> None:
                 "Config Editor",
                 "Model Conversion",
                 "Offloading",
+                "Async Training",
                 "Projects",
                 "Tests",
                 "Documentation",
@@ -1555,6 +1595,31 @@ def run_playground() -> None:
                     st.success("Model converted")
                 except Exception as e:
                     st.error(str(e))
+
+        with tab_async:
+            st.write("Control asynchronous training and auto-firing.")
+            if st.button("Start Background Training", key="async_start"):
+                if train_file is not None:
+                    examples = load_examples(train_file)
+                elif "hf_examples" in st.session_state:
+                    examples = st.session_state["hf_examples"]
+                else:
+                    examples = []
+                if examples:
+                    start_background_training(marble, examples, epochs=epochs)
+                    st.success("Training started")
+                else:
+                    st.error("No dataset loaded")
+            if st.button("Wait For Training", key="async_wait"):
+                wait_for_training(marble)
+                st.success("Training complete")
+            st.write(f"Training active: {training_in_progress(marble)}")
+            if st.button("Start Auto-Firing", key="af_start"):
+                start_auto_firing(marble)
+                st.success("Auto-firing started")
+            if st.button("Stop Auto-Firing", key="af_stop"):
+                stop_auto_firing(marble)
+                st.success("Auto-firing stopped")
 
         with tab_proj:
             st.write("Run example projects to explore MARBLE's capabilities.")
