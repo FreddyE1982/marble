@@ -274,7 +274,7 @@ print(advanced_gpt.generate_text(marble.brain, 'Once upon a time'))
 ```
 Run `python project5_gpt_training.py` after enabling GPT settings in `config.yaml`.
 
-This final project introduces the **GPT components**, **distillation**, and the **dimensional search** capability if `dimensional_search.enabled` is set in the configuration.
+This final project introduces the **GPT components**, **distillation**, and the **dimensional search** capability if `dimensional_search.enabled` is set in the configuration. It also demonstrates the optional **n‑dimensional topology** feature controlled by `n_dimensional_topology.enabled`, which gradually expands the representation when learning stagnates.
 
 ## Project 6 – Reinforcement Learning (Master)
 

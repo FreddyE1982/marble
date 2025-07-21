@@ -342,3 +342,10 @@ dream_reinforcement_learning:
   episodes: 1
   dream_cycles: 1
   dream_strength: 0.5
+
+n_dimensional_topology:
+  enabled: false
+  target_dimensions: 6
+  attention_threshold: 0.8
+  loss_improve_threshold: 0.01
+  stagnation_epochs: 5

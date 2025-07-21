@@ -771,3 +771,15 @@ dream_reinforcement_learning:
   episodes: Number of training episodes consisting of input-target pairs.
   dream_cycles: How many dream updates follow each real step.
   dream_strength: Multiplier applied to dream errors before weight updates.
+
+n_dimensional_topology:
+  # Dynamically expands the representation size when learning stalls.
+  # A self-attention score compared with ``attention_threshold`` decides whether
+  # to add a new dimension. If the validation loss fails to improve by
+  # ``loss_improve_threshold`` within ``stagnation_epochs`` epochs, the extra
+  # dimension is removed and all neuron representations are truncated.
+  enabled: Turn on n-dimensional growth when ``true``.
+  target_dimensions: Upper bound on representation size.
+  attention_threshold: Minimum self-attention required before trying to grow.
+  loss_improve_threshold: Relative loss decrease needed to keep the new dimension.
+  stagnation_epochs: Number of stagnant epochs before another dimension may be added.
