@@ -140,6 +140,15 @@ def load_hf_examples(
     return load_hf_dataset(dataset_name, split, input_key, target_key, limit)
 
 
+def search_hf_datasets(query: str, limit: int = 20) -> list[str]:
+    """Return dataset IDs from the Hugging Face Hub matching ``query``."""
+    from huggingface_hub import HfApi
+
+    api = HfApi()
+    datasets = api.list_datasets(search=query, limit=limit)
+    return [d.id for d in datasets]
+
+
 def load_hf_model(model_name: str):
     """Return a pretrained model from the Hugging Face Hub."""
     return AutoModel.from_pretrained(model_name, trust_remote_code=True)
@@ -303,9 +312,7 @@ def execute_module_function(
     return func(**kwargs)
 
 
-def execute_function_sequence(
-    steps: list[dict], marble=None
-) -> list[object]:
+def execute_function_sequence(steps: list[dict], marble=None) -> list[object]:
     """Execute a sequence of functions defined in ``steps``.
 
     Each step is a dictionary with keys:
@@ -329,9 +336,7 @@ def execute_function_sequence(
                 execute_module_function(module_name, func_name, marble, **params)
             )
         else:
-            results.append(
-                execute_marble_function(func_name, marble, **params)
-            )
+            results.append(execute_marble_function(func_name, marble, **params))
     return results
 
 
@@ -349,7 +354,9 @@ def remove_pipeline_step(pipeline: list[dict], index: int) -> list[dict]:
     return pipeline
 
 
-def move_pipeline_step(pipeline: list[dict], old_index: int, new_index: int) -> list[dict]:
+def move_pipeline_step(
+    pipeline: list[dict], old_index: int, new_index: int
+) -> list[dict]:
     """Move a pipeline step from ``old_index`` to ``new_index`` and return it."""
     if old_index < 0 or old_index >= len(pipeline):
         raise IndexError("old_index out of range")
@@ -540,7 +547,10 @@ def create_torrent_system(
 
     tracker = BrainTorrentTracker()
     client = BrainTorrentClient(
-        client_id, tracker, buffer_size=buffer_size, heartbeat_interval=heartbeat_interval
+        client_id,
+        tracker,
+        buffer_size=buffer_size,
+        heartbeat_interval=heartbeat_interval,
     )
     client.connect()
     return tracker, client
@@ -551,7 +561,11 @@ def list_learner_modules() -> list[str]:
     root = os.path.dirname(__file__)
     modules = set()
     for mod in pkgutil.iter_modules([root]):
-        if mod.ispkg or mod.name.startswith("_") or mod.name in {"streamlit_playground", "tests", "examples"}:
+        if (
+            mod.ispkg
+            or mod.name.startswith("_")
+            or mod.name in {"streamlit_playground", "tests", "examples"}
+        ):
             continue
         module = importlib.import_module(mod.name)
         for _name, obj in inspect.getmembers(module, inspect.isclass):
@@ -722,7 +736,24 @@ def run_playground() -> None:
     )
     if train_file is not None:
         st.sidebar.dataframe(preview_file_dataset(train_file), use_container_width=True)
-    hf_name = st.sidebar.text_input("HF Dataset Name")
+    if "hf_search_results" not in st.session_state:
+        st.session_state["hf_search_results"] = []
+    hf_query = st.sidebar.text_input("HF Dataset Search", key="hf_query")
+    if st.sidebar.button("Search Datasets", key="hf_do_search") and hf_query:
+        st.session_state["hf_search_results"] = search_hf_datasets(hf_query)
+        st.sidebar.success(
+            f"Found {len(st.session_state['hf_search_results'])} datasets"
+        )
+    if st.session_state["hf_search_results"]:
+        choice = st.sidebar.selectbox(
+            "Search Results", st.session_state["hf_search_results"], key="hf_choice"
+        )
+        if st.sidebar.button("Select Dataset", key="hf_select"):
+            st.session_state["hf_dataset_name"] = choice
+            st.sidebar.success("Dataset selected")
+    hf_name = st.sidebar.text_input(
+        "HF Dataset Name", value=st.session_state.get("hf_dataset_name", "")
+    )
     hf_split = st.sidebar.text_input("HF Split", "train[:100]")
     hf_input = st.sidebar.text_input("Input Key", "input")
     hf_target = st.sidebar.text_input("Target Key", "target")
@@ -794,7 +825,18 @@ def run_playground() -> None:
             st.write(f"Output: {out}")
     else:
         st.header("Advanced Function Execution")
-        tab_iface, tab_mod, tab_learner, tab_pipe, tab_code, tab_vis, tab_cfg, tab_model, tab_offload, tab_proj = st.tabs(
+        (
+            tab_iface,
+            tab_mod,
+            tab_learner,
+            tab_pipe,
+            tab_code,
+            tab_vis,
+            tab_cfg,
+            tab_model,
+            tab_offload,
+            tab_proj,
+        ) = st.tabs(
             [
                 "marble_interface",
                 "Modules",
@@ -917,7 +959,9 @@ def run_playground() -> None:
             for name, param in sig.parameters.items():
                 if name in {"self", "core", "nb", "neuronenblitz"}:
                     continue
-                default = None if param.default is inspect.Parameter.empty else param.default
+                default = (
+                    None if param.default is inspect.Parameter.empty else param.default
+                )
                 widget = st.text_input(
                     name,
                     value="" if default is None else str(default),
@@ -942,13 +986,19 @@ def run_playground() -> None:
                 st.success("Learner created")
             if st.session_state.get("active_learner") is not None:
                 lfile = st.file_uploader(
-                    "Training Data", type=["csv", "json", "jsonl", "zip"], key="learn_data"
+                    "Training Data",
+                    type=["csv", "json", "jsonl", "zip"],
+                    key="learn_data",
                 )
-                lepochs = st.number_input("Epochs", value=1, min_value=1, step=1, key="learn_epochs")
+                lepochs = st.number_input(
+                    "Epochs", value=1, min_value=1, step=1, key="learn_epochs"
+                )
                 if st.button("Train", key="train_learner") and lfile is not None:
                     examples = load_examples(lfile)
                     train_learner(
-                        st.session_state["active_learner"], examples, epochs=int(lepochs)
+                        st.session_state["active_learner"],
+                        examples,
+                        epochs=int(lepochs),
                     )
                     st.success("Training complete")
 
@@ -962,19 +1012,26 @@ def run_playground() -> None:
                     )
                     if cols[1].button("⬆", key=f"pipe_up_{i}") and i > 0:
                         move_pipeline_step(st.session_state["pipeline"], i, i - 1)
-                    if cols[2].button("⬇", key=f"pipe_down_{i}") and i < len(st.session_state["pipeline"]) - 1:
+                    if (
+                        cols[2].button("⬇", key=f"pipe_down_{i}")
+                        and i < len(st.session_state["pipeline"]) - 1
+                    ):
                         move_pipeline_step(st.session_state["pipeline"], i, i + 1)
                     if cols[3].button("✕", key=f"pipe_rm_{i}"):
                         remove_pipeline_step(st.session_state["pipeline"], i)
                         st.experimental_rerun()
             with st.expander("Load/Save Pipeline"):
-                pipe_up = st.file_uploader("Load Pipeline", type=["json"], key="pipe_load")
+                pipe_up = st.file_uploader(
+                    "Load Pipeline", type=["json"], key="pipe_load"
+                )
                 if st.button("Load", key="load_pipe") and pipe_up is not None:
                     st.session_state["pipeline"] = load_pipeline_from_json(pipe_up)
                     st.success("Pipeline loaded")
                 if st.session_state["pipeline"]:
                     pipe_json = json.dumps(st.session_state["pipeline"], indent=2)
-                    st.download_button("Download pipeline.json", pipe_json, file_name="pipeline.json")
+                    st.download_button(
+                        "Download pipeline.json", pipe_json, file_name="pipeline.json"
+                    )
             with st.expander("Add Step"):
                 mode_sel = st.radio(
                     "Source", ["marble_interface", "module"], key="pipe_src"
@@ -998,7 +1055,9 @@ def run_playground() -> None:
                     if name == "marble":
                         continue
                     default = (
-                        None if param.default is inspect.Parameter.empty else param.default
+                        None
+                        if param.default is inspect.Parameter.empty
+                        else param.default
                     )
                     ann = param.annotation
                     widget = None
@@ -1010,9 +1069,7 @@ def run_playground() -> None:
                         )
                     elif ann in (int, float) or isinstance(default, (int, float)):
                         val = 0 if default is None else float(default)
-                        widget = st.number_input(
-                            name, value=val, key=f"pipe_{name}"
-                        )
+                        widget = st.number_input(name, value=val, key=f"pipe_{name}")
                     else:
                         widget = st.text_input(
                             name,
@@ -1034,16 +1091,16 @@ def run_playground() -> None:
                         {"module": mod, "func": func, "params": parsed}
                     )
             if st.button("Run Pipeline") and st.session_state["pipeline"]:
-                res = execute_function_sequence(
-                    st.session_state["pipeline"], marble
-                )
+                res = execute_function_sequence(st.session_state["pipeline"], marble)
                 for out in res:
                     st.write(out)
             if st.button("Clear Pipeline"):
                 st.session_state["pipeline"] = []
 
         with tab_code:
-            st.write("Execute custom Python code. Use the `marble` variable to access the system.")
+            st.write(
+                "Execute custom Python code. Use the `marble` variable to access the system."
+            )
             code = st.text_area("Code", height=200, key="custom_code")
             if st.button("Run Code", key="run_custom_code") and code.strip():
                 out = run_custom_code(code, marble)
@@ -1089,7 +1146,9 @@ def run_playground() -> None:
                     st.error(str(e))
 
         with tab_offload:
-            st.write("Manage remote and torrent offloading for the current MARBLE instance.")
+            st.write(
+                "Manage remote and torrent offloading for the current MARBLE instance."
+            )
             if "remote_server" not in st.session_state:
                 st.session_state["remote_server"] = None
             if "remote_client" not in st.session_state:
@@ -1103,20 +1162,28 @@ def run_playground() -> None:
                 host = st.text_input("Host", "localhost", key="srv_host")
                 port = st.number_input("Port", value=8000, step=1, key="srv_port")
                 remote_url = st.text_input("Remote URL", key="srv_remote")
-                if st.button("Start Server", key="srv_start") and st.session_state["remote_server"] is None:
+                if (
+                    st.button("Start Server", key="srv_start")
+                    and st.session_state["remote_server"] is None
+                ):
                     st.session_state["remote_server"] = start_remote_server(
                         host=host,
                         port=int(port),
                         remote_url=remote_url or None,
                     )
                     st.success("Server started")
-                if st.button("Stop Server", key="srv_stop") and st.session_state["remote_server"] is not None:
+                if (
+                    st.button("Stop Server", key="srv_stop")
+                    and st.session_state["remote_server"] is not None
+                ):
                     st.session_state["remote_server"].stop()
                     st.session_state["remote_server"] = None
                     st.success("Server stopped")
 
             with st.expander("Remote Client"):
-                url = st.text_input("Server URL", "http://localhost:8000", key="cli_url")
+                url = st.text_input(
+                    "Server URL", "http://localhost:8000", key="cli_url"
+                )
                 if st.button("Create Client", key="cli_create"):
                     st.session_state["remote_client"] = create_remote_client(url)
                     st.success("Client created")
@@ -1130,9 +1197,14 @@ def run_playground() -> None:
 
             with st.expander("Torrent Client"):
                 client_id = st.text_input("Client ID", "main", key="tor_id")
-                bufsize = st.number_input("Buffer Size", value=10, step=1, key="tor_buf")
+                bufsize = st.number_input(
+                    "Buffer Size", value=10, step=1, key="tor_buf"
+                )
                 beat = st.number_input("Heartbeat", value=30, step=1, key="tor_hb")
-                if st.button("Start Torrent", key="tor_start") and st.session_state["torrent_client"] is None:
+                if (
+                    st.button("Start Torrent", key="tor_start")
+                    and st.session_state["torrent_client"] is None
+                ):
                     tracker, client = create_torrent_system(
                         client_id,
                         buffer_size=int(bufsize),
@@ -1143,7 +1215,10 @@ def run_playground() -> None:
                     marble.brain.torrent_client = client
                     marble.brain.torrent_offload_enabled = True
                     st.success("Torrent client started")
-                if st.button("Stop Torrent", key="tor_stop") and st.session_state["torrent_client"] is not None:
+                if (
+                    st.button("Stop Torrent", key="tor_stop")
+                    and st.session_state["torrent_client"] is not None
+                ):
                     st.session_state["torrent_client"].disconnect()
                     st.session_state["torrent_client"] = None
                     st.session_state["torrent_tracker"] = None
@@ -1154,11 +1229,10 @@ def run_playground() -> None:
             if st.button("Offload High Attention", key="do_remote"):
                 marble.brain.offload_high_attention(marble.brain.offload_threshold)
             if st.button("Offload via Torrent", key="do_torrent"):
-                marble.brain.offload_high_attention_torrent(marble.brain.torrent_offload_threshold)
-            if (
-                st.button("Convert to MARBLE", key="hf_convert")
-                and model_name
-            ):
+                marble.brain.offload_high_attention_torrent(
+                    marble.brain.torrent_offload_threshold
+                )
+            if st.button("Convert to MARBLE", key="hf_convert") and model_name:
                 try:
                     marble = convert_hf_model(model_name)
                     st.session_state["marble"] = marble

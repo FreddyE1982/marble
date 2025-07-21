@@ -42,6 +42,7 @@ from streamlit_playground import (
     load_hf_model,
     convert_hf_model,
     model_summary,
+    search_hf_datasets,
     list_example_projects,
     load_example_code,
     run_example_project,
@@ -172,6 +173,17 @@ def test_dataset_previews(tmp_path):
         df2 = preview_hf_dataset("dummy", "train")
     assert isinstance(df2, pd.DataFrame)
     assert df2.shape == (2, 2)
+
+
+def test_search_hf_datasets():
+    dummy = [mock.Mock(id=f"ds{i}") for i in range(3)]
+    with mock.patch("huggingface_hub.HfApi") as api:
+        inst = api.return_value
+        inst.list_datasets.return_value = dummy
+        names = search_hf_datasets("cats", limit=3)
+    api.assert_called_once()
+    inst.list_datasets.assert_called_once_with(search="cats", limit=3)
+    assert names == ["ds0", "ds1", "ds2"]
 
 
 def test_module_listing_and_execution():
