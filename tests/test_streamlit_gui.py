@@ -743,3 +743,86 @@ def test_auto_firing_start_stop():
     at = stop_btn.click().run(timeout=20)
     async_tab = next(t for t in at.tabs if t.label == "Async Training")
     assert any("stopped" in s.value.lower() for s in async_tab.success)
+
+def test_save_marble(monkeypatch, tmp_path):
+    monkeypatch.setattr("streamlit_playground.save_marble_system", lambda m, p: None)
+    monkeypatch.setattr("marble_interface.save_marble_system", lambda m, p: None)
+    at = _setup_basic_playground()
+    path_input = next(t for t in at.sidebar.text_input if t.label == "Save Path")
+    path_input.input(str(tmp_path / "model.pkl"))
+    save_btn = next(b for b in at.sidebar.button if b.label == "Save MARBLE")
+    at = save_btn.click().run(timeout=20)
+    assert any("Model saved" in s.value for s in at.sidebar.success)
+
+
+def test_create_instance_button(monkeypatch):
+    monkeypatch.setattr("streamlit_playground.MarbleRegistry.create", lambda *a, **k: object())
+    at = AppTest.from_file("streamlit_playground.py").run(timeout=15)
+    create_btn = next(b for b in at.sidebar.button if b.label == "Create Instance")
+    at = create_btn.click().run(timeout=20)
+    assert any("created" in s.value for s in at.sidebar.success)
+
+
+def test_attach_remote_client(monkeypatch):
+    monkeypatch.setattr("streamlit_playground.create_remote_client", lambda url: object())
+    at = _setup_advanced_playground()
+    off_tab = next(t for t in at.tabs if t.label == "Offloading")
+    client_exp = off_tab.expander[1]
+    at = client_exp.button[0].click().run(timeout=20)
+    client_exp = next(t for t in at.tabs if t.label == "Offloading").expander[1]
+    attach_btn = next(b for b in client_exp.button if b.label == "Attach to MARBLE")
+    at = attach_btn.click().run(timeout=20)
+    off_tab = next(t for t in at.tabs if t.label == "Offloading")
+    assert any("attached" in s.value for s in off_tab.success)
+
+
+
+
+
+
+
+
+def test_stats_refresh():
+    at = _setup_advanced_playground()
+    stats_tab = next(t for t in at.tabs if t.label == "System Stats")
+    btn = next(b for b in stats_tab.button if b.label == "Refresh Stats")
+    at = btn.click().run(timeout=20)
+    stats_tab = next(t for t in at.tabs if t.label == "System Stats")
+    assert len(stats_tab.metric) == 2
+
+
+def test_misc_gui_buttons():
+    at = _setup_advanced_playground()
+    vis_tab = next(t for t in at.tabs if t.label == "Visualization")
+    graph_btn = next(b for b in vis_tab.button if b.label == "Generate Graph")
+    at = graph_btn.click().run(timeout=20)
+    vis_tab = next(t for t in at.tabs if t.label == "Visualization")
+    assert vis_tab.get("plotly_chart")
+    heat_tab = next(t for t in at.tabs if t.label == "Weight Heatmap")
+    heat_tab.number_input[0].set_value(5)
+    heat_btn = next(b for b in heat_tab.button if b.label == "Generate Heatmap")
+    at = heat_btn.click().run(timeout=20)
+    heat_tab = next(t for t in at.tabs if t.label == "Weight Heatmap")
+    assert heat_tab.get("plotly_chart")
+    code_tab = next(t for t in at.tabs if t.label == "Custom Code")
+    code_tab.text_area[0].input("x = 1")
+    run_btn = next(b for b in code_tab.button if b.label == "Run Code")
+    at = run_btn.click().run(timeout=20)
+    code_tab = next(t for t in at.tabs if t.label == "Custom Code")
+    assert code_tab.markdown
+
+
+def test_start_background_training(monkeypatch):
+    monkeypatch.setattr("streamlit_playground.start_background_training", lambda *a, **k: None)
+    monkeypatch.setattr("streamlit_playground.wait_for_training", lambda *a, **k: None)
+    at = _setup_advanced_playground()
+    at.session_state["hf_examples"] = [(1, 2)]
+    async_tab = next(t for t in at.tabs if t.label == "Async Training")
+    start_btn = next(b for b in async_tab.button if b.label == "Start Background Training")
+    at = start_btn.click().run(timeout=20)
+    async_tab = next(t for t in at.tabs if t.label == "Async Training")
+    assert any("Training started" in s.value for s in async_tab.success)
+    wait_btn = next(b for b in async_tab.button if b.label == "Wait For Training")
+    at = wait_btn.click().run(timeout=20)
+    async_tab = next(t for t in at.tabs if t.label == "Async Training")
+    assert any("complete" in s.value.lower() for s in async_tab.success)
