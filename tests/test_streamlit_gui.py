@@ -56,6 +56,12 @@ def _setup_advanced_playground(timeout: float = 20) -> AppTest:
     return at.sidebar.radio[0].set_value("Advanced").run(timeout=timeout)
 
 
+def _setup_basic_playground(timeout: float = 20) -> AppTest:
+    """Return an ``AppTest`` instance with MARBLE initialized in basic mode."""
+    at = AppTest.from_file("streamlit_playground.py").run(timeout=15)
+    return at.sidebar.button[0].click().run(timeout=timeout)
+
+
 def test_stats_tab_metrics():
     at = _setup_advanced_playground()
     stats_tab = next(t for t in at.tabs if t.label == "System Stats")
@@ -589,4 +595,13 @@ def test_projects_tab_run(monkeypatch):
     at = run_btn.click().run(timeout=20)
     proj_tab = next(t for t in at.tabs if t.label == "Projects")
     assert any("done" in t.value for t in proj_tab.text)
+
+
+def test_basic_inference():
+    at = _setup_basic_playground()
+    num_input = next(n for n in at.number_input if n.label == "Numeric Input")
+    num_input.set_value(0.5)
+    infer_btn = next(b for b in at.button if b.label == "Infer")
+    at = infer_btn.click().run(timeout=20)
+    assert any("Output:" in md.value for md in at.markdown)
 
