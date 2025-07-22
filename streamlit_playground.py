@@ -363,6 +363,21 @@ def list_module_classes(module_name: str) -> list[str]:
     return sorted(classes)
 
 
+def search_repository_functions(query: str) -> list[str]:
+    """Return function names across the repository matching ``query``."""
+
+    query = query.lower()
+    funcs: set[str] = set()
+    for name in list_repo_modules() + ["marble_interface"]:
+        module = importlib.import_module(name)
+        for fname, obj in inspect.getmembers(module, inspect.isfunction):
+            if fname.startswith("_"):
+                continue
+            if query in fname.lower():
+                funcs.add(fname)
+    return sorted(funcs)
+
+
 def create_module_object(module_name: str, class_name: str, marble=None, **params):
     """Instantiate ``class_name`` from ``module_name`` using ``params``."""
     module = importlib.import_module(module_name)
@@ -557,6 +572,21 @@ def set_yaml_value(yaml_text: str, path: str, value: object) -> str:
         cur = cur[k]
     cur[keys[-1]] = value
     return yaml.safe_dump(data, sort_keys=False)
+
+
+def save_config_yaml(yaml_text: str, path: str) -> None:
+    """Write ``yaml_text`` to ``path``.
+
+    Parameters
+    ----------
+    yaml_text:
+        YAML configuration as text.
+    path:
+        Destination file path.
+    """
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(yaml_text)
 
 
 def core_to_networkx(core) -> nx.DiGraph:
@@ -1251,6 +1281,17 @@ def run_playground() -> None:
     if "config_yaml" in st.session_state:
         with st.sidebar.expander("Current Config"):
             st.code(st.session_state["config_yaml"], language="yaml")
+            st.download_button(
+                "Download config.yaml",
+                st.session_state["config_yaml"],
+                file_name="config.yaml",
+            )
+            cfg_save_path = st.text_input(
+                "Save Config Path", "config_saved.yaml", key="cfg_save_path"
+            )
+            if st.button("Save Config File", key="cfg_save_btn"):
+                save_config_yaml(st.session_state["config_yaml"], cfg_save_path)
+                st.sidebar.success("Config saved")
     with st.sidebar.expander("YAML Manual"):
         st.code(load_yaml_manual())
 
@@ -1435,6 +1476,9 @@ def run_playground() -> None:
 
         with tab_iface:
             funcs = list_marble_functions()
+            iface_filter = st.text_input("Search", key="iface_search")
+            if iface_filter:
+                funcs = [f for f in funcs if iface_filter.lower() in f.lower()]
             selected = st.selectbox("Function", funcs, key="iface_func")
             func_obj = getattr(marble_interface, selected)
             doc = inspect.getdoc(func_obj) or ""
@@ -1479,6 +1523,9 @@ def run_playground() -> None:
             modules = list_repo_modules()
             module_choice = st.selectbox("Module", modules, key="mod_select")
             funcs = list_module_functions(module_choice)
+            mod_filter = st.text_input("Search", key="mod_search")
+            if mod_filter:
+                funcs = [f for f in funcs if mod_filter.lower() in f.lower()]
             func_choice = st.selectbox("Function", funcs, key="mod_func")
             func_obj = getattr(importlib.import_module(module_choice), func_choice)
             doc = inspect.getdoc(func_obj) or ""
