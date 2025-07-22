@@ -101,6 +101,10 @@ from streamlit_playground import (
     save_config_yaml,
     search_repository_functions,
     find_repository_functions,
+    create_hybrid_memory,
+    hybrid_memory_store,
+    hybrid_memory_retrieve,
+    hybrid_memory_forget,
 )
 
 
@@ -684,3 +688,23 @@ def test_save_config_yaml_and_search(tmp_path):
 def test_find_repository_functions():
     res = find_repository_functions("count_marble_syn")
     assert ("marble_interface", "count_marble_synapses") in res
+
+
+def test_hybrid_memory_helpers(tmp_path):
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+    marble = initialize_marble(str(cfg_path))
+
+    hm = create_hybrid_memory(
+        marble,
+        vector_path=str(tmp_path / "vec.pkl"),
+        symbolic_path=str(tmp_path / "sym.pkl"),
+    )
+    assert hm is marble.hybrid_memory
+
+    hybrid_memory_store(marble, "k", 1.0)
+    res = hybrid_memory_retrieve(marble, 1.0, top_k=1)
+    assert res and res[0][0] == "k"
+    hybrid_memory_forget(marble, max_entries=1)
