@@ -378,6 +378,26 @@ def search_repository_functions(query: str) -> list[str]:
     return sorted(funcs)
 
 
+def find_repository_functions(query: str) -> list[tuple[str, str]]:
+    """Return ``(module, function)`` pairs whose names match ``query``.
+
+    The search spans all top-level modules returned by :func:`list_repo_modules`
+    as well as ``marble_interface``. Results are sorted alphabetically by module
+    then function name.
+    """
+
+    q = query.lower()
+    matches: list[tuple[str, str]] = []
+    for name in list_repo_modules() + ["marble_interface"]:
+        module = importlib.import_module(name)
+        for fname, obj in inspect.getmembers(module, inspect.isfunction):
+            if fname.startswith("_"):
+                continue
+            if q in fname.lower():
+                matches.append((name, fname))
+    return sorted(matches)
+
+
 def create_module_object(module_name: str, class_name: str, marble=None, **params):
     """Instantiate ``class_name`` from ``module_name`` using ``params``."""
     module = importlib.import_module(module_name)
@@ -1421,6 +1441,7 @@ def run_playground() -> None:
     else:
         st.header("Advanced Function Execution")
         (
+            tab_search,
             tab_iface,
             tab_mod,
             tab_cls,
@@ -1447,6 +1468,7 @@ def run_playground() -> None:
             tab_src,
         ) = st.tabs(
             [
+                "Function Search",
                 "marble_interface",
                 "Modules",
                 "Classes",
@@ -1473,6 +1495,57 @@ def run_playground() -> None:
                 "Source Browser",
             ]
         )
+
+        with tab_search:
+            query = st.text_input("Search", key="repo_search_query")
+            results = find_repository_functions(query) if query else []
+            if results:
+                options = [f"{m}.{f}" for m, f in results]
+                choice = st.selectbox("Function", options, key="repo_search_func")
+                module, func_name = choice.split(".", 1)
+                func_obj = getattr(importlib.import_module(module), func_name)
+                doc = inspect.getdoc(func_obj) or ""
+                if doc:
+                    st.markdown(doc)
+                sig = inspect.signature(func_obj)
+                inputs = {}
+                for name, param in sig.parameters.items():
+                    if name == "marble":
+                        continue
+                    default = None if param.default is inspect.Parameter.empty else param.default
+                    ann = param.annotation
+                    widget = None
+                    if ann is bool or isinstance(default, bool):
+                        widget = st.checkbox(
+                            name,
+                            value=bool(default) if default is not None else False,
+                            key=f"repo_{name}",
+                        )
+                    elif ann in (int, float) or isinstance(default, (int, float)):
+                        val = 0 if default is None else float(default)
+                        widget = st.number_input(name, value=val, key=f"repo_{name}")
+                    else:
+                        widget = st.text_input(
+                            name,
+                            value="" if default is None else str(default),
+                            key=f"repo_{name}",
+                        )
+                    inputs[name] = widget
+                if st.button("Execute", key="repo_execute"):
+                    parsed = {}
+                    for k, v in inputs.items():
+                        if isinstance(v, str) and v != "":
+                            try:
+                                parsed[k] = json.loads(v)
+                            except Exception:
+                                parsed[k] = _parse_value(v)
+                        else:
+                            parsed[k] = v
+                    if module == "marble_interface":
+                        result = execute_marble_function(func_name, marble, **parsed)
+                    else:
+                        result = execute_module_function(module, func_name, marble, **parsed)
+                    st.write(result)
 
         with tab_iface:
             funcs = list_marble_functions()

@@ -100,6 +100,7 @@ from streamlit_playground import (
     run_nd_topology,
     save_config_yaml,
     search_repository_functions,
+    find_repository_functions,
 )
 
 
@@ -678,3 +679,8 @@ def test_save_config_yaml_and_search(tmp_path):
 
     funcs = search_repository_functions("count_marble_syn")
     assert "count_marble_synapses" in funcs
+
+
+def test_find_repository_functions():
+    res = find_repository_functions("count_marble_syn")
+    assert ("marble_interface", "count_marble_synapses") in res
