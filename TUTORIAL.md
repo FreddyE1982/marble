@@ -1303,6 +1303,9 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
     meta-controller's loss history and adjust its parameters, review super
     evolution metrics and apply dimensional search or n-dimensional topology
     evaluations with a single click.
+29. **Manage hybrid memory** on the *Hybrid Memory* tab. Initialize the vector
+    and symbolic stores, add new key/value pairs, query for similar entries and
+    prune older items without leaving the UI.
 
 Uploaded datasets are previewed directly in the sidebar so you can verify their
 contents before training. The currently active YAML configuration is also shown

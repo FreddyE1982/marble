@@ -1078,6 +1078,51 @@ def parallel_wander_neuronenblitz(
     return [(float(o), int(s)) for o, s in results]
 
 
+def create_hybrid_memory(
+    marble,
+    vector_path: str = "vector_store.pkl",
+    symbolic_path: str = "symbolic_memory.pkl",
+) -> object:
+    """Create ``HybridMemory`` for ``marble`` and return it."""
+
+    from hybrid_memory import HybridMemory
+
+    hm = HybridMemory(
+        marble.get_core(),
+        marble.get_neuronenblitz(),
+        vector_path,
+        symbolic_path,
+    )
+    marble.hybrid_memory = hm
+    return hm
+
+
+def hybrid_memory_store(marble, key: str, value: float | str | bytes) -> None:
+    """Store ``value`` in MARBLE's hybrid memory under ``key``."""
+
+    if marble.hybrid_memory is None:
+        raise ValueError("Hybrid memory not initialized")
+    marble.hybrid_memory.store(key, _parse_value(value))
+
+
+def hybrid_memory_retrieve(
+    marble, query: float | str | bytes, top_k: int = 3
+) -> list[tuple[object, object]]:
+    """Return top ``k`` items matching ``query`` from hybrid memory."""
+
+    if marble.hybrid_memory is None:
+        raise ValueError("Hybrid memory not initialized")
+    return marble.hybrid_memory.retrieve(_parse_value(query), top_k=int(top_k))
+
+
+def hybrid_memory_forget(marble, max_entries: int = 1000) -> None:
+    """Remove old entries keeping at most ``max_entries``."""
+
+    if marble.hybrid_memory is None:
+        raise ValueError("Hybrid memory not initialized")
+    marble.hybrid_memory.forget_old(max_entries=int(max_entries))
+
+
 def meta_controller_info(marble) -> dict:
     """Return parameters and loss history of the meta-controller."""
 
@@ -1461,6 +1506,7 @@ def run_playground() -> None:
             tab_async,
             tab_rl,
             tab_adapt,
+            tab_memory,
             tab_nbexp,
             tab_proj,
             tab_tests,
@@ -1488,6 +1534,7 @@ def run_playground() -> None:
                 "Async Training",
                 "RL Sandbox",
                 "Adaptive Control",
+                "Hybrid Memory",
                 "NB Explorer",
                 "Projects",
                 "Tests",
@@ -2285,6 +2332,30 @@ def run_playground() -> None:
                 if st.button("Evaluate N-D Topology", key="nd_eval"):
                     size = run_nd_topology(marble, loss=nd_loss)
                     st.write(f"Representation size: {size}")
+
+        with tab_memory:
+            st.write("Interact with the Hybrid Memory system.")
+            if marble.hybrid_memory is None:
+                vec = st.text_input("Vector Store Path", "vector_store.pkl", key="hm_vec")
+                sym = st.text_input("Symbolic Store Path", "symbolic_memory.pkl", key="hm_sym")
+                if st.button("Create Hybrid Memory", key="hm_create"):
+                    create_hybrid_memory(marble, vec, sym)
+                    st.success("Hybrid memory initialized")
+            else:
+                key = st.text_input("Key", key="hm_key")
+                val = st.text_input("Value", key="hm_val")
+                if st.button("Store", key="hm_store") and key:
+                    hybrid_memory_store(marble, key, val)
+                    st.success("Stored")
+                qval = st.text_input("Query", key="hm_query")
+                topk = st.number_input("Top K", min_value=1, value=1, step=1, key="hm_top")
+                if st.button("Retrieve", key="hm_retrieve") and qval:
+                    res = hybrid_memory_retrieve(marble, qval, top_k=int(topk))
+                    st.write(res)
+                maxe = st.number_input("Max Entries", min_value=1, value=1000, step=1, key="hm_max")
+                if st.button("Forget Old", key="hm_forget"):
+                    hybrid_memory_forget(marble, max_entries=int(maxe))
+                    st.success("Pruned old entries")
 
         with tab_nbexp:
             st.write("Explore Neuronenblitz wander behaviour.")

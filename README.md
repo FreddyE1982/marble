@@ -109,6 +109,9 @@ other features.
 An **Adaptive Control** tab exposes the MetaParameterController and
 SuperEvolutionController so you can fine-tune plasticity behaviour, inspect
 parameter changes and run dimensional search or n-dimensional topology updates.
+The interface now includes a **Hybrid Memory** tab as well. This lets you
+initialize a vector store and symbolic memory, store new values, query for the
+closest matches and prune old entries directly from the playground.
 
 ## Possible MARBLE Backcronyms
 
