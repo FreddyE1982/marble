@@ -77,6 +77,9 @@ YAML so you can verify exactly what will be used for training and inference.
 You can also **search** the Hugging Face Hub directly from the sidebar. Enter a
 query, press **Search Datasets** and select a result to populate the dataset
 name field without leaving the playground.
+You can now download the currently active configuration or save it to a custom
+path directly from the sidebar. Advanced mode also features search boxes for
+quickly locating functions by name within ``marble_interface`` or any module.
 The Model Conversion tab now supports searching the Hub for pretrained models so
 they can be converted with a single click.
 An additional **Visualization** tab renders an interactive graph of the core so

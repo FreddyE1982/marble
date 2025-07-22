@@ -98,6 +98,8 @@ from streamlit_playground import (
     clear_super_evo_changes,
     run_dimensional_search,
     run_nd_topology,
+    save_config_yaml,
+    search_repository_functions,
 )
 
 
@@ -665,3 +667,14 @@ def test_adaptive_control_helpers(tmp_path):
     size2 = run_nd_topology(marble, loss=1.0)
     assert isinstance(size1, int)
     assert isinstance(size2, int)
+
+
+def test_save_config_yaml_and_search(tmp_path):
+    yaml_text = "a: 1\n"
+    path = tmp_path / "cfg.yaml"
+    save_config_yaml(yaml_text, path)
+    with open(path, "r", encoding="utf-8") as f:
+        assert f.read() == yaml_text
+
+    funcs = search_repository_functions("count_marble_syn")
+    assert "count_marble_synapses" in funcs
