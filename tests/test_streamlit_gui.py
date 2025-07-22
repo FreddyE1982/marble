@@ -912,3 +912,27 @@ def test_hybrid_memory_forget(monkeypatch):
     at = forget_btn.click().run(timeout=20)
     hm_tab = next(t for t in at.tabs if t.label == "Hybrid Memory")
     assert any("Pruned" in s.value for s in hm_tab.success)
+
+
+def test_instance_switch_and_delete(monkeypatch):
+    monkeypatch.setattr("streamlit_playground.save_marble_system", lambda *a, **k: None)
+
+    def fake_dup(self, src, new):
+        self.instances[new] = self.instances[src]
+
+    def fake_del(self, name):
+        self.instances.pop(name, None)
+
+    monkeypatch.setattr("streamlit_playground.MarbleRegistry.duplicate", fake_dup)
+    monkeypatch.setattr("streamlit_playground.MarbleRegistry.delete", fake_del)
+
+    at = _setup_basic_playground()
+    dup_btn = next(b for b in at.sidebar.button if b.label == "Duplicate Instance")
+    at = dup_btn.click().run(timeout=20)
+    at = at.run(timeout=20)
+    sb_select = at.sidebar.selectbox[0]
+    sb_select.set_value("main_copy")
+    switch_btn = next(b for b in at.sidebar.button if b.label == "Switch Instance")
+    at = switch_btn.click().run(timeout=20)
+    del_btn = next(b for b in at.sidebar.button if b.label == "Delete Instance")
+    at = del_btn.click().run(timeout=20)
