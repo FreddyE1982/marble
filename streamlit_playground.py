@@ -9,6 +9,13 @@ import io
 import runpy
 import contextlib
 import glob
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    message=".*google._upb._message.*PyType_Spec.*",
+    category=DeprecationWarning,
+)
 
 import streamlit as st
 import pandas as pd
@@ -1559,7 +1566,11 @@ def run_playground() -> None:
                 for name, param in sig.parameters.items():
                     if name == "marble":
                         continue
-                    default = None if param.default is inspect.Parameter.empty else param.default
+                    default = (
+                        None
+                        if param.default is inspect.Parameter.empty
+                        else param.default
+                    )
                     ann = param.annotation
                     widget = None
                     if ann is bool or isinstance(default, bool):
@@ -1591,7 +1602,9 @@ def run_playground() -> None:
                     if module == "marble_interface":
                         result = execute_marble_function(func_name, marble, **parsed)
                     else:
-                        result = execute_module_function(module, func_name, marble, **parsed)
+                        result = execute_module_function(
+                            module, func_name, marble, **parsed
+                        )
                     st.write(result)
 
         with tab_iface:
@@ -2336,8 +2349,12 @@ def run_playground() -> None:
         with tab_memory:
             st.write("Interact with the Hybrid Memory system.")
             if marble.hybrid_memory is None:
-                vec = st.text_input("Vector Store Path", "vector_store.pkl", key="hm_vec")
-                sym = st.text_input("Symbolic Store Path", "symbolic_memory.pkl", key="hm_sym")
+                vec = st.text_input(
+                    "Vector Store Path", "vector_store.pkl", key="hm_vec"
+                )
+                sym = st.text_input(
+                    "Symbolic Store Path", "symbolic_memory.pkl", key="hm_sym"
+                )
                 if st.button("Create Hybrid Memory", key="hm_create"):
                     create_hybrid_memory(marble, vec, sym)
                     st.success("Hybrid memory initialized")
@@ -2348,11 +2365,15 @@ def run_playground() -> None:
                     hybrid_memory_store(marble, key, val)
                     st.success("Stored")
                 qval = st.text_input("Query", key="hm_query")
-                topk = st.number_input("Top K", min_value=1, value=1, step=1, key="hm_top")
+                topk = st.number_input(
+                    "Top K", min_value=1, value=1, step=1, key="hm_top"
+                )
                 if st.button("Retrieve", key="hm_retrieve") and qval:
                     res = hybrid_memory_retrieve(marble, qval, top_k=int(topk))
                     st.write(res)
-                maxe = st.number_input("Max Entries", min_value=1, value=1000, step=1, key="hm_max")
+                maxe = st.number_input(
+                    "Max Entries", min_value=1, value=1000, step=1, key="hm_max"
+                )
                 if st.button("Forget Old", key="hm_forget"):
                     hybrid_memory_forget(marble, max_entries=int(maxe))
                     st.success("Pruned old entries")
@@ -2361,7 +2382,9 @@ def run_playground() -> None:
             st.write("Explore Neuronenblitz wander behaviour.")
             nb_input = st.text_input("Input", value="0.0", key="nb_in")
             plast = st.checkbox("Apply Plasticity", value=True, key="nb_plast")
-            procs = st.number_input("Processes", min_value=1, value=1, step=1, key="nb_proc")
+            procs = st.number_input(
+                "Processes", min_value=1, value=1, step=1, key="nb_proc"
+            )
             if st.button("Wander", key="nb_wander"):
                 val = _parse_value(nb_input)
                 out, ids = wander_neuronenblitz(marble, val, apply_plasticity=plast)
