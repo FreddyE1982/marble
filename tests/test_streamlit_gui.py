@@ -652,3 +652,39 @@ def test_offload_and_convert(monkeypatch):
     assert flags["remote"] and flags["torrent"] and flags["convert"]
     assert any("Model converted" in s.value for s in off_tab.success)
 
+
+def test_sidebar_toggles_and_dashboard(monkeypatch):
+    dash = type("Dash", (), {"stop": lambda self: None})()
+    monkeypatch.setattr("streamlit_playground.start_metrics_dashboard", lambda *a, **k: dash)
+    monkeypatch.setattr("streamlit_playground.set_dreaming", lambda *a, **k: None)
+    monkeypatch.setattr("streamlit_playground.set_autograd", lambda *a, **k: None)
+
+    at = _setup_basic_playground()
+    dream_cb = next(c for c in at.sidebar.checkbox if c.label == "Dreaming")
+    auto_cb = next(c for c in at.sidebar.checkbox if c.label == "Autograd")
+    dash_cb = next(c for c in at.sidebar.checkbox if c.label == "Metrics Dashboard")
+
+    at = dream_cb.toggle().run(timeout=20)
+    at = auto_cb.toggle().run(timeout=20)
+    at = dash_cb.toggle().run(timeout=20)
+    assert at.session_state["dashboard"] is dash
+
+    at = dash_cb.toggle().run(timeout=20)
+    assert at.session_state["dashboard"] is None
+
+def test_training_sidebar_action(monkeypatch):
+    monkeypatch.setattr("streamlit_playground.train_marble_system", lambda *a, **k: None)
+    at = _setup_basic_playground()
+    at.session_state["hf_examples"] = [(1, 2)]
+    train_btn = next(b for b in at.sidebar.button if b.label == "Train")
+    at = train_btn.click().run(timeout=20)
+    assert any("Training complete" in s.value for s in at.sidebar.success)
+
+
+def test_basic_text_inference():
+    at = _setup_basic_playground()
+    txt_in = next(t for t in at.text_input if t.label == "Text Input")
+    txt_in.input("hello")
+    infer_btn = next(b for b in at.button if b.label == "Infer")
+    at = infer_btn.click().run(timeout=20)
+    assert any("Output:" in md.value for md in at.markdown)
