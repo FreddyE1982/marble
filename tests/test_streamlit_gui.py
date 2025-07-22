@@ -73,3 +73,69 @@ def test_metrics_tab_plot():
     at = metrics_tab.button[0].click().run(timeout=20)
     metrics_tab = next(t for t in at.tabs if t.label == "Metrics")
     assert metrics_tab.get("plotly_chart")
+
+
+def test_neuromod_tab_update():
+    at = _setup_advanced_playground()
+    neuro_tab = next(t for t in at.tabs if t.label == "Neuromodulation")
+
+    neuro_tab.slider[0].set_value(0.5)
+    neuro_tab.slider[1].set_value(0.4)
+    neuro_tab.slider[2].set_value(0.3)
+    neuro_tab.text_input[0].input("excited")
+    at = neuro_tab.button[0].click().run(timeout=20)
+    neuro_tab = next(t for t in at.tabs if t.label == "Neuromodulation")
+    assert any("Signals updated" in s.value for s in neuro_tab.success)
+
+
+def test_config_editor_update(tmp_path):
+    at = _setup_advanced_playground()
+    cfg_tab = next(t for t in at.tabs if t.label == "Config Editor")
+
+    cfg_tab.text_input[0].input("core.width")
+    cfg_tab.text_input[1].input("5")
+    at = cfg_tab.button[0].click().run(timeout=20)
+    cfg_tab = next(t for t in at.tabs if t.label == "Config Editor")
+    assert cfg_tab.code and "core:" in cfg_tab.code[0].value
+
+
+def test_hybrid_memory_store_and_retrieve():
+    at = _setup_advanced_playground()
+    hm_tab = next(t for t in at.tabs if t.label == "Hybrid Memory")
+
+    hm_tab.text_input[0].input("k")
+    hm_tab.text_input[1].input("1.0")
+    at = hm_tab.button[0].click().run(timeout=20)
+    hm_tab = next(t for t in at.tabs if t.label == "Hybrid Memory")
+    assert any("Stored" in s.value for s in hm_tab.success)
+
+    hm_tab.text_input[2].input("1.0")
+    hm_tab.number_input[0].set_value(1)
+    at = hm_tab.button[1].click().run(timeout=20)
+    hm_tab = next(t for t in at.tabs if t.label == "Hybrid Memory")
+    assert hm_tab.markdown
+
+
+def test_visualization_and_heatmap_tabs():
+    at = _setup_advanced_playground()
+    vis_tab = next(t for t in at.tabs if t.label == "Visualization")
+    vis_tab.button[0].click()
+    at = vis_tab.run(timeout=20)
+    vis_tab = next(t for t in at.tabs if t.label == "Visualization")
+    assert vis_tab.get("plotly_chart")
+
+    heat_tab = next(t for t in at.tabs if t.label == "Weight Heatmap")
+    heat_tab.number_input[0].set_value(10)
+    heat_tab.button[0].click()
+    at = heat_tab.run(timeout=20)
+    heat_tab = next(t for t in at.tabs if t.label == "Weight Heatmap")
+    assert heat_tab.get("plotly_chart")
+
+
+def test_documentation_tab_view():
+    at = _setup_advanced_playground()
+    docs_tab = next(t for t in at.tabs if t.label == "Documentation")
+    docs_tab.selectbox[0].set_value("README.md")
+    at = docs_tab.run(timeout=20)
+    docs_tab = next(t for t in at.tabs if t.label == "Documentation")
+    assert docs_tab.code and "MARBLE" in docs_tab.code[0].value

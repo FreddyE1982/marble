@@ -1,6 +1,6 @@
 import os
 import pickle
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Any, List, Tuple
 
 import numpy as np
@@ -69,7 +69,7 @@ class SymbolicMemory:
             pickle.dump(self.data, f)
 
     def store(self, key: Any, value: Any) -> None:
-        self.data[key] = {"value": value, "timestamp": datetime.utcnow()}
+        self.data[key] = {"value": value, "timestamp": datetime.now(UTC)}
         self._save()
 
     def retrieve(self, key: Any) -> Any:
