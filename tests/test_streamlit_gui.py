@@ -139,3 +139,53 @@ def test_documentation_tab_view():
     at = docs_tab.run(timeout=20)
     docs_tab = next(t for t in at.tabs if t.label == "Documentation")
     assert docs_tab.code and "MARBLE" in docs_tab.code[0].value
+
+def test_function_search_count_synapses():
+    at = _setup_advanced_playground()
+    search_tab = next(t for t in at.tabs if t.label == "Function Search")
+    search_tab.text_input[0].input("count_marble_synapses")
+    at = search_tab.run(timeout=20)
+    search_tab = next(t for t in at.tabs if t.label == "Function Search")
+    assert search_tab.selectbox
+    search_tab.selectbox[0].set_value("marble_interface.count_marble_synapses")
+    at = search_tab.button[0].click().run(timeout=20)
+    search_tab = next(t for t in at.tabs if t.label == "Function Search")
+    assert any(md.value.strip("`").isdigit() for md in search_tab.markdown)
+
+
+def test_interface_tab_exec_function():
+    at = _setup_advanced_playground()
+    iface_tab = next(t for t in at.tabs if t.label == "marble_interface")
+    iface_tab.text_input[0].input("count_marble_synapses")
+    at = iface_tab.run(timeout=20)
+    iface_tab = next(t for t in at.tabs if t.label == "marble_interface")
+    iface_tab.selectbox[0].set_value("count_marble_synapses")
+    at = iface_tab.button[0].click().run(timeout=20)
+    iface_tab = next(t for t in at.tabs if t.label == "marble_interface")
+    assert any(md.value.strip("`").isdigit() for md in iface_tab.markdown)
+
+
+def test_modules_tab_exec_function():
+    at = _setup_advanced_playground()
+    mod_tab = next(t for t in at.tabs if t.label == "Modules")
+    mod_tab.selectbox[0].set_value("marble_interface")
+    mod_tab.text_input[0].input("count_marble_synapses")
+    at = mod_tab.run(timeout=20)
+    mod_tab = next(t for t in at.tabs if t.label == "Modules")
+    mod_tab.selectbox[1].set_value("count_marble_synapses")
+    at = mod_tab.button[0].click().run(timeout=20)
+    mod_tab = next(t for t in at.tabs if t.label == "Modules")
+    assert any(md.value.strip("`").isdigit() for md in mod_tab.markdown)
+
+
+def test_classes_tab_instantiation():
+    at = _setup_advanced_playground()
+    cls_tab = next(t for t in at.tabs if t.label == "Classes")
+    cls_tab.selectbox[0].set_value("marble_registry")
+    at = cls_tab.run(timeout=20)
+    cls_tab = next(t for t in at.tabs if t.label == "Classes")
+    cls_tab.selectbox[1].set_value("MarbleRegistry")
+    at = cls_tab.button[0].click().run(timeout=20)
+    cls_tab = next(t for t in at.tabs if t.label == "Classes")
+    assert any("Created MarbleRegistry" in s.value for s in cls_tab.success)
+
