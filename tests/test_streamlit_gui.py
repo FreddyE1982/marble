@@ -241,6 +241,26 @@ def test_async_autofire_start_stop():
     assert any("Auto-firing stopped" in s.value for s in async_tab.success)
 
 
+def test_async_training_start_and_wait(monkeypatch):
+    monkeypatch.setattr(
+        "streamlit_playground.start_background_training", lambda *a, **k: None
+    )
+    monkeypatch.setattr(
+        "streamlit_playground.wait_for_training", lambda *a, **k: None
+    )
+    at = _setup_advanced_playground()
+    at.session_state["hf_examples"] = [(1, 2)]
+    async_tab = next(t for t in at.tabs if t.label == "Async Training")
+
+    at = async_tab.button[0].click().run(timeout=20)
+    async_tab = next(t for t in at.tabs if t.label == "Async Training")
+    assert any("Training started" in s.value for s in async_tab.success)
+
+    at = async_tab.button[1].click().run(timeout=20)
+    async_tab = next(t for t in at.tabs if t.label == "Async Training")
+    assert any("Training complete" in s.value for s in async_tab.success)
+
+
 def test_lobe_manager_create_and_select():
     at = _setup_advanced_playground()
     lobe_tab = next(t for t in at.tabs if t.label == "Lobe Manager")
@@ -323,6 +343,40 @@ def test_offloading_remote_server(monkeypatch):
     assert any("Server stopped" in s.value for s in off_tab.success)
 
 
+def test_offloading_client_and_torrent(monkeypatch):
+    client = object()
+    monkeypatch.setattr(
+        "streamlit_playground.create_remote_client", lambda url: client
+    )
+    tclient = type("TC", (), {"disconnect": lambda self: None})()
+    monkeypatch.setattr(
+        "streamlit_playground.create_torrent_system",
+        lambda *a, **k: (object(), tclient),
+    )
+    at = _setup_advanced_playground()
+    off_tab = next(t for t in at.tabs if t.label == "Offloading")
+
+    client_exp = off_tab.expander[1]
+    at = client_exp.button[0].click().run(timeout=20)
+    off_tab = next(t for t in at.tabs if t.label == "Offloading")
+    assert any("Client created" in s.value for s in off_tab.success)
+
+    client_exp = off_tab.expander[1]
+    at = client_exp.button[1].click().run(timeout=20)
+    off_tab = next(t for t in at.tabs if t.label == "Offloading")
+    assert any("Client attached" in s.value for s in off_tab.success)
+
+    tor_exp = off_tab.expander[2]
+    at = tor_exp.button[0].click().run(timeout=20)
+    off_tab = next(t for t in at.tabs if t.label == "Offloading")
+    assert any("Torrent client started" in s.value for s in off_tab.success)
+
+    tor_exp = off_tab.expander[2]
+    at = tor_exp.button[1].click().run(timeout=20)
+    off_tab = next(t for t in at.tabs if t.label == "Offloading")
+    assert any("Torrent client stopped" in s.value for s in off_tab.success)
+
+
 def test_adaptive_control_update(monkeypatch):
     monkeypatch.setattr(
         "streamlit_playground.update_meta_controller",
@@ -348,6 +402,28 @@ def test_nb_explorer_wander(monkeypatch):
     at = nb_tab.button[0].click().run(timeout=20)
     nb_tab = next(t for t in at.tabs if t.label == "NB Explorer")
     assert any("Output" in md.value for md in nb_tab.markdown)
+
+
+def test_nb_explorer_parallel_and_history(monkeypatch):
+    monkeypatch.setattr(
+        "streamlit_playground.parallel_wander_neuronenblitz",
+        lambda *a, **k: [(0.2, 1)],
+    )
+
+    at = _setup_advanced_playground()
+    nb = at.session_state["marble"].get_neuronenblitz()
+    monkeypatch.setattr(
+        nb, "get_training_history", lambda: [{"step": 1, "loss": 0.5}]
+    )
+
+    nb_tab = next(t for t in at.tabs if t.label == "NB Explorer")
+    nb_tab.text_input[0].input("0.5")
+    at = nb_tab.button[1].click().run(timeout=20)
+    nb_tab = next(t for t in at.tabs if t.label == "NB Explorer")
+    at = nb_tab.button[2].click().run(timeout=20)
+    nb_tab = next(t for t in at.tabs if t.label == "NB Explorer")
+    assert nb_tab.button[1].label == "Parallel Wander"
+    assert nb_tab.button[2].label == "Show Training History"
 
 
 def test_tests_tab_run(monkeypatch):
