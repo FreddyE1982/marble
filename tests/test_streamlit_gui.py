@@ -8,6 +8,12 @@ warnings.filterwarnings(
     message=".*PyType_Spec.*",
     category=DeprecationWarning,
 )
+from _pytest.warning_types import PytestDeprecationWarning
+warnings.filterwarnings(
+    "ignore",
+    category=PytestDeprecationWarning,
+    module="dash.testing.plugin",
+)
 
 from streamlit.testing.v1 import AppTest
 
@@ -282,3 +288,87 @@ def test_projects_tab_show_code():
         and "import" in proj_tab.expander[0].code[0].value
     )
 
+
+def test_model_conversion_preview(monkeypatch):
+    import torch
+    monkeypatch.setattr(
+        "transformers.AutoModel.from_pretrained",
+        lambda *a, **k: torch.nn.Linear(1, 1),
+    )
+    at = _setup_advanced_playground()
+    model_tab = next(t for t in at.tabs if t.label == "Model Conversion")
+
+    model_tab.text_input[1].input("dummy")
+    at = model_tab.button[1].click().run(timeout=20)
+    model_tab = next(t for t in at.tabs if t.label == "Model Conversion")
+    assert any("Total parameters" in t.value for t in model_tab.text)
+
+
+def test_offloading_remote_server(monkeypatch):
+    dummy = type("Srv", (), {"stop": lambda self: None})()
+    monkeypatch.setattr(
+        "streamlit_playground.start_remote_server", lambda **kw: dummy
+    )
+    at = _setup_advanced_playground()
+    off_tab = next(t for t in at.tabs if t.label == "Offloading")
+
+    exp = off_tab.expander[0]
+    at = exp.button[0].click().run(timeout=20)
+    off_tab = next(t for t in at.tabs if t.label == "Offloading")
+    assert any("Server started" in s.value for s in off_tab.success)
+
+    exp = off_tab.expander[0]
+    at = exp.button[1].click().run(timeout=20)
+    off_tab = next(t for t in at.tabs if t.label == "Offloading")
+    assert any("Server stopped" in s.value for s in off_tab.success)
+
+
+def test_adaptive_control_update(monkeypatch):
+    monkeypatch.setattr(
+        "streamlit_playground.update_meta_controller",
+        lambda *a, **k: {"history_length": 1},
+    )
+    at = _setup_advanced_playground()
+    adapt_tab = next(t for t in at.tabs if t.label == "Adaptive Control")
+    exp = adapt_tab.expander[0]
+    exp.number_input[0].set_value(2)
+    at = exp.button[0].click().run(timeout=20)
+    adapt_tab = next(t for t in at.tabs if t.label == "Adaptive Control")
+    assert adapt_tab.json
+
+
+def test_nb_explorer_wander(monkeypatch):
+    monkeypatch.setattr(
+        "streamlit_playground.wander_neuronenblitz",
+        lambda *a, **k: (0.1, [1, 2]),
+    )
+    at = _setup_advanced_playground()
+    nb_tab = next(t for t in at.tabs if t.label == "NB Explorer")
+    nb_tab.text_input[0].input("0.5")
+    at = nb_tab.button[0].click().run(timeout=20)
+    nb_tab = next(t for t in at.tabs if t.label == "NB Explorer")
+    assert any("Output" in md.value for md in nb_tab.markdown)
+
+
+def test_tests_tab_run(monkeypatch):
+    monkeypatch.setattr(
+        "streamlit_playground.run_tests", lambda pattern=None: "Exit code: 0"
+    )
+    at = _setup_advanced_playground()
+    tests_tab = next(t for t in at.tabs if t.label == "Tests")
+    tests_tab.multiselect[0].set_value(["test_streamlit_gui.py"])
+    at = tests_tab.button[0].click().run(timeout=20)
+    tests_tab = next(t for t in at.tabs if t.label == "Tests")
+    assert any("Exit code" in t.value for t in tests_tab.text)
+
+
+def test_source_browser_show(monkeypatch):
+    monkeypatch.setattr(
+        "streamlit_playground.load_module_source", lambda mod: "def x(): pass"
+    )
+    at = _setup_advanced_playground()
+    src_tab = next(t for t in at.tabs if t.label == "Source Browser")
+    src_tab.selectbox[0].set_value("marble_interface")
+    at = src_tab.button[0].click().run(timeout=20)
+    src_tab = next(t for t in at.tabs if t.label == "Source Browser")
+    assert any("def x" in code.value for code in src_tab.code)
