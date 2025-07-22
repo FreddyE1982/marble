@@ -41,3 +41,35 @@ def test_playground_mode_switching():
     assert "Function Search" in labels
     assert "marble_interface" in labels
     assert len(labels) >= 20
+
+
+def _setup_advanced_playground(timeout: float = 20) -> AppTest:
+    """Return an ``AppTest`` instance with MARBLE initialized in advanced mode."""
+    at = AppTest.from_file("streamlit_playground.py").run(timeout=15)
+    at = at.sidebar.button[0].click().run(timeout=30)
+    return at.sidebar.radio[0].set_value("Advanced").run(timeout=timeout)
+
+
+def test_stats_tab_metrics():
+    at = _setup_advanced_playground()
+    stats_tab = next(t for t in at.tabs if t.label == "System Stats")
+
+    labels = [m.label for m in stats_tab.metric]
+    assert "RAM" in labels and "GPU" in labels
+
+    # refresh should rerun without removing metrics
+    at = stats_tab.button[0].click().run(timeout=20)
+    stats_tab = next(t for t in at.tabs if t.label == "System Stats")
+    assert len(stats_tab.metric) == 2
+
+
+def test_metrics_tab_plot():
+    at = _setup_advanced_playground()
+    metrics_tab = next(t for t in at.tabs if t.label == "Metrics")
+
+    assert metrics_tab.get("plotly_chart"), "metrics plot not found"
+    assert metrics_tab.button and metrics_tab.button[0].label == "Refresh"
+
+    at = metrics_tab.button[0].click().run(timeout=20)
+    metrics_tab = next(t for t in at.tabs if t.label == "Metrics")
+    assert metrics_tab.get("plotly_chart")
