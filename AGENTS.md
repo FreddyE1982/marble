@@ -34,3 +34,14 @@ The agent must take care not to introduce conflicts when editing requirements.tx
    `max_threshold`) and the recommended ranges for those values.
 9. The agent must maintain `TUTORIAL.md` containing a detailed step-by-step tutorial. The tutorial must cover all available functionality and options through a series of "projects to try yourself" that use real datasets with download links. Projects should be ordered from easiest to most advanced. Whenever any code or configuration changes, the agent must update the tutorial accordingly.
 10. ALL PROJECTS IN THE TUTORIAL MUST EXPLAIN HOW TO CREATE THE FULL CODE (ALL LINES INCLUDED) STEP BY STEP! ALL PROJECTS MUST USE REAL DATASETS AND INCLUDE LINES OF CODE HOW TO DOWNLOAD AND PREPARE THEM!
+
+streamlit gui
+ALL functionality MUST be available via the GUI. The assistant groups functionality logically in tabs. It uses the existing tabs for grouping of functionality when possible but creates new tabs if that seems more sensible. The agent must ensure that it never creates a new tab for things that can be logically put into a existing tab. for example: there may not be multiple tabs containing statistics..that would all belong into ONE tab.
+The agent must ensure that the streamlit GUI will show correctly on desktop AND mobile phones. the correct "mode" to show in should be recognised automatically. you may NOT remove or simplify ANY part of the gui in ANY mode.
+The agent must use st.expander to group multiple things that belong to the same functionality or workflow together in a tab as explained here: https://docs.streamlit.io/develop/api-reference/layout/st.expander
+The agent must use st.dialog where appropriate as explained here: https://docs.streamlit.io/develop/api-reference/execution-flow/st.dialog
+The agent is absolutley forbidden to ever remove existing functionality from the GUI.
+group things where it makes sense logically together using expandables. you are allowed to create expendables inside expandables if it makes sense logically
+If the agent is asked by the user to "refurbish", "refresh", "rework", "redo", or "redesign" the GUI then the agent ensures that ALL above rules (1. - 6.) about the streamlit gui are strictly adhered to but those rules ALSO apply WHENEVER the agent works on the application in any way.
+The agent is to unittest the streamlit gui. How this can be done is explained in the file "streamlittestinghowto.md" found in the repo. The streamlit gui is big but that is not to discourage the agent. It is to work iteratively using as much as possible of its available time during each agent turn. The goal is that the ENTIRE streamlit gui is thoroughly tested. NO parts of the gui may be skipped during testing. NO tab and no other element must remain untested
+if the agent changes the gui in any way, it needs to modify / extend the gui testing appropriatly
