@@ -234,3 +234,51 @@ def test_async_autofire_start_stop():
     async_tab = next(t for t in at.tabs if t.label == "Async Training")
     assert any("Auto-firing stopped" in s.value for s in async_tab.success)
 
+
+def test_lobe_manager_create_and_select():
+    at = _setup_advanced_playground()
+    lobe_tab = next(t for t in at.tabs if t.label == "Lobe Manager")
+
+    exp = lobe_tab.expander[0]
+    exp.text_input[0].input("0,1")
+    at = exp.button[0].click().run(timeout=20)
+    lobe_tab = next(t for t in at.tabs if t.label == "Lobe Manager")
+    assert any("created" in s.value.lower() for s in lobe_tab.success)
+
+
+def test_core_tools_expand():
+    at = _setup_advanced_playground()
+    core_tab = next(t for t in at.tabs if t.label == "Core Tools")
+
+    core_tab.number_input[0].set_value(1)
+    core_tab.number_input[1].set_value(1)
+    at = core_tab.button[0].click().run(timeout=20)
+    core_tab = next(t for t in at.tabs if t.label == "Core Tools")
+    assert any("core expanded" in s.value.lower() for s in core_tab.success)
+
+
+def test_learner_creation():
+    at = _setup_advanced_playground()
+    learn_tab = next(t for t in at.tabs if t.label == "Learners")
+
+    learn_tab.selectbox[0].set_value("hebbian_learning")
+    at = learn_tab.run(timeout=20)
+    learn_tab = next(t for t in at.tabs if t.label == "Learners")
+    learn_tab.selectbox[1].set_value("HebbianLearner")
+    at = learn_tab.button[0].click().run(timeout=20)
+    learn_tab = next(t for t in at.tabs if t.label == "Learners")
+    assert any("learner created" in s.value.lower() for s in learn_tab.success)
+
+
+def test_projects_tab_show_code():
+    at = _setup_advanced_playground()
+    proj_tab = next(t for t in at.tabs if t.label == "Projects")
+
+    proj_tab.selectbox[0].set_value("project05_gpt_training.py")
+    at = proj_tab.run(timeout=20)
+    proj_tab = next(t for t in at.tabs if t.label == "Projects")
+    assert (
+        proj_tab.expander[0].code
+        and "import" in proj_tab.expander[0].code[0].value
+    )
+
