@@ -1295,6 +1295,10 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
     Q-learning, then click **Run GridWorld** to train a
     `MarbleQLearningAgent`. The reward curve for each episode is displayed so
     you can observe learning progress.
+26. **Tweak adaptive controllers** on the *Adaptive Control* tab. Inspect the
+    meta-controller's loss history and adjust its parameters, review super
+    evolution metrics and apply dimensional search or n-dimensional topology
+    evaluations with a single click.
 
 Uploaded datasets are previewed directly in the sidebar so you can verify their
 contents before training. The currently active YAML configuration is also shown

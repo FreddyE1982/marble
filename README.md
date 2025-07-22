@@ -103,6 +103,9 @@ lets you create, organize or run self‑attention directly from the interface.
 A new **Async Training** tab lets you launch background training threads and
 enable MARBLE's auto-firing mechanism so learning continues while you explore
 other features.
+An **Adaptive Control** tab exposes the MetaParameterController and
+SuperEvolutionController so you can fine-tune plasticity behaviour, inspect
+parameter changes and run dimensional search or n-dimensional topology updates.
 
 ## Possible MARBLE Backcronyms
 

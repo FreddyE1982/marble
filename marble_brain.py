@@ -147,6 +147,7 @@ class Brain:
     ):
         self.core = core
         self.neuronenblitz = neuronenblitz
+        self.nb = neuronenblitz
         self.dataloader = dataloader
         self.save_threshold = save_threshold
         self.max_saved_models = max_saved_models
