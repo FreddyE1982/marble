@@ -605,3 +605,50 @@ def test_basic_inference():
     at = infer_btn.click().run(timeout=20)
     assert any("Output:" in md.value for md in at.markdown)
 
+
+def test_offload_and_convert(monkeypatch):
+    flags = {"remote": False, "torrent": False, "convert": False}
+
+    def fake_offload(self, threshold=1.0):
+        flags["remote"] = True
+
+    def fake_offload_torrent(self, threshold=1.0):
+        flags["torrent"] = True
+
+    def fake_convert(name):
+        flags["convert"] = True
+        return "marble"
+
+    monkeypatch.setattr(
+        "marble_brain.Brain.offload_high_attention",
+        fake_offload,
+    )
+    monkeypatch.setattr(
+        "marble_brain.Brain.offload_high_attention_torrent",
+        fake_offload_torrent,
+    )
+    monkeypatch.setattr(
+        "streamlit_playground.convert_hf_model",
+        fake_convert,
+    )
+
+    at = _setup_advanced_playground()
+
+    model_tab = next(t for t in at.tabs if t.label == "Model Conversion")
+    model_tab.text_input[1].input("dummy-model")
+    at = model_tab.run(timeout=20)
+
+    off_tab = next(t for t in at.tabs if t.label == "Offloading")
+    off_btn = next(b for b in off_tab.button if b.label == "Offload High Attention")
+    at = off_btn.click().run(timeout=20)
+
+    tor_btn = next(b for b in off_tab.button if b.label == "Offload via Torrent")
+    at = tor_btn.click().run(timeout=20)
+
+    conv_btn = next(b for b in off_tab.button if b.label == "Convert to MARBLE")
+    at = conv_btn.click().run(timeout=20)
+    off_tab = next(t for t in at.tabs if t.label == "Offloading")
+
+    assert flags["remote"] and flags["torrent"] and flags["convert"]
+    assert any("Model converted" in s.value for s in off_tab.success)
+
