@@ -1817,7 +1817,7 @@ def run_playground() -> None:
                         move_pipeline_step(st.session_state["pipeline"], i, i + 1)
                     if cols[3].button("✕", key=f"pipe_rm_{i}"):
                         remove_pipeline_step(st.session_state["pipeline"], i)
-                        st.experimental_rerun()
+                        st.rerun()
             with st.expander("Load/Save Pipeline"):
                 pipe_up = st.file_uploader(
                     "Load Pipeline", type=["json"], key="pipe_load"
@@ -1934,7 +1934,7 @@ def run_playground() -> None:
             st.metric("RAM", f"{stats['ram_mb']:.1f} MB")
             st.metric("GPU", f"{stats['gpu_mb']:.1f} MB")
             if st.button("Refresh Stats", key="stats_refresh"):
-                st.experimental_rerun()
+                st.rerun()
 
         with tab_neuro:
             st.write("Adjust neuromodulatory signals.")

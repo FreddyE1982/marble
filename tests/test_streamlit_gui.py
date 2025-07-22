@@ -189,3 +189,48 @@ def test_classes_tab_instantiation():
     cls_tab = next(t for t in at.tabs if t.label == "Classes")
     assert any("Created MarbleRegistry" in s.value for s in cls_tab.success)
 
+
+def test_pipeline_tab_add_and_run():
+    at = _setup_advanced_playground()
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+
+    add_expander = pipe_tab.expander[1]
+    add_expander.selectbox[0].set_value("count_marble_synapses")
+    at = add_expander.button[0].click().run(timeout=20)
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+    assert pipe_tab.button[3].label == "Run Pipeline"
+    at = pipe_tab.button[3].click().run(timeout=20)
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+    assert any(md.value.strip("`").isdigit() for md in pipe_tab.markdown)
+
+
+def test_custom_code_execution():
+    at = _setup_advanced_playground()
+    code_tab = next(t for t in at.tabs if t.label == "Custom Code")
+    code_tab.text_area[0].input("result = 123")
+    at = code_tab.button[0].click().run(timeout=20)
+    code_tab = next(t for t in at.tabs if t.label == "Custom Code")
+    assert any(md.value.strip("`").isdigit() for md in code_tab.markdown)
+
+
+def test_rl_sandbox_run():
+    at = _setup_advanced_playground()
+    rl_tab = next(t for t in at.tabs if t.label == "RL Sandbox")
+    rl_tab.number_input[0].set_value(3)
+    rl_tab.number_input[1].set_value(1)
+    rl_tab.number_input[2].set_value(2)
+    at = rl_tab.button[0].click().run(timeout=20)
+    rl_tab = next(t for t in at.tabs if t.label == "RL Sandbox")
+    assert rl_tab.get("plotly_chart")
+
+
+def test_async_autofire_start_stop():
+    at = _setup_advanced_playground()
+    async_tab = next(t for t in at.tabs if t.label == "Async Training")
+    at = async_tab.button[2].click().run(timeout=20)
+    async_tab = next(t for t in at.tabs if t.label == "Async Training")
+    assert any("Auto-firing started" in s.value for s in async_tab.success)
+    at = async_tab.button[3].click().run(timeout=20)
+    async_tab = next(t for t in at.tabs if t.label == "Async Training")
+    assert any("Auto-firing stopped" in s.value for s in async_tab.success)
+
