@@ -448,3 +448,145 @@ def test_source_browser_show(monkeypatch):
     at = src_tab.button[0].click().run(timeout=20)
     src_tab = next(t for t in at.tabs if t.label == "Source Browser")
     assert any("def x" in code.value for code in src_tab.code)
+
+
+def test_pipeline_tab_graph_and_clear():
+    at = _setup_advanced_playground()
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+
+    add_expander = pipe_tab.expander[1]
+    add_expander.selectbox[0].set_value("count_marble_synapses")
+    at = add_expander.button[0].click().run(timeout=20)
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+
+    graph_btn = next(b for b in pipe_tab.button if b.label == "Show Pipeline Graph")
+    at = graph_btn.click().run(timeout=20)
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+    assert pipe_tab.get("plotly_chart")
+
+    run_btn = next(b for b in pipe_tab.button if b.label == "Run Pipeline")
+    at = run_btn.click().run(timeout=20)
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+    clear_btn = next(b for b in pipe_tab.button if b.label == "Clear Pipeline")
+    at = clear_btn.click().run(timeout=20)
+    assert at.session_state["pipeline"] == []
+
+
+def test_lobe_manager_actions():
+    at = _setup_advanced_playground()
+    lobe_tab = next(t for t in at.tabs if t.label == "Lobe Manager")
+
+    org_btn = next(b for b in lobe_tab.button if b.label == "Organize Lobes")
+    at = org_btn.click().run(timeout=20)
+    lobe_tab = next(t for t in at.tabs if t.label == "Lobe Manager")
+    assert any("organized" in s.value.lower() for s in lobe_tab.success)
+
+    lobe_tab.number_input[0].set_value(0.1)
+    sa_btn = next(b for b in lobe_tab.button if b.label == "Apply Self-Attention")
+    at = sa_btn.click().run(timeout=20)
+    lobe_tab = next(t for t in at.tabs if t.label == "Lobe Manager")
+    assert any("self-attention" in s.value.lower() for s in lobe_tab.success)
+
+    lobe_tab.number_input[1].set_value(0.1)
+    sel_btn = next(b for b in lobe_tab.button if b.label == "Select High Attention")
+    at = sel_btn.click().run(timeout=20)
+    lobe_tab = next(t for t in at.tabs if t.label == "Lobe Manager")
+    assert lobe_tab.markdown
+
+
+def test_core_tools_operations():
+    at = _setup_advanced_playground()
+    core_tab = next(t for t in at.tabs if t.label == "Core Tools")
+
+    core_tab.text_input[0].input("standard")
+    core_tab.text_input[1].input("")
+    add_n = next(b for b in core_tab.button if b.label == "Add Neuron")
+    at = add_n.click().run(timeout=20)
+    core_tab = next(t for t in at.tabs if t.label == "Core Tools")
+    assert any("added" in md.value.lower() for md in core_tab.markdown)
+
+    core_tab.number_input[3].set_value(0)
+    core_tab.number_input[4].set_value(1)
+    core_tab.number_input[5].set_value(0.5)
+    core_tab.text_input[3].input("standard")
+    add_s = next(b for b in core_tab.button if b.label == "Add Synapse")
+    at = add_s.click().run(timeout=20)
+    core_tab = next(t for t in at.tabs if t.label == "Core Tools")
+    assert any("synapse added" in s.value.lower() for s in core_tab.success)
+
+    core_tab.number_input[6].set_value(0.1)
+    freeze_btn = next(b for b in core_tab.button if b.label == "Freeze")
+    at = freeze_btn.click().run(timeout=20)
+    core_tab = next(t for t in at.tabs if t.label == "Core Tools")
+    assert any("frozen" in s.value.lower() for s in core_tab.success)
+
+    core_tab.number_input[7].set_value(1)
+    inc_btn = next(b for b in core_tab.button if b.label == "Increase Representation")
+    at = inc_btn.click().run(timeout=20)
+    core_tab = next(t for t in at.tabs if t.label == "Core Tools")
+    assert any("increased" in s.value.lower() for s in core_tab.success)
+
+    core_tab.number_input[8].set_value(1)
+    dec_btn = next(b for b in core_tab.button if b.label == "Decrease Representation")
+    at = dec_btn.click().run(timeout=20)
+    core_tab = next(t for t in at.tabs if t.label == "Core Tools")
+    assert any("decreased" in s.value.lower() for s in core_tab.success)
+
+    core_tab.number_input[9].set_value(1)
+    mp_btn = next(b for b in core_tab.button if b.label == "Run Message Passing")
+    at = mp_btn.click().run(timeout=20)
+    core_tab = next(t for t in at.tabs if t.label == "Core Tools")
+    assert any("avg change" in md.value.lower() for md in core_tab.markdown)
+
+    reset_btn = next(b for b in core_tab.button if b.label == "Reset Representations")
+    at = reset_btn.click().run(timeout=20)
+    core_tab = next(t for t in at.tabs if t.label == "Core Tools")
+    assert any("reset" in s.value.lower() for s in core_tab.success)
+
+    core_tab.number_input[10].set_value(1.0)
+    rand_btn = next(b for b in core_tab.button if b.label == "Randomize Representations")
+    at = rand_btn.click().run(timeout=20)
+    core_tab = next(t for t in at.tabs if t.label == "Core Tools")
+    assert any("randomized" in s.value.lower() for s in core_tab.success)
+
+
+def test_config_editor_reinitialize():
+    at = _setup_advanced_playground()
+    cfg_tab = next(t for t in at.tabs if t.label == "Config Editor")
+
+    cfg_tab.text_input[0].input("core.width")
+    cfg_tab.text_input[1].input("5")
+    at = cfg_tab.button[0].click().run(timeout=20)
+    cfg_tab = next(t for t in at.tabs if t.label == "Config Editor")
+    at = cfg_tab.button[1].click().run(timeout=20)
+    cfg_tab = next(t for t in at.tabs if t.label == "Config Editor")
+    assert any("reinitialized" in s.value.lower() for s in cfg_tab.success)
+
+
+def test_adaptive_control_actions(monkeypatch):
+    monkeypatch.setattr("streamlit_playground.adjust_meta_controller", lambda *a, **k: 0.5)
+    at = _setup_advanced_playground()
+    adapt_tab = next(t for t in at.tabs if t.label == "Adaptive Control")
+
+    adj_btn = next(b for b in adapt_tab.button if b.label == "Adjust Now")
+    at = adj_btn.click().run(timeout=20)
+    adapt_tab = next(t for t in at.tabs if t.label == "Adaptive Control")
+    assert any("threshold" in s.value.lower() for s in adapt_tab.success)
+
+    clr_btn = next(b for b in adapt_tab.button if b.label == "Clear History")
+    at = clr_btn.click().run(timeout=20)
+    adapt_tab = next(t for t in at.tabs if t.label == "Adaptive Control")
+    assert any("history cleared" in s.value.lower() for s in adapt_tab.success)
+
+
+def test_projects_tab_run(monkeypatch):
+    monkeypatch.setattr("streamlit_playground.run_example_project", lambda p: "done")
+    at = _setup_advanced_playground()
+    proj_tab = next(t for t in at.tabs if t.label == "Projects")
+
+    proj_tab.selectbox[0].set_value("project05_gpt_training.py")
+    run_btn = next(b for b in proj_tab.button if b.label == "Run Project")
+    at = run_btn.click().run(timeout=20)
+    proj_tab = next(t for t in at.tabs if t.label == "Projects")
+    assert any("done" in t.value for t in proj_tab.text)
+
