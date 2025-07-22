@@ -1028,6 +1028,98 @@ def parallel_wander_neuronenblitz(
     return [(float(o), int(s)) for o, s in results]
 
 
+def meta_controller_info(marble) -> dict:
+    """Return parameters and loss history of the meta-controller."""
+
+    mc = marble.get_brain().meta_controller
+    return {
+        "history_length": int(mc.history_length),
+        "adjustment": float(mc.adjustment),
+        "min_threshold": float(mc.min_threshold),
+        "max_threshold": float(mc.max_threshold),
+        "loss_history": list(mc.loss_history),
+        "plasticity_threshold": float(marble.get_neuronenblitz().plasticity_threshold),
+    }
+
+
+def update_meta_controller(
+    marble,
+    history_length: int | None = None,
+    adjustment: float | None = None,
+    min_threshold: float | None = None,
+    max_threshold: float | None = None,
+) -> dict:
+    """Update meta-controller parameters and return the new settings."""
+
+    mc = marble.get_brain().meta_controller
+    if history_length is not None:
+        mc.history_length = int(history_length)
+        mc.loss_history = mc.loss_history[-mc.history_length :]
+    if adjustment is not None:
+        mc.adjustment = float(adjustment)
+    if min_threshold is not None:
+        mc.min_threshold = float(min_threshold)
+    if max_threshold is not None:
+        mc.max_threshold = float(max_threshold)
+    return meta_controller_info(marble)
+
+
+def adjust_meta_controller(marble) -> float:
+    """Apply the meta-controller adjustment and return the new threshold."""
+
+    mc = marble.get_brain().meta_controller
+    mc.adjust(marble.get_neuronenblitz())
+    return float(marble.get_neuronenblitz().plasticity_threshold)
+
+
+def reset_meta_loss_history(marble) -> None:
+    """Clear the meta-controller loss history."""
+
+    marble.get_brain().meta_controller.loss_history.clear()
+
+
+def super_evo_history(marble) -> list[dict]:
+    """Return recorded metrics from the super evolution controller."""
+
+    se = marble.get_brain().super_evo_controller
+    return [] if se is None else list(se.history)
+
+
+def super_evo_changes(marble) -> list[dict]:
+    """Return parameter change log from the super evolution controller."""
+
+    se = marble.get_brain().super_evo_controller
+    return [] if se is None else list(se.change_log)
+
+
+def clear_super_evo_changes(marble) -> None:
+    """Clear the super evolution change log."""
+
+    se = marble.get_brain().super_evo_controller
+    if se is not None:
+        se.change_log.clear()
+
+
+def run_dimensional_search(marble, loss: float) -> int:
+    """Evaluate ``DimensionalitySearch`` using ``loss`` and return rep size."""
+
+    ds = marble.get_brain().dim_search
+    if ds is None:
+        raise ValueError("DimensionalitySearch not enabled")
+    ds.evaluate(float(loss))
+    return int(marble.get_core().rep_size)
+
+
+def run_nd_topology(marble, loss: float) -> int:
+    """Evaluate ``NDimensionalTopologyManager`` and return rep size."""
+
+    ndt = marble.get_brain().nd_topology
+    if ndt is None:
+        raise ValueError("NDimensionalTopologyManager not enabled")
+    ndt.evaluate(float(loss))
+    return int(marble.get_core().rep_size)
+
+
 def start_auto_firing(marble, interval_ms: int = 1000) -> None:
     """Start MARBLE's auto-firing thread."""
 
@@ -1306,6 +1398,7 @@ def run_playground() -> None:
             tab_offload,
             tab_async,
             tab_rl,
+            tab_adapt,
             tab_nbexp,
             tab_proj,
             tab_tests,
@@ -1331,6 +1424,7 @@ def run_playground() -> None:
                 "Offloading",
                 "Async Training",
                 "RL Sandbox",
+                "Adaptive Control",
                 "NB Explorer",
                 "Projects",
                 "Tests",
@@ -1998,6 +2092,79 @@ def run_playground() -> None:
                 fig.add_scatter(y=rewards, mode="lines+markers")
                 fig.update_layout(xaxis_title="Episode", yaxis_title="Total Reward")
                 st.plotly_chart(fig, use_container_width=True)
+
+        with tab_adapt:
+            st.write("Inspect adaptive controllers and dimensional tools.")
+            info = meta_controller_info(marble)
+            st.json(info)
+            with st.expander("Update Meta Controller"):
+                hlen = st.number_input(
+                    "History Length",
+                    value=info["history_length"],
+                    step=1,
+                    key="mc_hist",
+                )
+                adj = st.number_input(
+                    "Adjustment",
+                    value=info["adjustment"],
+                    key="mc_adj",
+                )
+                min_t = st.number_input(
+                    "Min Threshold",
+                    value=info["min_threshold"],
+                    key="mc_min",
+                )
+                max_t = st.number_input(
+                    "Max Threshold",
+                    value=info["max_threshold"],
+                    key="mc_max",
+                )
+                if st.button("Apply Settings", key="mc_update"):
+                    new = update_meta_controller(
+                        marble,
+                        history_length=int(hlen),
+                        adjustment=float(adj),
+                        min_threshold=float(min_t),
+                        max_threshold=float(max_t),
+                    )
+                    st.json(new)
+            if st.button("Adjust Now", key="mc_do_adjust"):
+                thr = adjust_meta_controller(marble)
+                st.success(f"Plasticity threshold = {thr}")
+            if st.button("Clear History", key="mc_clear_hist"):
+                reset_meta_loss_history(marble)
+                st.success("History cleared")
+            st.divider()
+            se_hist = super_evo_history(marble)
+            if se_hist:
+                st.subheader("Super Evolution History")
+                st.dataframe(pd.DataFrame(se_hist), use_container_width=True)
+            se_changes = super_evo_changes(marble)
+            if se_changes:
+                st.subheader("Parameter Changes")
+                st.dataframe(pd.DataFrame(se_changes), use_container_width=True)
+                if st.button("Clear Change Log", key="se_clear"):
+                    clear_super_evo_changes(marble)
+                    st.success("Cleared change log")
+            st.divider()
+            if marble.get_brain().dim_search is not None:
+                ds_loss = st.number_input(
+                    "Dimensional Search Loss",
+                    value=0.0,
+                    key="ds_loss_val",
+                )
+                if st.button("Evaluate Dimensional Search", key="ds_eval"):
+                    size = run_dimensional_search(marble, loss=ds_loss)
+                    st.write(f"Representation size: {size}")
+            if marble.get_brain().nd_topology is not None:
+                nd_loss = st.number_input(
+                    "N-D Topology Loss",
+                    value=0.0,
+                    key="nd_loss_val",
+                )
+                if st.button("Evaluate N-D Topology", key="nd_eval"):
+                    size = run_nd_topology(marble, loss=nd_loss)
+                    st.write(f"Representation size: {size}")
 
         with tab_nbexp:
             st.write("Explore Neuronenblitz wander behaviour.")

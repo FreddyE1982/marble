@@ -89,6 +89,15 @@ from streamlit_playground import (
     parallel_wander_neuronenblitz,
     core_weight_matrix,
     core_heatmap_figure,
+    meta_controller_info,
+    update_meta_controller,
+    adjust_meta_controller,
+    reset_meta_loss_history,
+    super_evo_history,
+    super_evo_changes,
+    clear_super_evo_changes,
+    run_dimensional_search,
+    run_nd_topology,
 )
 
 
@@ -611,3 +620,48 @@ def test_neuronenblitz_wander_helpers(tmp_path):
     assert isinstance(res, list) and res
     assert isinstance(res[0][0], float)
     assert isinstance(res[0][1], int)
+
+
+def test_adaptive_control_helpers(tmp_path):
+    core_cfg = minimal_params()
+    core_cfg["n_dimensional_topology"] = {
+        "enabled": True,
+        "target_dimensions": 6,
+        "attention_threshold": 0.0,
+        "loss_improve_threshold": 0.0,
+        "stagnation_epochs": 1,
+    }
+    cfg = {
+        "core": core_cfg,
+        "brain": {
+            "save_dir": str(tmp_path),
+            "super_evolution_mode": True,
+            "dimensional_search": {"enabled": True},
+        },
+    }
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+    marble = initialize_marble(str(cfg_path))
+
+    info = meta_controller_info(marble)
+    assert "loss_history" in info
+    update_meta_controller(marble, history_length=2, adjustment=1.0)
+    marble.brain.meta_controller.record_loss(1.0)
+    marble.brain.meta_controller.record_loss(2.0)
+    prev = marble.neuronenblitz.plasticity_threshold
+    adjust_meta_controller(marble)
+    assert marble.neuronenblitz.plasticity_threshold != prev
+    reset_meta_loss_history(marble)
+    assert not marble.brain.meta_controller.loss_history
+
+    marble.brain.super_evo_controller.record_metrics(0.1, 1.0)
+    assert isinstance(super_evo_history(marble), list)
+    assert isinstance(super_evo_changes(marble), list)
+    clear_super_evo_changes(marble)
+    assert marble.brain.super_evo_controller.change_log == []
+
+    size1 = run_dimensional_search(marble, loss=1.0)
+    size2 = run_nd_topology(marble, loss=1.0)
+    assert isinstance(size1, int)
+    assert isinstance(size2, int)
