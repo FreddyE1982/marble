@@ -826,3 +826,89 @@ def test_start_background_training(monkeypatch):
     at = wait_btn.click().run(timeout=20)
     async_tab = next(t for t in at.tabs if t.label == "Async Training")
     assert any("complete" in s.value.lower() for s in async_tab.success)
+
+def test_model_search_and_preview(monkeypatch):
+    monkeypatch.setattr(
+        "streamlit_playground.search_hf_models",
+        lambda q: ["dummy-model"],
+    )
+    class Dummy:
+        def named_parameters(self):
+            return []
+    monkeypatch.setattr(
+        "streamlit_playground.load_hf_model",
+        lambda name: Dummy(),
+    )
+    at = _setup_advanced_playground()
+    model_tab = next(t for t in at.tabs if t.label == "Model Conversion")
+    model_tab.text_input[0].input("dummy")
+    at = model_tab.button[0].click().run(timeout=20)
+    model_tab = next(t for t in at.tabs if t.label == "Model Conversion")
+    model_tab.selectbox[0].set_value("dummy-model")
+    at = model_tab.button[1].click().run(timeout=20)
+    model_tab = next(t for t in at.tabs if t.label == "Model Conversion")
+    assert any("Layer" in txt.value or "Total" in txt.value for txt in model_tab.text)
+
+
+def test_adaptive_control_extra(monkeypatch):
+    monkeypatch.setattr(
+        "streamlit_playground.update_meta_controller",
+        lambda *a, **k: {"history_length": 1},
+    )
+    monkeypatch.setattr(
+        "streamlit_playground.super_evo_changes", lambda m: [{"step": 1}]
+    )
+    monkeypatch.setattr(
+        "streamlit_playground.clear_super_evo_changes", lambda m: None
+    )
+    monkeypatch.setattr(
+        "streamlit_playground.run_dimensional_search", lambda m, loss: 1
+    )
+    monkeypatch.setattr(
+        "streamlit_playground.run_nd_topology", lambda m, loss: 1
+    )
+
+    at = _setup_advanced_playground()
+    marble = at.session_state["marble"]
+    marble.get_brain().dim_search = object()
+    marble.get_brain().nd_topology = object()
+    adapt_tab = next(t for t in at.tabs if t.label == "Adaptive Control")
+
+    exp = adapt_tab.expander[0]
+    exp.number_input[0].set_value(2)
+    exp.number_input[1].set_value(0.1)
+    exp.number_input[2].set_value(0.1)
+    exp.number_input[3].set_value(1.0)
+    at = exp.button[0].click().run(timeout=20)
+    adapt_tab = next(t for t in at.tabs if t.label == "Adaptive Control")
+    assert adapt_tab.json
+
+    clr_btn = next(b for b in adapt_tab.button if b.label == "Clear Change Log")
+    at = clr_btn.click().run(timeout=20)
+    adapt_tab = next(t for t in at.tabs if t.label == "Adaptive Control")
+    assert any("Cleared" in s.value for s in adapt_tab.success)
+
+    ds_btn = next(b for b in adapt_tab.button if b.label == "Evaluate Dimensional Search")
+    at = ds_btn.click().run(timeout=20)
+    adapt_tab = next(t for t in at.tabs if t.label == "Adaptive Control")
+    nd_btn = next(b for b in adapt_tab.button if b.label == "Evaluate N-D Topology")
+    at = nd_btn.click().run(timeout=20)
+    adapt_tab = next(t for t in at.tabs if t.label == "Adaptive Control")
+    assert any("Representation size" in md.value for md in adapt_tab.markdown)
+
+
+def test_hybrid_memory_forget(monkeypatch):
+    monkeypatch.setattr(
+        "streamlit_playground.hybrid_memory_forget", lambda *a, **k: None
+    )
+    at = _setup_advanced_playground()
+    hm_tab = next(t for t in at.tabs if t.label == "Hybrid Memory")
+    hm_tab.text_input[0].input("vec.pkl")
+    hm_tab.text_input[1].input("sym.pkl")
+    at = hm_tab.button[0].click().run(timeout=20)
+    hm_tab = next(t for t in at.tabs if t.label == "Hybrid Memory")
+    hm_tab.number_input[2].set_value(10)
+    forget_btn = next(b for b in hm_tab.button if b.label == "Forget Old")
+    at = forget_btn.click().run(timeout=20)
+    hm_tab = next(t for t in at.tabs if t.label == "Hybrid Memory")
+    assert any("Pruned" in s.value for s in hm_tab.success)
