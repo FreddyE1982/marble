@@ -2,6 +2,9 @@
 The agent MUST implement everything in the maximum possible and most sophisticated implementation level,
 as extensive and enhanced as possible! ALL code parts must work with CPU AND GPU depending if cuda/gpu is available
 
+When the user has given the agent a task that involves working on the gui only (for example: enhance and expand the gui tests) then the agent is to ONLY run tests related to the gui NOT ALL tests. 
+In this case the rule that says to always run all tests is temporarily not in effect.
+
 Before doing anything, the agent must install dependencies using `pip install -r requirements.txt`.
 If there are conflicts with in requirements.txt the agent must fix them.
 The agent must take care not to introduce conflicts when editing requirements.txt
