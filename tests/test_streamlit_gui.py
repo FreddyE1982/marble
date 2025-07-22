@@ -711,3 +711,35 @@ def test_duplicate_instance(monkeypatch):
     dup_btn = next(b for b in at.sidebar.button if b.label == "Duplicate Instance")
     at = dup_btn.click().run(timeout=20)
     assert any("duplicated" in s.value.lower() for s in at.sidebar.success)
+
+def test_pipeline_reorder_and_remove():
+    at = _setup_advanced_playground()
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+    add_exp = pipe_tab.expander[1]
+    add_exp.selectbox[0].set_value("count_marble_synapses")
+    at = add_exp.button[0].click().run(timeout=20)
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+    add_exp = pipe_tab.expander[1]
+    add_exp.selectbox[0].set_value("count_marble_synapses")
+    at = add_exp.button[0].click().run(timeout=20)
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+    assert len(at.session_state["pipeline"]) == 2
+    down_btn = next(b for b in pipe_tab.button if b.label == "⬇")
+    at = down_btn.click().run(timeout=20)
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+    assert len(at.session_state["pipeline"]) == 2
+    rm_btn = next(b for b in pipe_tab.button if b.label == "✕")
+    at = rm_btn.click().run(timeout=20)
+    assert len(at.session_state["pipeline"]) == 1
+
+def test_auto_firing_start_stop():
+    at = _setup_advanced_playground()
+    async_tab = next(t for t in at.tabs if t.label == "Async Training")
+    start_btn = next(b for b in async_tab.button if b.label == "Start Auto-Firing")
+    at = start_btn.click().run(timeout=20)
+    async_tab = next(t for t in at.tabs if t.label == "Async Training")
+    assert any("started" in s.value.lower() for s in async_tab.success)
+    stop_btn = next(b for b in async_tab.button if b.label == "Stop Auto-Firing")
+    at = stop_btn.click().run(timeout=20)
+    async_tab = next(t for t in at.tabs if t.label == "Async Training")
+    assert any("stopped" in s.value.lower() for s in async_tab.success)
