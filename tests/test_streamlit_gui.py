@@ -688,3 +688,26 @@ def test_basic_text_inference():
     infer_btn = next(b for b in at.button if b.label == "Infer")
     at = infer_btn.click().run(timeout=20)
     assert any("Output:" in md.value for md in at.markdown)
+
+def test_save_config_file(monkeypatch):
+    at = _setup_basic_playground()
+    exp = at.sidebar.expander[0]
+    monkeypatch.setattr(
+        "streamlit_playground.save_config_yaml", lambda text, path: None
+    )
+    exp.text_input[0].input("saved.yaml")
+    at = exp.button[0].click().run(timeout=20)
+    assert any("Config saved" in s.value for s in at.sidebar.success)
+
+
+def test_duplicate_instance(monkeypatch):
+    monkeypatch.setattr(
+        "streamlit_playground.save_marble_system", lambda *a, **k: None
+    )
+    monkeypatch.setattr(
+        "streamlit_playground.MarbleRegistry.duplicate", lambda *a, **k: None
+    )
+    at = _setup_basic_playground()
+    dup_btn = next(b for b in at.sidebar.button if b.label == "Duplicate Instance")
+    at = dup_btn.click().run(timeout=20)
+    assert any("duplicated" in s.value.lower() for s in at.sidebar.success)
