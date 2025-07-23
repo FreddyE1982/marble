@@ -21,6 +21,7 @@ def test_synaptic_fatigue_accumulates():
     random.seed(0)
     np.random.seed(0)
     core, syn = create_simple_core()
+    core.gradient_clip_value = 10.0
     nb = Neuronenblitz(
         core,
         synaptic_fatigue_enabled=True,
@@ -97,6 +98,8 @@ def test_weight_update_gradient_clipping():
 def test_weight_update_with_noise():
     random.seed(0)
     core, syn = create_simple_core()
+    core.gradient_clip_value = 10.0
+    core.gradient_clip_value = 10.0
     core.gradient_clip_value = 10.0
     nb = Neuronenblitz(
         core,
@@ -269,4 +272,49 @@ def test_beam_wander_selects_best_path():
     out, path = nb.dynamic_wander(1.0)
     assert isinstance(out, float)
     assert path
+
+
+def test_context_gain_scale_modulates_updates():
+    random.seed(0)
+    core, syn = create_simple_core()
+    core.gradient_clip_value = 10.0
+
+    def fixed_update(src, err, path_len):
+        return 1.0
+
+    nb = Neuronenblitz(
+        core,
+        learning_rate=1.0,
+        context_gain_scale=0.5,
+        weight_update_fn=fixed_update,
+        synapse_update_cap=2.0,
+        consolidation_probability=0.0,
+        weight_decay=0.0,
+    )
+    nb.update_context(reward=1.0)
+    core.neurons[0].value = 1.0
+    nb.apply_weight_updates_and_attention([syn], error=1.0)
+    assert np.isclose(syn.weight, 2.5)
+
+
+def test_context_gain_default_one():
+    random.seed(0)
+    core, syn = create_simple_core()
+    core.gradient_clip_value = 10.0
+
+    def fixed_update(src, err, path_len):
+        return 1.0
+
+    nb = Neuronenblitz(
+        core,
+        learning_rate=1.0,
+        context_gain_scale=0.5,
+        weight_update_fn=fixed_update,
+        synapse_update_cap=2.0,
+        consolidation_probability=0.0,
+        weight_decay=0.0,
+    )
+    core.neurons[0].value = 1.0
+    nb.apply_weight_updates_and_attention([syn], error=1.0)
+    assert np.isclose(syn.weight, 2.0)
 

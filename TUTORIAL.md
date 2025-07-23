@@ -51,6 +51,7 @@ This tutorial demonstrates every major component of MARBLE through a series of p
 7. **Monitor progress** with `MetricsVisualizer` which plots loss and memory usage. Adjust the `fig_width` and `color_scheme` options under `metrics_visualizer` in `config.yaml` to change the appearance.
 8. **View metrics in your browser** by enabling `metrics_dashboard.enabled`. Set `window_size` to control the moving-average smoothing of the curves.
 9. **Gradually reduce regularization** by setting `dropout_probability` and `dropout_decay_rate` under `neuronenblitz`. A decay rate below `1.0` multiplies the current dropout value after each epoch.
+10. **Tune contextual learning** with `context_gain_scale` under `neuronenblitz`. Increasing this value makes weight updates more sensitive to neuromodulatory signals like reward and stress.
 
 **Complete Example**
 ```python

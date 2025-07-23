@@ -239,6 +239,12 @@ neuronenblitz:
   use_echo_modulation: When ``true`` weight updates are multiplied by each
     synapse's echo buffer average, enabling the synaptic echo learning
     mechanism. Disable to revert to standard updates.
+  context_gain_scale: Factor that determines how strongly neuromodulatory
+    context (reward, stress and arousal) influences weight updates. The
+    effective multiplier applied to each update is ``1 + context_gain_scale *
+    (reward - stress + arousal)``. Set to ``0.0`` to disable context-based
+    modulation. Typical values range from ``0.0`` to ``1.0`` depending on how
+    sensitive the network should be to the neuromodulatory system.
   reinforcement_learning_enabled: Turn on Q-learning inside Neuronenblitz. When
     enabled the ``rl_`` methods may be used to select actions and update
     values directly through the network.
