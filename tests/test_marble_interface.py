@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import marble_imports
 import marble_brain
 import marble_main
+import marble_interface
 from marble_base import MetricsVisualizer
 from tqdm import tqdm as std_tqdm
 from tests.test_core_functions import minimal_params
@@ -111,3 +112,19 @@ def test_export_and_import_core(tmp_path):
     js = export_core_to_json(m)
     m2 = import_core_from_json(js)
     assert len(m2.get_core().neurons) == len(m.get_core().neurons)
+
+
+def test_train_autoencoder_runs(tmp_path):
+    marble_imports.tqdm = std_tqdm
+    marble_brain.tqdm = std_tqdm
+    marble_main.MetricsVisualizer = MetricsVisualizer
+
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+
+    m = new_marble_system(str(cfg_path))
+    loss = marble_interface.train_autoencoder(m, [0.1, 0.2], epochs=1)
+    assert isinstance(loss, float)
+    assert loss >= 0.0

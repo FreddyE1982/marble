@@ -11,6 +11,7 @@ from config_loader import create_marble_from_config, load_config
 from marble_main import MARBLE
 from marble_autograd import MarbleAutogradLayer
 from marble_utils import core_to_json, core_from_json
+from autoencoder_learning import AutoencoderLearner
 import torch
 from datasets import load_dataset
 import warnings
@@ -401,3 +402,23 @@ def randomize_core_representations(marble: MARBLE, std: float = 1.0) -> None:
 def count_marble_synapses(marble: MARBLE) -> int:
     """Return the number of synapses in ``marble``."""
     return len(marble.get_core().synapses)
+
+
+def train_autoencoder(
+    marble: MARBLE,
+    values: Iterable[float],
+    epochs: int = 1,
+    noise_std: float = 0.1,
+    noise_decay: float = 0.99,
+) -> float:
+    """Train a denoising autoencoder and return the final loss."""
+
+    learner = AutoencoderLearner(
+        marble.get_core(),
+        marble.get_neuronenblitz(),
+        noise_std=float(noise_std),
+        noise_decay=float(noise_decay),
+    )
+    learner.train(list(map(float, values)), epochs=int(epochs))
+    return float(learner.history[-1]["loss"]) if learner.history else 0.0
+
