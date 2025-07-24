@@ -205,6 +205,9 @@ class Neuronenblitz:
         self.error_history = deque(maxlen=100)
         self._momentum = {}
         self._eligibility_traces = {}
+        self.wander_cache = {}
+        self._cache_order = deque()
+        self._cache_max_size = 50
         self.q_encoding = default_q_encoding
 
     def __getstate__(self):
@@ -540,6 +543,13 @@ class Neuronenblitz:
 
     def dynamic_wander(self, input_value, apply_plasticity=True):
         with self.lock:
+            if not apply_plasticity and input_value in self.wander_cache:
+                out, path, _ = self.wander_cache[input_value]
+                if input_value in self._cache_order:
+                    self._cache_order.remove(input_value)
+                self._cache_order.append(input_value)
+                return out, list(path)
+
             for neuron in self.core.neurons:
                 neuron.value = None
             self.decay_fatigues()
@@ -595,7 +605,18 @@ class Neuronenblitz:
                 self.prune_low_potential_synapses()
             if apply_plasticity:
                 self.apply_structural_plasticity(final_path)
-            return final_neuron.value, [s for (_, s) in final_path if s is not None]
+            result_path = [s for (_, s) in final_path if s is not None]
+            if not apply_plasticity:
+                if len(self._cache_order) >= self._cache_max_size:
+                    old = self._cache_order.popleft()
+                    self.wander_cache.pop(old, None)
+                self.wander_cache[input_value] = (
+                    final_neuron.value,
+                    result_path,
+                    datetime.utcnow(),
+                )
+                self._cache_order.append(input_value)
+            return final_neuron.value, result_path
 
     def dynamic_wander_parallel(self, input_value, num_processes=None):
         """Run ``dynamic_wander`` in multiple processes.
