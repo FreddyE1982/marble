@@ -943,3 +943,14 @@ def test_about_dialog():
     about_btn = next(b for b in at.button if b.label == "About")
     at = about_btn.click().run(timeout=20)
     assert any("MARBLE" in md.value for md in at.markdown)
+
+
+def test_autoencoder_tab_training(monkeypatch):
+    monkeypatch.setattr("streamlit_playground.train_autoencoder", lambda *a, **k: 0.0)
+    at = _setup_advanced_playground()
+    auto_tab = next(t for t in at.tabs if t.label == "Autoencoder")
+    auto_tab.file_uploader[0].upload(("vals.csv", "value\n0.1\n0.2\n"))
+    train_btn = next(b for b in auto_tab.button if b.label == "Train Autoencoder")
+    at = train_btn.click().run(timeout=20)
+    auto_tab = next(t for t in at.tabs if t.label == "Autoencoder")
+    assert any("Training complete" in s.value for s in auto_tab.success)

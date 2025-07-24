@@ -50,6 +50,7 @@ from marble_interface import (
     run_core_message_passing,
     reset_core_representations,
     randomize_core_representations,
+    train_autoencoder,
 )
 
 from metrics_dashboard import MetricsDashboard
@@ -145,6 +146,41 @@ def load_examples(file) -> list[tuple]:
             for inp, tgt in zip(inputs, targets):
                 examples.append((_parse_value(inp, zf), _parse_value(tgt, zf)))
             return examples
+    raise ValueError("Unsupported dataset format")
+
+
+def load_value_list(file) -> list[float]:
+    """Load a list of numeric values from ``file``."""
+    name = getattr(file, "name", "")
+    ext = os.path.splitext(name)[1].lower()
+    if ext == ".csv" or not ext:
+        df = pd.read_csv(file)
+        col = "value" if "value" in df.columns else df.columns[0]
+        return df[col].astype(float).tolist()
+    if ext in {".json", ".jsonl"}:
+        js = json.load(file)
+        if isinstance(js, list):
+            if js and isinstance(js[0], dict):
+                key = "value" if "value" in js[0] else list(js[0].keys())[0]
+                return [float(e[key]) for e in js]
+            return [float(x) for x in js]
+    if ext == ".txt":
+        text = file.read().decode("utf-8")
+        return [float(v) for v in text.split() if v.strip()]
+    if ext == ".zip":
+        with ZipFile(file) as zf:
+            if "values.csv" in zf.namelist():
+                with zf.open("values.csv") as f:
+                    df = pd.read_csv(f)
+                col = "value" if "value" in df.columns else df.columns[0]
+                return df[col].astype(float).tolist()
+            if "values.json" in zf.namelist():
+                with zf.open("values.json") as f:
+                    js = json.load(f)
+                if js and isinstance(js[0], dict):
+                    key = "value" if "value" in js[0] else list(js[0].keys())[0]
+                    return [float(e[key]) for e in js]
+                return [float(x) for x in js]
     raise ValueError("Unsupported dataset format")
 
 
@@ -1502,6 +1538,7 @@ def run_playground() -> None:
             tab_mod,
             tab_cls,
             tab_learner,
+            tab_autoenc,
             tab_pipe,
             tab_code,
             tab_vis,
@@ -1530,6 +1567,7 @@ def run_playground() -> None:
                 "Modules",
                 "Classes",
                 "Learners",
+                "Autoencoder",
                 "Pipeline",
                 "Custom Code",
                 "Visualization",
@@ -1803,6 +1841,29 @@ def run_playground() -> None:
                         epochs=int(lepochs),
                     )
                     st.success("Training complete")
+
+        with tab_autoenc:
+            st.write("Train a denoising autoencoder on numeric values.")
+            file = st.file_uploader(
+                "Values Dataset",
+                type=["csv", "json", "jsonl", "zip", "txt"],
+                key="auto_vals",
+            )
+            a_epochs = st.number_input("Epochs", value=1, min_value=1, step=1, key="auto_epochs")
+            a_std = st.number_input("Noise Std", value=0.1, format="%.2f", key="auto_std")
+            a_decay = st.number_input(
+                "Noise Decay", value=0.99, format="%.2f", step=0.01, key="auto_decay"
+            )
+            if st.button("Train Autoencoder", key="auto_train") and file is not None:
+                values = load_value_list(file)
+                loss = train_autoencoder(
+                    marble,
+                    values,
+                    epochs=int(a_epochs),
+                    noise_std=float(a_std),
+                    noise_decay=float(a_decay),
+                )
+                st.success(f"Training complete. Final loss: {loss:.6f}")
 
         with tab_pipe:
             st.write("Build a sequence of function calls.")
