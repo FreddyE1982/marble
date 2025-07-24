@@ -99,6 +99,7 @@ neuronenblitz:
   lr_adjustment_factor: 0.1
   momentum_coefficient: 0.0
   use_echo_modulation: false
+  context_gain_scale: 0.0
   reinforcement_learning_enabled: false
   rl_discount: 0.9
   rl_epsilon: 1.0

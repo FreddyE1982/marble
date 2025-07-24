@@ -105,6 +105,7 @@ Each entry is listed under its section heading.
 - lr_adjustment_factor
 - momentum_coefficient
 - use_echo_modulation
+- context_gain_scale
 - reinforcement_learning_enabled
 - rl_discount
 - rl_epsilon

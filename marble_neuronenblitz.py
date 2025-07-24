@@ -106,6 +106,7 @@ class Neuronenblitz:
         rl_epsilon_decay=0.95,
         rl_min_epsilon=0.1,
         use_echo_modulation=False,
+        context_gain_scale=0.0,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -168,6 +169,7 @@ class Neuronenblitz:
         self.rl_epsilon_decay = rl_epsilon_decay
         self.rl_min_epsilon = rl_min_epsilon
         self.use_echo_modulation = use_echo_modulation
+        self.context_gain_scale = context_gain_scale
 
         self.combine_fn = combine_fn if combine_fn is not None else default_combine_fn
         self.loss_fn = loss_fn if loss_fn is not None else default_loss_fn
@@ -228,6 +230,14 @@ class Neuronenblitz:
     def get_context(self):
         """Return a copy of the most recently stored neuromodulatory context."""
         return self.last_context.copy()
+
+    def compute_context_gain(self) -> float:
+        """Return scaling factor derived from the current neuromodulatory context."""
+        reward = self.last_context.get("reward", 0.0) * self.reward_scale
+        stress = self.last_context.get("stress", 0.0) * self.stress_scale
+        arousal = self.last_context.get("arousal", 0.0)
+        gain = 1.0 + self.context_gain_scale * (reward - stress + arousal)
+        return max(0.0, gain)
 
     def reset_neuron_values(self):
         for neuron in self.core.neurons:
@@ -636,6 +646,7 @@ class Neuronenblitz:
                 continue
             source_value = self.core.neurons[syn.source].value
             delta = self.weight_update_fn(source_value, error, path_length)
+            delta *= self.compute_context_gain()
             if self.use_echo_modulation and hasattr(syn, "get_echo_average"):
                 delta *= syn.get_echo_average()
             if self.gradient_noise_std > 0:
