@@ -329,3 +329,28 @@ def test_entry_neuron_selection_bias():
     )
     selections = [nb._select_entry_neuron().id for _ in range(50)]
     assert selections.count(0) > selections.count(1)
+
+
+def test_weighted_choice_prefers_attention_and_low_fatigue():
+    random.seed(0)
+    np.random.seed(0)
+    params = minimal_params()
+    core = Core(params)
+    core.neurons = [Neuron(0, value=0.0), Neuron(1, value=0.0), Neuron(2, value=0.0)]
+    core.synapses = []
+    syn_a = core.add_synapse(0, 1, weight=1.0)
+    syn_b = core.add_synapse(0, 2, weight=1.0)
+    syn_a.fatigue = 0.0
+    syn_b.fatigue = 0.8
+    core.neurons[1].attention_score = 2.0
+    core.neurons[2].attention_score = 0.0
+    nb = Neuronenblitz(
+        core,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        backtrack_probability=0.0,
+        backtrack_enabled=False,
+        synaptic_fatigue_enabled=True,
+    )
+    selections = [nb.weighted_choice(core.neurons[0].synapses) for _ in range(50)]
+    assert selections.count(syn_a) > selections.count(syn_b)

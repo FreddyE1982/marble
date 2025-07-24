@@ -320,14 +320,23 @@ class Neuronenblitz:
         )
 
     def weighted_choice(self, synapses):
-        total = sum(syn.potential for syn in synapses)
-        r = random.uniform(0, total)
-        upto = 0
+        """Select a synapse using fatigue- and attention-aware softmax."""
+        if len(synapses) == 1:
+            return synapses[0]
+
+        scores = []
         for syn in synapses:
-            upto += syn.potential
-            if upto >= r:
-                return syn
-        return random.choice(synapses)
+            fatigue = getattr(syn, "fatigue", 0.0) if self.synaptic_fatigue_enabled else 0.0
+            fatigue_factor = max(0.0, 1.0 - fatigue)
+            attention = 1.0 + self.core.neurons[syn.target].attention_score
+            scores.append(syn.potential * fatigue_factor * attention)
+
+        scores_arr = np.array(scores, dtype=float)
+        if np.all(scores_arr == 0.0):
+            return random.choice(synapses)
+        probs = np.exp(scores_arr) / np.sum(np.exp(scores_arr))
+        idx = np.random.choice(len(synapses), p=probs)
+        return synapses[idx]
 
     def _wander(self, current_neuron, path, current_continue_prob, depth_remaining):
         results = []
