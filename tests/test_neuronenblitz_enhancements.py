@@ -1,4 +1,5 @@
 import os, sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import random
@@ -312,3 +313,19 @@ def test_beam_wander_penalizes_fatigue():
     assert path
     assert path[0] is syn_fresh
 
+
+def test_entry_neuron_selection_bias():
+    random.seed(0)
+    np.random.seed(0)
+    core, _ = create_simple_core()
+    core.neurons[0].attention_score = 5.0
+    core.neurons[1].attention_score = 0.0
+    nb = Neuronenblitz(
+        core,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        backtrack_probability=0.0,
+        backtrack_enabled=False,
+    )
+    selections = [nb._select_entry_neuron().id for _ in range(50)]
+    assert selections.count(0) > selections.count(1)
