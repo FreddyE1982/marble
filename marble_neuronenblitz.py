@@ -194,6 +194,7 @@ class Neuronenblitz:
         self.lock = threading.RLock()
         self.error_history = deque(maxlen=100)
         self._momentum = {}
+        self._eligibility_traces = {}
         self.q_encoding = default_q_encoding
 
     def __getstate__(self):
@@ -240,6 +241,15 @@ class Neuronenblitz:
         for syn in self.core.synapses:
             if hasattr(syn, "update_fatigue"):
                 syn.update_fatigue(0.0, self.fatigue_decay)
+
+    def _update_traces(self, path, decay: float = 0.9) -> None:
+        """Update eligibility traces for the given path."""
+        for syn in list(self._eligibility_traces.keys()):
+            self._eligibility_traces[syn] *= decay
+            if self._eligibility_traces[syn] < 1e-6:
+                del self._eligibility_traces[syn]
+        for syn in path:
+            self._eligibility_traces[syn] = self._eligibility_traces.get(syn, 0.0) + 1.0
 
     def adjust_learning_rate(self) -> None:
         """Adapt learning rate based on recent error trends."""
@@ -634,12 +644,14 @@ class Neuronenblitz:
         return best
 
     def apply_weight_updates_and_attention(self, path, error):
+        self._update_traces(path)
         path_length = len(path)
         for syn in path:
             if getattr(syn, "frozen", False):
                 continue
             source_value = self.core.neurons[syn.source].value
             delta = self.weight_update_fn(source_value, error, path_length)
+            delta *= self._eligibility_traces.get(syn, 1.0)
             if self.use_echo_modulation and hasattr(syn, "get_echo_average"):
                 delta *= syn.get_echo_average()
             if self.gradient_noise_std > 0:
