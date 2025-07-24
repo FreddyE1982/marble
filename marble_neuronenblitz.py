@@ -455,7 +455,11 @@ class Neuronenblitz:
                     else:
                         next_neuron.value = val
                     new_path = path + [(next_neuron, syn)]
-                    new_score = score + syn.potential
+                    fatigue_factor = 1.0
+                    if self.synaptic_fatigue_enabled:
+                        fatigue_factor -= getattr(syn, "fatigue", 0.0)
+                        fatigue_factor = max(0.0, fatigue_factor)
+                    new_score = score + syn.potential * fatigue_factor
                     candidates.append((next_neuron, new_path, new_score))
             if not candidates:
                 break
