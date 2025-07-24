@@ -31,8 +31,12 @@ class DistillationTrainer:
         validation_examples: Iterable[Any] | None = None,
     ) -> None:
         """Train ``self.student`` using teacher-guided targets."""
-        blended = self._blend_targets(train_examples)
         pbar = tqdm(range(epochs), desc="DistillationEpochs", ncols=100)
         for _ in pbar:
-            self.student.train(blended, epochs=1, validation_examples=validation_examples)
+            blended = self._blend_targets(train_examples)
+            self.student.train(
+                blended,
+                epochs=1,
+                validation_examples=validation_examples,
+            )
         pbar.close()

@@ -373,3 +373,14 @@ def test_visit_count_decay_and_bias():
     assert syn_a.visit_count == 5
     selections = [nb.weighted_choice(core.neurons[0].synapses) for _ in range(50)]
     assert selections.count(syn_b) > selections.count(syn_a)
+
+
+def test_weighted_choice_handles_large_scores():
+    random.seed(0)
+    np.random.seed(0)
+    core, _ = create_simple_core()
+    syn_a = core.add_synapse(0, 1, weight=1e9)
+    syn_b = core.add_synapse(0, 1, weight=1e9 + 1)
+    nb = Neuronenblitz(core)
+    choice = nb.weighted_choice([syn_a, syn_b])
+    assert choice in (syn_a, syn_b)

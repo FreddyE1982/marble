@@ -340,7 +340,12 @@ class Neuronenblitz:
         scores_arr = np.array(scores, dtype=float)
         if np.all(scores_arr == 0.0):
             return random.choice(synapses)
-        probs = np.exp(scores_arr) / np.sum(np.exp(scores_arr))
+        max_score = np.max(scores_arr)
+        exp_scores = np.exp(scores_arr - max_score)
+        sum_exp = np.sum(exp_scores)
+        if sum_exp == 0 or np.isnan(sum_exp):
+            return random.choice(synapses)
+        probs = exp_scores / sum_exp
         idx = np.random.choice(len(synapses), p=probs)
         return synapses[idx]
 
