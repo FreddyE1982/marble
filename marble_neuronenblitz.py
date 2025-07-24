@@ -688,10 +688,10 @@ class Neuronenblitz:
             clip = getattr(self.core, "gradient_clip_value", None)
             if clip is not None:
                 delta = float(np.clip(delta, -clip, clip))
-            mom = self._momentum.get(syn, 0.0)
-            mom = self.momentum_coefficient * mom + delta
+            mom_prev = self._momentum.get(syn, 0.0)
+            mom = self.momentum_coefficient * mom_prev + delta
             self._momentum[syn] = mom
-            update = self.learning_rate * mom
+            update = self.learning_rate * (self.momentum_coefficient * mom + delta)
             if abs(update) > self.synapse_update_cap:
                 update = math.copysign(self.synapse_update_cap, update)
             syn.weight += update

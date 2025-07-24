@@ -173,7 +173,7 @@ def test_weight_update_momentum():
     nb.apply_weight_updates_and_attention([syn], error=1.0)
     core.neurons[0].value = 1.0
     nb.apply_weight_updates_and_attention([syn], error=1.0)
-    assert np.isclose(syn.weight, 2.5)
+    assert np.isclose(syn.weight, 2.75)
 
 
 def test_eligibility_traces_accumulate():
