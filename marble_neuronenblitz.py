@@ -173,7 +173,9 @@ class Neuronenblitz:
         self.loss_fn = loss_fn if loss_fn is not None else default_loss_fn
         self.loss_module = loss_module
         self.weight_update_fn = (
-            weight_update_fn if weight_update_fn is not None else default_weight_update_fn
+            weight_update_fn
+            if weight_update_fn is not None
+            else default_weight_update_fn
         )
 
         self._weight_limit = 1e6
@@ -289,8 +291,7 @@ class Neuronenblitz:
         if random.random() < self.rl_epsilon:
             return random.randrange(n_actions)
         q_vals = [
-            self.dynamic_wander(self.q_encoding(state, a))[0]
-            for a in range(n_actions)
+            self.dynamic_wander(self.q_encoding(state, a))[0] for a in range(n_actions)
         ]
         return int(np.argmax(q_vals))
 
@@ -314,7 +315,9 @@ class Neuronenblitz:
             )
         target = reward + self.rl_discount * next_q
         self.train([(self.q_encoding(state, action), target)], epochs=1)
-        self.rl_epsilon = max(self.rl_min_epsilon, self.rl_epsilon * self.rl_epsilon_decay)
+        self.rl_epsilon = max(
+            self.rl_min_epsilon, self.rl_epsilon * self.rl_epsilon_decay
+        )
 
     def weighted_choice(self, synapses):
         total = sum(syn.potential for syn in synapses)
@@ -330,7 +333,9 @@ class Neuronenblitz:
         results = []
         synapses = current_neuron.synapses
         if self.dropout_probability > 0.0:
-            synapses = [s for s in synapses if random.random() > self.dropout_probability]
+            synapses = [
+                s for s in synapses if random.random() > self.dropout_probability
+            ]
         if (
             depth_remaining <= 0
             or not synapses
@@ -338,13 +343,14 @@ class Neuronenblitz:
         ):
             results.append((current_neuron, path))
             return results
-        if (
-            len(synapses) > 1
-            and random.random() < self.split_probability
-        ):
+        if len(synapses) > 1 and random.random() < self.split_probability:
             for syn in synapses:
                 next_neuron = self.core.neurons[syn.target]
-                w = syn.effective_weight(self.last_context) if hasattr(syn, "effective_weight") else syn.weight
+                w = (
+                    syn.effective_weight(self.last_context)
+                    if hasattr(syn, "effective_weight")
+                    else syn.weight
+                )
                 transmitted_value = self.combine_fn(current_neuron.value, w)
                 if hasattr(syn, "apply_side_effects"):
                     syn.apply_side_effects(self.core, current_neuron.value)
@@ -385,7 +391,11 @@ class Neuronenblitz:
         else:
             syn = self.weighted_choice(synapses)
             next_neuron = self.core.neurons[syn.target]
-            w = syn.effective_weight(self.last_context) if hasattr(syn, "effective_weight") else syn.weight
+            w = (
+                syn.effective_weight(self.last_context)
+                if hasattr(syn, "effective_weight")
+                else syn.weight
+            )
             transmitted_value = self.combine_fn(current_neuron.value, w)
             if hasattr(syn, "apply_side_effects"):
                 syn.apply_side_effects(self.core, current_neuron.value)
@@ -446,6 +456,18 @@ class Neuronenblitz:
             print(f"Partial pathway age: {pathway_age:.2f} sec")
         return final_neuron, final_path
 
+    def _select_entry_neuron(self):
+        """Return an entry neuron biased by ``attention_score`` if enabled."""
+        candidates = [n for n in self.core.neurons if n.synapses]
+        if not candidates:
+            return random.choice(self.core.neurons)
+        if self.dynamic_attention_enabled:
+            scores = np.array([abs(n.attention_score) + 1e-3 for n in candidates])
+            probs = scores / np.sum(scores)
+            idx = np.random.choice(len(candidates), p=probs)
+            return candidates[idx]
+        return random.choice(candidates)
+
     def _beam_wander(self, start_neuron, depth_limit):
         beams = [(start_neuron, [(start_neuron, None)], 0.0)]
         for _ in range(depth_limit):
@@ -456,7 +478,11 @@ class Neuronenblitz:
                     continue
                 for syn in neuron.synapses:
                     next_neuron = self.core.neurons[syn.target]
-                    w = syn.effective_weight(self.last_context) if hasattr(syn, "effective_weight") else syn.weight
+                    w = (
+                        syn.effective_weight(self.last_context)
+                        if hasattr(syn, "effective_weight")
+                        else syn.weight
+                    )
                     val = self.combine_fn(neuron.value, w)
                     if hasattr(syn, "apply_side_effects"):
                         syn.apply_side_effects(self.core, neuron.value)
@@ -483,12 +509,7 @@ class Neuronenblitz:
             for neuron in self.core.neurons:
                 neuron.value = None
             self.decay_fatigues()
-            candidates = [n for n in self.core.neurons if n.synapses]
-            entry_neuron = (
-                random.choice(candidates)
-                if candidates
-                else random.choice(self.core.neurons)
-            )
+            entry_neuron = self._select_entry_neuron()
             entry_neuron.value = input_value
             initial_path = [(entry_neuron, None)]
             depth_limit = int(
@@ -509,7 +530,11 @@ class Neuronenblitz:
                 if entry_neuron.synapses and self.dropout_probability < 1.0:
                     syn = self.weighted_choice(entry_neuron.synapses)
                     next_neuron = self.core.neurons[syn.target]
-                    w = syn.effective_weight(self.last_context) if hasattr(syn, "effective_weight") else syn.weight
+                    w = (
+                        syn.effective_weight(self.last_context)
+                        if hasattr(syn, "effective_weight")
+                        else syn.weight
+                    )
                     raw_val = self.combine_fn(entry_neuron.value, w)
                     if hasattr(next_neuron, "process"):
                         next_neuron.value = next_neuron.process(raw_val)
@@ -518,7 +543,9 @@ class Neuronenblitz:
                     if hasattr(syn, "apply_side_effects"):
                         syn.apply_side_effects(self.core, entry_neuron.value)
                     if hasattr(syn, "update_echo"):
-                        syn.update_echo(entry_neuron.value, self.core.synapse_echo_decay)
+                        syn.update_echo(
+                            entry_neuron.value, self.core.synapse_echo_decay
+                        )
                     if self.synaptic_fatigue_enabled and hasattr(syn, "update_fatigue"):
                         syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
                     final_path = [(entry_neuron, None), (next_neuron, syn)]
@@ -555,7 +582,9 @@ class Neuronenblitz:
         seeds = [random.randint(0, 2**32 - 1) for _ in range(num)]
         ctx = mp.get_context("spawn")
         with ctx.Pool(processes=num) as pool:
-            outputs = pool.starmap(_wander_worker, [(state, input_value, s) for s in seeds])
+            outputs = pool.starmap(
+                _wander_worker, [(state, input_value, s) for s in seeds]
+            )
 
         return outputs
 
@@ -706,9 +735,7 @@ class Neuronenblitz:
                     )
                     err = self._compute_loss(target_value, out_val)
                     pred_size = len(self.core.synapses) + sum(
-                        1
-                        for syn in path
-                        if syn.potential >= self.plasticity_threshold
+                        1 for syn in path if syn.potential >= self.plasticity_threshold
                     )
                     metrics.append(
                         (
@@ -820,8 +847,12 @@ class Neuronenblitz:
     def decide_synapse_action(self):
         if not self.core.synapses:
             return
-        create_type = max(self.synapse_loss_attention, key=self.synapse_loss_attention.get)
-        remove_type = max(self.synapse_size_attention, key=self.synapse_size_attention.get)
+        create_type = max(
+            self.synapse_loss_attention, key=self.synapse_loss_attention.get
+        )
+        remove_type = max(
+            self.synapse_size_attention, key=self.synapse_size_attention.get
+        )
         if random.random() < 0.5:
             src = random.choice(self.core.neurons).id
             tgt = random.choice(self.core.neurons).id
