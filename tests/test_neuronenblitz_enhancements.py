@@ -270,3 +270,28 @@ def test_beam_wander_selects_best_path():
     assert isinstance(out, float)
     assert path
 
+
+def test_beam_wander_penalizes_fatigue():
+    random.seed(0)
+    np.random.seed(0)
+    params = minimal_params()
+    core = Core(params)
+    core.neurons = [Neuron(0, value=0.0), Neuron(1, value=0.0)]
+    core.synapses = []
+    syn_fatigued = core.add_synapse(0, 1, weight=1.0)
+    syn_fatigued.fatigue = 0.9
+    syn_fresh = core.add_synapse(0, 1, weight=1.0)
+    syn_fresh.fatigue = 0.0
+    nb = Neuronenblitz(
+        core,
+        beam_width=2,
+        max_wander_depth=1,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        backtrack_probability=0.0,
+        backtrack_enabled=False,
+    )
+    _, path = nb.dynamic_wander(1.0)
+    assert path
+    assert path[0] is syn_fresh
+
