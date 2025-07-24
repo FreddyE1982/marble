@@ -384,3 +384,24 @@ def test_weighted_choice_handles_large_scores():
     nb = Neuronenblitz(core)
     choice = nb.weighted_choice([syn_a, syn_b])
     assert choice in (syn_a, syn_b)
+
+
+def test_dynamic_wander_caches_results():
+    random.seed(0)
+    np.random.seed(0)
+    core, syn = create_simple_core()
+    nb = Neuronenblitz(core)
+    out1, path1 = nb.dynamic_wander(1.0, apply_plasticity=False)
+    syn.weight = 2.0
+    out2, path2 = nb.dynamic_wander(1.0, apply_plasticity=False)
+    assert out1 == out2
+    assert path1 == path2
+
+
+def test_dynamic_wander_cache_size_limit():
+    random.seed(0)
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(core)
+    for i in range(nb._cache_max_size + 10):
+        nb.dynamic_wander(float(i), apply_plasticity=False)
+    assert len(nb.wander_cache) == nb._cache_max_size
