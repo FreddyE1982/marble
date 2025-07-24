@@ -42,6 +42,14 @@ def default_q_encoding(state: tuple[int, int], action: int) -> float:
     return float(state[0] * 10 + state[1] + action / 10)
 
 
+def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
+    """Return cosine similarity between two vectors."""
+    denom = np.linalg.norm(a) * np.linalg.norm(b)
+    if denom == 0:
+        return 0.0
+    return float(np.dot(a, b) / denom)
+
+
 class Neuronenblitz:
     def __init__(
         self,
@@ -331,7 +339,9 @@ class Neuronenblitz:
 
         scores = []
         for syn in synapses:
-            fatigue = getattr(syn, "fatigue", 0.0) if self.synaptic_fatigue_enabled else 0.0
+            fatigue = (
+                getattr(syn, "fatigue", 0.0) if self.synaptic_fatigue_enabled else 0.0
+            )
             fatigue_factor = max(0.0, 1.0 - fatigue)
             attention = 1.0 + self.core.neurons[syn.target].attention_score
             novelty_penalty = 1.0 / (1.0 + getattr(syn, "visit_count", 0))
@@ -629,12 +639,19 @@ class Neuronenblitz:
                     new_tier = "disk"
                 new_id = len(self.core.neurons)
                 new_neuron = Neuron(new_id, value=target.value, tier=new_tier)
+                rep_sim = _cosine_similarity(
+                    source.representation, target.representation
+                )
+                new_neuron.representation = (
+                    source.representation + target.representation
+                ) / 2.0
                 self.core.neurons.append(new_neuron)
                 new_weight1 = (
                     syn.weight
                     * self.struct_weight_multiplier1
                     * mod
                     * self.structural_learning_rate
+                    * (1.0 + rep_sim)
                 )
                 if new_weight1 > self._weight_limit:
                     new_weight1 = self._weight_limit
@@ -651,6 +668,7 @@ class Neuronenblitz:
                     * self.struct_weight_multiplier2
                     * mod
                     * self.structural_learning_rate
+                    * (1.0 + rep_sim)
                 )
                 if new_weight2 > self._weight_limit:
                     new_weight2 = self._weight_limit

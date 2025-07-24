@@ -7,6 +7,7 @@ from marble_core import Core, DataLoader, NEURON_TYPES
 from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain
 import random
+import numpy as np
 import pytest
 from neuromodulatory_system import NeuromodulatorySystem
 from tests.test_core_functions import minimal_params
@@ -57,18 +58,22 @@ def test_structural_plasticity_modulation():
     nb = Neuronenblitz(core, plasticity_threshold=0.1)
     syn = core.neurons[0].synapses[0]
     syn.potential = 1.0
+    core.neurons[0].representation = np.array([1.0, 0.0, 0.0, 0.0])
+    core.neurons[1].representation = np.array([1.0, 0.0, 0.0, 0.0])
     nb.modulate_plasticity({"reward": 0.5, "stress": 0.0})
     prev_count = len(core.neurons)
     nb.apply_structural_plasticity([(core.neurons[1], syn)])
     assert len(core.neurons) == prev_count + 1
     mod = 1.0 + 0.5 - 0.0
     new_syn = core.synapses[-2]
-    assert new_syn.weight == pytest.approx(
+    expected = (
         syn.weight
         * nb.struct_weight_multiplier1
         * mod
         * nb.structural_learning_rate
+        * 2.0
     )
+    assert new_syn.weight == pytest.approx(expected)
 
 
 def test_preferred_neuron_type_selection():
