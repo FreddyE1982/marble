@@ -172,7 +172,24 @@ def test_weight_update_momentum():
     nb.apply_weight_updates_and_attention([syn], error=1.0)
     core.neurons[0].value = 1.0
     nb.apply_weight_updates_and_attention([syn], error=1.0)
-    assert np.isclose(syn.weight, 2.25)
+    assert np.isclose(syn.weight, 2.5)
+
+
+def test_eligibility_traces_accumulate():
+    random.seed(0)
+    core, syn = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        consolidation_probability=0.0,
+        weight_decay=0.0,
+        momentum_coefficient=0.0,
+    )
+    nb.learning_rate = 1.0
+    core.neurons[0].value = 1.0
+    nb.apply_weight_updates_and_attention([syn], error=1.0)
+    core.neurons[0].value = 1.0
+    nb.apply_weight_updates_and_attention([syn], error=1.0)
+    assert np.isclose(syn.weight, 2.45)
 
 
 def test_dropout_prevents_synapse_use():
