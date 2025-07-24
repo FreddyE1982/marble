@@ -209,6 +209,9 @@ class Neuronenblitz:
         self._cache_order = deque()
         self._cache_max_size = 50
         self.q_encoding = default_q_encoding
+        self._grad_sq = {}
+        self._rmsprop_beta = 0.99
+        self._grad_epsilon = 1e-8
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -753,10 +756,14 @@ class Neuronenblitz:
             clip = getattr(self.core, "gradient_clip_value", None)
             if clip is not None:
                 delta = float(np.clip(delta, -clip, clip))
+            prev_v = self._grad_sq.get(syn, 1.0)
+            v = self._rmsprop_beta * prev_v + (1 - self._rmsprop_beta) * (delta ** 2)
+            self._grad_sq[syn] = v
+            scaled_delta = delta / math.sqrt(v + self._grad_epsilon)
             mom_prev = self._momentum.get(syn, 0.0)
-            mom = self.momentum_coefficient * mom_prev + delta
+            mom = self.momentum_coefficient * mom_prev + scaled_delta
             self._momentum[syn] = mom
-            update = self.learning_rate * (self.momentum_coefficient * mom + delta)
+            update = self.learning_rate * (self.momentum_coefficient * mom + scaled_delta)
             if abs(update) > self.synapse_update_cap:
                 update = math.copysign(self.synapse_update_cap, update)
             syn.weight += update

@@ -92,7 +92,7 @@ def test_weight_update_gradient_clipping():
     nb.learning_rate = 1.0
     core.neurons[0].value = 1.0
     nb.apply_weight_updates_and_attention([syn], error=10.0)
-    assert np.isclose(syn.weight, 1.1)
+    assert np.isclose(syn.weight, 1.10049870545, atol=1e-6)
 
 
 def test_weight_update_with_noise():
@@ -112,8 +112,8 @@ def test_weight_update_with_noise():
     expected_noise = np.random.normal(0.0, 0.5)
     np.random.seed(0)
     nb.apply_weight_updates_and_attention([syn], error=1.0)
-    expected = 1.0 + 0.5 + expected_noise
-    assert np.isclose(syn.weight, expected)
+    expected = 2.37578056622
+    assert np.isclose(syn.weight, expected, atol=1e-6)
 
 
 def test_potential_increase_capped():
@@ -173,7 +173,7 @@ def test_weight_update_momentum():
     nb.apply_weight_updates_and_attention([syn], error=1.0)
     core.neurons[0].value = 1.0
     nb.apply_weight_updates_and_attention([syn], error=1.0)
-    assert np.isclose(syn.weight, 2.75)
+    assert np.isclose(syn.weight, 2.75282841605, atol=1e-6)
 
 
 def test_eligibility_traces_accumulate():
@@ -190,7 +190,7 @@ def test_eligibility_traces_accumulate():
     nb.apply_weight_updates_and_attention([syn], error=1.0)
     core.neurons[0].value = 1.0
     nb.apply_weight_updates_and_attention([syn], error=1.0)
-    assert np.isclose(syn.weight, 2.45)
+    assert np.isclose(syn.weight, 2.45590092015, atol=1e-6)
 
 
 def test_dropout_prevents_synapse_use():
@@ -405,3 +405,23 @@ def test_dynamic_wander_cache_size_limit():
     for i in range(nb._cache_max_size + 10):
         nb.dynamic_wander(float(i), apply_plasticity=False)
     assert len(nb.wander_cache) == nb._cache_max_size
+
+
+def test_rmsprop_adaptive_scaling():
+    random.seed(0)
+    core, syn = create_simple_core()
+    core.gradient_clip_value = 10.0
+    nb = Neuronenblitz(
+        core,
+        consolidation_probability=0.0,
+        weight_decay=0.0,
+        synapse_update_cap=10.0,
+    )
+    nb.learning_rate = 1.0
+    core.neurons[0].value = 1.0
+    nb.apply_weight_updates_and_attention([syn], error=5.0)
+    first_v = nb._grad_sq[syn]
+    core.neurons[0].value = 1.0
+    nb.apply_weight_updates_and_attention([syn], error=5.0)
+    second_v = nb._grad_sq[syn]
+    assert second_v > first_v
