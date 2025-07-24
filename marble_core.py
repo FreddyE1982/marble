@@ -823,6 +823,7 @@ class Synapse:
         self.echo_buffer: deque[float] = deque(maxlen=int(max(1, echo_length)))
         self.remote_core = remote_core
         self.remote_target = remote_target
+        self.visit_count = 0
 
     def update_fatigue(self, increase: float, decay: float) -> None:
         """Update fatigue using a decay factor and additive increase."""

@@ -244,6 +244,11 @@ class Neuronenblitz:
             if hasattr(syn, "update_fatigue"):
                 syn.update_fatigue(0.0, self.fatigue_decay)
 
+    def decay_visit_counts(self, decay: float = 0.95) -> None:
+        """Apply exponential decay to synapse visit counters."""
+        for syn in self.core.synapses:
+            syn.visit_count *= decay
+
     def _update_traces(self, path, decay: float = 0.9) -> None:
         """Update eligibility traces for the given path."""
         for syn in list(self._eligibility_traces.keys()):
@@ -329,7 +334,8 @@ class Neuronenblitz:
             fatigue = getattr(syn, "fatigue", 0.0) if self.synaptic_fatigue_enabled else 0.0
             fatigue_factor = max(0.0, 1.0 - fatigue)
             attention = 1.0 + self.core.neurons[syn.target].attention_score
-            scores.append(syn.potential * fatigue_factor * attention)
+            novelty_penalty = 1.0 / (1.0 + getattr(syn, "visit_count", 0))
+            scores.append(syn.potential * fatigue_factor * attention * novelty_penalty)
 
         scores_arr = np.array(scores, dtype=float)
         if np.all(scores_arr == 0.0):
@@ -371,6 +377,7 @@ class Neuronenblitz:
                 if syn.potential < 1.0:
                     inc += self.exploration_bonus
                 syn.potential = min(self.synapse_potential_cap, syn.potential + inc)
+                syn.visit_count += 1
                 if hasattr(next_neuron, "process"):
                     next_neuron.value = next_neuron.process(transmitted_value)
                 else:
@@ -416,6 +423,7 @@ class Neuronenblitz:
             if syn.potential < 1.0:
                 inc += self.exploration_bonus
             syn.potential = min(self.synapse_potential_cap, syn.potential + inc)
+            syn.visit_count += 1
             if hasattr(next_neuron, "process"):
                 next_neuron.value = next_neuron.process(transmitted_value)
             else:
@@ -501,11 +509,13 @@ class Neuronenblitz:
                         next_neuron.value = val
                     new_path = path + [(next_neuron, syn)]
                     fatigue_factor = 1.0
-                    if self.synaptic_fatigue_enabled:
-                        fatigue_factor -= getattr(syn, "fatigue", 0.0)
-                        fatigue_factor = max(0.0, fatigue_factor)
-                    new_score = score + syn.potential * fatigue_factor
-                    candidates.append((next_neuron, new_path, new_score))
+                if self.synaptic_fatigue_enabled:
+                    fatigue_factor -= getattr(syn, "fatigue", 0.0)
+                    fatigue_factor = max(0.0, fatigue_factor)
+                novelty_penalty = 1.0 / (1.0 + getattr(syn, "visit_count", 0))
+                new_score = score + syn.potential * fatigue_factor * novelty_penalty
+                syn.visit_count += 1
+                candidates.append((next_neuron, new_path, new_score))
             if not candidates:
                 break
             candidates.sort(key=lambda x: x[2], reverse=True)
@@ -518,6 +528,7 @@ class Neuronenblitz:
             for neuron in self.core.neurons:
                 neuron.value = None
             self.decay_fatigues()
+            self.decay_visit_counts()
             entry_neuron = self._select_entry_neuron()
             entry_neuron.value = input_value
             initial_path = [(entry_neuron, None)]
@@ -557,6 +568,7 @@ class Neuronenblitz:
                         )
                     if self.synaptic_fatigue_enabled and hasattr(syn, "update_fatigue"):
                         syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
+                    syn.visit_count += 1
                     final_path = [(entry_neuron, None), (next_neuron, syn)]
                 else:
                     final_path = initial_path
