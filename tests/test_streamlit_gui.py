@@ -936,3 +936,10 @@ def test_instance_switch_and_delete(monkeypatch):
     at = switch_btn.click().run(timeout=20)
     del_btn = next(b for b in at.sidebar.button if b.label == "Delete Instance")
     at = del_btn.click().run(timeout=20)
+
+
+def test_about_dialog():
+    at = AppTest.from_file("streamlit_playground.py").run(timeout=15)
+    about_btn = next(b for b in at.button if b.label == "About")
+    at = about_btn.click().run(timeout=20)
+    assert any("MARBLE" in md.value for md in at.markdown)

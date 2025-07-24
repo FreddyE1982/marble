@@ -1258,6 +1258,10 @@ def run_playground() -> None:
     st.set_page_config(page_title="MARBLE Playground")
     st.title("MARBLE Playground")
 
+    if st.button("About"):
+        with st.dialog("About MARBLE"):
+            st.markdown(load_readme())
+
     if "registry" not in st.session_state:
         st.session_state["registry"] = MarbleRegistry()
     registry: MarbleRegistry = st.session_state["registry"]
