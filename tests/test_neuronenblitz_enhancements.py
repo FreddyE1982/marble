@@ -354,3 +354,22 @@ def test_weighted_choice_prefers_attention_and_low_fatigue():
     )
     selections = [nb.weighted_choice(core.neurons[0].synapses) for _ in range(50)]
     assert selections.count(syn_a) > selections.count(syn_b)
+
+
+def test_visit_count_decay_and_bias():
+    random.seed(0)
+    np.random.seed(0)
+    core, syn_a = create_simple_core()
+    syn_b = core.add_synapse(0, 1, weight=1.0)
+    syn_a.visit_count = 10
+    nb = Neuronenblitz(
+        core,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        backtrack_probability=0.0,
+        backtrack_enabled=False,
+    )
+    nb.decay_visit_counts(decay=0.5)
+    assert syn_a.visit_count == 5
+    selections = [nb.weighted_choice(core.neurons[0].synapses) for _ in range(50)]
+    assert selections.count(syn_b) > selections.count(syn_a)
