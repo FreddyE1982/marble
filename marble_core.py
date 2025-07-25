@@ -88,6 +88,8 @@ def perform_message_passing(
     alpha: float | None = None,
     metrics_visualizer: "MetricsVisualizer | None" = None,
     attention_module: "AttentionModule | None" = None,
+    *,
+    global_phase: float | None = None,
 ) -> float:
     """Propagate representations across synapses using attention.
 
@@ -99,6 +101,9 @@ def perform_message_passing(
         Mixing factor between the current representation and the message-passing
         update. If ``None`` the value is read from ``core.params`` using the
         ``message_passing_alpha`` key (default ``0.5``).
+    global_phase : float, optional
+        Phase offset applied to all synapse weights to enable oscillatory gating.
+        When omitted the value from ``core.global_phase`` is used.
     """
 
     if alpha is None:
@@ -106,6 +111,8 @@ def perform_message_passing(
     if attention_module is None:
         temp = core.params.get("attention_temperature", 1.0)
         attention_module = AttentionModule(temperature=temp)
+    if global_phase is None:
+        global_phase = getattr(core, "global_phase", 0.0)
 
     beta = core.params.get("message_passing_beta", 1.0)
     dropout = core.params.get("message_passing_dropout", 0.0)
@@ -130,7 +137,7 @@ def perform_message_passing(
         for s in incoming:
             if dropout > 0 and random.random() < dropout:
                 continue
-            w = s.effective_weight()
+            w = s.effective_weight(global_phase=global_phase)
             neigh_reps.append(core.neurons[s.source].representation * w)
             s.apply_side_effects(core, core.neurons[s.source].representation)
         if not neigh_reps:
@@ -1165,6 +1172,8 @@ class Core:
         self.cluster_algorithm = params.get("cluster_algorithm", "kmeans")
         self.synapse_echo_length = params.get("synapse_echo_length", 5)
         self.synapse_echo_decay = params.get("synapse_echo_decay", 0.9)
+        self.global_phase_rate = params.get("global_phase_rate", 0.0)
+        self.global_phase = 0.0
         self.vram_limit_mb = params.get("vram_limit_mb", 100)
         self.ram_limit_mb = params.get("ram_limit_mb", 500)
         self.disk_limit_mb = params.get("disk_limit_mb", 10000)
@@ -1637,6 +1646,11 @@ class Core:
         -------
         float
             Average representation change across all iterations.
+
+        Notes
+        -----
+        The attribute ``global_phase`` is incremented by ``global_phase_rate``
+        after each iteration to enable phase-based gating of synapses.
         """
 
         if iterations is None:
@@ -1650,6 +1664,10 @@ class Core:
                 self,
                 metrics_visualizer=metrics_visualizer,
                 attention_module=attention_module,
+                global_phase=self.global_phase,
+            )
+            self.global_phase = (self.global_phase + self.global_phase_rate) % (
+                2 * math.pi
             )
 
         self.cleanup_unused_neurons()

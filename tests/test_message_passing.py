@@ -1,6 +1,7 @@
 import os
 import random
 import sys
+import math
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import numpy as np
@@ -187,3 +188,35 @@ def test_gating_blocks_zero_signal():
     perform_message_passing(core)
     after = [n.representation.copy() for n in core.neurons]
     assert all(np.allclose(b, a) for b, a in zip(before, after))
+
+
+def test_global_phase_rate_updates_phase():
+    params = minimal_params()
+    params["global_phase_rate"] = 0.5
+    core = Core(params)
+    initial = core.global_phase
+    core.run_message_passing(iterations=2)
+    assert np.isclose(core.global_phase, initial + 1.0)
+
+
+def test_phase_modulation_changes_output():
+    random.seed(0)
+    np.random.seed(0)
+    params = minimal_params()
+    params["global_phase_rate"] = 0.0
+    core_a = Core(params)
+    core_b = Core(params)
+    for n1, n2 in zip(core_a.neurons, core_b.neurons):
+        rep = np.random.rand(4)
+        n1.representation = rep.copy()
+        n2.representation = rep.copy()
+    for s1, s2 in zip(core_a.synapses, core_b.synapses):
+        s1.phase = 0.0
+        s2.phase = 0.0
+    core_a.global_phase = 0.0
+    core_b.global_phase = math.pi
+    core_a.run_message_passing()
+    core_b.run_message_passing()
+    reps_a = [n.representation.copy() for n in core_a.neurons]
+    reps_b = [n.representation.copy() for n in core_b.neurons]
+    assert any(not np.allclose(a, b) for a, b in zip(reps_a, reps_b))

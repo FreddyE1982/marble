@@ -91,6 +91,11 @@ core:
     while ``1.0`` results in no neighbours being considered. When messages are
     dropped the remaining attention weights are renormalized so the sum equals
     one.
+  global_phase_rate: Amount added to ``global_phase`` every time
+    ``run_message_passing`` executes. Combined with each synapse's individual
+    ``phase`` value, this creates oscillatory gating via the cosine in
+    ``Synapse.effective_weight``. Set to ``0.0`` to disable phase-based
+    modulation or increase toward ``math.pi`` for quicker oscillations.
   energy_threshold: Minimum energy level required before neurons participate in
     message passing. Helps filter out inactive units.
   reinforcement_learning_enabled: Enable or disable the internal Q-learning
