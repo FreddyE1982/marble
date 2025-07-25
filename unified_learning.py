@@ -78,5 +78,32 @@ class UnifiedLearner:
             self.nb.plasticity_modulation = prev
         perform_message_passing(self.core)
 
-    def explain(self, index: int) -> dict:
-        return self.history[index] if 0 <= index < len(self.history) else {}
+    def explain(self, index: int, with_gradients: bool = False) -> dict:
+        """Return logged context and weights for a step.
+
+        When ``with_gradients`` is ``True`` this also computes the gradient of
+        each learner's weight with respect to the context features. The
+        resulting dictionary then contains an additional ``"gradients"`` entry
+        mapping learner names to lists of contributions for every context
+        element.
+        """
+
+        if not (0 <= index < len(self.history)):
+            return {}
+
+        entry = dict(self.history[index])
+        if not with_gradients:
+            return entry
+
+        ctx = torch.tensor(entry["context"], dtype=torch.float32, requires_grad=True)
+        logits = self.gate(ctx)
+        weights = torch.softmax(logits, dim=0)
+        grads: Dict[str, List[float]] = {}
+        for i, name in enumerate(self.learners):
+            self.gate.zero_grad()
+            if ctx.grad is not None:
+                ctx.grad.zero_()
+            weights[i].backward(retain_graph=True)
+            grads[name] = ctx.grad.detach().cpu().tolist()
+        entry["gradients"] = grads
+        return entry

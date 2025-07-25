@@ -1033,6 +1033,10 @@ Run `python project23_omni.py` to test all paradigms together.
    The gating network assigns a weight to each learner every step, modulating
    `neuronenblitz.plasticity_modulation`. Decisions are stored in the file set
    by `log_path`.
+4. **Inspect decisions** with `learner.explain(index, with_gradients=True)` to
+   see how each context feature influenced the chosen weights. The method
+   returns the original context and weights along with gradient-based
+   contributions for every learner.
 
 ## Project 24 – Continuous Weight Field Learning (Experimental)
 
