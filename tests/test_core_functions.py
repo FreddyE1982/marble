@@ -28,6 +28,8 @@ def minimal_params():
         'attention_dropout': 0.0,
         'energy_threshold': 0.0,
         'representation_noise_std': 0.0,
+        'weight_init_type': 'uniform',
+        'weight_init_std': 1.0,
     }
 
 
@@ -152,6 +154,18 @@ def test_core_uses_mandelbrot_parameters():
     values_alt = [n.value for n in core_alt.neurons]
     values_default = [n.value for n in core_default.neurons]
     assert values_alt != values_default
+
+
+def test_weight_initialization_types():
+    random.seed(0)
+    params = minimal_params()
+    params["weight_init_type"] = "normal"
+    params["weight_init_mean"] = 2.0
+    params["weight_init_std"] = 0.1
+    core = Core(params)
+    weights = [s.weight for s in core.synapses]
+    avg = sum(weights) / len(weights)
+    assert abs(avg - 2.0) < 0.1
 
 
 def test_simple_mlp_handles_invalid_input():
