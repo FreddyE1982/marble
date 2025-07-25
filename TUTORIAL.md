@@ -11,6 +11,14 @@ This tutorial demonstrates every major component of MARBLE through a series of p
    After the packages are installed you can verify the environment by running `python -c "import marble_main"` which should finish silently.
 2. **Review the documentation**. Read [ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md) for a high level view of MARBLE and consult [yaml-manual.txt](yaml-manual.txt) for an explanation of every configuration option.
 
+3. **Use the command line interface**. The `cli.py` script allows training from
+   the terminal without writing custom code:
+   ```bash
+   python cli.py --config config.yaml --train path/to/data.csv --epochs 10 --save trained_marble.pkl
+   ```
+   Replace the dataset path with your own CSV or JSON file. The optional
+   `--validate` flag specifies a validation dataset.
+
 ## Project 1 – Numeric Regression (Easy)
 
 **Goal:** Train MARBLE on a simple numeric dataset.
