@@ -594,7 +594,42 @@ def test_chaotic_gating_modulates_updates():
     core.neurons[0].value = 1.0
     nb.apply_weight_updates_and_attention([syn], error=1.0)
     gate = 3.7 * 0.5 * (1 - 0.5)
-    prev_v = 0.99 * 1.0 + 0.01 * (0.5 ** 2)
+    prev_v = 0.99 * 1.0 + 0.01 * (0.5**2)
     scaled = 0.5 / math.sqrt(prev_v + 1e-8)
     expected = 1.0 + scaled * gate
     assert np.isclose(syn.weight, expected, atol=1e-6)
+
+
+def test_context_history_and_embedding_bias_choice():
+    random.seed(0)
+    np.random.seed(0)
+    params = minimal_params()
+    core = Core(params)
+    core.neurons = [Neuron(0, value=0.0), Neuron(1, value=0.0), Neuron(2, value=0.0)]
+    core.neurons[1].representation = np.array([0.0, 0.0, 1.0, 0.0])
+    core.neurons[2].representation = np.array([1.0, 0.0, 0.0, 0.0])
+    syn1 = core.add_synapse(0, 1, weight=1.0)
+    syn2 = core.add_synapse(0, 2, weight=1.0)
+    nb = Neuronenblitz(
+        core,
+        dynamic_attention_enabled=False,
+        synaptic_fatigue_enabled=False,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        context_history_size=5,
+        context_embedding_decay=1.0,
+    )
+    nb.update_context(reward=1.0)
+    choice = nb.weighted_choice([syn1, syn2])
+    assert choice is syn1
+
+
+def test_context_history_size_limit_and_embedding():
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(core, context_history_size=2, context_embedding_decay=1.0)
+    nb.update_context(reward=1.0)
+    nb.update_context(stress=1.0)
+    nb.update_context(arousal=1.0)
+    assert len(nb.context_history) == 2
+    emb = nb.get_context_embedding()
+    assert np.allclose(emb, [0.5, 1.0, 1.0])

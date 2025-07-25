@@ -121,6 +121,8 @@ class Neuronenblitz:
         chaotic_gating_enabled=False,
         chaotic_gating_param=3.7,
         chaotic_gate_init=0.5,
+        context_history_size=10,
+        context_embedding_decay=0.9,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -191,6 +193,8 @@ class Neuronenblitz:
         self.chaotic_gating_enabled = chaotic_gating_enabled
         self.chaotic_gating_param = chaotic_gating_param
         self.chaotic_gate = chaotic_gate_init
+        self.context_history_size = int(context_history_size)
+        self.context_embedding_decay = float(context_embedding_decay)
 
         self.combine_fn = combine_fn if combine_fn is not None else default_combine_fn
         self.loss_fn = loss_fn if loss_fn is not None else default_loss_fn
@@ -232,6 +236,7 @@ class Neuronenblitz:
         self._prev_gradients = {}
         # Track path usage for shortcut creation
         self._path_usage = {}
+        self.context_history = deque(maxlen=self.context_history_size)
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -257,14 +262,34 @@ class Neuronenblitz:
         adjustment = reward - stress
         self.plasticity_threshold = max(0.5, self.plasticity_threshold - adjustment)
         self.last_context = context.copy()
+        self.context_history.append(self.last_context.copy())
 
     def update_context(self, **kwargs):
         """Update the stored neuromodulatory context without modifying plasticity."""
         self.last_context.update(kwargs)
+        self.context_history.append(self.last_context.copy())
 
     def get_context(self):
         """Return a copy of the most recently stored neuromodulatory context."""
         return self.last_context.copy()
+
+    def get_context_embedding(self) -> np.ndarray:
+        """Return a vector summarising the recent neuromodulatory history."""
+        if not self.context_history:
+            return np.zeros(3, dtype=float)
+        weights = [
+            self.context_embedding_decay**i
+            for i in range(len(self.context_history) - 1, -1, -1)
+        ]
+        vec = np.zeros(3, dtype=float)
+        total = 0.0
+        for w, ctx in zip(weights, reversed(self.context_history)):
+            vec[0] += w * float(ctx.get("arousal", 0.0))
+            vec[1] += w * float(ctx.get("stress", 0.0))
+            vec[2] += w * float(ctx.get("reward", 0.0))
+            total += w
+        vec /= max(total, 1e-6)
+        return vec
 
     def reset_neuron_values(self):
         for neuron in self.core.neurons:
@@ -370,6 +395,7 @@ class Neuronenblitz:
             return synapses[0]
 
         scores = []
+        ctx_vec = self.get_context_embedding()
         for syn in synapses:
             fatigue = (
                 getattr(syn, "fatigue", 0.0) if self.synaptic_fatigue_enabled else 0.0
@@ -377,7 +403,16 @@ class Neuronenblitz:
             fatigue_factor = max(0.0, 1.0 - fatigue)
             attention = 1.0 + self.core.neurons[syn.target].attention_score
             novelty_penalty = 1.0 / (1.0 + getattr(syn, "visit_count", 0))
-            scores.append(syn.potential * fatigue_factor * attention * novelty_penalty)
+            tgt_rep = self.core.neurons[syn.target].representation[: len(ctx_vec)]
+            sim = _cosine_similarity(tgt_rep, ctx_vec)
+            context_factor = 1.0 + sim
+            scores.append(
+                syn.potential
+                * fatigue_factor
+                * attention
+                * novelty_penalty
+                * context_factor
+            )
 
         scores_arr = np.array(scores, dtype=float)
         if np.all(scores_arr == 0.0):
