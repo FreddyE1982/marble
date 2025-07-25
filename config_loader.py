@@ -1,5 +1,6 @@
 from pathlib import Path
 import yaml
+from config_schema import validate_config_schema
 
 from marble_main import MARBLE
 from neuromodulatory_system import NeuromodulatorySystem
@@ -16,6 +17,7 @@ def load_config(path: str | None = None) -> dict:
     cfg_path = Path(path) if path is not None else DEFAULT_CONFIG_FILE
     with open(cfg_path, "r", encoding="utf-8") as f:
         data = yaml.safe_load(f) or {}
+    validate_config_schema(data)
     return data
 
 

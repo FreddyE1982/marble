@@ -1,6 +1,7 @@
 The configuration YAML file controls all components of MARBLE.  Each top-level
 section corresponds to a subsystem and exposes parameters that can be tuned to
-alter its behaviour.
+alter its behaviour.  When the file is loaded it is validated against an
+internal JSON schema to catch missing sections or invalid values early.
 
 core:
   xmin: Minimum X coordinate for the Mandelbrot seed. Defines the left boundary
