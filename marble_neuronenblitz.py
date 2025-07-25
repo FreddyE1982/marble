@@ -1173,3 +1173,92 @@ class Neuronenblitz:
             to_reset.append((src, tgt))
         for pair in to_reset:
             self._concept_pairs[pair] = 0
+
+    def genetic_algorithm(
+        self,
+        data,
+        population_size: int = 10,
+        generations: int = 5,
+        selection_ratio: float = 0.5,
+        crossover_rate: float = 0.5,
+        mutation_rate: float = 0.1,
+        mutation_strength: float = 0.05,
+        device: str | None = None,
+    ) -> None:
+        """Evolve synapse weights using a genetic algorithm.
+
+        Parameters
+        ----------
+        data:
+            Iterable of ``(input, target)`` pairs used to evaluate fitness.
+        population_size:
+            Number of network copies to evolve each generation.
+        generations:
+            Number of generations to run.
+        selection_ratio:
+            Fraction of the population selected as parents for the next
+            generation.
+        crossover_rate:
+            Probability that a child's synapse weight is taken from the second
+            parent instead of the first.
+        mutation_rate:
+            Probability of mutating each synapse weight after crossover.
+        mutation_strength:
+            Magnitude of random weight change applied during mutation.
+        device:
+            ``"cuda"`` or ``"cpu"``.  If ``None``, uses ``CUDA`` when available.
+        """
+
+        if device is None:
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+        device = torch.device(device)
+
+        if population_size < 2:
+            raise ValueError("population_size must be at least 2")
+        if not data:
+            return
+
+        population = [pickle.loads(pickle.dumps(self)) for _ in range(population_size)]
+
+        for _ in range(generations):
+            scores: list[float] = []
+            for nb in population:
+                loss_sum = 0.0
+                for inp, tgt in data:
+                    out, _ = nb.dynamic_wander(inp, apply_plasticity=False)
+                    t = torch.tensor([float(out)], device=device)
+                    tt = torch.tensor([float(tgt)], device=device)
+                    loss_sum += torch.nn.functional.mse_loss(t, tt).item()
+                scores.append(loss_sum / len(data))
+
+            ranked = [nb for _, nb in sorted(zip(scores, population), key=lambda x: x[0])]
+            num_selected = max(1, int(population_size * selection_ratio))
+            parents = ranked[:num_selected]
+
+            children = []
+            while len(children) + len(parents) < population_size:
+                p1, p2 = random.sample(parents, 2)
+                child = pickle.loads(pickle.dumps(p1))
+                for s1, s2 in zip(child.core.synapses, p2.core.synapses):
+                    if random.random() < crossover_rate:
+                        s1.weight = s2.weight
+                children.append(child)
+
+            population = parents + children
+
+            for nb in population:
+                for syn in nb.core.synapses:
+                    if random.random() < mutation_rate:
+                        syn.weight += random.uniform(-mutation_strength, mutation_strength)
+
+        best_nb = min(population, key=lambda nb: sum(
+            torch.nn.functional.mse_loss(
+                torch.tensor([float(nb.dynamic_wander(inp, apply_plasticity=False)[0])], device=device),
+                torch.tensor([float(tgt)], device=device),
+            ).item() for inp, tgt in data
+        ))
+
+        best_state = pickle.dumps(best_nb)
+        updated = pickle.loads(best_state)
+        updated.lock = threading.RLock()
+        self.__dict__.update(updated.__dict__)
