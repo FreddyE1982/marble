@@ -118,6 +118,9 @@ class Neuronenblitz:
         wander_cache_ttl=300,
         phase_rate=0.1,
         phase_adaptation_rate=0.05,
+        chaotic_gating_enabled=False,
+        chaotic_gating_param=3.7,
+        chaotic_gate_init=0.5,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -185,6 +188,9 @@ class Neuronenblitz:
         self.phase_adaptation_rate = phase_adaptation_rate
         self.global_phase = 0.0
         self.chaos_state = 0.5
+        self.chaotic_gating_enabled = chaotic_gating_enabled
+        self.chaotic_gating_param = chaotic_gating_param
+        self.chaotic_gate = chaotic_gate_init
 
         self.combine_fn = combine_fn if combine_fn is not None else default_combine_fn
         self.loss_fn = loss_fn if loss_fn is not None else default_loss_fn
@@ -711,6 +717,17 @@ class Neuronenblitz:
         self.chaos_state = state
         return output, path
 
+    def update_chaotic_gate(self) -> float:
+        """Advance and return the logistic gate value used for update scaling."""
+        self.chaotic_gate = (
+            self.chaotic_gating_param * self.chaotic_gate * (1.0 - self.chaotic_gate)
+        )
+        return self.chaotic_gate
+
+    def get_current_gate(self) -> float:
+        """Return the current chaotic gate value."""
+        return float(self.chaotic_gate)
+
     def apply_structural_plasticity(self, path):
         ctx = self.last_context
         mod = 1.0 + ctx.get("reward", 0.0) - ctx.get("stress", 0.0)
@@ -841,6 +858,8 @@ class Neuronenblitz:
             )
             phase_factor = math.cos(syn.phase - self.global_phase)
             update *= phase_factor
+            if self.chaotic_gating_enabled:
+                update *= self.update_chaotic_gate()
             syn.phase = (syn.phase + self.phase_adaptation_rate * error) % (2 * math.pi)
             if self.synaptic_fatigue_enabled:
                 fatigue_factor = 1.0 - getattr(syn, "fatigue", 0.0)
