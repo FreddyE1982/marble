@@ -20,6 +20,7 @@ def create_simple_core():
     syn = core.add_synapse(0, 1, weight=1.0)
     return core, syn
 
+
 def create_chained_core():
     params = minimal_params()
     core = Core(params)
@@ -562,3 +563,14 @@ def test_shortcut_synapse_created_after_repetition():
     direct = [syn for syn in core.neurons[0].synapses if syn.target == 1]
     assert len(direct) == 1
     assert direct[0] not in (s1, s2)
+
+
+def test_chaotic_memory_replay_generates_output():
+    random.seed(0)
+    np.random.seed(0)
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(core)
+    out, path = nb.chaotic_memory_replay(1.0, iterations=3)
+    assert isinstance(out, float)
+    assert path
+    assert nb.chaos_state != 0.5
