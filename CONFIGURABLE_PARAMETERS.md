@@ -110,6 +110,9 @@ Each entry is listed under its section heading.
 - fatigue_increase
 - fatigue_decay
 - lr_adjustment_factor
+- lr_scheduler
+- scheduler_steps
+- scheduler_gamma
 - momentum_coefficient
 - use_echo_modulation
 - reinforcement_learning_enabled

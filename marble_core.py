@@ -353,7 +353,11 @@ class Neuron:
         self.id = nid
         self.value = value
         self.tier = tier
-        self.neuron_type = neuron_type if neuron_type in NEURON_TYPES else "standard"
+        if neuron_type not in NEURON_TYPES:
+            raise ValueError(
+                f"Unknown neuron_type '{neuron_type}'. Valid options are: {', '.join(NEURON_TYPES)}"
+            )
+        self.neuron_type = neuron_type
         self.synapses = []
         self.formula = None
         self.created_at = datetime.now()

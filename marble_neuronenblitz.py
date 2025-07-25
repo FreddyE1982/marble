@@ -107,6 +107,9 @@ class Neuronenblitz:
         fatigue_increase=0.05,
         fatigue_decay=0.95,
         lr_adjustment_factor=0.1,
+        lr_scheduler="none",
+        scheduler_steps=100,
+        scheduler_gamma=0.99,
         momentum_coefficient=0.0,
         reinforcement_learning_enabled=False,
         rl_discount=0.9,
@@ -185,6 +188,10 @@ class Neuronenblitz:
         self.fatigue_increase = fatigue_increase
         self.fatigue_decay = fatigue_decay
         self.lr_adjustment_factor = lr_adjustment_factor
+        self.lr_scheduler = lr_scheduler
+        self.scheduler_steps = int(scheduler_steps)
+        self.scheduler_gamma = float(scheduler_gamma)
+        self._scheduler_step = 0
         self.momentum_coefficient = momentum_coefficient
         self.rl_enabled = reinforcement_learning_enabled
         self.rl_discount = rl_discount
@@ -349,6 +356,23 @@ class Neuronenblitz:
                 self.learning_rate * (1 - self.lr_adjustment_factor),
                 self.min_learning_rate,
             )
+
+    def step_lr_scheduler(self) -> None:
+        """Update ``learning_rate`` according to the configured scheduler."""
+        if self.lr_scheduler == "none":
+            return
+        if self.lr_scheduler == "cosine":
+            progress = min(1.0, self._scheduler_step / max(1, self.scheduler_steps))
+            cos_out = (1 + math.cos(math.pi * progress)) / 2
+            self.learning_rate = self.min_learning_rate + (
+                self.max_learning_rate - self.min_learning_rate
+            ) * cos_out
+        elif self.lr_scheduler == "exponential":
+            self.learning_rate = max(
+                self.min_learning_rate,
+                self.max_learning_rate * (self.scheduler_gamma ** (self._scheduler_step + 1)),
+            )
+        self._scheduler_step += 1
 
     def adjust_dropout_rate(self, avg_error: float) -> None:
         """Dynamically adapt dropout probability based on training error."""
@@ -1016,6 +1040,7 @@ class Neuronenblitz:
             self.last_message_passing_change = change
             self.decide_synapse_action()
             self.adjust_learning_rate()
+            self.step_lr_scheduler()
             self.adjust_dropout_rate(avg_error)
 
     def get_training_history(self):

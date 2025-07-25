@@ -258,6 +258,15 @@ neuronenblitz:
   lr_adjustment_factor: Fractional step used by ``adjust_learning_rate`` when
     increasing or decreasing ``learning_rate`` in response to recent error
     trends.
+  lr_scheduler: Scheduler type controlling how ``learning_rate`` evolves over
+    epochs. ``"none"`` keeps the rate constant aside from manual adjustments,
+    ``"cosine"`` performs a cosine decay over ``scheduler_steps`` epochs and
+    ``"exponential"`` multiplies the rate by ``scheduler_gamma`` each epoch.
+  scheduler_steps: Number of epochs over which the cosine scheduler decays the
+    learning rate from ``max_learning_rate`` down to ``min_learning_rate``.
+  scheduler_gamma: Multiplicative factor used by the exponential scheduler each
+    epoch. Values below ``1.0`` decay the rate while values above ``1.0``
+    increase it.
   momentum_coefficient: Coefficient used to blend the previous weight update
     with the current gradient. ``0.0`` disables momentum while values between
     ``0.0`` and ``1.0`` accelerate training by smoothing updates. Momentum is

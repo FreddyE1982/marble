@@ -104,6 +104,9 @@ neuronenblitz:
   fatigue_increase: 0.05
   fatigue_decay: 0.95
   lr_adjustment_factor: 0.1
+  lr_scheduler: none
+  scheduler_steps: 100
+  scheduler_gamma: 0.99
   momentum_coefficient: 0.0
   use_echo_modulation: false
   reinforcement_learning_enabled: false

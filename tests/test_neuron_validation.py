@@ -33,3 +33,8 @@ def test_output_padding_gte_stride():
     n.params["output_padding"] = 2
     with pytest.raises(ValueError):
         n.validate_params()
+
+
+def test_unknown_neuron_type():
+    with pytest.raises(ValueError):
+        Neuron(4, neuron_type="unknown")
