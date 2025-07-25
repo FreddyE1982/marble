@@ -277,6 +277,12 @@ neuronenblitz:
     adds a random synapse connecting two neurons after each call. Higher values
     encourage spontaneous cross-links, increasing the chance of unexpected
     behaviours. Recommended range is 0.0–0.2.
+  concept_association_threshold: Number of times a specific neuron pair must
+    appear consecutively in a wander path before a new concept neuron is
+    inserted to bridge them. Higher values create concepts more conservatively.
+  concept_learning_rate: Initial weight assigned to each side of a newly
+    created concept neuron. This determines how strongly the new concept
+    influences signal flow right after insertion.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the

@@ -120,6 +120,8 @@ Each entry is listed under its section heading.
 - context_history_size
 - context_embedding_decay
 - emergent_connection_prob
+- concept_association_threshold
+- concept_learning_rate
 
 ## brain
 - save_threshold

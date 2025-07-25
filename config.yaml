@@ -114,6 +114,8 @@ neuronenblitz:
   context_history_size: 10
   context_embedding_decay: 0.9
   emergent_connection_prob: 0.05
+  concept_association_threshold: 5
+  concept_learning_rate: 0.1
 brain:
   save_threshold: 0.05
   max_saved_models: 5

@@ -124,6 +124,8 @@ class Neuronenblitz:
         context_history_size=10,
         context_embedding_decay=0.9,
         emergent_connection_prob=0.05,
+        concept_association_threshold=5,
+        concept_learning_rate=0.1,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -197,6 +199,8 @@ class Neuronenblitz:
         self.context_history_size = int(context_history_size)
         self.context_embedding_decay = float(context_embedding_decay)
         self.emergent_connection_prob = float(emergent_connection_prob)
+        self.concept_association_threshold = int(concept_association_threshold)
+        self.concept_learning_rate = float(concept_learning_rate)
 
         self.combine_fn = combine_fn if combine_fn is not None else default_combine_fn
         self.loss_fn = loss_fn if loss_fn is not None else default_loss_fn
@@ -239,6 +243,7 @@ class Neuronenblitz:
         # Track path usage for shortcut creation
         self._path_usage = {}
         self.context_history = deque(maxlen=self.context_history_size)
+        self._concept_pairs = {}
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -680,6 +685,8 @@ class Neuronenblitz:
                 self.apply_structural_plasticity(final_path)
                 self._record_path_usage([s for (_, s) in final_path if s is not None])
                 self.maybe_create_emergent_synapse()
+                self._update_concept_pairs([s for (_, s) in final_path if s is not None])
+                self.apply_concept_associations()
             result_path = [s for (_, s) in final_path if s is not None]
             if not apply_plasticity:
                 now = datetime.now(timezone.utc)
@@ -1136,3 +1143,33 @@ class Neuronenblitz:
             synapse_type=random.choice(SYNAPSE_TYPES),
         )
         return syn
+
+    def _update_concept_pairs(self, path):
+        """Record consecutive neuron pairs for concept association."""
+        if not path:
+            return
+        prev = path[0].source
+        for syn in path:
+            pair = (prev, syn.target)
+            self._concept_pairs[pair] = self._concept_pairs.get(pair, 0) + 1
+            prev = syn.target
+
+    def apply_concept_associations(self):
+        """Create concept neurons when pair counts exceed threshold."""
+        to_reset = []
+        for (src, tgt), count in list(self._concept_pairs.items()):
+            if count < self.concept_association_threshold:
+                continue
+            rep_a = self.core.neurons[src].representation
+            rep_b = self.core.neurons[tgt].representation
+            new_rep = np.tanh((rep_a + rep_b) / 2.0)
+            new_id = len(self.core.neurons)
+            tier = self.core.choose_new_tier()
+            neuron = Neuron(new_id, value=0.0, tier=tier, rep_size=self.core.rep_size)
+            neuron.representation = new_rep.astype(np.float32)
+            self.core.neurons.append(neuron)
+            self.core.add_synapse(src, new_id, weight=self.concept_learning_rate)
+            self.core.add_synapse(new_id, tgt, weight=self.concept_learning_rate)
+            to_reset.append((src, tgt))
+        for pair in to_reset:
+            self._concept_pairs[pair] = 0
