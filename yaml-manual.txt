@@ -257,6 +257,9 @@ neuronenblitz:
   rl_epsilon_decay: Multiplicative decay applied to ``rl_epsilon`` each time an
     update occurs.
   rl_min_epsilon: Smallest allowed exploration rate once decay has taken place.
+  shortcut_creation_threshold: Number of times the exact synapse path must be
+    observed before a direct shortcut connection from the first to the last
+    neuron is added. Set ``0`` to disable automatic shortcut formation.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the

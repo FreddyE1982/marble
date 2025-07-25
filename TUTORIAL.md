@@ -1089,6 +1089,21 @@ Run `python project24_cwfl.py` to see the field adapt across the dataset.
 
 Run `python project24b_phase_gated.py` to experiment with phase-based gating.
 
+## Project 24c – Shortcut Synapse Formation (Experimental)
+
+**Goal:** Automatically create direct connections along heavily traversed paths.**
+
+1. **Set a threshold** by adjusting `neuronenblitz.shortcut_creation_threshold`
+   in `config.yaml`. A value of ``0`` disables shortcut creation.
+2. **Train or repeatedly call** `dynamic_wander` on the same inputs. Once the
+   identical path has been taken enough times, MARBLE will insert a new synapse
+   from the first to the last neuron of that path.
+3. **Observe** the console for "Shortcut created" messages or inspect the core's
+   synapse list to verify the new connection.
+
+Run `python project24c_shortcuts.py` to watch shortcuts appear in a minimal
+network.
+
 ## Project 25 – Neural Schema Induction (Theory)
 
 **Goal:** Demonstrate structural learning of repeated reasoning patterns.**

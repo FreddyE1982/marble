@@ -113,6 +113,7 @@ class Neuronenblitz:
         rl_epsilon=1.0,
         rl_epsilon_decay=0.95,
         rl_min_epsilon=0.1,
+        shortcut_creation_threshold=5,
         use_echo_modulation=False,
         wander_cache_ttl=300,
         phase_rate=0.1,
@@ -178,6 +179,7 @@ class Neuronenblitz:
         self.rl_epsilon = rl_epsilon
         self.rl_epsilon_decay = rl_epsilon_decay
         self.rl_min_epsilon = rl_min_epsilon
+        self.shortcut_creation_threshold = int(shortcut_creation_threshold)
         self.use_echo_modulation = use_echo_modulation
         self.phase_rate = phase_rate
         self.phase_adaptation_rate = phase_adaptation_rate
@@ -221,6 +223,8 @@ class Neuronenblitz:
         self._grad_epsilon = 1e-8
         # Store previous gradients per synapse for alignment-based gating
         self._prev_gradients = {}
+        # Track path usage for shortcut creation
+        self._path_usage = {}
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -630,6 +634,7 @@ class Neuronenblitz:
                 self.prune_low_potential_synapses()
             if apply_plasticity:
                 self.apply_structural_plasticity(final_path)
+                self._record_path_usage([s for (_, s) in final_path if s is not None])
             result_path = [s for (_, s) in final_path if s is not None]
             if not apply_plasticity:
                 now = datetime.now(timezone.utc)
@@ -999,3 +1004,34 @@ class Neuronenblitz:
             else:
                 to_keep.append(syn)
         self.core.synapses = to_keep
+
+    def _record_path_usage(self, path):
+        """Increment usage counter for ``path`` and create shortcuts if needed."""
+        if len(path) < 2 or self.shortcut_creation_threshold <= 0:
+            return
+        key = tuple((syn.source, syn.target) for syn in path)
+        count = self._path_usage.get(key, 0) + 1
+        if count >= self.shortcut_creation_threshold:
+            self._create_shortcut_synapse(path)
+            count = 0
+        self._path_usage[key] = count
+
+    def _create_shortcut_synapse(self, path):
+        """Create a direct synapse from first to last neuron of ``path``."""
+        src = path[0].source
+        tgt = path[-1].target
+        if src == tgt:
+            return
+        weight = float(np.mean([syn.weight for syn in path]))
+        existing = [s for s in self.core.neurons[src].synapses if s.target == tgt]
+        if existing:
+            syn = existing[0]
+            syn.weight = min(syn.weight + weight, self._weight_limit)
+        else:
+            self.core.add_synapse(
+                src,
+                tgt,
+                weight=min(weight, self._weight_limit),
+                synapse_type=random.choice(SYNAPSE_TYPES),
+            )
+        print(f"Shortcut created from {src} to {tgt}")

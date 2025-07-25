@@ -20,6 +20,17 @@ def create_simple_core():
     syn = core.add_synapse(0, 1, weight=1.0)
     return core, syn
 
+def create_chained_core():
+    params = minimal_params()
+    core = Core(params)
+    core.neurons = [Neuron(0, value=0.0), Neuron(1, value=0.0), Neuron(2, value=0.0)]
+    core.synapses = []
+    syn1 = core.add_synapse(0, 2, weight=1.0)
+    syn2 = core.add_synapse(2, 1, weight=1.0)
+    core.neurons[0].attention_score = 5.0
+    core.neurons[2].attention_score = 0.0
+    return core, syn1, syn2
+
 
 def test_synaptic_fatigue_accumulates():
     random.seed(0)
@@ -530,3 +541,24 @@ def test_phase_gated_updates_modulate_direction():
     syn.phase = math.pi
     nb.apply_weight_updates_and_attention([syn], error=1.0)
     assert syn.weight < pos_weight
+
+
+def test_shortcut_synapse_created_after_repetition():
+    random.seed(0)
+    np.random.seed(0)
+    core, s1, s2 = create_chained_core()
+    nb = Neuronenblitz(
+        core,
+        shortcut_creation_threshold=3,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        backtrack_probability=0.0,
+        backtrack_enabled=False,
+        continue_decay_rate=1.0,
+        max_wander_depth=3,
+    )
+    for _ in range(3):
+        nb.dynamic_wander(1.0)
+    direct = [syn for syn in core.neurons[0].synapses if syn.target == 1]
+    assert len(direct) == 1
+    assert direct[0] not in (s1, s2)
