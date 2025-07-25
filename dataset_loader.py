@@ -3,6 +3,7 @@ import hashlib
 import requests
 import pandas as pd
 from typing import Any
+from tqdm import tqdm
 
 
 def _download_file(url: str, path: str) -> None:
@@ -10,9 +11,14 @@ def _download_file(url: str, path: str) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with requests.get(url, stream=True, timeout=30) as r:
         r.raise_for_status()
-        with open(path, "wb") as f:
+        total = int(r.headers.get("content-length", 0))
+        desc = f"Downloading {os.path.basename(path)}"
+        with open(path, "wb") as f, tqdm(
+            total=total, unit="B", unit_scale=True, desc=desc
+        ) as pbar:
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
+                pbar.update(len(chunk))
 
 
 def load_dataset(
