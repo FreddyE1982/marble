@@ -651,3 +651,38 @@ def test_emergent_connection_creation(monkeypatch):
     monkeypatch.setattr(random, "random", lambda: 0.0)
     nb.dynamic_wander(1.0)
     assert len(core.synapses) == prev + 1
+
+
+def test_cosine_scheduler_steps_learning_rate():
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        lr_scheduler="cosine",
+        scheduler_steps=2,
+        min_learning_rate=0.1,
+        max_learning_rate=1.0,
+    )
+    nb.learning_rate = nb.max_learning_rate
+    lr_start = nb.learning_rate
+    nb.step_lr_scheduler()
+    mid_lr = nb.learning_rate
+    nb.step_lr_scheduler()
+    end_lr = nb.learning_rate
+    assert lr_start > end_lr
+    assert mid_lr >= end_lr
+
+
+def test_exponential_scheduler_decreases_learning_rate():
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        lr_scheduler="exponential",
+        scheduler_gamma=0.5,
+        max_learning_rate=1.0,
+        min_learning_rate=0.1,
+    )
+    nb.learning_rate = nb.max_learning_rate
+    nb.step_lr_scheduler()
+    assert nb.learning_rate == 0.5
+    nb.step_lr_scheduler()
+    assert nb.learning_rate == 0.25
