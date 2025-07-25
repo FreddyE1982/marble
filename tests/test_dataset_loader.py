@@ -36,3 +36,32 @@ def test_load_remote_csv(tmp_path):
     finally:
         httpd.shutdown()
         thread.join()
+
+
+def test_download_progress_bar(monkeypatch, tmp_path):
+    csv_path = tmp_path / "file.csv"
+    csv_path.write_text("input,target\n1,1\n")
+    httpd, thread = _serve_directory(tmp_path, 9010)
+    updates = []
+
+    class Dummy:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            pass
+
+        def update(self, n):
+            updates.append(n)
+
+    monkeypatch.setattr("dataset_loader.tqdm", Dummy)
+    try:
+        url = f"http://localhost:9010/{csv_path.name}"
+        load_dataset(url, cache_dir=tmp_path / "cache", force_refresh=True)
+        assert sum(updates) > 0
+    finally:
+        httpd.shutdown()
+        thread.join()

@@ -73,10 +73,18 @@ def _simple_mlp(
     Uses GPU acceleration when ``x`` is a ``torch.Tensor`` and CUDA is available."""
     if torch.is_tensor(x):
         device = x.device
-        h = _apply_activation_torch(x @ torch.as_tensor(_W1, device=device) + torch.as_tensor(_B1, device=device), activation)
+        h = _apply_activation_torch(
+            x @ torch.as_tensor(_W1, device=device)
+            + torch.as_tensor(_B1, device=device),
+            activation,
+        )
         if apply_layer_norm:
             h = torch.nn.functional.layer_norm(h, h.shape[-1:])
-        out = _apply_activation_torch(h @ torch.as_tensor(_W2, device=device) + torch.as_tensor(_B2, device=device), activation)
+        out = _apply_activation_torch(
+            h @ torch.as_tensor(_W2, device=device)
+            + torch.as_tensor(_B2, device=device),
+            activation,
+        )
         return out
     # Handle potential NaNs or infinities to avoid runtime warnings
     x = np.nan_to_num(x, nan=0.0, posinf=0.0, neginf=0.0)
@@ -368,7 +376,9 @@ class Neuron:
             p = float(self.params["p"])
             if not 0.0 <= p <= 1.0:
                 raise ValueError("dropout probability must be between 0 and 1")
-        if "kernel" in self.params and not isinstance(self.params["kernel"], np.ndarray):
+        if "kernel" in self.params and not isinstance(
+            self.params["kernel"], np.ndarray
+        ):
             raise ValueError("kernel must be a numpy.ndarray")
         if "padding" in self.params and (
             not isinstance(self.params["padding"], int) or self.params["padding"] < 0
@@ -397,10 +407,11 @@ class Neuron:
             if not isinstance(dim, int) or dim <= 0:
                 raise ValueError("embedding_dim must be a positive integer")
             if weights is not None and (
-                not isinstance(weights, np.ndarray)
-                or weights.shape != (num, dim)
+                not isinstance(weights, np.ndarray) or weights.shape != (num, dim)
             ):
-                raise ValueError("weights shape must match (num_embeddings, embedding_dim)")
+                raise ValueError(
+                    "weights shape must match (num_embeddings, embedding_dim)"
+                )
 
     def initialize_params(self) -> None:
         """Initialize layer-like parameters based on ``neuron_type``."""
@@ -1201,7 +1212,13 @@ class DataLoader:
 
 
 class Core:
-    def __init__(self, params, formula=None, formula_num_neurons=100):
+    def __init__(
+        self,
+        params,
+        formula=None,
+        formula_num_neurons=100,
+        metrics_visualizer: "MetricsVisualizer | None" = None,
+    ):
         print("Initializing MARBLE Core...")
         seed = params.get("random_seed")
         if seed is not None:
@@ -1212,6 +1229,7 @@ class Core:
             except Exception:
                 pass
         self.params = params
+        self.metrics_visualizer = metrics_visualizer
         if "file" in TIER_REGISTRY:
             fpath = params.get("file_tier_path")
             if fpath is not None:
@@ -1341,13 +1359,28 @@ class Core:
         usage_bytes = len(neurons_in_tier) * 32 + len(synapses_in_tier) * 16
         return usage_bytes / (1024 * 1024)
 
-    def check_memory_usage(self):
-        usage_vram = self.get_usage_by_tier("vram")
-        usage_ram = self.get_usage_by_tier("ram")
-        usage_disk = self.get_usage_by_tier("disk")
+    def get_memory_usage_metrics(self) -> dict[str, float]:
+        """Return a dictionary with current memory usage metrics."""
+        from system_metrics import get_system_memory_usage, get_gpu_memory_usage
+
+        metrics = {
+            "vram_usage": self.get_usage_by_tier("vram"),
+            "ram_usage": self.get_usage_by_tier("ram"),
+            "disk_usage": self.get_usage_by_tier("disk"),
+            "system_memory": get_system_memory_usage(),
+            "gpu_memory": get_gpu_memory_usage(),
+        }
+        return metrics
+
+    def check_memory_usage(self) -> None:
+        metrics = self.get_memory_usage_metrics()
         print(
-            f"Memory usage - VRAM: {usage_vram:.2f} MB, RAM: {usage_ram:.2f} MB, Disk: {usage_disk:.2f} MB"
+            "Memory usage - VRAM: {vram_usage:.2f} MB, RAM: {ram_usage:.2f} MB, Disk: {disk_usage:.2f} MB".format(
+                **metrics
+            )
         )
+        if self.metrics_visualizer is not None:
+            self.metrics_visualizer.update(metrics)
 
     def autotune_tiers(self) -> None:
         """Automatically migrate neurons between tiers when usage exceeds limits."""
