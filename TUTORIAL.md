@@ -1104,6 +1104,18 @@ Run `python project24b_phase_gated.py` to experiment with phase-based gating.
 Run `python project24c_shortcuts.py` to watch shortcuts appear in a minimal
 network.
 
+## Project 24d – Chaotic Update Gating (Experimental)
+
+**Goal:** Explore logistic-map modulation of weight updates.**
+
+1. **Enable chaotic gating** by setting `neuronenblitz.chaotic_gating_enabled: true`
+   in `config.yaml`. Adjust `chaotic_gating_param` and `chaotic_gate_init` to tune
+   the behaviour.
+2. **Train a small model** as in previous projects and observe
+   `neuronenblitz.get_current_gate()` after each epoch to see how the gate evolves.
+
+Run `python project24d_chaotic_gating.py` to test the effect on learning.
+
 ## Project 25 – Neural Schema Induction (Theory)
 
 **Goal:** Demonstrate structural learning of repeated reasoning patterns.**

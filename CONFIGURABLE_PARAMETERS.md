@@ -114,6 +114,9 @@ Each entry is listed under its section heading.
 - rl_epsilon_decay
 - rl_min_epsilon
 - shortcut_creation_threshold
+- chaotic_gating_enabled
+- chaotic_gating_param
+- chaotic_gate_init
 
 ## brain
 - save_threshold

@@ -108,6 +108,9 @@ neuronenblitz:
   rl_epsilon_decay: 0.95
   rl_min_epsilon: 0.1
   shortcut_creation_threshold: 5
+  chaotic_gating_enabled: false
+  chaotic_gating_param: 3.7
+  chaotic_gate_init: 0.5
 brain:
   save_threshold: 0.05
   max_saved_models: 5

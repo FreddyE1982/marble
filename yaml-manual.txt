@@ -260,6 +260,13 @@ neuronenblitz:
   shortcut_creation_threshold: Number of times the exact synapse path must be
     observed before a direct shortcut connection from the first to the last
     neuron is added. Set ``0`` to disable automatic shortcut formation.
+  chaotic_gating_enabled: Enables logistic-map scaling of each weight update.
+    When true the gate evolves chaotically and multiplies the computed update
+    value, introducing non-linear training dynamics.
+  chaotic_gating_param: Bifurcation parameter for the logistic gate update.
+    Values between ``3.6`` and ``4.0`` produce strong chaotic behaviour.
+  chaotic_gate_init: Starting value for the gate. Must lie between ``0`` and
+    ``1`` and determines the initial update scale.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the
