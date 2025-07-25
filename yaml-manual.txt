@@ -221,6 +221,13 @@ neuronenblitz:
   wander_cache_ttl: Time-to-live in seconds for ``dynamic_wander`` cache
     entries. Cached paths older than this value are removed before reuse.
     Values above ``0`` enable expiration while ``0`` keeps results indefinitely.
+  phase_rate: Amount added to ``global_phase`` each time ``dynamic_wander``
+    runs. Higher values make the oscillator advance more quickly, altering
+    the cosine gating applied to every synapse.
+  phase_adaptation_rate: Step size used to adjust each synapse's individual
+    ``phase`` after a weight update. Positive error values push phases
+    forward while negative errors pull them backward. The value should
+    typically stay below ``1.0`` to prevent rapid oscillations.
   synaptic_fatigue_enabled: When true each synapse maintains a temporary
     fatigue value that reduces its effective weight after repeated use. This
     models biological short-term depression and can help prevent domination by

@@ -1068,6 +1068,27 @@ learner.train(samples, epochs=2)
 ```
 Run `python project24_cwfl.py` to see the field adapt across the dataset.
 
+## Project 24b – Phase-Gated Neuronenblitz (Experimental)
+
+**Goal:** Explore oscillatory modulation of synaptic updates.**
+
+1. **Enable phase gating** by setting `neuronenblitz.phase_rate` and
+   `neuronenblitz.phase_adaptation_rate` in `config.yaml`.
+2. **Instantiate MARBLE** as usual and train on a small numeric dataset:
+   ```python
+   from config_loader import load_config
+   from marble_main import MARBLE
+
+   cfg = load_config()
+   marble = MARBLE(cfg['core'])
+   examples = [(0.1, 0.2), (0.3, 0.5)]
+   marble.neuronenblitz.train(examples, epochs=3)
+   ```
+3. **Inspect phases** via `syn.phase` on any synapse to see how they
+   gradually synchronise with the global oscillator.
+
+Run `python project24b_phase_gated.py` to experiment with phase-based gating.
+
 ## Project 25 – Neural Schema Induction (Theory)
 
 **Goal:** Demonstrate structural learning of repeated reasoning patterns.**

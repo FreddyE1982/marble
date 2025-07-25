@@ -115,6 +115,8 @@ class Neuronenblitz:
         rl_min_epsilon=0.1,
         use_echo_modulation=False,
         wander_cache_ttl=300,
+        phase_rate=0.1,
+        phase_adaptation_rate=0.05,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -177,6 +179,9 @@ class Neuronenblitz:
         self.rl_epsilon_decay = rl_epsilon_decay
         self.rl_min_epsilon = rl_min_epsilon
         self.use_echo_modulation = use_echo_modulation
+        self.phase_rate = phase_rate
+        self.phase_adaptation_rate = phase_adaptation_rate
+        self.global_phase = 0.0
 
         self.combine_fn = combine_fn if combine_fn is not None else default_combine_fn
         self.loss_fn = loss_fn if loss_fn is not None else default_loss_fn
@@ -393,7 +398,7 @@ class Neuronenblitz:
             for syn in synapses:
                 next_neuron = self.core.neurons[syn.target]
                 w = (
-                    syn.effective_weight(self.last_context)
+                    syn.effective_weight(self.last_context, self.global_phase)
                     if hasattr(syn, "effective_weight")
                     else syn.weight
                 )
@@ -439,7 +444,7 @@ class Neuronenblitz:
             syn = self.weighted_choice(synapses)
             next_neuron = self.core.neurons[syn.target]
             w = (
-                syn.effective_weight(self.last_context)
+                syn.effective_weight(self.last_context, self.global_phase)
                 if hasattr(syn, "effective_weight")
                 else syn.weight
             )
@@ -527,7 +532,7 @@ class Neuronenblitz:
                 for syn in neuron.synapses:
                     next_neuron = self.core.neurons[syn.target]
                     w = (
-                        syn.effective_weight(self.last_context)
+                        syn.effective_weight(self.last_context, self.global_phase)
                         if hasattr(syn, "effective_weight")
                         else syn.weight
                     )
@@ -556,6 +561,7 @@ class Neuronenblitz:
 
     def dynamic_wander(self, input_value, apply_plasticity=True):
         with self.lock:
+            self.global_phase = (self.global_phase + self.phase_rate) % (2 * math.pi)
             if not apply_plasticity and input_value in self.wander_cache:
                 out, path, ts = self.wander_cache[input_value]
                 age = (datetime.now(timezone.utc) - ts).total_seconds()
@@ -595,7 +601,7 @@ class Neuronenblitz:
                     syn = self.weighted_choice(entry_neuron.synapses)
                     next_neuron = self.core.neurons[syn.target]
                     w = (
-                        syn.effective_weight(self.last_context)
+                        syn.effective_weight(self.last_context, self.global_phase)
                         if hasattr(syn, "effective_weight")
                         else syn.weight
                     )
@@ -802,6 +808,9 @@ class Neuronenblitz:
             update = self.learning_rate * (
                 self.momentum_coefficient * mom + scaled_delta
             )
+            phase_factor = math.cos(syn.phase - self.global_phase)
+            update *= phase_factor
+            syn.phase = (syn.phase + self.phase_adaptation_rate * error) % (2 * math.pi)
             if self.synaptic_fatigue_enabled:
                 fatigue_factor = 1.0 - getattr(syn, "fatigue", 0.0)
                 update *= max(0.0, fatigue_factor)
