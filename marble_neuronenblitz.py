@@ -184,6 +184,7 @@ class Neuronenblitz:
         self.phase_rate = phase_rate
         self.phase_adaptation_rate = phase_adaptation_rate
         self.global_phase = 0.0
+        self.chaos_state = 0.5
 
         self.combine_fn = combine_fn if combine_fn is not None else default_combine_fn
         self.loss_fn = loss_fn if loss_fn is not None else default_loss_fn
@@ -684,6 +685,31 @@ class Neuronenblitz:
             )
 
         return outputs
+
+    def chaotic_memory_replay(
+        self,
+        input_value: float,
+        chaos_param: float = 3.7,
+        iterations: int = 5,
+    ) -> tuple[float, list]:
+        """Generate a replay sequence using chaotic perturbations.
+
+        A logistic map drives noise injections between successive
+        ``dynamic_wander`` calls.  The resulting paths are concatenated
+        and returned alongside the final output value.
+        """
+
+        output = float(input_value)
+        path = []
+        state = self.chaos_state
+        for _ in range(int(iterations)):
+            state = chaos_param * state * (1.0 - state)
+            noise = state - 0.5
+            out, p = self.dynamic_wander(output + noise, apply_plasticity=False)
+            output = float(out)
+            path.extend(p)
+        self.chaos_state = state
+        return output, path
 
     def apply_structural_plasticity(self, path):
         ctx = self.last_context
