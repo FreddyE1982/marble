@@ -214,6 +214,8 @@ class Neuronenblitz:
         self._grad_sq = {}
         self._rmsprop_beta = 0.99
         self._grad_epsilon = 1e-8
+        # Store previous gradients per synapse for alignment-based gating
+        self._prev_gradients = {}
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -778,6 +780,10 @@ class Neuronenblitz:
                 continue
             source_value = self.core.neurons[syn.source].value
             delta = self.weight_update_fn(source_value, error, path_length)
+            prev_delta = self._prev_gradients.get(syn)
+            if prev_delta is not None and prev_delta * delta < 0:
+                delta *= 0.5
+            self._prev_gradients[syn] = delta
             delta *= self._eligibility_traces.get(syn, 1.0)
             if self.use_echo_modulation and hasattr(syn, "get_echo_average"):
                 delta *= syn.get_echo_average()
@@ -787,7 +793,7 @@ class Neuronenblitz:
             if clip is not None:
                 delta = float(np.clip(delta, -clip, clip))
             prev_v = self._grad_sq.get(syn, 1.0)
-            v = self._rmsprop_beta * prev_v + (1 - self._rmsprop_beta) * (delta ** 2)
+            v = self._rmsprop_beta * prev_v + (1 - self._rmsprop_beta) * (delta**2)
             self._grad_sq[syn] = v
             scaled_delta = delta / math.sqrt(v + self._grad_epsilon)
             mom_prev = self._momentum.get(syn, 0.0)
