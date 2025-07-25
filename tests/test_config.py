@@ -3,6 +3,9 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from config_loader import load_config, create_marble_from_config
+from config_schema import validate_config_schema
+import pytest
+import jsonschema
 import yaml
 from marble_main import MARBLE
 from remote_offload import RemoteBrainClient
@@ -194,3 +197,13 @@ def test_new_nb_parameters_configurable(tmp_path):
     assert marble.neuronenblitz._cache_max_size == 7
     assert marble.neuronenblitz._rmsprop_beta == 0.8
     assert marble.neuronenblitz._grad_epsilon == 1e-6
+
+
+def test_invalid_config_raises(tmp_path):
+    cfg = load_config()
+    cfg["brain"]["early_stopping_patience"] = -1
+    cfg_path = tmp_path / "bad.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(cfg, f)
+    with pytest.raises(jsonschema.ValidationError):
+        load_config(str(cfg_path))

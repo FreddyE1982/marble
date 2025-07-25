@@ -1535,6 +1535,28 @@ class Core:
         target_tier=None,
         neuron_types=None,
     ):
+        if not isinstance(num_new_neurons, int) or not isinstance(
+            num_new_synapses, int
+        ):
+            raise TypeError("num_new_neurons and num_new_synapses must be integers")
+        if num_new_neurons < 0 or num_new_synapses < 0:
+            raise ValueError(
+                "num_new_neurons and num_new_synapses must be non-negative"
+            )
+        if not 0.0 <= alternative_connection_prob <= 1.0:
+            raise ValueError("alternative_connection_prob must be between 0 and 1")
+        if target_tier is not None and target_tier not in TIER_REGISTRY:
+            raise ValueError(f"Unknown target_tier '{target_tier}'")
+        if neuron_types is not None:
+            if isinstance(neuron_types, list):
+                if not neuron_types:
+                    raise ValueError("neuron_types list cannot be empty")
+                for n_type in neuron_types:
+                    if n_type not in NEURON_TYPES:
+                        raise ValueError(f"Unknown neuron type: {n_type}")
+            else:
+                if neuron_types not in NEURON_TYPES:
+                    raise ValueError(f"Unknown neuron type: {neuron_types}")
         self.cleanup_unused_neurons()
         if target_tier is None:
             target_tier = self.choose_new_tier()

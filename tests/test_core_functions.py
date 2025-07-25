@@ -100,6 +100,17 @@ def test_core_expand_assigns_types():
     assert types == {'excitatory'}
 
 
+def test_core_expand_invalid_params():
+    params = minimal_params()
+    core = Core(params)
+    with pytest.raises(ValueError):
+        core.expand(num_new_neurons=-1)
+    with pytest.raises(ValueError):
+        core.expand(num_new_neurons=1, target_tier="unknown")
+    with pytest.raises(ValueError):
+        core.expand(num_new_neurons=1, neuron_types="badtype")
+
+
 def test_file_tier_path_configurable(tmp_path):
     params = minimal_params()
     custom_path = tmp_path / "tier.dat"
