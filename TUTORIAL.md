@@ -98,12 +98,13 @@ This project introduces the **Core**, **Neuronenblitz** and **Brain** objects al
    ```
    Training now runs in a background thread so you can execute other code in the meantime. When you need to wait for completion call `marble.brain.wait_for_training()`.
 4. **Run inference concurrently** with `marble.brain.dynamic_wander(sample)` to test the partially trained network while training is still running.
-5. **Experiment with evolutionary functions** to mutate or prune synapses:
+5. **Tune caching** using the ``wander_cache_ttl`` parameter in ``config.yaml`` to control how long ``dynamic_wander`` results remain valid. Increasing the value reuses paths more aggressively while ``0`` disables expiry.
+6. **Experiment with evolutionary functions** to mutate or prune synapses:
    ```python
    mutated, pruned = marble.brain.evolve(mutation_rate=0.02, prune_threshold=0.05)
    ```
    Mutations add noise to synapses while pruning removes the least useful ones.
-6. **Enable dreaming** by setting `dream_enabled: true` in `config.yaml`. Parameters like `dream_num_cycles` and `dream_interval` determine how often memory consolidation happens in the background.
+7. **Enable dreaming** by setting `dream_enabled: true` in `config.yaml`. Parameters like `dream_num_cycles` and `dream_interval` determine how often memory consolidation happens in the background.
 
 **Complete Example**
 ```python

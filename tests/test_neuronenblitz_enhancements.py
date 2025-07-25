@@ -4,6 +4,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 import random
 import numpy as np
+import time
 from marble_core import Core, Neuron
 from marble_neuronenblitz import Neuronenblitz
 from tests.test_core_functions import minimal_params
@@ -414,6 +415,18 @@ def test_dynamic_wander_cache_size_limit():
     for i in range(nb._cache_max_size + 10):
         nb.dynamic_wander(float(i), apply_plasticity=False)
     assert len(nb.wander_cache) == nb._cache_max_size
+
+
+def test_dynamic_wander_cache_ttl_expiration():
+    random.seed(0)
+    np.random.seed(0)
+    core, syn = create_simple_core()
+    nb = Neuronenblitz(core, wander_cache_ttl=0.1)
+    out1, path1 = nb.dynamic_wander(1.0, apply_plasticity=False)
+    time.sleep(0.2)
+    syn.weight = 2.0
+    out2, path2 = nb.dynamic_wander(1.0, apply_plasticity=False)
+    assert out1 != out2 or path1 != path2
 
 
 def test_rmsprop_adaptive_scaling():

@@ -218,6 +218,9 @@ neuronenblitz:
     beam search variant of ``dynamic_wander``. Wider beams explore more options
     but increase computation time. A value of ``1`` disables beam search and
     reverts to the original recursive wander.
+  wander_cache_ttl: Time-to-live in seconds for ``dynamic_wander`` cache
+    entries. Cached paths older than this value are removed before reuse.
+    Values above ``0`` enable expiration while ``0`` keeps results indefinitely.
   synaptic_fatigue_enabled: When true each synapse maintains a temporary
     fatigue value that reduces its effective weight after repeated use. This
     models biological short-term depression and can help prevent domination by
