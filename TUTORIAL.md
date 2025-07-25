@@ -1331,7 +1331,11 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
     `context_embedding_decay` on the *Settings* tab. These options control how
     many neuromodulatory states influence wandering and how quickly older
     signals fade.
-23. **Manage lobes** on the *Lobe Manager* tab. View attention scores for each
+23. **Encourage emergent connections** by increasing
+    `neuronenblitz.emergent_connection_prob` on the *Settings* tab. A value near
+    `0.1` lets `dynamic_wander` occasionally create new random synapses, which
+    can foster unexpected network behaviour.
+24. **Manage lobes** on the *Lobe Manager* tab. View attention scores for each
     lobe, create new lobes from selected neuron IDs, reorganize the current
     structure or apply self-attention updates with a single click.
 24. **Read the documentation** on the *Documentation* tab. Every markdown file

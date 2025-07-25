@@ -123,6 +123,7 @@ class Neuronenblitz:
         chaotic_gate_init=0.5,
         context_history_size=10,
         context_embedding_decay=0.9,
+        emergent_connection_prob=0.05,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -195,6 +196,7 @@ class Neuronenblitz:
         self.chaotic_gate = chaotic_gate_init
         self.context_history_size = int(context_history_size)
         self.context_embedding_decay = float(context_embedding_decay)
+        self.emergent_connection_prob = float(emergent_connection_prob)
 
         self.combine_fn = combine_fn if combine_fn is not None else default_combine_fn
         self.loss_fn = loss_fn if loss_fn is not None else default_loss_fn
@@ -677,6 +679,7 @@ class Neuronenblitz:
             if apply_plasticity:
                 self.apply_structural_plasticity(final_path)
                 self._record_path_usage([s for (_, s) in final_path if s is not None])
+                self.maybe_create_emergent_synapse()
             result_path = [s for (_, s) in final_path if s is not None]
             if not apply_plasticity:
                 now = datetime.now(timezone.utc)
@@ -1115,3 +1118,21 @@ class Neuronenblitz:
                 synapse_type=random.choice(SYNAPSE_TYPES),
             )
         print(f"Shortcut created from {src} to {tgt}")
+
+    def maybe_create_emergent_synapse(self):
+        """Randomly create a new synapse to encourage emergent structure."""
+        if random.random() >= self.emergent_connection_prob:
+            return None
+        if len(self.core.neurons) < 2:
+            return None
+        src, tgt = random.sample(range(len(self.core.neurons)), 2)
+        if src == tgt:
+            return None
+        weight = random.uniform(0.1, 1.0)
+        syn = self.core.add_synapse(
+            src,
+            tgt,
+            weight=weight,
+            synapse_type=random.choice(SYNAPSE_TYPES),
+        )
+        return syn
