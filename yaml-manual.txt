@@ -283,6 +283,15 @@ neuronenblitz:
   concept_learning_rate: Initial weight assigned to each side of a newly
     created concept neuron. This determines how strongly the new concept
     influences signal flow right after insertion.
+  weight_limit: Upper bound applied to every synapse weight. Any update that
+    would exceed this magnitude is clipped to maintain numerical stability.
+  wander_cache_size: Maximum number of recent ``dynamic_wander`` results kept
+    in the cache. Older entries are discarded once this count is exceeded.
+  rmsprop_beta: Exponential decay factor used by the RMSProp-like gradient
+    smoothing in ``apply_weight_updates_and_attention``. Typical values are
+    0.9–0.99.
+  grad_epsilon: Small constant added when normalising gradients to avoid
+    division by zero.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the

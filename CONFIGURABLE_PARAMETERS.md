@@ -122,6 +122,10 @@ Each entry is listed under its section heading.
 - emergent_connection_prob
 - concept_association_threshold
 - concept_learning_rate
+- weight_limit
+- wander_cache_size
+- rmsprop_beta
+- grad_epsilon
 
 ## brain
 - save_threshold

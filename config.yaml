@@ -116,6 +116,10 @@ neuronenblitz:
   emergent_connection_prob: 0.05
   concept_association_threshold: 5
   concept_learning_rate: 0.1
+  weight_limit: 1000000.0
+  wander_cache_size: 50
+  rmsprop_beta: 0.99
+  grad_epsilon: 1.0e-08
 brain:
   save_threshold: 0.05
   max_saved_models: 5
