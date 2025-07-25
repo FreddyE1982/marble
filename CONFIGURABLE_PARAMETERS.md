@@ -113,6 +113,7 @@ Each entry is listed under its section heading.
 - rl_epsilon
 - rl_epsilon_decay
 - rl_min_epsilon
+- shortcut_creation_threshold
 
 ## brain
 - save_threshold

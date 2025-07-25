@@ -107,6 +107,7 @@ neuronenblitz:
   rl_epsilon: 1.0
   rl_epsilon_decay: 0.95
   rl_min_epsilon: 0.1
+  shortcut_creation_threshold: 5
 brain:
   save_threshold: 0.05
   max_saved_models: 5
