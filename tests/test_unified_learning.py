@@ -21,3 +21,20 @@ def test_unified_learner_runs():
     learner.train_step((0.1, 0.2))
     assert learner.history
     assert set(learner.history[0]["weights"].keys()) == set(learners.keys())
+
+
+def test_unified_learner_explain_gradients():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    learners = {
+        "hebbian": HebbianLearner(core, nb),
+        "auto": AutoencoderLearner(core, nb),
+    }
+    learner = UnifiedLearner(core, nb, learners)
+    learner.train_step((0.1, 0.2))
+    result = learner.explain(0, with_gradients=True)
+    assert "gradients" in result
+    assert set(result["gradients"].keys()) == set(learners.keys())
+    for g in result["gradients"].values():
+        assert len(g) == 4

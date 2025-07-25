@@ -19,6 +19,9 @@ this idea, the new ``UnifiedLearner`` introduces a gating network that
 dynamically selects or blends paradigms for every training step based on
 contextual cues. This meta-controller coordinates learning across all
 modules while logging its decisions for later inspection.
+The logged data can be analysed using ``UnifiedLearner.explain`` which
+optionally returns gradient-based attributions showing how each context
+feature influenced the gating weights.
 Continuous Weight Field Learning introduces a variational method where each
 input has its own smoothly varying weight vector generated on the fly.
 Neural Schema Induction grows new neurons representing frequently repeated
