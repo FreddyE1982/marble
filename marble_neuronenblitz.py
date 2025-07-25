@@ -294,6 +294,12 @@ class Neuronenblitz:
                 self.min_learning_rate,
             )
 
+    def adjust_dropout_rate(self, avg_error: float) -> None:
+        """Dynamically adapt dropout probability based on training error."""
+        self.dropout_probability *= self.dropout_decay_rate
+        self.dropout_probability += 0.1 * (avg_error - 0.5)
+        self.dropout_probability = float(max(0.0, min(1.0, self.dropout_probability)))
+
     # Reinforcement learning utilities
     def enable_rl(self) -> None:
         """Enable built-in reinforcement learning."""
@@ -867,11 +873,7 @@ class Neuronenblitz:
             self.last_message_passing_change = change
             self.decide_synapse_action()
             self.adjust_learning_rate()
-            if self.dropout_decay_rate != 1.0:
-                self.dropout_probability *= self.dropout_decay_rate
-                self.dropout_probability = float(
-                    max(0.0, min(1.0, self.dropout_probability))
-                )
+            self.adjust_dropout_rate(avg_error)
 
     def get_training_history(self):
         return self.training_history

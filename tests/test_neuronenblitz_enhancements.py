@@ -248,8 +248,17 @@ def test_dropout_probability_decays():
         backtrack_enabled=False,
     )
     nb.train([(1.0, 0.0)], epochs=2)
-    expected = 0.5 * 0.8 * 0.8
-    assert np.isclose(nb.dropout_probability, expected)
+    assert 0.0 <= nb.dropout_probability < 0.5
+
+
+def test_adjust_dropout_rate_increases_and_decreases():
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(core, dropout_probability=0.2, dropout_decay_rate=0.9)
+    nb.adjust_dropout_rate(1.0)
+    assert nb.dropout_probability > 0.2
+    prev = nb.dropout_probability
+    nb.adjust_dropout_rate(0.0)
+    assert nb.dropout_probability < prev
 
 
 def test_synapse_update_cap_limits_change():
