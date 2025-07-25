@@ -1,3 +1,4 @@
+absl-py==2.3.1
 aiohappyeyeballs==2.6.1
 aiohttp==3.12.14
 aiosignal==1.4.0
@@ -26,6 +27,7 @@ frozenlist==1.7.0
 fsspec==2024.6.1
 gitdb==4.0.12
 GitPython==3.1.44
+grpcio==1.74.0
 hf-xet==1.1.5
 huggingface-hub==0.33.4
 idna==3.10
@@ -43,6 +45,7 @@ jsonschema==4.25.0
 jsonschema-specifications==2025.4.1
 jupyterlab_widgets==3.0.15
 kiwisolver==1.4.8
+Markdown==3.8.2
 markdown-it-py==3.0.0
 MarkupSafe==2.1.5
 matplotlib==3.10.3
@@ -99,6 +102,8 @@ stack-data==0.6.3
 streamlit==1.35.0
 sympy==1.13.3
 tenacity==8.5.0
+tensorboard==2.20.0
+tensorboard-data-server==0.7.2
 threadpoolctl==3.6.0
 tokenizers==0.19.1
 toml==0.10.2

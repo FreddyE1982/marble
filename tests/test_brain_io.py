@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import random
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -46,7 +47,7 @@ def test_brain_save_and_load(tmp_path):
 
 def test_metrics_visualizer_update():
     from marble_base import MetricsVisualizer
-    mv = MetricsVisualizer()
+    mv = MetricsVisualizer(log_dir="tb_logs", csv_log_path="metrics.csv")
     mv.update({'loss': 0.5, 'vram_usage': 0.1, 'arousal': 0.2,
                'stress': 0.1, 'reward': 0.3,
                'plasticity_threshold': 5.0,
@@ -56,6 +57,9 @@ def test_metrics_visualizer_update():
     assert mv.metrics['vram_usage'][-1] == 0.1
     assert mv.metrics['arousal'][-1] == 0.2
     assert mv.metrics['plasticity_threshold'][-1] == 5.0
+    mv.close()
+    assert os.path.exists("metrics.csv")
+    assert any(p.name.startswith("events.out.tfevents") for p in Path("tb_logs").iterdir())
 
 
 def test_brain_neuromodulatory_system_integration():

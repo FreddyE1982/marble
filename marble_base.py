@@ -1,5 +1,6 @@
 from marble_imports import *
 from system_metrics import get_system_memory_usage, get_gpu_memory_usage
+from torch.utils.tensorboard import SummaryWriter
 
 
 def clear_output(wait: bool = True) -> None:
@@ -103,6 +104,8 @@ class MetricsVisualizer:
         show_neuron_ids=False,
         dpi=100,
         track_memory_usage=False,
+        log_dir: str | None = None,
+        csv_log_path: str | None = None,
     ):
         self.metrics = {
             "loss": [],
@@ -128,6 +131,18 @@ class MetricsVisualizer:
         self.show_neuron_ids = show_neuron_ids
         self.dpi = dpi
         self.track_memory_usage = track_memory_usage
+        self.writer = SummaryWriter(log_dir) if log_dir else None
+        self.csv_log_path = csv_log_path
+        self._csv_writer = None
+        if csv_log_path:
+            dir_name = os.path.dirname(csv_log_path)
+            if dir_name:
+                os.makedirs(dir_name, exist_ok=True)
+            if not os.path.exists(csv_log_path):
+                with open(csv_log_path, "w", encoding="utf-8") as f:
+                    f.write(",".join(["step"] + list(self.metrics.keys())) + "\n")
+            self._csv_writer = open(csv_log_path, "a", encoding="utf-8")
+        self._step = 0
         self.setup_plot()
 
     def setup_plot(self):
@@ -142,9 +157,18 @@ class MetricsVisualizer:
             if key not in self.metrics:
                 self.metrics[key] = []
             self.metrics[key].append(value)
+            if self.writer:
+                self.writer.add_scalar(key, value, self._step)
         if self.track_memory_usage:
             self.metrics["ram_usage"].append(get_system_memory_usage())
             self.metrics["gpu_usage"].append(get_gpu_memory_usage())
+        if self.csv_log_path and self._csv_writer:
+            row = [str(self._step)]
+            for k in self.metrics:
+                row.append(str(self.metrics[k][-1]) if self.metrics[k] else "")
+            self._csv_writer.write(",".join(row) + "\n")
+            self._csv_writer.flush()
+        self._step += 1
         clear_output(wait=True)
         self.plot_metrics()
 
@@ -176,3 +200,12 @@ class MetricsVisualizer:
         self.ax_twin.legend(loc="upper right")
         plt.tight_layout()
         plt.show()
+
+    def close(self) -> None:
+        if self.writer:
+            self.writer.close()
+        if self._csv_writer:
+            self._csv_writer.close()
+
+    def __del__(self) -> None:
+        self.close()

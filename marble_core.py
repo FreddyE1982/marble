@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import copy
 import os
 import pickle
@@ -52,8 +54,30 @@ def _layer_norm(arr: np.ndarray) -> np.ndarray:
     return (arr - mean) / np.sqrt(var)
 
 
-def _simple_mlp(x: np.ndarray, activation: str = "tanh", *, apply_layer_norm: bool = True) -> np.ndarray:
-    """Tiny MLP with one hidden layer and configurable activations."""
+def _apply_activation_torch(arr: "torch.Tensor", activation: str) -> "torch.Tensor":
+    if activation == "relu":
+        return torch.relu(arr)
+    if activation == "sigmoid":
+        return torch.sigmoid(arr)
+    return torch.tanh(arr)
+
+
+def _simple_mlp(
+    x: np.ndarray | "torch.Tensor",
+    activation: str = "tanh",
+    *,
+    apply_layer_norm: bool = True,
+) -> np.ndarray | "torch.Tensor":
+    """Tiny MLP with one hidden layer and configurable activations.
+
+    Uses GPU acceleration when ``x`` is a ``torch.Tensor`` and CUDA is available."""
+    if torch.is_tensor(x):
+        device = x.device
+        h = _apply_activation_torch(x @ torch.as_tensor(_W1, device=device) + torch.as_tensor(_B1, device=device), activation)
+        if apply_layer_norm:
+            h = torch.nn.functional.layer_norm(h, h.shape[-1:])
+        out = _apply_activation_torch(h @ torch.as_tensor(_W2, device=device) + torch.as_tensor(_B2, device=device), activation)
+        return out
     # Handle potential NaNs or infinities to avoid runtime warnings
     x = np.nan_to_num(x, nan=0.0, posinf=0.0, neginf=0.0)
     h = _apply_activation(x @ _W1 + _B1, activation)
@@ -311,8 +335,13 @@ class RemoteTier(Tier):
 
 class Neuron:
     def __init__(
-        self, nid, value=0.0, tier="vram", neuron_type="standard", rep_size=_REP_SIZE
-    ):
+        self,
+        nid: Hashable,
+        value: float = 0.0,
+        tier: str = "vram",
+        neuron_type: str = "standard",
+        rep_size: int = _REP_SIZE,
+    ) -> None:
         self.id = nid
         self.value = value
         self.tier = tier
@@ -327,6 +356,20 @@ class Neuron:
         self.params = {}
         self.value_history = []
         self.initialize_params()
+        self.validate_params()
+
+    def validate_params(self) -> None:
+        """Validate the parameters stored in ``self.params``."""
+        if "stride" in self.params and (
+            not isinstance(self.params["stride"], int) or self.params["stride"] <= 0
+        ):
+            raise ValueError("stride must be a positive integer")
+        if "p" in self.params:
+            p = float(self.params["p"])
+            if not 0.0 <= p <= 1.0:
+                raise ValueError("dropout probability must be between 0 and 1")
+        if "kernel" in self.params and not isinstance(self.params["kernel"], np.ndarray):
+            raise ValueError("kernel must be a numpy.ndarray")
 
     def initialize_params(self) -> None:
         """Initialize layer-like parameters based on ``neuron_type``."""
