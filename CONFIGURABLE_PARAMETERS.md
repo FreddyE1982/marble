@@ -264,6 +264,8 @@ Each entry is listed under its section heading.
 - show_neuron_ids
 - dpi
 - track_memory_usage
+- log_dir
+- csv_log_path
 ## metrics_dashboard
 - enabled
 - host

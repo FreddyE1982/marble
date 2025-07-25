@@ -1239,7 +1239,16 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
        "mnist", "train[:100]", input_key="image", target_key="label"
    )
    ```
-2. **Create and train a MARBLE system** using a pandas dataframe:
+2. **Load a CSV dataset from a URL** using the `dataset_loader` utility:
+   ```python
+   from dataset_loader import load_dataset
+
+   pairs = load_dataset(
+       "https://example.com/data.csv",
+       cache_dir="cached_datasets",
+   )
+   ```
+3. **Create and train a MARBLE system** using a pandas dataframe:
    ```python
    import pandas as pd
    from marble_interface import new_marble_system, train_from_dataframe

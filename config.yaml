@@ -255,6 +255,8 @@ metrics_visualizer:
   show_neuron_ids: false
   dpi: 100
   track_memory_usage: false
+  log_dir: "logs"
+  csv_log_path: "metrics.csv"
 metrics_dashboard:
   enabled: false
   host: "localhost"
