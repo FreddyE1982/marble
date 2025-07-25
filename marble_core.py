@@ -2,6 +2,7 @@ import copy
 import os
 import pickle
 import random
+import time
 from collections import deque
 from datetime import datetime
 from typing import Hashable
@@ -1290,6 +1291,44 @@ class Core:
         migrate("ram", "disk")
         self.check_memory_usage()
 
+    def cleanup_unused_neurons(self) -> None:
+        """Remove neurons without connections when early cleanup is enabled."""
+        if not self.params.get("early_cleanup_enabled", False):
+            return
+        now = time.time()
+        last = getattr(self, "_last_cleanup", 0.0)
+        if now - last < self.memory_cleanup_interval:
+            return
+        self._last_cleanup = now
+        to_remove = []
+        for idx, neuron in enumerate(self.neurons):
+            has_out = bool(neuron.synapses)
+            has_in = any(s.target == neuron.id for s in self.synapses)
+            if not has_out and not has_in and neuron.energy <= self.energy_threshold:
+                to_remove.append(idx)
+        if not to_remove:
+            return
+        remaining = []
+        id_map = {}
+        for idx, neuron in enumerate(self.neurons):
+            if idx in to_remove:
+                continue
+            new_id = len(remaining)
+            id_map[neuron.id] = new_id
+            neuron.id = new_id
+            remaining.append(neuron)
+        new_syn = []
+        for syn in self.synapses:
+            if syn.source in to_remove or syn.target in to_remove:
+                continue
+            syn.source = id_map[syn.source]
+            syn.target = id_map[syn.target]
+            new_syn.append(syn)
+        for neuron in remaining:
+            neuron.synapses = [s for s in new_syn if s.source == neuron.id]
+        self.neurons = remaining
+        self.synapses = new_syn
+
     def add_synapse(
         self,
         source_id,
@@ -1366,6 +1405,7 @@ class Core:
         target_tier=None,
         neuron_types=None,
     ):
+        self.cleanup_unused_neurons()
         if target_tier is None:
             target_tier = self.choose_new_tier()
         start_id = len(self.neurons)
@@ -1611,6 +1651,8 @@ class Core:
                 metrics_visualizer=metrics_visualizer,
                 attention_module=attention_module,
             )
+
+        self.cleanup_unused_neurons()
 
         avg_change = total_change / max(int(iterations), 1)
         if metrics_visualizer is not None:
