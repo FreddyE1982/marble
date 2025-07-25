@@ -1143,6 +1143,9 @@ class Core:
         )
         self.weight_init_min = params.get("weight_init_min", 0.5)
         self.weight_init_max = params.get("weight_init_max", 1.5)
+        self.weight_init_mean = params.get("weight_init_mean", 0.0)
+        self.weight_init_std = params.get("weight_init_std", 1.0)
+        self.weight_init_type = params.get("weight_init_type", "uniform")
         self.mandelbrot_escape_radius = params.get("mandelbrot_escape_radius", 2.0)
         self.mandelbrot_power = params.get("mandelbrot_power", 2)
         self.tier_autotune_enabled = params.get("tier_autotune_enabled", True)
@@ -1202,7 +1205,7 @@ class Core:
 
         num_neurons = len(self.neurons)
         for i in range(num_neurons - 1):
-            weight = random.uniform(0.5, 1.5)
+            weight = self._init_weight()
             self.add_synapse(
                 self.neurons[i].id,
                 self.neurons[i + 1].id,
@@ -1224,6 +1227,19 @@ class Core:
         self.check_memory_usage()
         if self.tier_autotune_enabled:
             self.autotune_tiers()
+
+    def _init_weight(self, fan_in: int = 1, fan_out: int = 1) -> float:
+        """Return an initial synapse weight based on configuration."""
+        if self.weight_init_type == "uniform":
+            return random.uniform(self.weight_init_min, self.weight_init_max)
+        if self.weight_init_type == "normal":
+            return random.gauss(self.weight_init_mean, self.weight_init_std)
+        if self.weight_init_type == "xavier_uniform":
+            limit = math.sqrt(6.0 / (fan_in + fan_out))
+            return random.uniform(-limit, limit)
+        if self.weight_init_type == "constant":
+            return self.weight_init_mean
+        raise ValueError(f"Unknown weight_init_type: {self.weight_init_type}")
 
     def get_average_age(self, items):
         now = datetime.now()
@@ -1374,7 +1390,7 @@ class Core:
                 self.add_synapse(
                     src,
                     tgt,
-                    weight=random.uniform(0.1, 1.0),
+                    weight=self._init_weight(),
                     synapse_type=random.choice(SYNAPSE_TYPES),
                     echo_length=self.synapse_echo_length,
                 )

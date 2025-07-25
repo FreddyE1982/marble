@@ -20,6 +20,8 @@ def test_load_config_defaults():
     assert cfg["core"]["init_noise_std"] == 0.0
     assert cfg["core"]["weight_init_min"] == 0.5
     assert cfg["core"]["weight_init_max"] == 1.5
+    assert cfg["core"]["weight_init_std"] == 1.0
+    assert cfg["core"]["weight_init_type"] == "uniform"
     assert cfg["core"]["mandelbrot_escape_radius"] == 2.0
     assert cfg["core"]["mandelbrot_power"] == 2
     assert cfg["core"]["tier_autotune_enabled"] is True

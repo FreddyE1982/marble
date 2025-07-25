@@ -1077,7 +1077,7 @@ class Neuronenblitz:
                 self.core.add_synapse(
                     src,
                     tgt,
-                    weight=random.uniform(0.1, 1.0),
+                    weight=self.core._init_weight(),
                     synapse_type=create_type,
                 )
         else:
@@ -1139,7 +1139,7 @@ class Neuronenblitz:
         src, tgt = random.sample(range(len(self.core.neurons)), 2)
         if src == tgt:
             return None
-        weight = random.uniform(0.1, 1.0)
+        weight = self.core._init_weight()
         syn = self.core.add_synapse(
             src,
             tgt,

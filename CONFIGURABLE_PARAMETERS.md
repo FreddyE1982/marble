@@ -34,6 +34,8 @@ Each entry is listed under its section heading.
 - representation_activation
 - apply_layer_norm
 - weight_init_mean
+- weight_init_std
+- weight_init_type
 - message_passing_beta
 - attention_temperature
 - attention_dropout

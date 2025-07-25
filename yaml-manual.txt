@@ -72,6 +72,14 @@ core:
     stabilises training dynamics. Set ``false`` to disable.
   weight_init_mean: Mean of the normal distribution used to initialize
     synaptic weights.
+  weight_init_std: Standard deviation of the normal distribution when
+    ``weight_init_type`` is set to ``"normal"``. Higher values produce a
+    wider spread of initial weights.
+  weight_init_type: Distribution used for initial synapse weights. ``"uniform"``
+    samples values between ``weight_init_min`` and ``weight_init_max``.
+    ``"normal"`` draws from a normal distribution with ``weight_init_mean``
+    and ``weight_init_std``. ``"xavier_uniform"`` uses Xavier uniform
+    initialization based on the connection fan-in and fan-out.
   message_passing_beta: Secondary mixing factor controlling how quickly new
     representations replace old ones when ``alpha`` alone is insufficient.
   attention_temperature: Softmax temperature used by the attention module
