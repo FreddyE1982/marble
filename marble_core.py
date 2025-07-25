@@ -370,6 +370,37 @@ class Neuron:
                 raise ValueError("dropout probability must be between 0 and 1")
         if "kernel" in self.params and not isinstance(self.params["kernel"], np.ndarray):
             raise ValueError("kernel must be a numpy.ndarray")
+        if "padding" in self.params and (
+            not isinstance(self.params["padding"], int) or self.params["padding"] < 0
+        ):
+            raise ValueError("padding must be a non-negative integer")
+        if "output_padding" in self.params:
+            op = self.params["output_padding"]
+            stride = self.params.get("stride", 1)
+            if (
+                not isinstance(op, int)
+                or op < 0
+                or (isinstance(stride, int) and op >= stride)
+            ):
+                raise ValueError("output_padding must be >=0 and less than stride")
+        if "negative_slope" in self.params and self.params["negative_slope"] < 0:
+            raise ValueError("negative_slope must be non-negative")
+        if {
+            "num_embeddings",
+            "embedding_dim",
+        }.issubset(self.params):
+            num = self.params["num_embeddings"]
+            dim = self.params["embedding_dim"]
+            weights = self.params.get("weights")
+            if not isinstance(num, int) or num <= 0:
+                raise ValueError("num_embeddings must be a positive integer")
+            if not isinstance(dim, int) or dim <= 0:
+                raise ValueError("embedding_dim must be a positive integer")
+            if weights is not None and (
+                not isinstance(weights, np.ndarray)
+                or weights.shape != (num, dim)
+            ):
+                raise ValueError("weights shape must match (num_embeddings, embedding_dim)")
 
     def initialize_params(self) -> None:
         """Initialize layer-like parameters based on ``neuron_type``."""

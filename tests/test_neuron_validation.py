@@ -18,3 +18,18 @@ def test_invalid_dropout_prob():
     n.params["p"] = 1.5
     with pytest.raises(ValueError):
         n.validate_params()
+
+
+def test_negative_padding():
+    n = Neuron(2, neuron_type="conv2d")
+    n.params["padding"] = -1
+    with pytest.raises(ValueError):
+        n.validate_params()
+
+
+def test_output_padding_gte_stride():
+    n = Neuron(3, neuron_type="convtranspose1d")
+    n.params["stride"] = 2
+    n.params["output_padding"] = 2
+    with pytest.raises(ValueError):
+        n.validate_params()
