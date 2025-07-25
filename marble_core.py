@@ -809,6 +809,7 @@ class Synapse:
         echo_length: int = 5,
         remote_core: "Core | None" = None,
         remote_target: int | None = None,
+        phase: float = 0.0,
     ):
         self.source = source
         self.target = target
@@ -823,6 +824,7 @@ class Synapse:
         self.echo_buffer: deque[float] = deque(maxlen=int(max(1, echo_length)))
         self.remote_core = remote_core
         self.remote_target = remote_target
+        self.phase = float(phase)
         self.visit_count = 0
 
     def update_fatigue(self, increase: float, decay: float) -> None:
@@ -843,11 +845,14 @@ class Synapse:
             return 0.0
         return float(sum(self.echo_buffer) / len(self.echo_buffer))
 
-    def effective_weight(self, context=None):
-        """Return the weight modified according to ``synapse_type`` and context."""
+    def effective_weight(self, context=None, global_phase: float = 0.0):
+        """Return the weight modified according to ``synapse_type`` and context.
+
+        ``global_phase`` allows phase-based modulation for experimental
+        algorithms such as phase-gated Neuronenblitz."""
         if context is None:
             context = {}
-        w = self.weight
+        w = self.weight * math.cos(self.phase - global_phase)
         if self.synapse_type == "excitatory":
             w = abs(w)
         elif self.synapse_type == "inhibitory":
@@ -1277,6 +1282,7 @@ class Core:
         synapse_type="standard",
         frozen: bool = False,
         echo_length: int | None = None,
+        phase: float = 0.0,
     ):
         syn = Synapse(
             source_id,
@@ -1287,6 +1293,7 @@ class Core:
             echo_length=(
                 self.synapse_echo_length if echo_length is None else echo_length
             ),
+            phase=phase,
         )
         self.neurons[source_id].synapses.append(syn)
         self.synapses.append(syn)

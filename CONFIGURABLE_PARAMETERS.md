@@ -100,6 +100,8 @@ Each entry is listed under its section heading.
 - parallel_wanderers
 - beam_width
 - wander_cache_ttl
+- phase_rate
+- phase_adaptation_rate
 - synaptic_fatigue_enabled
 - fatigue_increase
 - fatigue_decay

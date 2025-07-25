@@ -5,6 +5,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import random
 import numpy as np
 import time
+import math
 import pytest
 from marble_core import Core, Neuron
 from marble_neuronenblitz import Neuronenblitz
@@ -229,7 +230,7 @@ def test_eligibility_traces_accumulate():
     nb.apply_weight_updates_and_attention([syn], error=1.0)
     core.neurons[0].value = 1.0
     nb.apply_weight_updates_and_attention([syn], error=1.0)
-    assert np.isclose(syn.weight, 2.45590092015, atol=1e-6)
+    assert np.isclose(syn.weight, 2.45470864944, atol=1e-6)
 
 
 def test_dropout_prevents_synapse_use():
@@ -506,4 +507,26 @@ def test_gradient_alignment_gating():
     first_weight = syn.weight
     core.neurons[0].value = 1.0
     nb.apply_weight_updates_and_attention([syn], error=-1.0)
-    assert syn.weight == pytest.approx(1.023241525003102, abs=1e-6)
+    assert syn.weight == pytest.approx(1.02383970547, abs=1e-6)
+
+
+def test_phase_gated_updates_modulate_direction():
+    random.seed(0)
+    core, syn = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        consolidation_probability=0.0,
+        weight_decay=0.0,
+        phase_rate=0.0,
+        phase_adaptation_rate=0.5,
+        momentum_coefficient=0.0,
+    )
+    nb.learning_rate = 1.0
+    core.neurons[0].value = 1.0
+    syn.phase = 0.0
+    nb.global_phase = 0.0
+    nb.apply_weight_updates_and_attention([syn], error=1.0)
+    pos_weight = syn.weight
+    syn.phase = math.pi
+    nb.apply_weight_updates_and_attention([syn], error=1.0)
+    assert syn.weight < pos_weight
