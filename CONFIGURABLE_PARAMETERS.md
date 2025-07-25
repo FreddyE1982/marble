@@ -99,6 +99,7 @@ Each entry is listed under its section heading.
 - top_k_paths
 - parallel_wanderers
 - beam_width
+- wander_cache_ttl
 - synaptic_fatigue_enabled
 - fatigue_increase
 - fatigue_decay

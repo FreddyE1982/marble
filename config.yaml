@@ -93,6 +93,7 @@ neuronenblitz:
   top_k_paths: 5
   parallel_wanderers: 1
   beam_width: 1
+  wander_cache_ttl: 300
   synaptic_fatigue_enabled: true
   fatigue_increase: 0.05
   fatigue_decay: 0.95

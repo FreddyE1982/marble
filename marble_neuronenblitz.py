@@ -8,7 +8,7 @@ import multiprocessing as mp
 import pickle
 import random
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timezone
 from collections import deque
 import math
 
@@ -114,6 +114,7 @@ class Neuronenblitz:
         rl_epsilon_decay=0.95,
         rl_min_epsilon=0.1,
         use_echo_modulation=False,
+        wander_cache_ttl=300,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -208,6 +209,7 @@ class Neuronenblitz:
         self.wander_cache = {}
         self._cache_order = deque()
         self._cache_max_size = 50
+        self.wander_cache_ttl = wander_cache_ttl
         self.q_encoding = default_q_encoding
         self._grad_sq = {}
         self._rmsprop_beta = 0.99
@@ -553,11 +555,17 @@ class Neuronenblitz:
     def dynamic_wander(self, input_value, apply_plasticity=True):
         with self.lock:
             if not apply_plasticity and input_value in self.wander_cache:
-                out, path, _ = self.wander_cache[input_value]
-                if input_value in self._cache_order:
-                    self._cache_order.remove(input_value)
-                self._cache_order.append(input_value)
-                return out, list(path)
+                out, path, ts = self.wander_cache[input_value]
+                age = (datetime.now(timezone.utc) - ts).total_seconds()
+                if age <= self.wander_cache_ttl:
+                    if input_value in self._cache_order:
+                        self._cache_order.remove(input_value)
+                    self._cache_order.append(input_value)
+                    return out, list(path)
+                else:
+                    self.wander_cache.pop(input_value, None)
+                    if input_value in self._cache_order:
+                        self._cache_order.remove(input_value)
 
             for neuron in self.core.neurons:
                 neuron.value = None
@@ -616,13 +624,23 @@ class Neuronenblitz:
                 self.apply_structural_plasticity(final_path)
             result_path = [s for (_, s) in final_path if s is not None]
             if not apply_plasticity:
+                now = datetime.now(timezone.utc)
+                expired = [
+                    key
+                    for key, (_, _, ts) in self.wander_cache.items()
+                    if (now - ts).total_seconds() > self.wander_cache_ttl
+                ]
+                for key in expired:
+                    self.wander_cache.pop(key, None)
+                    if key in self._cache_order:
+                        self._cache_order.remove(key)
                 if len(self._cache_order) >= self._cache_max_size:
                     old = self._cache_order.popleft()
                     self.wander_cache.pop(old, None)
                 self.wander_cache[input_value] = (
                     final_neuron.value,
                     result_path,
-                    datetime.utcnow(),
+                    datetime.now(timezone.utc),
                 )
                 self._cache_order.append(input_value)
             return final_neuron.value, result_path
