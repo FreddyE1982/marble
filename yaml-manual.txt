@@ -273,6 +273,10 @@ neuronenblitz:
   context_embedding_decay: Multiplicative decay applied when computing the
     context embedding from history. ``1.0`` weights all contexts equally while
     lower values emphasise more recent entries.
+  emergent_connection_prob: Probability between 0 and 1 that ``dynamic_wander``
+    adds a random synapse connecting two neurons after each call. Higher values
+    encourage spontaneous cross-links, increasing the chance of unexpected
+    behaviours. Recommended range is 0.0–0.2.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the

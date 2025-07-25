@@ -119,6 +119,7 @@ Each entry is listed under its section heading.
 - chaotic_gate_init
 - context_history_size
 - context_embedding_decay
+- emergent_connection_prob
 
 ## brain
 - save_threshold

@@ -633,3 +633,21 @@ def test_context_history_size_limit_and_embedding():
     assert len(nb.context_history) == 2
     emb = nb.get_context_embedding()
     assert np.allclose(emb, [0.5, 1.0, 1.0])
+
+
+def test_emergent_connection_creation(monkeypatch):
+    random.seed(0)
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        emergent_connection_prob=1.0,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        backtrack_probability=0.0,
+        backtrack_enabled=False,
+    )
+    monkeypatch.setattr(nb, "decide_synapse_action", lambda: None)
+    prev = len(core.synapses)
+    monkeypatch.setattr(random, "random", lambda: 0.0)
+    nb.dynamic_wander(1.0)
+    assert len(core.synapses) == prev + 1

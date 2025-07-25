@@ -79,6 +79,7 @@ def test_load_config_defaults():
     assert cfg["neuronenblitz"]["dynamic_attention_enabled"] is True
     assert cfg["neuronenblitz"]["backtrack_depth_limit"] == 10
     assert cfg["neuronenblitz"]["synapse_update_cap"] == 1.0
+    assert cfg["neuronenblitz"]["emergent_connection_prob"] == 0.05
     assert cfg["memory_system"]["threshold"] == 0.5
     assert cfg["neuronenblitz"]["max_wander_depth"] == 100
     assert cfg["memory_system"]["consolidation_interval"] == 10

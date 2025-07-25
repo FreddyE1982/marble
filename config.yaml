@@ -113,6 +113,7 @@ neuronenblitz:
   chaotic_gate_init: 0.5
   context_history_size: 10
   context_embedding_decay: 0.9
+  emergent_connection_prob: 0.05
 brain:
   save_threshold: 0.05
   max_saved_models: 5
