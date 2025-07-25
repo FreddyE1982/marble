@@ -117,6 +117,8 @@ Each entry is listed under its section heading.
 - chaotic_gating_enabled
 - chaotic_gating_param
 - chaotic_gate_init
+- context_history_size
+- context_embedding_decay
 
 ## brain
 - save_threshold

@@ -1327,17 +1327,21 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
 21. **Tune neuromodulatory signals** on the *Neuromodulation* tab. Adjust the
     sliders for arousal, stress and reward or set an emotion string, then press
     **Update Signals** to modify MARBLE's internal context on the fly.
-22. **Manage lobes** on the *Lobe Manager* tab. View attention scores for each
+22. **Experiment with context history** by adjusting `context_history_size` and
+    `context_embedding_decay` on the *Settings* tab. These options control how
+    many neuromodulatory states influence wandering and how quickly older
+    signals fade.
+23. **Manage lobes** on the *Lobe Manager* tab. View attention scores for each
     lobe, create new lobes from selected neuron IDs, reorganize the current
     structure or apply self-attention updates with a single click.
-23. **Read the documentation** on the *Documentation* tab. Every markdown file
+24. **Read the documentation** on the *Documentation* tab. Every markdown file
     in the repository, including the architecture overview, configurable
     parameters list and machine learning handbook, can be opened here for quick
     reference.
-24. **Browse source code** on the *Source Browser* tab. Select any module and
+25. **Browse source code** on the *Source Browser* tab. Select any module and
     click **Show Source** to view its implementation without leaving the
     playground.
-25. **Run unit tests** on the *Tests* tab. Select one or more test files and
+26. **Run unit tests** on the *Tests* tab. Select one or more test files and
     click **Run Tests** to verify everything works as expected.
 26. **Control asynchronous behaviour** on the *Async Training* tab. Start
     background training threads or enable auto-firing so MARBLE keeps learning

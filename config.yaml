@@ -111,6 +111,8 @@ neuronenblitz:
   chaotic_gating_enabled: false
   chaotic_gating_param: 3.7
   chaotic_gate_init: 0.5
+  context_history_size: 10
+  context_embedding_decay: 0.9
 brain:
   save_threshold: 0.05
   max_saved_models: 5

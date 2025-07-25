@@ -267,6 +267,12 @@ neuronenblitz:
     Values between ``3.6`` and ``4.0`` produce strong chaotic behaviour.
   chaotic_gate_init: Starting value for the gate. Must lie between ``0`` and
     ``1`` and determines the initial update scale.
+  context_history_size: Number of recent neuromodulatory contexts to keep
+    in memory. Larger values allow long-term trends to influence wandering but
+    consume more memory. Typical range is 5–20.
+  context_embedding_decay: Multiplicative decay applied when computing the
+    context embedding from history. ``1.0`` weights all contexts equally while
+    lower values emphasise more recent entries.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the
