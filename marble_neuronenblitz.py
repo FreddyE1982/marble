@@ -765,6 +765,12 @@ class Neuronenblitz:
         return best
 
     def apply_weight_updates_and_attention(self, path, error):
+        # Decay stored momentum values to prevent unbounded growth over time
+        for syn in list(self._momentum.keys()):
+            self._momentum[syn] *= 0.9
+            if abs(self._momentum[syn]) < 1e-8:
+                del self._momentum[syn]
+
         self._update_traces(path)
         path_length = len(path)
         for syn in path:
@@ -787,7 +793,12 @@ class Neuronenblitz:
             mom_prev = self._momentum.get(syn, 0.0)
             mom = self.momentum_coefficient * mom_prev + scaled_delta
             self._momentum[syn] = mom
-            update = self.learning_rate * (self.momentum_coefficient * mom + scaled_delta)
+            update = self.learning_rate * (
+                self.momentum_coefficient * mom + scaled_delta
+            )
+            if self.synaptic_fatigue_enabled:
+                fatigue_factor = 1.0 - getattr(syn, "fatigue", 0.0)
+                update *= max(0.0, fatigue_factor)
             if abs(update) > self.synapse_update_cap:
                 update = math.copysign(self.synapse_update_cap, update)
             syn.weight += update

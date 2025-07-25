@@ -5,6 +5,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import random
 import numpy as np
 import time
+import pytest
 from marble_core import Core, Neuron
 from marble_neuronenblitz import Neuronenblitz
 from tests.test_core_functions import minimal_params
@@ -175,6 +176,43 @@ def test_weight_update_momentum():
     core.neurons[0].value = 1.0
     nb.apply_weight_updates_and_attention([syn], error=1.0)
     assert np.isclose(syn.weight, 2.75282841605, atol=1e-6)
+
+
+def test_weight_update_scales_with_fatigue():
+    random.seed(0)
+    core, syn = create_simple_core()
+    core.gradient_clip_value = 10.0
+    syn.fatigue = 0.5
+    nb = Neuronenblitz(
+        core,
+        consolidation_probability=0.0,
+        weight_decay=0.0,
+        synaptic_fatigue_enabled=True,
+        momentum_coefficient=0.5,
+    )
+    nb.learning_rate = 1.0
+    core.neurons[0].value = 1.0
+    nb.apply_weight_updates_and_attention([syn], error=1.0)
+    assert np.isclose(syn.weight, 1.37641420803, atol=1e-6)
+
+
+def test_momentum_values_decay():
+    random.seed(0)
+    core, syn = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        consolidation_probability=0.0,
+        weight_decay=0.0,
+        momentum_coefficient=0.5,
+    )
+    nb.learning_rate = 1.0
+    core.neurons[0].value = 1.0
+    nb.apply_weight_updates_and_attention([syn], error=1.0)
+    first = nb._momentum[syn]
+    core.neurons[0].value = 1.0
+    nb.apply_weight_updates_and_attention([syn], error=1.0)
+    second = nb._momentum[syn]
+    assert second == pytest.approx(1.17986383427, abs=1e-6)
 
 
 def test_eligibility_traces_accumulate():
