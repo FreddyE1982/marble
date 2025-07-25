@@ -126,6 +126,10 @@ class Neuronenblitz:
         emergent_connection_prob=0.05,
         concept_association_threshold=5,
         concept_learning_rate=0.1,
+        weight_limit=1e6,
+        wander_cache_size=50,
+        rmsprop_beta=0.99,
+        grad_epsilon=1e-8,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -202,6 +206,8 @@ class Neuronenblitz:
         self.concept_association_threshold = int(concept_association_threshold)
         self.concept_learning_rate = float(concept_learning_rate)
 
+        self._weight_limit = float(weight_limit)
+
         self.combine_fn = combine_fn if combine_fn is not None else default_combine_fn
         self.loss_fn = loss_fn if loss_fn is not None else default_loss_fn
         self.loss_module = loss_module
@@ -210,8 +216,6 @@ class Neuronenblitz:
             if weight_update_fn is not None
             else default_weight_update_fn
         )
-
-        self._weight_limit = 1e6
 
         self.training_history = []
         self.global_activation_count = 0
@@ -232,12 +236,12 @@ class Neuronenblitz:
         self._eligibility_traces = {}
         self.wander_cache = {}
         self._cache_order = deque()
-        self._cache_max_size = 50
+        self._cache_max_size = int(wander_cache_size)
         self.wander_cache_ttl = wander_cache_ttl
         self.q_encoding = default_q_encoding
         self._grad_sq = {}
-        self._rmsprop_beta = 0.99
-        self._grad_epsilon = 1e-8
+        self._rmsprop_beta = float(rmsprop_beta)
+        self._grad_epsilon = float(grad_epsilon)
         # Store previous gradients per synapse for alignment-based gating
         self._prev_gradients = {}
         # Track path usage for shortcut creation

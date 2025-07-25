@@ -116,6 +116,10 @@ class MARBLE:
             "exploration_bonus": 0.0,
             "synapse_potential_cap": 100.0,
             "attention_update_scale": 1.0,
+            "weight_limit": 1e6,
+            "wander_cache_size": 50,
+            "rmsprop_beta": 0.99,
+            "grad_epsilon": 1e-8,
         }
         if nb_params is not None:
             nb_defaults.update(nb_params)

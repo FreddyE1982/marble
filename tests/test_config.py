@@ -173,3 +173,20 @@ def test_synapse_update_cap_configurable(tmp_path):
         yaml.safe_dump(cfg, f)
     marble = create_marble_from_config(str(cfg_path))
     assert marble.neuronenblitz.synapse_update_cap == 0.5
+
+
+def test_new_nb_parameters_configurable(tmp_path):
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg = load_config()
+    nb = cfg["neuronenblitz"]
+    nb["weight_limit"] = 123.0
+    nb["wander_cache_size"] = 7
+    nb["rmsprop_beta"] = 0.8
+    nb["grad_epsilon"] = 1e-6
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(cfg, f)
+    marble = create_marble_from_config(str(cfg_path))
+    assert marble.neuronenblitz._weight_limit == 123.0
+    assert marble.neuronenblitz._cache_max_size == 7
+    assert marble.neuronenblitz._rmsprop_beta == 0.8
+    assert marble.neuronenblitz._grad_epsilon == 1e-6
