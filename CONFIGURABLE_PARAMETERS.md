@@ -21,6 +21,7 @@ Each entry is listed under its section heading.
 - memory_cleanup_interval
 - representation_noise_std
 - gradient_clip_value
+- synapse_weight_decay
 - message_passing_iterations
 - cluster_algorithm
 - vram_limit_mb
