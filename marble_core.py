@@ -1168,6 +1168,7 @@ class Core:
         self.rl_min_epsilon = params.get("rl_min_epsilon", 0.1)
         self.q_table = {}
         self.gradient_clip_value = params.get("gradient_clip_value", 1.0)
+        self.synapse_weight_decay = params.get("synapse_weight_decay", 0.0)
         self.message_passing_iterations = params.get("message_passing_iterations", 1)
         self.cluster_algorithm = params.get("cluster_algorithm", "kmeans")
         self.synapse_echo_length = params.get("synapse_echo_length", 5)
@@ -1371,6 +1372,15 @@ class Core:
         to_freeze = random.sample(self.synapses, count)
         for syn in to_freeze:
             syn.frozen = True
+
+    def apply_weight_decay(self) -> None:
+        """Multiply all synapse weights by ``1 - synapse_weight_decay``."""
+        decay = self.synapse_weight_decay
+        if decay <= 0:
+            return
+        factor = 1.0 - decay
+        for syn in self.synapses:
+            syn.weight *= factor
 
     def get_detailed_status(self):
         status = {}
@@ -1671,6 +1681,7 @@ class Core:
             )
 
         self.cleanup_unused_neurons()
+        self.apply_weight_decay()
 
         avg_change = total_change / max(int(iterations), 1)
         if metrics_visualizer is not None:

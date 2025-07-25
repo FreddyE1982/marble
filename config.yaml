@@ -16,6 +16,7 @@ core:
   memory_cleanup_interval: 60
   representation_noise_std: 0.0
   gradient_clip_value: 1.0
+  synapse_weight_decay: 0.0
   message_passing_iterations: 1
   cluster_algorithm: "kmeans"
   vram_limit_mb: 0.5

@@ -43,6 +43,10 @@ core:
     representations after each message passing step.
   gradient_clip_value: Absolute value used to clip weight updates during
     training. ``0`` disables clipping.
+  synapse_weight_decay: Fraction of each synapse's weight removed after every
+    call to ``run_message_passing``. This gradually shrinks connections to
+    prevent runaway growth. Typical values are between ``0.0`` (disabled) and
+    ``0.1`` for slow decay.
   message_passing_iterations: Number of times the message passing routine runs
     per training step. ``Core.run_message_passing`` automatically performs this
     many iterations when called without an explicit count. Increasing the value

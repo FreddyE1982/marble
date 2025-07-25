@@ -2,6 +2,7 @@ import os, sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import numpy as np
 import random
+import pytest
 from marble_imports import cp
 import marble_core
 from marble_core import compute_mandelbrot, DataLoader, Core
@@ -172,3 +173,14 @@ def test_simple_mlp_handles_invalid_input():
     arr = np.array([np.nan, np.inf, -np.inf, 1.0])
     out = marble_core._simple_mlp(arr)
     assert np.all(np.isfinite(out))
+
+
+def test_synapse_weight_decay_applied():
+    random.seed(0)
+    params = minimal_params()
+    params["synapse_weight_decay"] = 0.1
+    core = Core(params)
+    initial = core.synapses[0].weight
+    core.run_message_passing(iterations=1)
+    expected = initial * 0.9
+    assert core.synapses[0].weight == pytest.approx(expected, rel=1e-6)

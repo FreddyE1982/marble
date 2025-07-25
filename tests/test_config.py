@@ -28,6 +28,7 @@ def test_load_config_defaults():
     assert cfg["core"]["memory_cleanup_interval"] == 60
     assert cfg["core"]["representation_noise_std"] == 0.0
     assert cfg["core"]["gradient_clip_value"] == 1.0
+    assert cfg["core"]["synapse_weight_decay"] == 0.0
     assert cfg["core"]["message_passing_iterations"] == 1
     assert cfg["core"]["cluster_algorithm"] == "kmeans"
     assert cfg["brain"]["save_threshold"] == 0.05
@@ -142,6 +143,7 @@ def test_create_marble_from_config():
     assert marble.dataloader.compressor.level == 6
     assert marble.core.rep_size == 4
     assert marble.core.params["message_passing_alpha"] == 0.5
+    assert marble.core.synapse_weight_decay == 0.0
     assert marble.brain.loss_growth_threshold == 0.1
     assert marble.brain.dream_cycle_sleep == 0.1
     assert marble.brain.lobe_manager.attention_increase_factor == 1.05
