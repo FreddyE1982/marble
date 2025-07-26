@@ -37,6 +37,7 @@ The agent must take care not to introduce conflicts when editing requirements.tx
    `max_threshold`) and the recommended ranges for those values.
 9. The agent must maintain `TUTORIAL.md` containing a detailed step-by-step tutorial. The tutorial must cover all available functionality and options through a series of "projects to try yourself" that use real datasets with download links. Projects should be ordered from easiest to most advanced. Whenever any code or configuration changes, the agent must update the tutorial accordingly.
 10. ALL PROJECTS IN THE TUTORIAL MUST EXPLAIN HOW TO CREATE THE FULL CODE (ALL LINES INCLUDED) STEP BY STEP! ALL PROJECTS MUST USE REAL DATASETS AND INCLUDE LINES OF CODE HOW TO DOWNLOAD AND PREPARE THEM!
+11. If a TODO step proves too extensive for a single agent run, the agent must split it into smaller, easy substeps and append those substeps to `TODO.md` before continuing.
 
 streamlit gui
 ALL functionality MUST be available via the GUI. The assistant groups functionality logically in tabs. It uses the existing tabs for grouping of functionality when possible but creates new tabs if that seems more sensible. The agent must ensure that it never creates a new tab for things that can be logically put into a existing tab. for example: there may not be multiple tabs containing statistics..that would all belong into ONE tab.
