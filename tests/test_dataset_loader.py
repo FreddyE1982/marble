@@ -77,3 +77,14 @@ def test_load_zipped_csv(tmp_path):
     pairs = load_dataset(str(zip_path))
     assert pairs == [(9, 10)]
 
+
+def test_load_zipped_json(tmp_path):
+    json_path = tmp_path / "inner.json"
+    json_path.write_text('[{"input": 1, "target": 2}]')
+    zip_path = tmp_path / "archive_json.zip"
+    import zipfile
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        zf.write(json_path, arcname="inner.json")
+    pairs = load_dataset(str(zip_path))
+    assert pairs == [(1, 2)]
+

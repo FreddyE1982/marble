@@ -610,6 +610,9 @@ metrics_visualizer:
   track_memory_usage: When true the visualizer records both system RAM and GPU
     memory consumption after each training epoch. This requires the ``psutil``
     package and uses ``torch.cuda`` when a CUDA-capable device is available.
+  track_cpu_usage: When enabled the metrics visualizer stores the current CPU
+    utilisation percentage at each update. This calls ``psutil.cpu_percent`` and
+    allows post-training analysis of processing load.
   log_dir: Directory where TensorBoard event files are written. When set,
     you can run ``tensorboard --logdir=<log_dir>`` to monitor metrics.
   csv_log_path: Path to a CSV file receiving all metric values after each

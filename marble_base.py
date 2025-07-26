@@ -1,5 +1,9 @@
 from marble_imports import *
-from system_metrics import get_system_memory_usage, get_gpu_memory_usage
+from system_metrics import (
+    get_system_memory_usage,
+    get_gpu_memory_usage,
+    get_cpu_usage,
+)
 from torch.utils.tensorboard import SummaryWriter
 import json
 
@@ -105,6 +109,7 @@ class MetricsVisualizer:
         show_neuron_ids=False,
         dpi=100,
         track_memory_usage=False,
+        track_cpu_usage=False,
         log_dir: str | None = None,
         csv_log_path: str | None = None,
         json_log_path: str | None = None,
@@ -125,6 +130,7 @@ class MetricsVisualizer:
             "representation_variance": [],
             "ram_usage": [],
             "gpu_usage": [],
+            "cpu_usage": [],
         }
         self.fig_width = fig_width
         self.fig_height = fig_height
@@ -133,6 +139,7 @@ class MetricsVisualizer:
         self.show_neuron_ids = show_neuron_ids
         self.dpi = dpi
         self.track_memory_usage = track_memory_usage
+        self.track_cpu_usage = track_cpu_usage
         self.writer = SummaryWriter(log_dir) if log_dir else None
         self.csv_log_path = csv_log_path
         self._csv_writer = None
@@ -171,6 +178,8 @@ class MetricsVisualizer:
         if self.track_memory_usage:
             self.metrics["ram_usage"].append(get_system_memory_usage())
             self.metrics["gpu_usage"].append(get_gpu_memory_usage())
+        if self.track_cpu_usage:
+            self.metrics["cpu_usage"].append(get_cpu_usage())
         if self.csv_log_path and self._csv_writer:
             row = [str(self._step)]
             for k in self.metrics:
@@ -199,6 +208,10 @@ class MetricsVisualizer:
         if self.track_memory_usage and self.metrics["gpu_usage"]:
             self.ax_twin.plot(
                 self.metrics["gpu_usage"], "c-", label="GPU (MB)"
+            )
+        if self.track_cpu_usage and self.metrics["cpu_usage"]:
+            self.ax_twin.plot(
+                self.metrics["cpu_usage"], "y-", label="CPU (%)"
             )
         if self.metrics["arousal"]:
             self.ax_twin.plot(self.metrics["arousal"], "g--", label="Arousal")
