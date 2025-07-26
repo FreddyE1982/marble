@@ -341,6 +341,10 @@ class RemoteTier(Tier):
         self.limit_mb = None
 
 
+class InvalidNeuronParamsError(ValueError):
+    """Raised when neuron parameters fail validation."""
+
+
 class Neuron:
     def __init__(
         self,
@@ -354,7 +358,7 @@ class Neuron:
         self.value = value
         self.tier = tier
         if neuron_type not in NEURON_TYPES:
-            raise ValueError(
+            raise InvalidNeuronParamsError(
                 f"Unknown neuron_type '{neuron_type}'. Valid options are: {', '.join(NEURON_TYPES)}"
             )
         self.neuron_type = neuron_type
@@ -364,6 +368,8 @@ class Neuron:
         self.cluster_id = None
         self.attention_score = 0.0
         self.energy = 1.0
+        if rep_size <= 0:
+            raise InvalidNeuronParamsError("rep_size must be positive")
         self.representation = np.zeros(rep_size, dtype=float)
         self.params = {}
         self.value_history = []
@@ -375,19 +381,19 @@ class Neuron:
         if "stride" in self.params and (
             not isinstance(self.params["stride"], int) or self.params["stride"] <= 0
         ):
-            raise ValueError("stride must be a positive integer")
+            raise InvalidNeuronParamsError("stride must be a positive integer")
         if "p" in self.params:
             p = float(self.params["p"])
             if not 0.0 <= p <= 1.0:
-                raise ValueError("dropout probability must be between 0 and 1")
+                raise InvalidNeuronParamsError("dropout probability must be between 0 and 1")
         if "kernel" in self.params and not isinstance(
             self.params["kernel"], np.ndarray
         ):
-            raise ValueError("kernel must be a numpy.ndarray")
+            raise InvalidNeuronParamsError("kernel must be a numpy.ndarray")
         if "padding" in self.params and (
             not isinstance(self.params["padding"], int) or self.params["padding"] < 0
         ):
-            raise ValueError("padding must be a non-negative integer")
+            raise InvalidNeuronParamsError("padding must be a non-negative integer")
         if "output_padding" in self.params:
             op = self.params["output_padding"]
             stride = self.params.get("stride", 1)
@@ -396,23 +402,23 @@ class Neuron:
                 or op < 0
                 or (isinstance(stride, int) and op >= stride)
             ):
-                raise ValueError("output_padding must be >=0 and less than stride")
+                raise InvalidNeuronParamsError("output_padding must be >=0 and less than stride")
         if "negative_slope" in self.params and self.params["negative_slope"] < 0:
-            raise ValueError("negative_slope must be non-negative")
+            raise InvalidNeuronParamsError("negative_slope must be non-negative")
         if "alpha" in self.params and self.params["alpha"] <= 0:
-            raise ValueError("alpha must be positive")
+            raise InvalidNeuronParamsError("alpha must be positive")
         if "momentum" in self.params:
             mom = float(self.params["momentum"])
             if not 0.0 < mom < 1.0:
-                raise ValueError("momentum must be between 0 and 1")
+                raise InvalidNeuronParamsError("momentum must be between 0 and 1")
         if "eps" in self.params and self.params["eps"] <= 0:
-            raise ValueError("eps must be positive")
+            raise InvalidNeuronParamsError("eps must be positive")
         if "size" in self.params and (
             not isinstance(self.params["size"], int) or self.params["size"] <= 0
         ):
-            raise ValueError("size must be a positive integer")
+            raise InvalidNeuronParamsError("size must be a positive integer")
         if "axis" in self.params and not isinstance(self.params["axis"], int):
-            raise ValueError("axis must be an integer")
+            raise InvalidNeuronParamsError("axis must be an integer")
         if {
             "num_embeddings",
             "embedding_dim",
@@ -421,13 +427,13 @@ class Neuron:
             dim = self.params["embedding_dim"]
             weights = self.params.get("weights")
             if not isinstance(num, int) or num <= 0:
-                raise ValueError("num_embeddings must be a positive integer")
+                raise InvalidNeuronParamsError("num_embeddings must be a positive integer")
             if not isinstance(dim, int) or dim <= 0:
-                raise ValueError("embedding_dim must be a positive integer")
+                raise InvalidNeuronParamsError("embedding_dim must be a positive integer")
             if weights is not None and (
                 not isinstance(weights, np.ndarray) or weights.shape != (num, dim)
             ):
-                raise ValueError(
+                raise InvalidNeuronParamsError(
                     "weights shape must match (num_embeddings, embedding_dim)"
                 )
 
