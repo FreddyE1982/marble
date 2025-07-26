@@ -145,6 +145,10 @@ neuronenblitz:
   episodic_memory_size: 50
   episodic_memory_threshold: 0.1
   episodic_memory_prob: 0.1
+  curiosity_strength: 0.0
+  depth_clip_scaling: 1.0
+  forgetting_rate: 0.99
+  structural_dropout_prob: 0.0
 brain:
   save_threshold: 0.05
   max_saved_models: 5
