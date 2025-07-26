@@ -133,6 +133,19 @@ class Neuronenblitz:
         wander_cache_size=50,
         rmsprop_beta=0.99,
         grad_epsilon=1e-8,
+        use_experience_replay=False,
+        replay_buffer_size=1000,
+        replay_alpha=0.6,
+        replay_beta=0.4,
+        replay_batch_size=32,
+        exploration_entropy_scale=1.0,
+        exploration_entropy_shift=0.0,
+        gradient_score_scale=1.0,
+        memory_gate_decay=0.99,
+        memory_gate_strength=1.0,
+        episodic_memory_size=50,
+        episodic_memory_threshold=0.1,
+        episodic_memory_prob=0.1,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -255,6 +268,23 @@ class Neuronenblitz:
         self._path_usage = {}
         self.context_history = deque(maxlen=self.context_history_size)
         self._concept_pairs = {}
+        self.use_experience_replay = bool(use_experience_replay)
+        self.replay_buffer_size = int(replay_buffer_size)
+        self.replay_alpha = float(replay_alpha)
+        self.replay_beta = float(replay_beta)
+        self.replay_batch_size = int(replay_batch_size)
+        self.replay_buffer = deque(maxlen=self.replay_buffer_size)
+        self.replay_priorities = deque(maxlen=self.replay_buffer_size)
+        self.exploration_entropy_scale = float(exploration_entropy_scale)
+        self.exploration_entropy_shift = float(exploration_entropy_shift)
+        self.gradient_score_scale = float(gradient_score_scale)
+        self.memory_gate_decay = float(memory_gate_decay)
+        self.memory_gate_strength = float(memory_gate_strength)
+        self.memory_gates = {}
+        self.episodic_memory_size = int(episodic_memory_size)
+        self.episodic_memory_threshold = float(episodic_memory_threshold)
+        self.episodic_memory_prob = float(episodic_memory_prob)
+        self.episodic_memory = deque(maxlen=self.episodic_memory_size)
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -325,6 +355,53 @@ class Neuronenblitz:
         """Apply exponential decay to synapse visit counters."""
         for syn in self.core.synapses:
             syn.visit_count *= decay
+
+    def add_to_replay(self, input_value: float, target_value: float, error: float) -> None:
+        """Store an experience and its priority for replay."""
+        if not self.use_experience_replay:
+            return
+        if len(self.replay_buffer) >= self.replay_buffer_size:
+            self.replay_buffer.popleft()
+            self.replay_priorities.popleft()
+        self.replay_buffer.append((float(input_value), float(target_value)))
+        self.replay_priorities.append(abs(float(error)) + 1e-6)
+
+    def sample_replay_indices(self, batch_size: int) -> list[int]:
+        """Return indices sampled proportionally to stored priorities."""
+        pri = np.array(self.replay_priorities, dtype=float)
+        if pri.sum() == 0:
+            probs = np.ones_like(pri) / len(pri)
+        else:
+            probs = pri ** self.replay_alpha
+            probs = probs / probs.sum()
+        idx = np.random.choice(len(pri), size=batch_size, p=probs)
+        return list(map(int, idx))
+
+    def compute_path_entropy(self) -> float:
+        """Compute entropy of synapse visit distribution."""
+        counts = np.array([s.visit_count for s in self.core.synapses], dtype=float)
+        total = counts.sum()
+        if total <= 0:
+            return 0.0
+        probs = counts / total
+        entropy = -float(np.sum([p * math.log(max(p, 1e-12)) for p in probs]))
+        return entropy
+
+    def update_exploration_schedule(self) -> None:
+        """Adapt dropout probability based on visit entropy."""
+        ent = self.compute_path_entropy()
+        norm = math.log(len(self.core.synapses) + 1e-12)
+        if norm > 0:
+            ent /= norm
+        val = self.exploration_entropy_scale * ent + self.exploration_entropy_shift
+        self.dropout_probability = float(max(0.0, min(1.0, val)))
+
+    def decay_memory_gates(self) -> None:
+        """Decay memory gate strengths over time."""
+        for syn in list(self.memory_gates.keys()):
+            self.memory_gates[syn] *= self.memory_gate_decay
+            if self.memory_gates[syn] < 1e-6:
+                del self.memory_gates[syn]
 
     def _update_traces(self, path, decay: float = 0.9) -> None:
         """Update eligibility traces for the given path."""
@@ -470,12 +547,14 @@ class Neuronenblitz:
             tgt_rep = self.core.neurons[syn.target].representation[: len(ctx_vec)]
             sim = _cosine_similarity(tgt_rep, ctx_vec)
             context_factor = 1.0 + sim
+            mem_factor = 1.0 + self.memory_gates.get(syn, 0.0)
             scores.append(
                 syn.potential
                 * fatigue_factor
                 * attention
                 * novelty_penalty
                 * context_factor
+                * mem_factor
             )
 
         scores_arr = np.array(scores, dtype=float)
@@ -687,6 +766,7 @@ class Neuronenblitz:
 
             for neuron in self.core.neurons:
                 neuron.value = None
+            self.decay_memory_gates()
             self.decay_fatigues()
             self.decay_visit_counts()
             entry_neuron = self._select_entry_neuron()
@@ -970,6 +1050,10 @@ class Neuronenblitz:
             if abs(update) > self.synapse_update_cap:
                 update = math.copysign(self.synapse_update_cap, update)
             syn.weight += update
+            syn.potential = min(
+                self.synapse_potential_cap,
+                syn.potential + abs(scaled_delta) * self.gradient_score_scale,
+            )
             if random.random() < self.consolidation_probability:
                 syn.weight *= self.consolidation_strength
             if syn.weight > self._weight_limit:
@@ -988,6 +1072,12 @@ class Neuronenblitz:
                 len(path),
                 len(self.core.synapses),
             )
+            if abs(error) < self.episodic_memory_threshold:
+                mem_path = []
+                for syn in path:
+                    self.memory_gates[syn] = self.memory_gates.get(syn, 0.0) + self.memory_gate_strength
+                    mem_path.append(syn)
+                self.episodic_memory.append(mem_path)
         if self.weight_decay:
             for syn in self.core.synapses:
                 if getattr(syn, "frozen", False):
@@ -1031,6 +1121,7 @@ class Neuronenblitz:
                 output_value, path = self.dynamic_wander(input_value)
                 error = self._compute_loss(target_value, output_value)
                 path_length = self.apply_weight_updates_and_attention(path, error)
+            self.add_to_replay(input_value, target_value, error)
             self.error_history.append(abs(error))
             self.training_history.append(
                 {
@@ -1071,6 +1162,16 @@ class Neuronenblitz:
             self.decide_synapse_action()
             self.adjust_learning_rate()
             self.step_lr_scheduler()
+            if (
+                self.use_experience_replay
+                and len(self.replay_buffer) >= self.replay_batch_size
+            ):
+                idxs = self.sample_replay_indices(self.replay_batch_size)
+                for i in idxs:
+                    inp, tgt = self.replay_buffer[i]
+                    _, err, _ = self.train_example(inp, tgt)
+                    self.replay_priorities[i] = abs(err) + 1e-6
+            self.update_exploration_schedule()
             self.adjust_dropout_rate(avg_error)
 
     def get_training_history(self):

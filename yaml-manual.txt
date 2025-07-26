@@ -324,6 +324,32 @@ neuronenblitz:
     0.9–0.99.
   grad_epsilon: Small constant added when normalising gradients to avoid
     division by zero.
+  use_experience_replay: Enable prioritized experience replay. When true
+    Neuronenblitz keeps past training examples with their errors and samples
+    them again according to those errors after each epoch.
+  replay_buffer_size: Maximum number of experiences retained for replay. Old
+    entries are discarded once this limit is exceeded.
+  replay_alpha: Exponent determining how strongly error magnitude influences
+    sampling probability. ``0`` gives uniform sampling while ``1.0`` weights
+    fully by error.
+  replay_beta: Importance sampling correction applied to replay updates. Values
+    near ``1.0`` reduce bias from prioritisation.
+  replay_batch_size: Number of stored experiences replayed after each epoch
+    when experience replay is active.
+  exploration_entropy_scale: Multiplier applied to the entropy of synapse visit
+    counts when computing adaptive dropout rates.
+  exploration_entropy_shift: Constant offset added after scaling the entropy.
+  gradient_score_scale: Factor converting gradient magnitude into additional
+    synapse potential during weight updates.
+  memory_gate_decay: Multiplicative decay applied to memory-based gating scores
+    that bias ``weighted_choice``. Lower values make memories fade quickly.
+  memory_gate_strength: Amount added to a synapse's gating score whenever a
+    path yields an error below ``episodic_memory_threshold``.
+  episodic_memory_size: Number of recent successful paths stored for gating.
+  episodic_memory_threshold: Maximum absolute error for a path to be recorded
+    in episodic memory.
+  episodic_memory_prob: Probability that wandering will be biased by episodic
+    memory on a given call.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the

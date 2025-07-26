@@ -707,3 +707,42 @@ def test_cyclic_scheduler_cycles_learning_rate():
     assert start_lr == pytest.approx(0.1)
     assert mid_lr == pytest.approx(1.0)
     assert end_lr == pytest.approx(start_lr)
+
+
+def test_experience_replay_buffer_fills_and_replays():
+    random.seed(0)
+    np.random.seed(0)
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        use_experience_replay=True,
+        replay_buffer_size=5,
+        replay_batch_size=2,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        backtrack_probability=0.0,
+        backtrack_enabled=False,
+    )
+    nb.train([(1.0, 0.0)] * 3, epochs=1)
+    assert len(nb.replay_buffer) >= 3
+    prev_len = len(nb.replay_buffer)
+    nb.train([(1.0, 0.0)] * 2, epochs=1)
+    assert len(nb.replay_buffer) >= prev_len
+
+
+def test_memory_gate_biases_selection():
+    random.seed(0)
+    np.random.seed(0)
+    core, syn_a = create_simple_core()
+    syn_b = core.add_synapse(0, 1, weight=1.0)
+    nb = Neuronenblitz(
+        core,
+        memory_gate_strength=1.0,
+        episodic_memory_threshold=0.2,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        backtrack_probability=0.0,
+        backtrack_enabled=False,
+    )
+    nb.train_example(1.0, 1.0)  # should record successful path
+    assert nb.memory_gates
