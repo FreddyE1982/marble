@@ -1,3 +1,5 @@
+import os, sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import random
 import numpy as np
 from marble_core import Core, Neuron
@@ -27,7 +29,8 @@ def test_gradient_path_scoring_prefers_higher_gradient():
     res = [(core.neurons[1], [(core.neurons[0], s1), (core.neurons[1], None)]),
            (core.neurons[1], [(core.neurons[0], s2), (core.neurons[1], None)])]
     neuron, path = nb._merge_results(res)
-    assert path[1][1] is s2
+    # Path orientation now keeps the chosen synapse in the first tuple
+    assert path[0][1] is s2
 
 
 def test_activity_gating_reduces_update():
