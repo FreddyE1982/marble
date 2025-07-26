@@ -364,13 +364,26 @@ class Neuronenblitz:
         if self.lr_scheduler == "cosine":
             progress = min(1.0, self._scheduler_step / max(1, self.scheduler_steps))
             cos_out = (1 + math.cos(math.pi * progress)) / 2
-            self.learning_rate = self.min_learning_rate + (
-                self.max_learning_rate - self.min_learning_rate
-            ) * cos_out
+            self.learning_rate = (
+                self.min_learning_rate
+                + (self.max_learning_rate - self.min_learning_rate) * cos_out
+            )
         elif self.lr_scheduler == "exponential":
             self.learning_rate = max(
                 self.min_learning_rate,
-                self.max_learning_rate * (self.scheduler_gamma ** (self._scheduler_step + 1)),
+                self.max_learning_rate
+                * (self.scheduler_gamma ** (self._scheduler_step + 1)),
+            )
+        elif self.lr_scheduler == "cyclic":
+            steps = max(1, self.scheduler_steps)
+            cycle_pos = (self._scheduler_step % steps) / steps
+            if cycle_pos <= 0.5:
+                scale = cycle_pos * 2
+            else:
+                scale = 2 - 2 * cycle_pos
+            self.learning_rate = (
+                self.min_learning_rate
+                + (self.max_learning_rate - self.min_learning_rate) * scale
             )
         self._scheduler_step += 1
 
@@ -720,7 +733,9 @@ class Neuronenblitz:
                 self.apply_structural_plasticity(final_path)
                 self._record_path_usage([s for (_, s) in final_path if s is not None])
                 self.maybe_create_emergent_synapse()
-                self._update_concept_pairs([s for (_, s) in final_path if s is not None])
+                self._update_concept_pairs(
+                    [s for (_, s) in final_path if s is not None]
+                )
                 self.apply_concept_associations()
             result_path = [s for (_, s) in final_path if s is not None]
             if not apply_plasticity:
@@ -1265,7 +1280,9 @@ class Neuronenblitz:
                     loss_sum += torch.nn.functional.mse_loss(t, tt).item()
                 scores.append(loss_sum / len(data))
 
-            ranked = [nb for _, nb in sorted(zip(scores, population), key=lambda x: x[0])]
+            ranked = [
+                nb for _, nb in sorted(zip(scores, population), key=lambda x: x[0])
+            ]
             num_selected = max(1, int(population_size * selection_ratio))
             parents = ranked[:num_selected]
 
@@ -1283,14 +1300,23 @@ class Neuronenblitz:
             for nb in population:
                 for syn in nb.core.synapses:
                     if random.random() < mutation_rate:
-                        syn.weight += random.uniform(-mutation_strength, mutation_strength)
+                        syn.weight += random.uniform(
+                            -mutation_strength, mutation_strength
+                        )
 
-        best_nb = min(population, key=lambda nb: sum(
-            torch.nn.functional.mse_loss(
-                torch.tensor([float(nb.dynamic_wander(inp, apply_plasticity=False)[0])], device=device),
-                torch.tensor([float(tgt)], device=device),
-            ).item() for inp, tgt in data
-        ))
+        best_nb = min(
+            population,
+            key=lambda nb: sum(
+                torch.nn.functional.mse_loss(
+                    torch.tensor(
+                        [float(nb.dynamic_wander(inp, apply_plasticity=False)[0])],
+                        device=device,
+                    ),
+                    torch.tensor([float(tgt)], device=device),
+                ).item()
+                for inp, tgt in data
+            ),
+        )
 
         best_state = pickle.dumps(best_nb)
         updated = pickle.loads(best_state)

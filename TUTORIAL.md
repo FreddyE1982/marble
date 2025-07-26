@@ -67,6 +67,19 @@ This tutorial demonstrates every major component of MARBLE through a series of p
 7. **Monitor progress** with `MetricsVisualizer` which plots loss and memory usage. Adjust the `fig_width` and `color_scheme` options under `metrics_visualizer` in `config.yaml` to change the appearance.
 8. **View metrics in your browser** by enabling `metrics_dashboard.enabled`. Set `window_size` to control the moving-average smoothing of the curves.
 9. **Gradually reduce regularization** by setting `dropout_probability` and `dropout_decay_rate` under `neuronenblitz`. A decay rate below `1.0` multiplies the current dropout value after each epoch.
+10. **Search hyperparameters** using `hyperparameter_search.grid_search` to try different learning rates or scheduler options:
+   ```python
+   from hyperparameter_search import grid_search
+
+   def train_with_params(params):
+       cfg['neuronenblitz'].update(params)
+       marble = MARBLE(cfg['core'])
+       marble.brain.train(train_examples, epochs=3, validation_examples=val_examples)
+       return marble.brain.validate(val_examples)
+
+   results = grid_search({'learning_rate': [0.001, 0.01], 'lr_scheduler': ['none', 'cyclic']}, train_with_params)
+   print('Best params:', results[0])
+   ```
 
 **Complete Example**
 ```python
