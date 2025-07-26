@@ -150,6 +150,12 @@ Each entry is listed under its section heading.
 - depth_clip_scaling
 - forgetting_rate
 - structural_dropout_prob
+- gradient_path_score_scale
+- use_gradient_path_scoring
+- activity_gate_exponent
+- subpath_cache_size
+- subpath_cache_ttl
+- use_mixed_precision
 
 ## brain
 - save_threshold

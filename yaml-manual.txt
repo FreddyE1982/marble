@@ -361,6 +361,24 @@ neuronenblitz:
   structural_dropout_prob: Probability that a qualified synapse is skipped
     during structural plasticity. Increasing this value reduces the frequency
     of structural changes.
+  gradient_path_score_scale: Multiplier applied to the cumulative gradient
+    magnitude of a wander path when selecting the best result. Higher values
+    bias exploration toward routes that recently produced strong weight
+    updates.
+  use_gradient_path_scoring: Set to ``true`` to enable gradient-based path
+    scoring in ``dynamic_wander``. When disabled only the final neuron value
+    determines which path is chosen.
+  activity_gate_exponent: Exponent controlling how strongly synapse visit
+    counts gate subsequent weight updates. ``1.0`` scales updates by
+    ``1/(1+visits)`` while larger values produce steeper decay.
+  subpath_cache_size: Maximum number of path prefixes stored for quick reuse.
+    Larger caches speed up wandering on graphs with repeated motifs at the cost
+    of additional memory.
+  subpath_cache_ttl: Time in seconds before cached subpaths expire. ``0`` keeps
+    entries indefinitely.
+  use_mixed_precision: Enable PyTorch automatic mixed precision during
+    training. This trades some numerical precision for faster execution on
+    compatible GPUs.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the
