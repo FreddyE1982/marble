@@ -45,6 +45,9 @@ class MARBLE:
             "show_neuron_ids": False,
             "dpi": 100,
             "track_memory_usage": False,
+            "log_dir": None,
+            "csv_log_path": None,
+            "json_log_path": None,
         }
         if mv_params is not None:
             mv_defaults.update(mv_params)
@@ -56,6 +59,9 @@ class MARBLE:
             show_neuron_ids=mv_defaults["show_neuron_ids"],
             dpi=mv_defaults["dpi"],
             track_memory_usage=mv_defaults["track_memory_usage"],
+            log_dir=mv_defaults["log_dir"],
+            csv_log_path=mv_defaults["csv_log_path"],
+            json_log_path=mv_defaults["json_log_path"],
         )
         self.metrics_dashboard = None
         if dashboard_params is not None and dashboard_params.get("enabled", False):

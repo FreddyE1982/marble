@@ -614,6 +614,8 @@ metrics_visualizer:
     you can run ``tensorboard --logdir=<log_dir>`` to monitor metrics.
   csv_log_path: Path to a CSV file receiving all metric values after each
     update. Useful for analysis with spreadsheet tools.
+  json_log_path: Path to a JSON lines file where each update is appended as a
+    single JSON object. This provides structured logs for downstream tools.
 
 metrics_dashboard:
   # Optional web dashboard built with Plotly Dash for real-time monitoring.

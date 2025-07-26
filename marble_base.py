@@ -1,6 +1,7 @@
 from marble_imports import *
 from system_metrics import get_system_memory_usage, get_gpu_memory_usage
 from torch.utils.tensorboard import SummaryWriter
+import json
 
 
 def clear_output(wait: bool = True) -> None:
@@ -106,6 +107,7 @@ class MetricsVisualizer:
         track_memory_usage=False,
         log_dir: str | None = None,
         csv_log_path: str | None = None,
+        json_log_path: str | None = None,
     ):
         self.metrics = {
             "loss": [],
@@ -142,6 +144,13 @@ class MetricsVisualizer:
                 with open(csv_log_path, "w", encoding="utf-8") as f:
                     f.write(",".join(["step"] + list(self.metrics.keys())) + "\n")
             self._csv_writer = open(csv_log_path, "a", encoding="utf-8")
+        self.json_log_path = json_log_path
+        self._json_writer = None
+        if json_log_path:
+            dir_name = os.path.dirname(json_log_path)
+            if dir_name:
+                os.makedirs(dir_name, exist_ok=True)
+            self._json_writer = open(json_log_path, "a", encoding="utf-8")
         self._step = 0
         self.setup_plot()
 
@@ -168,6 +177,12 @@ class MetricsVisualizer:
                 row.append(str(self.metrics[k][-1]) if self.metrics[k] else "")
             self._csv_writer.write(",".join(row) + "\n")
             self._csv_writer.flush()
+        if self._json_writer:
+            record = {"step": self._step}
+            for k in self.metrics:
+                record[k] = self.metrics[k][-1] if self.metrics[k] else None
+            self._json_writer.write(json.dumps(record) + "\n")
+            self._json_writer.flush()
         self._step += 1
         clear_output(wait=True)
         self.plot_metrics()
@@ -206,6 +221,8 @@ class MetricsVisualizer:
             self.writer.close()
         if self._csv_writer:
             self._csv_writer.close()
+        if self._json_writer:
+            self._json_writer.close()
 
     def __del__(self) -> None:
         self.close()
