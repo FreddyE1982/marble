@@ -85,6 +85,8 @@ def _simple_mlp(
             + torch.as_tensor(_B2, device=device),
             activation,
         )
+        if not torch.all(torch.isfinite(out)):
+            raise ValueError("NaN or Inf encountered in MLP output")
         return out
     # Handle potential NaNs or infinities to avoid runtime warnings
     x = np.nan_to_num(x, nan=0.0, posinf=0.0, neginf=0.0)
@@ -92,6 +94,8 @@ def _simple_mlp(
     if apply_layer_norm:
         h = _layer_norm(h)
     out = _apply_activation(h @ _W2 + _B2, activation)
+    if not np.all(np.isfinite(out)):
+        raise ValueError("NaN or Inf encountered in MLP output")
     return out
 
 
@@ -1272,6 +1276,8 @@ class Core:
                 TIER_REGISTRY["file"].file_path = fpath
                 os.makedirs(os.path.dirname(fpath), exist_ok=True)
         rep_size = params.get("representation_size", _REP_SIZE)
+        if rep_size <= 0:
+            raise ValueError("representation_size must be positive")
         configure_representation_size(rep_size)
         self.rep_size = rep_size
         self.attention_module = AttentionModule(
@@ -1297,7 +1303,10 @@ class Core:
         self.q_table = {}
         self.gradient_clip_value = params.get("gradient_clip_value", 1.0)
         self.synapse_weight_decay = params.get("synapse_weight_decay", 0.0)
-        self.message_passing_iterations = params.get("message_passing_iterations", 1)
+        mpi = params.get("message_passing_iterations", 1)
+        if mpi <= 0:
+            raise ValueError("message_passing_iterations must be positive")
+        self.message_passing_iterations = mpi
         self.cluster_algorithm = params.get("cluster_algorithm", "kmeans")
         self.synapse_echo_length = params.get("synapse_echo_length", 5)
         self.synapse_echo_decay = params.get("synapse_echo_decay", 0.9)

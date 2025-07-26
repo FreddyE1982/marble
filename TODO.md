@@ -3,8 +3,8 @@
 This TODO list outlines 100 enhancements spanning the Marble framework, the underlying Marble Core, and the Neuronenblitz learning system. The items are grouped by broad themes but are intentionally numbered for easy tracking.
 
 1. Expand unit test coverage across all modules.
-2. Implement continuous integration to automatically run tests on pushes.
-3. Improve error handling in `marble_core` for invalid neuron parameters.
+2. [x] Implement continuous integration to automatically run tests on pushes.
+3. [x] Improve error handling in `marble_core` for invalid neuron parameters.
 4. Add type hints to all functions for better static analysis.
 5. Integrate GPU acceleration into all neural computations.
 6. Provide a command line interface for common training tasks.
@@ -21,7 +21,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 17. Improve the `MetricsVisualizer` to log to TensorBoard and CSV.
 18. Add memory usage tracking to the core.
 19. Support dynamic resizing of neuron representations at runtime.
-20. Implement gradient clipping utilities within Neuronenblitz.
+20. [x] Implement gradient clipping utilities within Neuronenblitz.
 21. Add a learning rate scheduler with cosine and exponential options.
 22. Document all YAML parameters in `yaml-manual.txt` with examples.
 23. Provide GPU/CPU fallbacks for all heavy computations.
@@ -39,7 +39,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 35. Implement a caching layer for expensive computations.
 36. Expand YAML configuration to allow hierarchical experiment setups.
 37. Add early stopping based on validation metrics.
-38. Provide utilities for synthetic dataset generation.
+38. [x] Provide utilities for synthetic dataset generation.
 39. Implement curriculum learning helpers in Neuronenblitz.
 40. Document best practices for hyperparameter tuning.
 41. Improve remote offload logic with retry and timeout strategies.
@@ -66,7 +66,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 62. Add more comprehensive adversarial training examples.
 63. Provide utilities for automatic dataset downloading and caching.
 64. Integrate a simple hyperparameter search framework.
-65. Add tests verifying deterministic behaviour with fixed seeds.
+65. [x] Add tests verifying deterministic behaviour with fixed seeds.
 66. Improve readability of configuration files with comments and sections.
 67. Implement graph pruning utilities to remove unused neurons.
 68. Create a repository of reusable neuron/synapse templates.

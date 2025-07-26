@@ -31,13 +31,20 @@ This tutorial demonstrates every major component of MARBLE through a series of p
    urllib.request.urlretrieve(url, "winequality-red.csv")
    ```
    After the download completes you should see `winequality-red.csv` in the directory.
-2. **Prepare the dataset** by loading the CSV with `pandas` and converting each row into `(input, target)` pairs. `input` contains the feature columns and `target` is the quality score:
+2. **Generate a quick synthetic dataset** using the helper in `synthetic_dataset.py` if you just want to experiment with the training loop:
+   ```python
+   from synthetic_dataset import generate_sine_wave_dataset
+
+   train_examples = generate_sine_wave_dataset(200, noise_std=0.05, seed=0)
+   ```
+   This produces `(input, target)` pairs following a noisy sine wave.
+3. **Prepare the dataset** by loading the CSV with `pandas` and converting each row into `(input, target)` pairs. `input` contains the feature columns and `target` is the quality score:
    ```python
    import pandas as pd
    df = pd.read_csv('winequality-red.csv', sep=';')
    train_examples = [(row[:-1].to_numpy(), row[-1]) for row in df.to_numpy()]
    ```
-3. **Split the data** into training and validation sets so the training loop can monitor validation loss:
+4. **Split the data** into training and validation sets so the training loop can monitor validation loss:
    ```python
    from sklearn.model_selection import train_test_split
    train_examples, val_examples = train_test_split(train_examples, test_size=0.1, random_state=42)

@@ -374,6 +374,13 @@ class Neuronenblitz:
             )
         self._scheduler_step += 1
 
+    def clip_gradient(self, value: float) -> float:
+        """Return ``value`` clipped using ``core.gradient_clip_value``."""
+        clip = getattr(self.core, "gradient_clip_value", None)
+        if clip is None:
+            return float(value)
+        return float(np.clip(value, -clip, clip))
+
     def adjust_dropout_rate(self, avg_error: float) -> None:
         """Dynamically adapt dropout probability based on training error."""
         self.dropout_probability *= self.dropout_decay_rate
@@ -916,9 +923,7 @@ class Neuronenblitz:
                 delta *= syn.get_echo_average()
             if self.gradient_noise_std > 0:
                 delta += np.random.normal(0.0, self.gradient_noise_std)
-            clip = getattr(self.core, "gradient_clip_value", None)
-            if clip is not None:
-                delta = float(np.clip(delta, -clip, clip))
+            delta = self.clip_gradient(delta)
             prev_v = self._grad_sq.get(syn, 1.0)
             v = self._rmsprop_beta * prev_v + (1 - self._rmsprop_beta) * (delta**2)
             self._grad_sq[syn] = v
