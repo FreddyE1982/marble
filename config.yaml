@@ -192,6 +192,9 @@ brain:
   model_name: "marble_default"
   checkpoint_format: "pickle"
   metrics_history_size: 100
+  profile_enabled: false
+  profile_log_path: "profile.csv"
+  profile_interval: 1
   early_stop_enabled: true
   lobe_sync_interval: 60
   cleanup_batch_size: 500
