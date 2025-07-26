@@ -9,6 +9,7 @@ from marble_lobes import LobeManager
 from meta_parameter_controller import MetaParameterController
 from neuromodulatory_system import NeuromodulatorySystem
 from system_metrics import get_gpu_memory_usage, get_system_memory_usage
+from backup_utils import BackupScheduler
 
 
 def _parse_example(sample):
@@ -112,6 +113,9 @@ class Brain:
         max_neurogenesis_factor: float = 3.0,
         cluster_k: int = 3,
         auto_save_interval: int = 5,
+        backup_enabled: bool = False,
+        backup_interval: int = 3600,
+        backup_dir: str = "backups",
         auto_firing_enabled: bool = False,
         dream_enabled: bool = True,
         vram_age_threshold: int = 300,
@@ -213,6 +217,9 @@ class Brain:
         self.max_neurogenesis_factor = max_neurogenesis_factor
         self.cluster_k = cluster_k
         self.auto_save_interval = auto_save_interval
+        self.backup_enabled = backup_enabled
+        self.backup_interval = backup_interval
+        self.backup_dir = backup_dir
         self.auto_firing_enabled = auto_firing_enabled
         self.dream_enabled = dream_enabled
         self.vram_age_threshold = vram_age_threshold
@@ -257,6 +264,12 @@ class Brain:
         self.mutation_strength = mutation_strength
         self.prune_threshold = prune_threshold
         os.makedirs(self.save_dir, exist_ok=True)
+        self.backup_scheduler = None
+        if self.backup_enabled:
+            self.backup_scheduler = BackupScheduler(
+                self.save_dir, self.backup_dir, self.backup_interval
+            )
+            self.backup_scheduler.start()
         self.metrics_visualizer = metrics_visualizer
         self.dim_search = None
         if dimensional_search_params is not None and dimensional_search_params.get(
@@ -637,6 +650,11 @@ class Brain:
         if self.auto_fire_thread is not None:
             self.auto_fire_thread.join()
         print("Auto-firing stopped.")
+
+    def stop_backup_scheduler(self) -> None:
+        if self.backup_scheduler is not None:
+            self.backup_scheduler.stop()
+            self.backup_scheduler = None
 
     def dream(self, num_cycles=10):
         print("Dreaming started...")

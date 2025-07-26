@@ -171,6 +171,9 @@ Each entry is listed under its section heading.
 - max_neurogenesis_factor
 - cluster_k
 - auto_save_interval
+- backup_enabled
+- backup_interval
+- backup_dir
 - auto_firing_enabled
 - dream_enabled
 - vram_age_threshold

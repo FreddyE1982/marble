@@ -10,6 +10,9 @@ CONFIG_SCHEMA = {
             "properties": {
                 "early_stopping_patience": {"type": "integer", "minimum": 0},
                 "early_stopping_delta": {"type": "number", "minimum": 0},
+                "backup_enabled": {"type": "boolean"},
+                "backup_interval": {"type": "integer", "minimum": 0},
+                "backup_dir": {"type": "string"},
             },
         },
     },

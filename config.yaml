@@ -164,6 +164,9 @@ brain:
   max_neurogenesis_factor: 3.0
   cluster_k: 3
   auto_save_interval: 5
+  backup_enabled: false
+  backup_interval: 3600
+  backup_dir: "backups"
   auto_firing_enabled: false
   dream_enabled: true
   vram_age_threshold: 300
