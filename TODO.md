@@ -33,7 +33,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 29. Introduce dropout and batch normalization synapse types.
 30. Create a graphical configuration editor in the Streamlit GUI.
 31. Enhance the GUI with dark/light mode and mobile layout tweaks.
-32. Add a data pre-processing pipeline with caching.
+32. [x] Add a data pre-processing pipeline with caching.
 33. Integrate a remote experiment tracker (e.g., Weights & Biases).
 34. Provide example projects for image and text domains.
 35. Implement a caching layer for expensive computations.
