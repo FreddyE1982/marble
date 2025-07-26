@@ -397,6 +397,14 @@ brain:
     during training.
   auto_save_interval: Number of epochs between automatic calls to
     ``save_model``. ``0`` disables periodic saving.
+  backup_enabled: When true a background thread periodically copies files from
+    ``save_dir`` into ``backup_dir`` so that checkpoints and logs survive
+    unexpected crashes.
+  backup_interval: Seconds between each automatic backup when
+    ``backup_enabled`` is active. Short intervals provide more robust safety but
+    may increase disk usage.
+  backup_dir: Directory where backup copies are stored. Each run creates a
+    timestamped subfolder inside this directory.
   auto_firing_enabled: If true the brain starts an auto-firing thread
     immediately after construction.
   dream_enabled: Enables background dreaming when ``start_dreaming`` is called.

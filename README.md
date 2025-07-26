@@ -135,21 +135,21 @@ For a high level description of the system components and data flow see [ARCHITE
 ## Hyperparameter Tuning Best Practices
 Tuning MARBLE effectively requires balancing learning stability with network plasticity. Some general guidelines:
 
-- Start with `random_seed` fixed to make experiments repeatable.
-- Use `learning_rate` values between `0.001` and `0.05` for most tasks.
-- Increase `neurogenesis_factor` gradually when validation loss stalls.
-- Monitor `plasticity_threshold` as it controls when new connections form.
-- Enable `lr_scheduler` with `scheduler_gamma` around `0.99` for long runs.
+1. Start with `random_seed` fixed to make experiments repeatable.
+2. Use `learning_rate` values between `0.001` and `0.05` for most tasks.
+3. Increase `neurogenesis_factor` gradually when validation loss stalls.
+4. Monitor `plasticity_threshold` as it controls when new connections form.
+5. Enable `lr_scheduler` with `scheduler_gamma` around `0.99` for long runs.
 
 These heuristics work well across the provided examples but every dataset benefits from its own small grid search.
 
 ## Troubleshooting
 If training diverges or produces NaNs:
 
-- Verify the dataset is correctly formatted and free of missing values.
-- Lower `learning_rate` and check that `gradient_clip_value` is set.
-- Ensure message passing dropout is not too high for small graphs.
-- Use the metrics dashboard to watch memory usage spikes which may indicate a bug.
+1. Verify the dataset is correctly formatted and free of missing values.
+2. Lower `learning_rate` and check that `gradient_clip_value` is set.
+3. Ensure message passing dropout is not too high for small graphs.
+4. Use the metrics dashboard to watch memory usage spikes which may indicate a bug.
 
 For CUDA related errors confirm that your GPU drivers and PyTorch build match.
 
