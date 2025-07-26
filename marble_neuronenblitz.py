@@ -653,6 +653,13 @@ class Neuronenblitz:
             cached_path, val = cached
             neuron = cached_path[-1][0]
             neuron.value = val
+            # Apply side effects that would occur during normal traversal
+            for _, syn in cached_path[1:]:
+                if syn is None:
+                    continue
+                if self.synaptic_fatigue_enabled and hasattr(syn, "update_fatigue"):
+                    syn.update_fatigue(self.fatigue_increase, self.fatigue_decay)
+                syn.visit_count += 1
             return [(neuron, cached_path)]
 
         results = []
@@ -775,7 +782,12 @@ class Neuronenblitz:
                 merged.append(group[0])
             else:
                 avg_value = sum(n.value for n, _ in group) / len(group)
-                rep_path = max(group, key=lambda tup: len(tup[1]))[1]
+                if self.use_gradient_path_scoring:
+                    rep_path = max(
+                        group, key=lambda tup: self.compute_path_gradient_score(tup[1])
+                    )[1]
+                else:
+                    rep_path = max(group, key=lambda tup: len(tup[1]))[1]
                 neuron = self.core.neurons[key]
                 neuron.value = avg_value
                 merged.append((neuron, rep_path))
