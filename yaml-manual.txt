@@ -261,8 +261,10 @@ neuronenblitz:
     trends.
   lr_scheduler: Scheduler type controlling how ``learning_rate`` evolves over
     epochs. ``"none"`` keeps the rate constant aside from manual adjustments,
-    ``"cosine"`` performs a cosine decay over ``scheduler_steps`` epochs and
-    ``"exponential"`` multiplies the rate by ``scheduler_gamma`` each epoch.
+    ``"cosine"`` performs a cosine decay over ``scheduler_steps`` epochs,
+    ``"exponential"`` multiplies the rate by ``scheduler_gamma`` each epoch, and
+    ``"cyclic"`` oscillates the rate between ``min_learning_rate`` and
+    ``max_learning_rate`` every ``scheduler_steps`` epochs.
   scheduler_steps: Number of epochs over which the cosine scheduler decays the
     learning rate from ``max_learning_rate`` down to ``min_learning_rate``.
   scheduler_gamma: Multiplicative factor used by the exponential scheduler each

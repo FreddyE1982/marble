@@ -686,3 +686,24 @@ def test_exponential_scheduler_decreases_learning_rate():
     assert nb.learning_rate == 0.5
     nb.step_lr_scheduler()
     assert nb.learning_rate == 0.25
+
+
+def test_cyclic_scheduler_cycles_learning_rate():
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        lr_scheduler="cyclic",
+        scheduler_steps=2,
+        min_learning_rate=0.1,
+        max_learning_rate=1.0,
+    )
+    nb.learning_rate = nb.min_learning_rate
+    nb.step_lr_scheduler()
+    start_lr = nb.learning_rate
+    nb.step_lr_scheduler()
+    mid_lr = nb.learning_rate
+    nb.step_lr_scheduler()
+    end_lr = nb.learning_rate
+    assert start_lr == pytest.approx(0.1)
+    assert mid_lr == pytest.approx(1.0)
+    assert end_lr == pytest.approx(start_lr)
