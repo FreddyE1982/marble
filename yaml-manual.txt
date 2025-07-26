@@ -350,6 +350,17 @@ neuronenblitz:
     in episodic memory.
   episodic_memory_prob: Probability that wandering will be biased by episodic
     memory on a given call.
+  curiosity_strength: Weight of novelty-driven curiosity in ``weighted_choice``.
+    Higher values encourage exploring rarely visited synapses.
+  depth_clip_scaling: Scaling factor controlling how strongly gradient clipping
+    tightens for long wander paths.  ``1.0`` halves the update cap at maximum
+    depth.
+  forgetting_rate: Multiplicative decay applied to stored context history on
+    each wander. Values below ``1.0`` gradually forget old neuromodulatory
+    signals.
+  structural_dropout_prob: Probability that a qualified synapse is skipped
+    during structural plasticity. Increasing this value reduces the frequency
+    of structural changes.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the

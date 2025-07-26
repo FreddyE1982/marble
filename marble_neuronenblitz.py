@@ -146,6 +146,10 @@ class Neuronenblitz:
         episodic_memory_size=50,
         episodic_memory_threshold=0.1,
         episodic_memory_prob=0.1,
+        curiosity_strength=0.0,
+        depth_clip_scaling=1.0,
+        forgetting_rate=0.99,
+        structural_dropout_prob=0.0,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -285,6 +289,10 @@ class Neuronenblitz:
         self.episodic_memory_threshold = float(episodic_memory_threshold)
         self.episodic_memory_prob = float(episodic_memory_prob)
         self.episodic_memory = deque(maxlen=self.episodic_memory_size)
+        self.curiosity_strength = float(curiosity_strength)
+        self.depth_clip_scaling = float(depth_clip_scaling)
+        self.forgetting_rate = float(forgetting_rate)
+        self.structural_dropout_prob = float(structural_dropout_prob)
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -338,6 +346,20 @@ class Neuronenblitz:
             total += w
         vec /= max(total, 1e-6)
         return vec
+
+    def active_forgetting(self) -> None:
+        """Decay stored context history values to gradually forget."""
+        if self.forgetting_rate >= 1.0 or not self.context_history:
+            return
+        new_hist = deque(maxlen=self.context_history_size)
+        for ctx in self.context_history:
+            decayed = {
+                k: (v * self.forgetting_rate if isinstance(v, (int, float)) else v)
+                for k, v in ctx.items()
+            }
+            if any(abs(v) > 1e-6 for v in decayed.values()):
+                new_hist.append(decayed)
+        self.context_history = new_hist
 
     def reset_neuron_values(self):
         for neuron in self.core.neurons:
@@ -544,6 +566,7 @@ class Neuronenblitz:
             fatigue_factor = max(0.0, 1.0 - fatigue)
             attention = 1.0 + self.core.neurons[syn.target].attention_score
             novelty_penalty = 1.0 / (1.0 + getattr(syn, "visit_count", 0))
+            curiosity_factor = 1.0 + self.curiosity_strength * novelty_penalty
             tgt_rep = self.core.neurons[syn.target].representation[: len(ctx_vec)]
             sim = _cosine_similarity(tgt_rep, ctx_vec)
             context_factor = 1.0 + sim
@@ -553,6 +576,7 @@ class Neuronenblitz:
                 * fatigue_factor
                 * attention
                 * novelty_penalty
+                * curiosity_factor
                 * context_factor
                 * mem_factor
             )
@@ -766,6 +790,7 @@ class Neuronenblitz:
 
             for neuron in self.core.neurons:
                 neuron.value = None
+            self.active_forgetting()
             self.decay_memory_gates()
             self.decay_fatigues()
             self.decay_visit_counts()
@@ -917,7 +942,11 @@ class Neuronenblitz:
         ctx = self.last_context
         mod = 1.0 + ctx.get("reward", 0.0) - ctx.get("stress", 0.0)
         for _, syn in path:
-            if syn is not None and syn.potential >= self.plasticity_threshold:
+            if (
+                syn is not None
+                and syn.potential >= self.plasticity_threshold
+                and random.random() > self.structural_dropout_prob
+            ):
                 source = self.core.neurons[syn.source]
                 target = self.core.neurons[syn.target]
                 if source.tier == "vram":
@@ -1047,8 +1076,12 @@ class Neuronenblitz:
             if self.synaptic_fatigue_enabled:
                 fatigue_factor = 1.0 - getattr(syn, "fatigue", 0.0)
                 update *= max(0.0, fatigue_factor)
-            if abs(update) > self.synapse_update_cap:
-                update = math.copysign(self.synapse_update_cap, update)
+            depth_factor = 1.0 + self.depth_clip_scaling * (
+                path_length / max(1, self.max_wander_depth)
+            )
+            cap = self.synapse_update_cap / depth_factor
+            if abs(update) > cap:
+                update = math.copysign(cap, update)
             syn.weight += update
             syn.potential = min(
                 self.synapse_potential_cap,

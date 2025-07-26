@@ -746,3 +746,68 @@ def test_memory_gate_biases_selection():
     )
     nb.train_example(1.0, 1.0)  # should record successful path
     assert nb.memory_gates
+
+
+def test_curiosity_strength_biases_toward_novel_synapse():
+    random.seed(0)
+    np.random.seed(0)
+    core, syn_old = create_simple_core()
+    syn_new = core.add_synapse(0, 1, weight=1.0)
+    syn_old.visit_count = 10
+    nb = Neuronenblitz(
+        core,
+        curiosity_strength=5.0,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        backtrack_probability=0.0,
+        backtrack_enabled=False,
+    )
+    choices = [nb.weighted_choice(core.neurons[0].synapses) for _ in range(50)]
+    assert choices.count(syn_new) > choices.count(syn_old)
+
+
+def test_depth_clip_scaling_reduces_update_for_deep_paths():
+    random.seed(0)
+    core, syn = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        depth_clip_scaling=1.0,
+        synapse_update_cap=1.0,
+        consolidation_probability=0.0,
+        weight_decay=0.0,
+    )
+    nb.learning_rate = 1.0
+    core.neurons[0].value = 1.0
+    other = core.add_synapse(0, 1, weight=1.0)
+    path_deep = [other, other, other, other, syn]
+    nb.apply_weight_updates_and_attention(path_deep, error=1.0)
+    weight_deep = syn.weight
+    syn.weight = 1.0
+    nb.apply_weight_updates_and_attention([syn], error=1.0)
+    weight_shallow = syn.weight
+    assert weight_deep - 1.0 < weight_shallow - 1.0
+
+
+def test_active_forgetting_decays_context():
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(core, forgetting_rate=0.5)
+    nb.update_context(reward=1.0)
+    nb.dynamic_wander(1.0)
+    assert nb.context_history[0]['reward'] < 1.0
+
+
+def test_structural_dropout_skips_plasticity(monkeypatch):
+    random.seed(0)
+    core, syn = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        structural_dropout_prob=1.0,
+        structural_plasticity_enabled=True,
+        plasticity_threshold=0.0,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+    )
+    syn.potential = nb.plasticity_threshold + 1.0
+    prev = len(core.synapses)
+    nb.apply_structural_plasticity([(core.neurons[0], syn)])
+    assert len(core.synapses) == prev

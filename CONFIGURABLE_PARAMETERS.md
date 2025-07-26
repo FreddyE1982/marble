@@ -146,6 +146,10 @@ Each entry is listed under its section heading.
 - episodic_memory_size
 - episodic_memory_threshold
 - episodic_memory_prob
+- curiosity_strength
+- depth_clip_scaling
+- forgetting_rate
+- structural_dropout_prob
 
 ## brain
 - save_threshold
