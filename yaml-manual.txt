@@ -265,11 +265,14 @@ neuronenblitz:
     ``"exponential"`` multiplies the rate by ``scheduler_gamma`` each epoch, and
     ``"cyclic"`` oscillates the rate between ``min_learning_rate`` and
     ``max_learning_rate`` every ``scheduler_steps`` epochs.
-  scheduler_steps: Number of epochs over which the cosine scheduler decays the
-    learning rate from ``max_learning_rate`` down to ``min_learning_rate``.
+  scheduler_steps: Number of epochs governing scheduler behaviour. For the
+    cosine scheduler this is the decay period. For the cyclic scheduler it is
+    half of a full up/down cycle. Typical values range between ``10`` and ``100``
+    depending on dataset size.
   scheduler_gamma: Multiplicative factor used by the exponential scheduler each
     epoch. Values below ``1.0`` decay the rate while values above ``1.0``
-    increase it.
+    increase it. ``0.95`` is a gentle decay while ``0.5`` halves the rate every
+    epoch.
   momentum_coefficient: Coefficient used to blend the previous weight update
     with the current gradient. ``0.0`` disables momentum while values between
     ``0.0`` and ``1.0`` accelerate training by smoothing updates. Momentum is

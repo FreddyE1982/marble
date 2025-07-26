@@ -1,11 +1,12 @@
 from pathlib import Path
-import yaml
-from config_schema import validate_config_schema
 
-from marble_main import MARBLE
-from neuromodulatory_system import NeuromodulatorySystem
-from meta_parameter_controller import MetaParameterController
+import yaml
+
+from config_schema import validate_config_schema
 from marble_core import MemorySystem
+from marble_main import MARBLE
+from meta_parameter_controller import MetaParameterController
+from neuromodulatory_system import NeuromodulatorySystem
 from remote_offload import RemoteBrainClient, RemoteBrainServer
 from torrent_offload import BrainTorrentClient, BrainTorrentTracker
 
@@ -21,9 +22,32 @@ def load_config(path: str | None = None) -> dict:
     return data
 
 
-def create_marble_from_config(path: str | None = None) -> MARBLE:
-    """Create a :class:`MARBLE` instance from a YAML configuration."""
+def _deep_update(base: dict, updates: dict) -> None:
+    """Recursively update ``base`` with values from ``updates``."""
+    for key, val in updates.items():
+        if isinstance(val, dict) and isinstance(base.get(key), dict):
+            _deep_update(base[key], val)
+        else:
+            base[key] = val
+
+
+def create_marble_from_config(
+    path: str | None = None, *, overrides: dict | None = None
+) -> MARBLE:
+    """Create a :class:`MARBLE` instance from a YAML configuration.
+
+    Parameters
+    ----------
+    path:
+        Optional path to the YAML configuration file. If ``None`` the default
+        ``config.yaml`` next to this module is used.
+    overrides:
+        Optional dictionary of parameters that override those loaded from the
+        configuration file. Nested dictionaries are merged recursively.
+    """
     cfg = load_config(path)
+    if overrides:
+        _deep_update(cfg, overrides)
 
     core_params = cfg.get("core", {})
     nb_params = cfg.get("neuronenblitz", {})

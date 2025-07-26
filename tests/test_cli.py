@@ -1,6 +1,6 @@
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -18,12 +18,14 @@ def test_cli_no_train(tmp_path):
     import yaml
 
     cfg.write_text(yaml.safe_dump({"core": minimal_params()}))
-    result = subprocess.run([
-        sys.executable,
-        "cli.py",
-        "--config",
-        str(cfg),
-    ])
+    result = subprocess.run(
+        [
+            sys.executable,
+            "cli.py",
+            "--config",
+            str(cfg),
+        ]
+    )
     assert result.returncode == 0
 
 
@@ -33,13 +35,35 @@ def test_cli_export_core(tmp_path):
 
     cfg.write_text(yaml.safe_dump({"core": minimal_params()}))
     export_path = tmp_path / "core.json"
-    result = subprocess.run([
-        sys.executable,
-        "cli.py",
-        "--config",
-        str(cfg),
-        "--export-core",
-        str(export_path),
-    ])
+    result = subprocess.run(
+        [
+            sys.executable,
+            "cli.py",
+            "--config",
+            str(cfg),
+            "--export-core",
+            str(export_path),
+        ]
+    )
     assert result.returncode == 0
     assert export_path.exists()
+
+
+def test_cli_scheduler_override(tmp_path):
+    cfg = Path(tmp_path) / "cfg.yaml"
+    import yaml
+
+    cfg.write_text(yaml.safe_dump({"core": minimal_params()}))
+    result = subprocess.run(
+        [
+            sys.executable,
+            "cli.py",
+            "--config",
+            str(cfg),
+            "--lr-scheduler",
+            "exponential",
+            "--scheduler-gamma",
+            "0.9",
+        ]
+    )
+    assert result.returncode == 0
