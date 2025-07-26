@@ -1,7 +1,11 @@
 import argparse
 from config_loader import create_marble_from_config
 from dataset_loader import load_dataset
-from marble_interface import save_marble_system, evaluate_marble_system
+from marble_interface import (
+    save_marble_system,
+    evaluate_marble_system,
+    save_core_json_file,
+)
 
 
 def main() -> None:
@@ -12,6 +16,10 @@ def main() -> None:
     parser.add_argument("--validate", help="Optional validation dataset path")
     parser.add_argument("--evaluate", help="Evaluation dataset for measuring MSE")
     parser.add_argument("--save", help="Path to save trained model")
+    parser.add_argument(
+        "--export-core",
+        help="Path to export the core JSON after training",
+    )
     args = parser.parse_args()
 
     marble = create_marble_from_config(args.config)
@@ -25,6 +33,8 @@ def main() -> None:
         print(f"Evaluation MSE: {mse:.6f}")
     if args.save:
         save_marble_system(marble, args.save)
+    if args.export_core:
+        save_core_json_file(marble, args.export_core)
 
 
 if __name__ == "__main__":

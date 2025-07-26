@@ -42,6 +42,20 @@ Any Python object can serve as an ``input`` or ``target`` because the built-in
 possible to train on multimodal pairs such as text-to-image, image-to-text or
 even audio and arbitrary byte blobs without additional conversion steps.
 
+### Command Line Usage
+
+Common tasks can be performed via ``cli.py``. Train a model, evaluate it and
+export the core JSON with:
+
+```bash
+python cli.py --config path/to/cfg.yaml --train data.csv --epochs 10 \
+    --export-core trained_core.json
+```
+
+Use ``--save`` to persist the entire MARBLE object with pickle and
+``--export-core`` to write just the core for later loading via
+``import_core_from_json``.
+
 ### Playground
 
 An interactive Streamlit playground allows quick experimentation with all of
