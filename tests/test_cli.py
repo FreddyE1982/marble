@@ -25,3 +25,21 @@ def test_cli_no_train(tmp_path):
         str(cfg),
     ])
     assert result.returncode == 0
+
+
+def test_cli_export_core(tmp_path):
+    cfg = Path(tmp_path) / "cfg.yaml"
+    import yaml
+
+    cfg.write_text(yaml.safe_dump({"core": minimal_params()}))
+    export_path = tmp_path / "core.json"
+    result = subprocess.run([
+        sys.executable,
+        "cli.py",
+        "--config",
+        str(cfg),
+        "--export-core",
+        str(export_path),
+    ])
+    assert result.returncode == 0
+    assert export_path.exists()
