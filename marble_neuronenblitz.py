@@ -374,7 +374,7 @@ class Neuronenblitz:
                 k: (v * self.forgetting_rate if isinstance(v, (int, float)) else v)
                 for k, v in ctx.items()
             }
-            if any(abs(v) > 1e-6 for v in decayed.values()):
+            if any(isinstance(v, (int, float)) and abs(v) > 1e-6 for v in decayed.values()):
                 new_hist.append(decayed)
         self.context_history = new_hist
 

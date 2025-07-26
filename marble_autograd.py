@@ -18,6 +18,8 @@ class MarbleAutogradFunction(torch.autograd.Function):
         wrapper = ctx.wrapper
         for syn in ctx.path:
             source_val = wrapper.brain.core.neurons[syn.source].value
+            if source_val is None:
+                source_val = 0.0
             grad = float(grad_output) * source_val
             syn.weight -= wrapper.learning_rate * grad
         return None, grad_output.clone()
