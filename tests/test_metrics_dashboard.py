@@ -19,3 +19,13 @@ def test_dashboard_smoothing():
     mv.metrics["loss"] = [1, 2, 3, 4]
     dashboard = MetricsDashboard(mv, port=8061, update_interval=200, window_size=2)
     assert dashboard.smooth([1, 2, 3])[-1] <= 2.5
+
+
+def test_build_figure_select_metrics():
+    mv = MetricsVisualizer()
+    mv.metrics["loss"] = [1, 2, 3]
+    mv.metrics["reward"] = [0.1, 0.2]
+    dashboard = MetricsDashboard(mv, port=8062, update_interval=200)
+    fig = dashboard._build_figure(["loss"])
+    assert len(fig.data) == 1
+    assert fig.data[0].name == "Loss"

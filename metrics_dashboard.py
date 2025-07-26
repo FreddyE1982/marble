@@ -38,9 +38,16 @@ class MetricsDashboard:
         return result
 
     def _setup_layout(self) -> None:
+        metrics_keys = list(self.metrics_source.metrics.keys())
         self.app.layout = html.Div(
             [
                 dcc.Graph(id="metrics-graph"),
+                dcc.Checklist(
+                    id="metric-select",
+                    options=[{"label": k, "value": k} for k in metrics_keys],
+                    value=metrics_keys,
+                    inline=True,
+                ),
                 dcc.Interval(
                     id="interval", interval=self.update_interval, n_intervals=0
                 ),
@@ -48,41 +55,46 @@ class MetricsDashboard:
         )
 
         @self.app.callback(
-            Output("metrics-graph", "figure"), Input("interval", "n_intervals")
+            Output("metrics-graph", "figure"),
+            Input("interval", "n_intervals"),
+            Input("metric-select", "value"),
         )
-        def update_graph(n: int) -> Dict[str, Any]:
-            metrics = self.metrics_source.metrics
-            fig = go.Figure()
-            if metrics.get("loss"):
-                fig.add_scatter(y=self.smooth(metrics["loss"]), mode="lines", name="Loss")
-            if metrics.get("vram_usage"):
-                fig.add_scatter(
-                    y=self.smooth(metrics["vram_usage"]), mode="lines", name="VRAM Usage"
-                )
-            if metrics.get("arousal"):
-                fig.add_scatter(y=self.smooth(metrics["arousal"]), mode="lines", name="Arousal")
-            if metrics.get("stress"):
-                fig.add_scatter(y=self.smooth(metrics["stress"]), mode="lines", name="Stress")
-            if metrics.get("reward"):
-                fig.add_scatter(y=self.smooth(metrics["reward"]), mode="lines", name="Reward")
-            if metrics.get("plasticity_threshold"):
-                fig.add_scatter(
-                    y=self.smooth(metrics["plasticity_threshold"]), mode="lines", name="Plasticity"
-                )
-            if metrics.get("message_passing_change"):
-                fig.add_scatter(
-                    y=self.smooth(metrics["message_passing_change"]), mode="lines", name="MsgPass"
-                )
-            if metrics.get("compression_ratio"):
-                fig.add_scatter(
-                    y=self.smooth(metrics["compression_ratio"]), mode="lines", name="Compression"
-                )
-            if metrics.get("meta_loss_avg"):
-                fig.add_scatter(
-                    y=self.smooth(metrics["meta_loss_avg"]), mode="lines", name="MetaLossAvg"
-                )
-            fig.update_layout(xaxis_title="Updates", yaxis_title="Value")
-            return fig
+        def update_graph(n: int, selected: list[str]) -> Dict[str, Any]:
+            return self._build_figure(selected)
+
+    def _build_figure(self, selected: list[str]) -> Dict[str, Any]:
+        metrics = self.metrics_source.metrics
+        fig = go.Figure()
+        if "loss" in selected and metrics.get("loss"):
+            fig.add_scatter(y=self.smooth(metrics["loss"]), mode="lines", name="Loss")
+        if "vram_usage" in selected and metrics.get("vram_usage"):
+            fig.add_scatter(
+                y=self.smooth(metrics["vram_usage"]), mode="lines", name="VRAM Usage"
+            )
+        if "arousal" in selected and metrics.get("arousal"):
+            fig.add_scatter(y=self.smooth(metrics["arousal"]), mode="lines", name="Arousal")
+        if "stress" in selected and metrics.get("stress"):
+            fig.add_scatter(y=self.smooth(metrics["stress"]), mode="lines", name="Stress")
+        if "reward" in selected and metrics.get("reward"):
+            fig.add_scatter(y=self.smooth(metrics["reward"]), mode="lines", name="Reward")
+        if "plasticity_threshold" in selected and metrics.get("plasticity_threshold"):
+            fig.add_scatter(
+                y=self.smooth(metrics["plasticity_threshold"]), mode="lines", name="Plasticity"
+            )
+        if "message_passing_change" in selected and metrics.get("message_passing_change"):
+            fig.add_scatter(
+                y=self.smooth(metrics["message_passing_change"]), mode="lines", name="MsgPass"
+            )
+        if "compression_ratio" in selected and metrics.get("compression_ratio"):
+            fig.add_scatter(
+                y=self.smooth(metrics["compression_ratio"]), mode="lines", name="Compression"
+            )
+        if "meta_loss_avg" in selected and metrics.get("meta_loss_avg"):
+            fig.add_scatter(
+                y=self.smooth(metrics["meta_loss_avg"]), mode="lines", name="MetaLossAvg"
+            )
+        fig.update_layout(xaxis_title="Updates", yaxis_title="Value")
+        return fig
 
     def start(self) -> None:
         if self.thread is None:
