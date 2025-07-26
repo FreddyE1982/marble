@@ -1,3 +1,6 @@
+# Default configuration for MARBLE
+# Core parameters controlling neuron grid and message passing
+
 core:
   xmin: -2.0
   xmax: 1.0
@@ -45,10 +48,10 @@ core:
   early_cleanup_enabled: false
   pretraining_epochs: 0
   min_cluster_k: 2
-  cross_tier_migration: true
+# Neuronenblitz learning system parameters
+
   synapse_echo_length: 5
   synapse_echo_decay: 0.9
-  global_phase_rate: 0.0
   interconnection_prob: 0.05
 neuronenblitz:
   backtrack_probability: 0.3
@@ -126,6 +129,8 @@ neuronenblitz:
   weight_limit: 1000000.0
   wander_cache_size: 50
   rmsprop_beta: 0.99
+# Brain-level training configuration
+
   grad_epsilon: 1.0e-08
 brain:
   save_threshold: 0.05
