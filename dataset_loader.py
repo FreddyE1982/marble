@@ -1,5 +1,7 @@
 import os
 import hashlib
+import zipfile
+import io
 import requests
 import pandas as pd
 from typing import Any
@@ -30,7 +32,14 @@ def load_dataset(
     limit: int | None = None,
     force_refresh: bool = False,
 ) -> list[tuple[Any, Any]]:
-    """Load a CSV or JSON dataset from ``source`` which may be a local path or URL."""
+    """Load a dataset from ``source``.
+
+    The ``source`` can be a local path, remote URL, or a ZIP archive containing
+    either a CSV or JSON/JSONL file. Remote sources are automatically cached in
+    ``cache_dir`` and reused on subsequent calls unless ``force_refresh`` is
+    ``True``. If the dataset is zipped only the first CSV/JSON file inside the
+    archive is used.
+    """
     if source.startswith("http://") or source.startswith("https://"):
         name = os.path.basename(source)
         if not name:
@@ -42,7 +51,21 @@ def load_dataset(
     else:
         path = source
     ext = os.path.splitext(path)[1].lower()
-    if ext in {".csv", ""}:
+    if ext == ".zip":
+        with zipfile.ZipFile(path) as zf:
+            members = [n for n in zf.namelist() if not n.endswith("/")]
+            if not members:
+                raise ValueError("Zip archive is empty")
+            inner = members[0]
+            with zf.open(inner) as f:
+                inner_ext = os.path.splitext(inner)[1].lower()
+                if inner_ext in {".csv", ""}:
+                    df = pd.read_csv(f)
+                elif inner_ext in {".json", ".jsonl"}:
+                    df = pd.read_json(f, lines=inner_ext == ".jsonl")
+                else:
+                    raise ValueError("Unsupported dataset format inside zip")
+    elif ext in {".csv", ""}:
         df = pd.read_csv(path)
     elif ext in {".json", ".jsonl"}:
         df = pd.read_json(path, lines=ext == ".jsonl")
