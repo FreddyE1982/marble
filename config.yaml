@@ -266,6 +266,7 @@ metrics_visualizer:
   show_neuron_ids: false
   dpi: 100
   track_memory_usage: false
+  track_cpu_usage: false
   log_dir: "logs"
   csv_log_path: "metrics.csv"
   json_log_path: "metrics.jsonl"

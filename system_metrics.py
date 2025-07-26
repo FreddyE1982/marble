@@ -2,6 +2,11 @@ import psutil
 import torch
 
 
+def get_cpu_usage() -> float:
+    """Return current system-wide CPU utilisation percentage."""
+    return psutil.cpu_percent(interval=None)
+
+
 def get_system_memory_usage() -> float:
     """Return current system memory usage in megabytes."""
     mem = psutil.virtual_memory()
