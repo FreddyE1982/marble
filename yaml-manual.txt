@@ -441,6 +441,11 @@ brain:
     the default but ``"safetensors"`` may be used for faster loading.
   metrics_history_size: Number of past epochs kept in memory for plotting
     performance metrics.
+  profile_enabled: When true a ``UsageProfiler`` records CPU and GPU usage
+    as well as epoch runtime during training.
+  profile_log_path: CSV file path where profiler entries are appended.
+  profile_interval: Number of epochs between profiler recordings. Values of
+    1 log every epoch while higher values sample less frequently.
   early_stop_enabled: When ``true`` the trainer monitors the validation loss
     after each epoch and halts once the patience criteria are met. Set to
     ``false`` to force the loop to run ``max_training_epochs`` regardless of

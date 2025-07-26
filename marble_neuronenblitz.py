@@ -400,6 +400,15 @@ class Neuronenblitz:
         self.dropout_probability += 0.1 * (avg_error - 0.5)
         self.dropout_probability = float(max(0.0, min(1.0, self.dropout_probability)))
 
+    def check_finite_state(self) -> None:
+        """Raise ``ValueError`` if any neuron value or synapse weight is NaN/Inf."""
+        for n in self.core.neurons:
+            if n.value is not None and not np.isfinite(n.value):
+                raise ValueError("NaN or Inf encountered in neuron value")
+        for s in self.core.synapses:
+            if not np.isfinite(s.weight):
+                raise ValueError("NaN or Inf encountered in synapse weight")
+
     # Reinforcement learning utilities
     def enable_rl(self) -> None:
         """Enable built-in reinforcement learning."""
@@ -758,6 +767,7 @@ class Neuronenblitz:
                     datetime.now(timezone.utc),
                 )
                 self._cache_order.append(input_value)
+            self.check_finite_state()
             return final_neuron.value, result_path
 
     def dynamic_wander_parallel(self, input_value, num_processes=None):

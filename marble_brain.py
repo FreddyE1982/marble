@@ -9,6 +9,7 @@ from marble_lobes import LobeManager
 from meta_parameter_controller import MetaParameterController
 from neuromodulatory_system import NeuromodulatorySystem
 from system_metrics import get_gpu_memory_usage, get_system_memory_usage
+from usage_profiler import UsageProfiler
 from backup_utils import BackupScheduler
 
 
@@ -148,6 +149,9 @@ class Brain:
         pytorch_model=None,
         pytorch_input_size=None,
         prediction_map=None,
+        profile_enabled: bool = False,
+        profile_log_path: str = "profile.csv",
+        profile_interval: int = 1,
     ):
         self.core = core
         self.neuronenblitz = neuronenblitz
@@ -263,6 +267,14 @@ class Brain:
         self.mutation_rate = mutation_rate
         self.mutation_strength = mutation_strength
         self.prune_threshold = prune_threshold
+        self.profile_enabled = profile_enabled
+        self.profile_log_path = profile_log_path
+        self.profile_interval = profile_interval
+        self.profiler = (
+            UsageProfiler(profile_log_path, profile_interval)
+            if profile_enabled
+            else None
+        )
         os.makedirs(self.save_dir, exist_ok=True)
         self.backup_scheduler = None
         if self.backup_enabled:
@@ -419,6 +431,8 @@ class Brain:
         best_loss = float("inf")
         patience_counter = 0
         for epoch in pbar:
+            if self.profiler and epoch % self.profile_interval == 0:
+                self.profiler.start_epoch()
             start_time = time.time()
             self.neuronenblitz.train(train_examples, epochs=1)
             self.neuronenblitz.modulate_plasticity(
@@ -513,6 +527,8 @@ class Brain:
             ):
                 example = random.choice(train_examples)
                 self.benchmark_step(example)
+            if self.profiler and epoch % self.profile_interval == 0:
+                self.profiler.log_epoch(epoch)
         pbar.close()
 
     def validate(self, validation_examples):
