@@ -154,3 +154,13 @@ If training diverges or produces NaNs:
 
 For CUDA related errors confirm that your GPU drivers and PyTorch build match.
 
+## Code Style
+This repository includes a pre-commit configuration using **black**, **isort**
+and **ruff**. After installing the `pre-commit` package run:
+
+```bash
+pre-commit install
+```
+
+to automatically format and lint changes before each commit.
+

@@ -263,6 +263,7 @@ metrics_visualizer:
   track_memory_usage: false
   log_dir: "logs"
   csv_log_path: "metrics.csv"
+  json_log_path: "metrics.jsonl"
 metrics_dashboard:
   enabled: false
   host: "localhost"
