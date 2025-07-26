@@ -1,7 +1,7 @@
 import argparse
 from config_loader import create_marble_from_config
 from dataset_loader import load_dataset
-from marble_interface import save_marble_system
+from marble_interface import save_marble_system, evaluate_marble_system
 
 
 def main() -> None:
@@ -10,6 +10,7 @@ def main() -> None:
     parser.add_argument("--train", help="Path or URL to training dataset")
     parser.add_argument("--epochs", type=int, default=1, help="Number of training epochs")
     parser.add_argument("--validate", help="Optional validation dataset path")
+    parser.add_argument("--evaluate", help="Evaluation dataset for measuring MSE")
     parser.add_argument("--save", help="Path to save trained model")
     args = parser.parse_args()
 
@@ -18,6 +19,10 @@ def main() -> None:
         train_data = load_dataset(args.train)
         val_data = load_dataset(args.validate) if args.validate else None
         marble.get_brain().train(train_data, epochs=args.epochs, validation_examples=val_data)
+    if args.evaluate:
+        eval_data = load_dataset(args.evaluate)
+        mse = evaluate_marble_system(marble, eval_data)
+        print(f"Evaluation MSE: {mse:.6f}")
     if args.save:
         save_marble_system(marble, args.save)
 

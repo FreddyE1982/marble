@@ -3,7 +3,14 @@ import jsonschema
 CONFIG_SCHEMA = {
     "type": "object",
     "properties": {
-        "core": {"type": "object"},
+        "core": {
+            "type": "object",
+            "properties": {
+                "representation_size": {"type": "integer", "minimum": 1},
+                "message_passing_alpha": {"type": "number", "minimum": 0, "maximum": 1},
+                "message_passing_beta": {"type": "number", "minimum": 0, "maximum": 1},
+            },
+        },
         "neuronenblitz": {"type": "object"},
         "brain": {
             "type": "object",
