@@ -38,3 +38,30 @@ def test_output_padding_gte_stride():
 def test_unknown_neuron_type():
     with pytest.raises(ValueError):
         Neuron(4, neuron_type="unknown")
+
+def test_invalid_momentum():
+    n = Neuron(5, neuron_type="batchnorm")
+    n.params["momentum"] = 1.5
+    with pytest.raises(ValueError):
+        n.validate_params()
+
+
+def test_invalid_eps():
+    n = Neuron(6, neuron_type="batchnorm")
+    n.params["eps"] = 0
+    with pytest.raises(ValueError):
+        n.validate_params()
+
+
+def test_invalid_alpha():
+    n = Neuron(7, neuron_type="elu")
+    n.params["alpha"] = -0.1
+    with pytest.raises(ValueError):
+        n.validate_params()
+
+
+def test_invalid_size():
+    n = Neuron(8, neuron_type="maxpool1d")
+    n.params["size"] = 0
+    with pytest.raises(ValueError):
+        n.validate_params()

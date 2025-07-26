@@ -399,6 +399,20 @@ class Neuron:
                 raise ValueError("output_padding must be >=0 and less than stride")
         if "negative_slope" in self.params and self.params["negative_slope"] < 0:
             raise ValueError("negative_slope must be non-negative")
+        if "alpha" in self.params and self.params["alpha"] <= 0:
+            raise ValueError("alpha must be positive")
+        if "momentum" in self.params:
+            mom = float(self.params["momentum"])
+            if not 0.0 < mom < 1.0:
+                raise ValueError("momentum must be between 0 and 1")
+        if "eps" in self.params and self.params["eps"] <= 0:
+            raise ValueError("eps must be positive")
+        if "size" in self.params and (
+            not isinstance(self.params["size"], int) or self.params["size"] <= 0
+        ):
+            raise ValueError("size must be a positive integer")
+        if "axis" in self.params and not isinstance(self.params["axis"], int):
+            raise ValueError("axis must be an integer")
         if {
             "num_embeddings",
             "embedding_dim",
