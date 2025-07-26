@@ -65,3 +65,15 @@ def test_download_progress_bar(monkeypatch, tmp_path):
     finally:
         httpd.shutdown()
         thread.join()
+
+
+def test_load_zipped_csv(tmp_path):
+    csv_path = tmp_path / "inner.csv"
+    csv_path.write_text("input,target\n9,10\n")
+    zip_path = tmp_path / "archive.zip"
+    import zipfile
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        zf.write(csv_path, arcname="inner.csv")
+    pairs = load_dataset(str(zip_path))
+    assert pairs == [(9, 10)]
+

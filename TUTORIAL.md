@@ -1263,7 +1263,11 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
        cache_dir="cached_datasets",
    )
    ```
-3. **Create and train a MARBLE system** using a pandas dataframe:
+3. **Load a zipped dataset**:
+   ```python
+   pairs = load_dataset("data.zip")
+   ```
+4. **Create and train a MARBLE system** using a pandas dataframe:
    ```python
    import pandas as pd
    from marble_interface import new_marble_system, train_from_dataframe
