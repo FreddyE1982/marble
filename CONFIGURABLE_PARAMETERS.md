@@ -133,6 +133,19 @@ Each entry is listed under its section heading.
 - wander_cache_size
 - rmsprop_beta
 - grad_epsilon
+- use_experience_replay
+- replay_buffer_size
+- replay_alpha
+- replay_beta
+- replay_batch_size
+- exploration_entropy_scale
+- exploration_entropy_shift
+- gradient_score_scale
+- memory_gate_decay
+- memory_gate_strength
+- episodic_memory_size
+- episodic_memory_threshold
+- episodic_memory_prob
 
 ## brain
 - save_threshold

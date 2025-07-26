@@ -132,6 +132,19 @@ neuronenblitz:
 # Brain-level training configuration
 
   grad_epsilon: 1.0e-08
+  use_experience_replay: false
+  replay_buffer_size: 1000
+  replay_alpha: 0.6
+  replay_beta: 0.4
+  replay_batch_size: 32
+  exploration_entropy_scale: 1.0
+  exploration_entropy_shift: 0.0
+  gradient_score_scale: 1.0
+  memory_gate_decay: 0.99
+  memory_gate_strength: 1.0
+  episodic_memory_size: 50
+  episodic_memory_threshold: 0.1
+  episodic_memory_prob: 0.1
 brain:
   save_threshold: 0.05
   max_saved_models: 5

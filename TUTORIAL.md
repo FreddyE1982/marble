@@ -1420,3 +1420,5 @@ data and settings are correct before experimenting.
 
 The playground provides toggles for dreaming and autograd features so you can
 experiment with MARBLE's advanced capabilities without writing code.
+
+Additional experiments can enable **prioritized experience replay** by setting `neuronenblitz.use_experience_replay` to `true` in `config.yaml`. This stores recent training examples and replays them based on their errors, improving convergence on challenging datasets.
