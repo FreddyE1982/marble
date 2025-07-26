@@ -7,7 +7,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 3. [x] Improve error handling in `marble_core` for invalid neuron parameters.
 4. Add type hints to all functions for better static analysis.
 5. Integrate GPU acceleration into all neural computations.
-6. Provide a command line interface for common training tasks.
+6. [x] Provide a command line interface for common training tasks.
 7. Refactor `marble_neuronenblitz.py` into logical submodules.
 8. Document all public APIs with docstrings and examples.
 9. Create tutorials that walk through real-world datasets.
@@ -22,7 +22,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 18. Add memory usage tracking to the core.
 19. Support dynamic resizing of neuron representations at runtime.
 20. [x] Implement gradient clipping utilities within Neuronenblitz.
-21. Add a learning rate scheduler with cosine and exponential options.
+21. [x] Add a learning rate scheduler with cosine and exponential options.
 22. Document all YAML parameters in `yaml-manual.txt` with examples.
 23. Provide GPU/CPU fallbacks for all heavy computations.
 24. Add tests ensuring compatibility with PyTorch 2.7 and higher.

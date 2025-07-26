@@ -37,6 +37,21 @@ reduced.
 MARBLE can train on datasets provided as lists of ``(input, target)`` pairs or using PyTorch-style ``Dataset``/``DataLoader`` objects. Each sample must expose an ``input`` and ``target`` field. After training and saving a model, ``Brain.infer`` generates outputs when given only an input value.
 For quick experiments without external files you can generate synthetic regression pairs using ``synthetic_dataset.generate_sine_wave_dataset``.
 
+## Command Line Interface
+
+The ``cli.py`` script offers a convenient way to train and evaluate MARBLE directly
+from the terminal.  It supports overriding key configuration parameters such as
+learning rate scheduler and early stopping without editing ``config.yaml``.
+
+Example usage:
+
+```bash
+python cli.py --config config.yaml --train data.csv --epochs 5 \
+    --lr-scheduler cosine --scheduler-steps 10 --save marble.pkl
+```
+
+See ``python cli.py --help`` for the full list of options.
+
 Any Python object can serve as an ``input`` or ``target`` because the built-in
 ``DataLoader`` serializes data through ``DataCompressor``. This makes it
 possible to train on multimodal pairs such as text-to-image, image-to-text or

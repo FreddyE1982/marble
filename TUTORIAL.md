@@ -12,9 +12,12 @@ This tutorial demonstrates every major component of MARBLE through a series of p
 2. **Review the documentation**. Read [ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md) for a high level view of MARBLE and consult [yaml-manual.txt](yaml-manual.txt) for an explanation of every configuration option.
 
 3. **Use the command line interface**. The `cli.py` script allows training from
-   the terminal without writing custom code:
+   the terminal without writing custom code. Scheduler and early-stopping
+   parameters can be specified on the command line:
    ```bash
-   python cli.py --config config.yaml --train path/to/data.csv --epochs 10 --save trained_marble.pkl
+   python cli.py --config config.yaml --train path/to/data.csv --epochs 10 \
+       --lr-scheduler cosine --scheduler-steps 20 --early-stopping-patience 5 \
+       --save trained_marble.pkl
    ```
    Replace the dataset path with your own CSV or JSON file. The optional
    `--validate` flag specifies a validation dataset.
