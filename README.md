@@ -131,3 +131,25 @@ Below is a list of ideas explored when naming the project:
 - Multi-sensory Associative Response and Behavior Learning Engine
 - Matrix-Accelerated Reasoning Bot with Learning Enhancements
 For a high level description of the system components and data flow see [ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md). The YAML configuration format is documented in detail in [yaml-manual.txt](yaml-manual.txt).
+
+## Hyperparameter Tuning Best Practices
+Tuning MARBLE effectively requires balancing learning stability with network plasticity. Some general guidelines:
+
+- Start with `random_seed` fixed to make experiments repeatable.
+- Use `learning_rate` values between `0.001` and `0.05` for most tasks.
+- Increase `neurogenesis_factor` gradually when validation loss stalls.
+- Monitor `plasticity_threshold` as it controls when new connections form.
+- Enable `lr_scheduler` with `scheduler_gamma` around `0.99` for long runs.
+
+These heuristics work well across the provided examples but every dataset benefits from its own small grid search.
+
+## Troubleshooting
+If training diverges or produces NaNs:
+
+- Verify the dataset is correctly formatted and free of missing values.
+- Lower `learning_rate` and check that `gradient_clip_value` is set.
+- Ensure message passing dropout is not too high for small graphs.
+- Use the metrics dashboard to watch memory usage spikes which may indicate a bug.
+
+For CUDA related errors confirm that your GPU drivers and PyTorch build match.
+
