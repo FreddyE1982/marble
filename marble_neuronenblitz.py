@@ -2,7 +2,6 @@ from marble_imports import *
 from marble_core import Neuron, SYNAPSE_TYPES, NEURON_TYPES, perform_message_passing
 from contrastive_learning import ContrastiveLearner
 from imitation_learning import ImitationLearner
-from marble_base import MetricsVisualizer
 import threading
 import multiprocessing as mp
 import pickle
@@ -150,6 +149,12 @@ class Neuronenblitz:
         depth_clip_scaling=1.0,
         forgetting_rate=0.99,
         structural_dropout_prob=0.0,
+        gradient_path_score_scale=1.0,
+        use_gradient_path_scoring=True,
+        activity_gate_exponent=1.0,
+        subpath_cache_size=100,
+        subpath_cache_ttl=300,
+        use_mixed_precision=False,
         remote_client=None,
         torrent_client=None,
         torrent_map=None,
@@ -262,6 +267,10 @@ class Neuronenblitz:
         self._cache_order = deque()
         self._cache_max_size = int(wander_cache_size)
         self.wander_cache_ttl = wander_cache_ttl
+        self.subpath_cache = {}
+        self._subpath_order = deque()
+        self._subpath_cache_size = int(subpath_cache_size)
+        self.subpath_cache_ttl = float(subpath_cache_ttl)
         self.q_encoding = default_q_encoding
         self._grad_sq = {}
         self._rmsprop_beta = float(rmsprop_beta)
@@ -293,6 +302,14 @@ class Neuronenblitz:
         self.depth_clip_scaling = float(depth_clip_scaling)
         self.forgetting_rate = float(forgetting_rate)
         self.structural_dropout_prob = float(structural_dropout_prob)
+        self.gradient_path_score_scale = float(gradient_path_score_scale)
+        self.use_gradient_path_scoring = bool(use_gradient_path_scoring)
+        self.activity_gate_exponent = float(activity_gate_exponent)
+        self.subpath_cache = {}
+        self._subpath_order = deque()
+        self._subpath_cache_size = int(subpath_cache_size)
+        self.subpath_cache_ttl = float(subpath_cache_ttl)
+        self.use_mixed_precision = bool(use_mixed_precision)
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -409,6 +426,15 @@ class Neuronenblitz:
         entropy = -float(np.sum([p * math.log(max(p, 1e-12)) for p in probs]))
         return entropy
 
+    def compute_path_gradient_score(self, path) -> float:
+        """Return cumulative absolute gradient magnitude for ``path``."""
+        score = 0.0
+        for _, syn in path:
+            if syn is None:
+                continue
+            score += abs(self._prev_gradients.get(syn, 0.0))
+        return score
+
     def update_exploration_schedule(self) -> None:
         """Adapt dropout probability based on visit entropy."""
         ent = self.compute_path_entropy()
@@ -498,6 +524,34 @@ class Neuronenblitz:
         self.dropout_probability *= self.dropout_decay_rate
         self.dropout_probability += 0.1 * (avg_error - 0.5)
         self.dropout_probability = float(max(0.0, min(1.0, self.dropout_probability)))
+
+    def _cache_subpaths(self, path, value):
+        """Store all prefixes of ``path`` in ``subpath_cache``."""
+        ids = [n.id for n, _ in path]
+        now = datetime.now(timezone.utc)
+        for i in range(1, len(ids) + 1):
+            key = tuple(ids[:i])
+            if key in self._subpath_order:
+                self._subpath_order.remove(key)
+            self._subpath_order.append(key)
+            self.subpath_cache[key] = (value, path, now)
+        while len(self._subpath_order) > self._subpath_cache_size:
+            old = self._subpath_order.popleft()
+            self.subpath_cache.pop(old, None)
+
+    def _get_cached_subpath(self, path):
+        """Return cached result for ``path`` if still valid."""
+        key = tuple(n.id for n, _ in path)
+        if key not in self.subpath_cache:
+            return None
+        value, cached_path, ts = self.subpath_cache[key]
+        age = (datetime.now(timezone.utc) - ts).total_seconds()
+        if age > self.subpath_cache_ttl:
+            self.subpath_cache.pop(key, None)
+            if key in self._subpath_order:
+                self._subpath_order.remove(key)
+            return None
+        return [(self.core.neurons[n.id], s) for n, s in cached_path], value
 
     def check_finite_state(self) -> None:
         """Raise ``ValueError`` if any neuron value or synapse weight is NaN/Inf."""
@@ -594,6 +648,13 @@ class Neuronenblitz:
         return synapses[idx]
 
     def _wander(self, current_neuron, path, current_continue_prob, depth_remaining):
+        cached = self._get_cached_subpath(path)
+        if cached is not None:
+            cached_path, val = cached
+            neuron = cached_path[-1][0]
+            neuron.value = val
+            return [(neuron, cached_path)]
+
         results = []
         synapses = current_neuron.synapses
         if self.dropout_probability > 0.0:
@@ -606,6 +667,7 @@ class Neuronenblitz:
             or random.random() > current_continue_prob
         ):
             results.append((current_neuron, path))
+            self._cache_subpaths(path, current_neuron.value)
             return results
         if len(synapses) > 1 and random.random() < self.split_probability:
             for syn in synapses:
@@ -699,6 +761,8 @@ class Neuronenblitz:
                         depth_remaining - 1,
                     )
                 )
+        for n, p in results:
+            self._cache_subpaths(p, n.value)
         return results
 
     def _merge_results(self, results):
@@ -715,7 +779,14 @@ class Neuronenblitz:
                 neuron = self.core.neurons[key]
                 neuron.value = avg_value
                 merged.append((neuron, rep_path))
-        final_neuron, final_path = max(merged, key=lambda tup: tup[0].value)
+        def _score(tup):
+            neuron, path = tup
+            base = neuron.value
+            if self.use_gradient_path_scoring:
+                base += self.gradient_path_score_scale * self.compute_path_gradient_score(path)
+            return base
+
+        final_neuron, final_path = max(merged, key=_score)
         if final_path and hasattr(final_path[0][0], "created_at"):
             pathway_start_time = final_path[0][0].created_at
             pathway_age = (datetime.now() - pathway_start_time).total_seconds()
@@ -852,6 +923,7 @@ class Neuronenblitz:
                 )
                 self.apply_concept_associations()
             result_path = [s for (_, s) in final_path if s is not None]
+            self._cache_subpaths(final_path, final_neuron.value)
             if not apply_plasticity:
                 now = datetime.now(timezone.utc)
                 expired = [
@@ -1076,6 +1148,8 @@ class Neuronenblitz:
             if self.synaptic_fatigue_enabled:
                 fatigue_factor = 1.0 - getattr(syn, "fatigue", 0.0)
                 update *= max(0.0, fatigue_factor)
+            activity_factor = 1.0 / (1.0 + syn.visit_count ** self.activity_gate_exponent)
+            update *= activity_factor
             depth_factor = 1.0 + self.depth_clip_scaling * (
                 path_length / max(1, self.max_wander_depth)
             )
@@ -1147,12 +1221,24 @@ class Neuronenblitz:
                 best_seed = best[3]
                 random.seed(best_seed)
                 np.random.seed(best_seed % (2**32 - 1))
-                output_value, path = self.dynamic_wander(input_value)
-                error = self._compute_loss(target_value, output_value)
+                if self.use_mixed_precision and torch.cuda.is_available():
+                    device = "cuda"
+                    with torch.autocast(device_type=device):
+                        output_value, path = self.dynamic_wander(input_value)
+                        error = self._compute_loss(target_value, output_value)
+                else:
+                    output_value, path = self.dynamic_wander(input_value)
+                    error = self._compute_loss(target_value, output_value)
                 path_length = self.apply_weight_updates_and_attention(path, error)
             else:
-                output_value, path = self.dynamic_wander(input_value)
-                error = self._compute_loss(target_value, output_value)
+                if self.use_mixed_precision and torch.cuda.is_available():
+                    device = "cuda"
+                    with torch.autocast(device_type=device):
+                        output_value, path = self.dynamic_wander(input_value)
+                        error = self._compute_loss(target_value, output_value)
+                else:
+                    output_value, path = self.dynamic_wander(input_value)
+                    error = self._compute_loss(target_value, output_value)
                 path_length = self.apply_weight_updates_and_attention(path, error)
             self.add_to_replay(input_value, target_value, error)
             self.error_history.append(abs(error))

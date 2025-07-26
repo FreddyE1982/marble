@@ -149,6 +149,12 @@ neuronenblitz:
   depth_clip_scaling: 1.0
   forgetting_rate: 0.99
   structural_dropout_prob: 0.0
+  gradient_path_score_scale: 1.0
+  use_gradient_path_scoring: true
+  activity_gate_exponent: 1.0
+  subpath_cache_size: 100
+  subpath_cache_ttl: 300
+  use_mixed_precision: false
 brain:
   save_threshold: 0.05
   max_saved_models: 5
