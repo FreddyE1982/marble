@@ -356,6 +356,10 @@ class Neuron:
     ) -> None:
         self.id = nid
         self.value = value
+        if tier not in TIER_REGISTRY:
+            raise InvalidNeuronParamsError(
+                f"Unknown tier '{tier}'. Valid options are: {', '.join(TIER_REGISTRY)}"
+            )
         self.tier = tier
         if neuron_type not in NEURON_TYPES:
             raise InvalidNeuronParamsError(
@@ -390,6 +394,14 @@ class Neuron:
             self.params["kernel"], np.ndarray
         ):
             raise InvalidNeuronParamsError("kernel must be a numpy.ndarray")
+        if "kernel" in self.params:
+            k = self.params["kernel"]
+            if self.neuron_type in {"conv1d", "convtranspose1d"} and k.ndim != 1:
+                raise InvalidNeuronParamsError("conv1d kernel must be 1D")
+            if self.neuron_type in {"conv2d", "convtranspose2d"} and k.ndim != 2:
+                raise InvalidNeuronParamsError("conv2d kernel must be 2D")
+            if self.neuron_type in {"conv3d", "convtranspose3d"} and k.ndim != 3:
+                raise InvalidNeuronParamsError("conv3d kernel must be 3D")
         if "padding" in self.params and (
             not isinstance(self.params["padding"], int) or self.params["padding"] < 0
         ):
@@ -1368,14 +1380,14 @@ class Core:
             return self.weight_init_mean
         raise ValueError(f"Unknown weight_init_type: {self.weight_init_type}")
 
-    def get_average_age(self, items):
+    def get_average_age(self, items: list) -> float:
         now = datetime.now()
         if not items:
             return 0
         total_age = sum((now - item.created_at).total_seconds() for item in items)
         return total_age / len(items)
 
-    def get_usage_by_tier(self, tier):
+    def get_usage_by_tier(self, tier: str) -> float:
         neurons_in_tier = [n for n in self.neurons if n.tier == tier]
         synapses_in_tier = [
             s for s in self.synapses if self.neurons[s.source].tier == tier

@@ -1,6 +1,7 @@
 import os
 import sys
 import pytest
+import numpy as np
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from marble_core import Neuron, InvalidNeuronParamsError
@@ -70,3 +71,22 @@ def test_invalid_size():
 def test_invalid_rep_size():
     with pytest.raises(InvalidNeuronParamsError):
         Neuron(9, rep_size=0)
+
+
+def test_invalid_tier():
+    with pytest.raises(InvalidNeuronParamsError):
+        Neuron(10, tier="invalid")
+
+
+def test_invalid_conv1d_kernel_dim():
+    n = Neuron(11, neuron_type="conv1d")
+    n.params["kernel"] = np.random.randn(3, 3)
+    with pytest.raises(InvalidNeuronParamsError):
+        n.validate_params()
+
+
+def test_invalid_conv2d_kernel_dim():
+    n = Neuron(12, neuron_type="conv2d")
+    n.params["kernel"] = np.random.randn(3)
+    with pytest.raises(InvalidNeuronParamsError):
+        n.validate_params()
