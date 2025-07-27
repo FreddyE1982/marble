@@ -1894,6 +1894,17 @@ class Core:
                 subcore.synapses.append(ns)
         return subcore
 
+    def check_finite_state(self) -> None:
+        """Raise ``ValueError`` if any representation, value or weight is NaN/Inf."""
+        for n in self.neurons:
+            if not np.all(np.isfinite(n.representation)):
+                raise ValueError("NaN or Inf encountered in neuron representation")
+            if n.value is not None and not np.isfinite(n.value):
+                raise ValueError("NaN or Inf encountered in neuron value")
+        for s in self.synapses:
+            if not np.isfinite(s.weight):
+                raise ValueError("NaN or Inf encountered in synapse weight")
+
     def run_message_passing(
         self,
         metrics_visualizer: "MetricsVisualizer | None" = None,
@@ -1947,4 +1958,5 @@ class Core:
         avg_change = total_change / max(int(iterations), 1)
         if metrics_visualizer is not None:
             metrics_visualizer.update({"avg_message_passing_change": avg_change})
+        self.check_finite_state()
         return avg_change

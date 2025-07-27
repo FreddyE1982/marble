@@ -16,3 +16,11 @@ def test_nan_detection():
     core.synapses.append(Synapse(0, 0, weight=np.nan))
     with pytest.raises(ValueError):
         nb.dynamic_wander(0.1)
+
+
+def test_core_finite_check():
+    params = minimal_params()
+    core = Core(params)
+    core.neurons[0].representation[0] = float("inf")
+    with pytest.raises(ValueError):
+        core.check_finite_state()

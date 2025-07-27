@@ -31,6 +31,8 @@ def load_dataset(
     target_col: str = "target",
     limit: int | None = None,
     force_refresh: bool = False,
+    num_shards: int | None = None,
+    shard_index: int = 0,
 ) -> list[tuple[Any, Any]]:
     """Load a dataset from ``source``.
 
@@ -38,7 +40,11 @@ def load_dataset(
     either a CSV or JSON/JSONL file. Remote sources are automatically cached in
     ``cache_dir`` and reused on subsequent calls unless ``force_refresh`` is
     ``True``. If the dataset is zipped only the first CSV/JSON file inside the
-    archive is used.
+    archive is used. Large datasets can be split across multiple shards by
+    specifying ``num_shards`` and ``shard_index``. When ``num_shards`` is
+    greater than one, only every ``num_shards``-th sample starting at
+    ``shard_index`` is returned. This is useful for distributed training where
+    each worker processes a different shard.
     """
     if source.startswith("http://") or source.startswith("https://"):
         name = os.path.basename(source)
@@ -76,4 +82,10 @@ def load_dataset(
         pairs.append((row[input_col], row[target_col]))
         if limit is not None and len(pairs) >= limit:
             break
+
+    if num_shards and num_shards > 1:
+        if shard_index < 0 or shard_index >= num_shards:
+            raise ValueError("shard_index must be within [0, num_shards)")
+        pairs = pairs[shard_index::num_shards]
+
     return pairs

@@ -1,6 +1,10 @@
 # Default configuration for MARBLE
 # Core parameters controlling neuron grid and message passing
 
+dataset:
+  num_shards: 1
+  shard_index: 0
+
 core:
   xmin: -2.0
   xmax: 1.0

@@ -27,6 +27,13 @@ CONFIG_SCHEMA = {
                 "profile_interval": {"type": "integer", "minimum": 1},
             },
         },
+        "dataset": {
+            "type": "object",
+            "properties": {
+                "num_shards": {"type": "integer", "minimum": 1},
+                "shard_index": {"type": "integer", "minimum": 0},
+            },
+        },
     },
     "required": ["core"],
 }
