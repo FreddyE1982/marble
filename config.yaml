@@ -122,6 +122,9 @@ neuronenblitz:
   lr_scheduler: none
   scheduler_steps: 100
   scheduler_gamma: 0.99
+  epsilon_scheduler: none
+  epsilon_scheduler_steps: 100
+  epsilon_scheduler_gamma: 0.99
   momentum_coefficient: 0.0
   use_echo_modulation: false
   reinforcement_learning_enabled: false

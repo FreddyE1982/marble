@@ -109,6 +109,9 @@ class Neuronenblitz:
         lr_scheduler="none",
         scheduler_steps=100,
         scheduler_gamma=0.99,
+        epsilon_scheduler="none",
+        epsilon_scheduler_steps=100,
+        epsilon_scheduler_gamma=0.99,
         momentum_coefficient=0.0,
         reinforcement_learning_enabled=False,
         rl_discount=0.9,
@@ -214,6 +217,11 @@ class Neuronenblitz:
         self.scheduler_steps = int(scheduler_steps)
         self.scheduler_gamma = float(scheduler_gamma)
         self._scheduler_step = 0
+        self.epsilon_scheduler = epsilon_scheduler
+        self.epsilon_scheduler_steps = int(epsilon_scheduler_steps)
+        self.epsilon_scheduler_gamma = float(epsilon_scheduler_gamma)
+        self._epsilon_step = 0
+        self.initial_epsilon = rl_epsilon
         self.momentum_coefficient = momentum_coefficient
         self.rl_enabled = reinforcement_learning_enabled
         self.rl_discount = rl_discount
@@ -512,6 +520,46 @@ class Neuronenblitz:
                 + (self.max_learning_rate - self.min_learning_rate) * scale
             )
         self._scheduler_step += 1
+
+    def step_epsilon_scheduler(self) -> None:
+        """Update ``rl_epsilon`` according to the configured scheduler."""
+        if self.epsilon_scheduler == "none":
+            return
+        if self.epsilon_scheduler == "cosine":
+            progress = min(
+                1.0, self._epsilon_step / max(1, self.epsilon_scheduler_steps)
+            )
+            cos_out = (1 + math.cos(math.pi * progress)) / 2
+            self.rl_epsilon = (
+                self.rl_min_epsilon
+                + (self.initial_epsilon - self.rl_min_epsilon) * cos_out
+            )
+        elif self.epsilon_scheduler == "exponential":
+            self.rl_epsilon = max(
+                self.rl_min_epsilon,
+                self.initial_epsilon
+                * (self.epsilon_scheduler_gamma ** (self._epsilon_step + 1)),
+            )
+        elif self.epsilon_scheduler == "linear":
+            progress = min(
+                1.0, self._epsilon_step / max(1, self.epsilon_scheduler_steps)
+            )
+            self.rl_epsilon = max(
+                self.rl_min_epsilon,
+                self.initial_epsilon * (1 - progress),
+            )
+        elif self.epsilon_scheduler == "cyclic":
+            steps = max(1, self.epsilon_scheduler_steps)
+            cycle_pos = (self._epsilon_step % steps) / steps
+            if cycle_pos <= 0.5:
+                scale = 1 - 2 * cycle_pos
+            else:
+                scale = 2 * (cycle_pos - 0.5)
+            self.rl_epsilon = (
+                self.rl_min_epsilon
+                + (self.initial_epsilon - self.rl_min_epsilon) * scale
+            )
+        self._epsilon_step += 1
 
     def clip_gradient(self, value: float) -> float:
         """Return ``value`` clipped using ``core.gradient_clip_value``."""
@@ -1294,6 +1342,7 @@ class Neuronenblitz:
             self.decide_synapse_action()
             self.adjust_learning_rate()
             self.step_lr_scheduler()
+            self.step_epsilon_scheduler()
             if (
                 self.use_experience_replay
                 and len(self.replay_buffer) >= self.replay_batch_size

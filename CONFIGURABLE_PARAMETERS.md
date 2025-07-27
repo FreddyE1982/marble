@@ -117,6 +117,9 @@ Each entry is listed under its section heading.
 - lr_scheduler
 - scheduler_steps
 - scheduler_gamma
+- epsilon_scheduler
+- epsilon_scheduler_steps
+- epsilon_scheduler_gamma
 - momentum_coefficient
 - use_echo_modulation
 - reinforcement_learning_enabled

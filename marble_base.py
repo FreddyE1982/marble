@@ -9,6 +9,7 @@ from system_metrics import (
 from torch.utils.tensorboard import SummaryWriter
 import json
 from experiment_tracker import ExperimentTracker
+from backup_utils import BackupScheduler
 
 
 def clear_output(wait: bool = True) -> None:
@@ -117,6 +118,8 @@ class MetricsVisualizer:
         csv_log_path: str | None = None,
         json_log_path: str | None = None,
         tracker: "ExperimentTracker" | None = None,
+        backup_dir: str | None = None,
+        backup_interval: float = 3600.0,
     ):
         self.metrics = {
             "loss": [],
@@ -163,6 +166,12 @@ class MetricsVisualizer:
             if dir_name:
                 os.makedirs(dir_name, exist_ok=True)
             self._json_writer = open(json_log_path, "a", encoding="utf-8")
+        self.backup_scheduler: BackupScheduler | None = None
+        if backup_dir:
+            os.makedirs(backup_dir, exist_ok=True)
+            src = log_dir if log_dir else os.getcwd()
+            self.backup_scheduler = BackupScheduler(src, backup_dir, backup_interval)
+            self.backup_scheduler.start()
         self._step = 0
         self.setup_plot()
 
@@ -245,6 +254,8 @@ class MetricsVisualizer:
             self._json_writer.close()
         if self.tracker:
             self.tracker.finish()
+        if self.backup_scheduler:
+            self.backup_scheduler.stop()
 
     def __del__(self) -> None:
         self.close()

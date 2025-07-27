@@ -107,11 +107,13 @@ class MetricsDashboard:
 
     def start(self) -> None:
         if self.thread is None:
-            self.thread = threading.Thread(
-                target=self.app.run,
-                kwargs={"host": self.host, "port": self.port, "debug": False},
-                daemon=True,
-            )
+            def _run() -> None:
+                try:
+                    self.app.run(host=self.host, port=self.port, debug=False)
+                except (OSError, SystemExit):
+                    self.app.run(host=self.host, port=0, debug=False)
+
+            self.thread = threading.Thread(target=_run, daemon=True)
             self.thread.start()
 
     def stop(self) -> None:
