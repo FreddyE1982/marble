@@ -51,6 +51,13 @@ class MetricsDashboard:
                 dcc.Interval(
                     id="interval", interval=self.update_interval, n_intervals=0
                 ),
+                dcc.Slider(
+                    id="window-slider",
+                    min=1,
+                    max=100,
+                    step=1,
+                    value=self.window_size,
+                ),
             ]
         )
 
@@ -58,8 +65,10 @@ class MetricsDashboard:
             Output("metrics-graph", "figure"),
             Input("interval", "n_intervals"),
             Input("metric-select", "value"),
+            Input("window-slider", "value"),
         )
-        def update_graph(n: int, selected: list[str]) -> Dict[str, Any]:
+        def update_graph(n: int, selected: list[str], window: int) -> Dict[str, Any]:
+            self.window_size = max(1, int(window))
             return self._build_figure(selected)
 
     def _build_figure(self, selected: list[str]) -> Dict[str, Any]:

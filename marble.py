@@ -18,6 +18,7 @@ from data_compressor import DataCompressor
 import random
 import math
 import sympy as sp
+import functools
 from marble_core import Neuron, Synapse, Core
 import threading
 from datetime import datetime
@@ -163,6 +164,7 @@ class Synapse:
         self.potential = 1.0
 
 # 4.2 Alternative initialization: Mandelbrot calculation (using GPU via CuPy)
+@functools.lru_cache(maxsize=32)
 def compute_mandelbrot(
     xmin,
     xmax,
@@ -174,6 +176,11 @@ def compute_mandelbrot(
     escape_radius: float = 2.0,
     power: int = 2,
 ):
+    """Return a Mandelbrot set fragment as a 2D array.
+
+    Results are cached to avoid redundant calculations when the same
+    region is requested multiple times.
+    """
     x = cp.linspace(xmin, xmax, width)
     y = cp.linspace(ymin, ymax, height)
     X, Y = cp.meshgrid(x, y)

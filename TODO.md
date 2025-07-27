@@ -6,15 +6,18 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 2. [x] Implement continuous integration to automatically run tests on pushes.
 3. [x] Improve error handling in `marble_core` for invalid neuron parameters.
 4. Add type hints to all functions for better static analysis.
+   - [ ] Add hints to marble_core.py
+   - [ ] Add hints to marble_neuronenblitz.py
+   - [ ] Add hints to streamlit_playground.py
 5. Integrate GPU acceleration into all neural computations.
 6. [x] Provide a command line interface for common training tasks.
 7. Refactor `marble_neuronenblitz.py` into logical submodules.
 8. Document all public APIs with docstrings and examples.
-9. Create tutorials that walk through real-world datasets.
+9. [x] Create tutorials that walk through real-world datasets.
 10. [x] Add automatic benchmarking for message-passing operations.
 11. Support asynchronous training loops for large-scale experiments.
 12. [x] Add configuration schemas to validate YAML files.
-13. Expand the metrics dashboard with interactive visualizations.
+13. [x] Expand the metrics dashboard with interactive visualizations.
 14. Implement a plugin system for custom neuron and synapse types.
 15. [x] Create a dataset loader utility supporting local and remote sources.
 16. Provide PyTorch interoperability layers for easier adoption.
@@ -30,13 +33,13 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 26. Implement distributed training across multiple GPUs.
 27. Provide higher-level wrappers for common reinforcement learning tasks.
 28. Add recurrent neural network neuron types to Marble Core.
-29. Introduce dropout and batch normalization synapse types.
+29. [x] Introduce dropout and batch normalization synapse types.
 30. Create a graphical configuration editor in the Streamlit GUI.
 31. Enhance the GUI with dark/light mode and mobile layout tweaks.
 32. [x] Add a data pre-processing pipeline with caching.
 33. [x] Integrate a remote experiment tracker (e.g., Weights & Biases).
-34. Provide example projects for image and text domains.
-35. Implement a caching layer for expensive computations.
+34. [x] Provide example projects for image and text domains.
+35. [x] Implement a caching layer for expensive computations.
 36. Expand YAML configuration to allow hierarchical experiment setups.
 37. [x] Add early stopping based on validation metrics.
 38. [x] Provide utilities for synthetic dataset generation.
@@ -58,7 +61,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 54. [x] Add checks for NaN/Inf propagation throughout the core.
 55. [x] Provide an option to profile CPU and GPU usage during training.
 56. [x] Integrate dataset sharding for distributed training.
-57. Create a cross-platform installer script.
+57. [x] Create a cross-platform installer script.
 58. [x] Provide a simple web API for remote inference.
 59. [x] Add command line tools to export trained models.
 60. Implement automatic synchronization of config files across nodes.
@@ -71,7 +74,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 67. [x] Implement graph pruning utilities to remove unused neurons.
 68. Create a repository of reusable neuron/synapse templates.
 69. Add support for mixed precision training when GPUs are available.
-70. Provide dynamic graph visualisation within the GUI.
+70. [x] Provide dynamic graph visualisation within the GUI.
 71. Implement scheduled backups of experiment logs and results.
 72. Add a compatibility layer for older Python versions where feasible.
 73. Provide self-contained Docker images for reproducibility.
