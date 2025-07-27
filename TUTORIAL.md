@@ -1513,6 +1513,9 @@ Additional experiments can enable **prioritized experience replay** by setting `
    ```
 3. Initialize MARBLE via `create_marble_from_config` and your new types will be
    available for use when modifying the core or Neuronenblitz.
+4. After creating a `Neuronenblitz` instance you can activate plugins with
+   `n_plugin.activate("my_plugin")`. The plugin's `activate(nb)` function
+   receives the instance for unrestricted access.
 
 
 ## Organising Multiple Experiments

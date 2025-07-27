@@ -324,6 +324,12 @@ class Neuronenblitz:
         self.gradient_accumulation_steps = int(max(1, gradient_accumulation_steps))
         self._accum_step = 0
         self._accum_updates = {}
+        try:
+            import n_plugin
+
+            n_plugin.register(self)
+        except Exception:
+            pass
 
     def __getstate__(self):
         state = self.__dict__.copy()
