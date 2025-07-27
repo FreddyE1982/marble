@@ -368,7 +368,8 @@ class Neuronenblitz:
         """Decay stored context history values to gradually forget."""
         if self.forgetting_rate >= 1.0 or not self.context_history:
             return
-        new_hist = deque(maxlen=self.context_history_size)
+        size = int(self.context_history_size)
+        new_hist = deque(maxlen=size)
         for ctx in self.context_history:
             decayed = {
                 k: (v * self.forgetting_rate if isinstance(v, (int, float)) else v)

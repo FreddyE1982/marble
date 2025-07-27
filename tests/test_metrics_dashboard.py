@@ -1,4 +1,6 @@
 import time
+import os, sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from marble_base import MetricsVisualizer
 from metrics_dashboard import MetricsDashboard
 
