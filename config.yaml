@@ -264,10 +264,12 @@ memory_system:
 hybrid_memory:
   vector_store_path: "vector_store.pkl"
   symbolic_store_path: "symbolic_memory.pkl"
+  max_entries: 1000
 remote_client:
   url: "http://localhost:8001"
   timeout: 5.0
   max_retries: 3
+  track_latency: true
   auth_token: null
   ssl_verify: true
   connect_retry_interval: 5
@@ -283,6 +285,11 @@ data_compressor:
   delta_encoding: false
 dataloader:
   tensor_dtype: "uint8"
+experiment_tracker:
+  enabled: false
+  project: "marble"
+  entity: null
+  run_name: null
 remote_server:
   enabled: false
   host: "localhost"

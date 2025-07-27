@@ -250,11 +250,13 @@ Each entry is listed under its section heading.
 ## hybrid_memory
 - vector_store_path
 - symbolic_store_path
+- max_entries
 
 ## remote_client
 - url
 - timeout
 - max_retries
+- track_latency
 - auth_token
 - ssl_verify
 - connect_retry_interval
@@ -273,6 +275,12 @@ Each entry is listed under its section heading.
 
 ## dataloader
 - tensor_dtype
+
+## experiment_tracker
+- enabled
+- project
+- entity
+- run_name
 
 ## formula
 - formula

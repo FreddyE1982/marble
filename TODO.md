@@ -34,14 +34,14 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 30. Create a graphical configuration editor in the Streamlit GUI.
 31. Enhance the GUI with dark/light mode and mobile layout tweaks.
 32. [x] Add a data pre-processing pipeline with caching.
-33. Integrate a remote experiment tracker (e.g., Weights & Biases).
+33. [x] Integrate a remote experiment tracker (e.g., Weights & Biases).
 34. Provide example projects for image and text domains.
 35. Implement a caching layer for expensive computations.
 36. Expand YAML configuration to allow hierarchical experiment setups.
 37. [x] Add early stopping based on validation metrics.
 38. [x] Provide utilities for synthetic dataset generation.
 39. Implement curriculum learning helpers in Neuronenblitz.
-40. Document best practices for hyperparameter tuning.
+40. [x] Document best practices for hyperparameter tuning.
 41. [x] Improve remote offload logic with retry and timeout strategies.
 42. Add robust serialization for checkpointing training state.
 43. [x] Integrate a progress bar for long-running operations.
@@ -84,10 +84,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 80. [x] Expand the scheduler with cyclic learning rate support.
 81. [x] Implement custom weight initialisation strategies.
 82. [x] Provide a structured logging interface for the GUI.
-83. Add latency tracking when using remote tiers.
+83. [x] Add latency tracking when using remote tiers.
 84. [x] Implement automatic graph visualisation for debugging.
 85. [x] Provide wrappers to convert Marble models to ONNX.
-86. Improve the hybrid memory system for balanced usage.
+86. [x] Improve the hybrid memory system for balanced usage.
 87. [x] Add a mechanism to export and import neuron state snapshots.
 88. [x] Document the mathematics behind synaptic echo learning.
 89. Implement context-aware attention mechanisms.

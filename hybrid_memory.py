@@ -88,11 +88,13 @@ class HybridMemory:
         neuronenblitz: Neuronenblitz,
         vector_path: str = "vector_store.pkl",
         symbolic_path: str = "symbolic_memory.pkl",
+        max_entries: int = 1000,
     ) -> None:
         self.core = core
         self.nb = neuronenblitz
         self.vector_store = VectorStore(vector_path, core.rep_size)
         self.symbolic_memory = SymbolicMemory(symbolic_path)
+        self.max_entries = int(max_entries)
 
     def _embed(self, value: float) -> np.ndarray:
         self.nb.dynamic_wander(value, apply_plasticity=False)
@@ -104,6 +106,7 @@ class HybridMemory:
         vec = self._embed(value)
         self.vector_store.add(key, vec)
         self.symbolic_memory.store(key, value)
+        self.forget_old(self.max_entries)
 
     def retrieve(self, query: float, top_k: int = 3) -> List[Tuple[Any, Any]]:
         q_vec = self._embed(query)

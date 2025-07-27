@@ -172,6 +172,15 @@ Tuning MARBLE effectively requires balancing learning stability with network pla
 5. Enable `lr_scheduler` with `scheduler_gamma` around `0.99` for long runs.
 
 These heuristics work well across the provided examples but every dataset benefits from its own small grid search.
+When tuning a new task consider the following workflow:
+
+1. Start with the default configuration and run a short training job to verify that the loss decreases.
+2. Perform a coarse grid search over `learning_rate` and `lr_scheduler` settings using the helper functions in `hyperparameter_search.py`.
+3. Once a stable range is found, explore `representation_size` and `message_passing_alpha` which strongly influence capacity and convergence speed.
+4. Monitor GPU and CPU usage using the metrics dashboard to ensure batch size and dimensionality fit your hardware budget.
+5. Keep `gradient_clip_value` low (around `1.0`) when experimenting with very large learning rates or aggressive neurogenesis.
+
+Documenting the parameters of each run with the new experiment tracker makes it easy to compare results later.
 
 ## Troubleshooting
 If training diverges or produces NaNs:
