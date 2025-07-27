@@ -43,6 +43,7 @@ core:
   synapse_batchnorm_momentum: 0.1
   representation_activation: "tanh"
   apply_layer_norm: true
+  use_mixed_precision: false
   weight_init_mean: 0.0
   weight_init_std: 1.0
   weight_init_type: "uniform"
@@ -319,6 +320,7 @@ metrics_visualizer:
   log_dir: "logs"
   csv_log_path: "metrics.csv"
   json_log_path: "metrics.jsonl"
+  anomaly_std_threshold: 3.0
 metrics_dashboard:
   enabled: false
   host: "localhost"

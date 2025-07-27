@@ -10,6 +10,7 @@ import functools
 from collections import deque
 from datetime import datetime
 from typing import Any, Hashable
+import contextlib
 
 import numpy as np
 
@@ -98,25 +99,36 @@ def _simple_mlp(
     activation: str = "tanh",
     *,
     apply_layer_norm: bool = True,
+    mixed_precision: bool = False,
 ) -> np.ndarray | "torch.Tensor":
     """Tiny MLP with one hidden layer and configurable activations.
 
     Uses GPU acceleration when ``x`` is a ``torch.Tensor`` and CUDA is available.
+    When ``mixed_precision`` is ``True`` the computation runs inside a
+    ``torch.autocast`` context for additional speed on supported hardware.
     """
     if torch.is_tensor(x):
         device = x.device
-        h = _apply_activation_torch(
-            x @ torch.as_tensor(_W1, device=device)
-            + torch.as_tensor(_B1, device=device),
-            activation,
+        autocast = (
+            torch.autocast(device_type=device.type)
+            if mixed_precision
+            else contextlib.nullcontext()
         )
-        if apply_layer_norm:
-            h = torch.nn.functional.layer_norm(h, h.shape[-1:])
-        out = _apply_activation_torch(
-            h @ torch.as_tensor(_W2, device=device)
-            + torch.as_tensor(_B2, device=device),
-            activation,
-        )
+        with autocast:
+            w1 = torch.as_tensor(_W1, device=device, dtype=x.dtype)
+            b1 = torch.as_tensor(_B1, device=device, dtype=x.dtype)
+            h = _apply_activation_torch(
+                x @ w1 + b1,
+                activation,
+            )
+            if apply_layer_norm:
+                h = torch.nn.functional.layer_norm(h, h.shape[-1:])
+            w2 = torch.as_tensor(_W2, device=device, dtype=x.dtype)
+            b2 = torch.as_tensor(_B2, device=device, dtype=x.dtype)
+            out = _apply_activation_torch(
+                h @ w2 + b2,
+                activation,
+            )
         if not torch.all(torch.isfinite(out)):
             raise ValueError("NaN or Inf encountered in MLP output")
         return out
@@ -233,8 +245,9 @@ def perform_message_passing(
             attn = attn / sum_attn
         agg = sum(attn[i] * neigh_reps[i] for i in range(len(neigh_reps)))
         ln_enabled = core.params.get("apply_layer_norm", True)
+        mp_enabled = core.params.get("use_mixed_precision", False)
         interm = alpha * target.representation + (1 - alpha) * _simple_mlp(
-            agg, activation, apply_layer_norm=ln_enabled
+            agg, activation, apply_layer_norm=ln_enabled, mixed_precision=mp_enabled
         )
         mag = float(np.linalg.norm(agg))
         gate = 1.0 - np.exp(-mag)

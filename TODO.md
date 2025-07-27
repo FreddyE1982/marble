@@ -21,7 +21,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 14. [x] Implement a plugin system for custom neuron and synapse types.
 15. [x] Create a dataset loader utility supporting local and remote sources.
 16. Provide PyTorch interoperability layers for easier adoption.
-17. Improve the `MetricsVisualizer` to log to TensorBoard and CSV.
+17. [x] Improve the `MetricsVisualizer` to log to TensorBoard and CSV.
 18. [x] Add memory usage tracking to the core.
 19. Support dynamic resizing of neuron representations at runtime.
 20. [x] Implement gradient clipping utilities within Neuronenblitz.
@@ -54,7 +54,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 47. Improve code style consistency with automated formatting checks.
 48. Add support for quantization and model compression.
 49. Implement a plugin-based remote tier for custom hardware.
-50. Create visualization utilities for neuron activation patterns.
+50. [x] Create visualization utilities for neuron activation patterns.
 51. [x] Add parameter scheduling for exploration/exploitation trade-offs.
 52. Support hierarchical reinforcement learning in Neuronenblitz.
 53. Implement efficient memory management for huge graphs.
@@ -73,7 +73,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 66. Improve readability of configuration files with comments and sections.
 67. [x] Implement graph pruning utilities to remove unused neurons.
 68. Create a repository of reusable neuron/synapse templates.
-69. Add support for mixed precision training when GPUs are available.
+69. [x] Add support for mixed precision training when GPUs are available.
 70. [x] Provide dynamic graph visualisation within the GUI.
 71. [x] Implement scheduled backups of experiment logs and results.
 72. Add a compatibility layer for older Python versions where feasible.
@@ -82,8 +82,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 75. Add automated packaging to publish releases on PyPI.
 76. Improve data compression for network transfers.
 77. Incorporate gradient accumulation for large batch training.
-78. Add performance regression tests for critical functions.
-79. Integrate basic anomaly detection on training metrics.
+78. [x] Add performance regression tests for critical functions.
+79. [x] Integrate basic anomaly detection on training metrics.
 80. [x] Expand the scheduler with cyclic learning rate support.
 81. [x] Implement custom weight initialisation strategies.
 82. [x] Provide a structured logging interface for the GUI.
