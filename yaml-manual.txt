@@ -606,6 +606,9 @@ hybrid_memory:
     directory.
   symbolic_store_path: File used to persist key/value pairs and timestamps.
     This mirrors the vector store so recalls can return the original data.
+  max_entries: Maximum number of items retained in the vector and symbolic
+    stores. When the count exceeds this limit the oldest entries are removed
+    to keep memory usage bounded.
 
 remote_client:
   # Configuration for forwarding parts of the brain to a remote server. When
@@ -615,6 +618,8 @@ remote_client:
   timeout: Seconds to wait for remote requests before they are aborted. Values
     between 5 and 30 are typical depending on network latency.
   max_retries: Number of times a remote operation is retried upon failure.
+  track_latency: When true the client records the time taken for each
+    request so average latency can be inspected through the API.
   auth_token: Optional token sent as an ``Authorization`` header on each
     request.
   ssl_verify: Whether HTTPS certificates should be verified. Set to ``false``
@@ -655,6 +660,16 @@ dataloader:
   # valid dtype name like ``"uint8"`` or ``"int16"``. Wider dtypes can prevent
   # overflow with exceptionally large payloads but increase memory usage.
   tensor_dtype: String specifying the dtype of encoded tensors.
+
+experiment_tracker:
+  # Optional integration with external experiment tracking services such as
+  # Weights & Biases. When ``enabled`` is true a ``WandbTracker`` is created
+  # and attached to the :class:`MetricsVisualizer` so that training metrics are
+  # streamed to the configured project.
+  enabled: Activate experiment tracking when set to ``true``.
+  project: Name of the remote project used by the tracker.
+  entity: Optional account or team under which the run is recorded.
+  run_name: Custom name assigned to the run. If ``null`` Wandb generates one.
 
 remote_server:
   # Launches an optional local ``RemoteBrainServer`` so this MARBLE instance can

@@ -9,6 +9,7 @@ import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import time
 import requests
+from collections import deque
 
 class RemoteBrainServer:
     """HTTP server hosting a full remote MARBLE brain."""
@@ -118,6 +119,7 @@ class RemoteBrainClient:
         compression_level: int = 6,
         compression_enabled: bool = True,
         backoff_factor: float = 0.5,
+        track_latency: bool = True,
     ) -> None:
         self.url = url.rstrip('/')
         self.timeout = timeout
@@ -127,12 +129,19 @@ class RemoteBrainClient:
         )
         self.use_compression = compression_enabled
         self.backoff_factor = backoff_factor
+        self.track_latency = track_latency
+        self.latencies: deque[float] = deque(maxlen=100)
 
     def _post(self, path: str, payload: dict, timeout: float) -> requests.Response:
         """POST ``payload`` to ``path`` with retries."""
         for attempt in range(self.max_retries):
             try:
-                return requests.post(self.url + path, json=payload, timeout=timeout)
+                start = time.monotonic()
+                resp = requests.post(self.url + path, json=payload, timeout=timeout)
+                latency = time.monotonic() - start
+                if self.track_latency:
+                    self.latencies.append(latency)
+                return resp
             except requests.RequestException:
                 if attempt == self.max_retries - 1:
                     raise
@@ -162,3 +171,14 @@ class RemoteBrainClient:
             out_bytes = self.compressor.decompress(comp_out)
             return float(json.loads(out_bytes.decode()))
         return data['output']
+
+    @property
+    def average_latency(self) -> float:
+        """Return the average latency of recent requests in seconds."""
+        if not self.latencies:
+            return 0.0
+        return float(sum(self.latencies) / len(self.latencies))
+
+    def latency_history(self) -> list[float]:
+        """Return a list of recorded latencies."""
+        return list(self.latencies)

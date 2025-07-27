@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from marble_imports import *
 from system_metrics import (
     get_system_memory_usage,
@@ -6,6 +8,7 @@ from system_metrics import (
 )
 from torch.utils.tensorboard import SummaryWriter
 import json
+from experiment_tracker import ExperimentTracker
 
 
 def clear_output(wait: bool = True) -> None:
@@ -113,6 +116,7 @@ class MetricsVisualizer:
         log_dir: str | None = None,
         csv_log_path: str | None = None,
         json_log_path: str | None = None,
+        tracker: "ExperimentTracker" | None = None,
     ):
         self.metrics = {
             "loss": [],
@@ -141,6 +145,7 @@ class MetricsVisualizer:
         self.track_memory_usage = track_memory_usage
         self.track_cpu_usage = track_cpu_usage
         self.writer = SummaryWriter(log_dir) if log_dir else None
+        self.tracker = tracker
         self.csv_log_path = csv_log_path
         self._csv_writer = None
         if csv_log_path:
@@ -192,6 +197,8 @@ class MetricsVisualizer:
                 record[k] = self.metrics[k][-1] if self.metrics[k] else None
             self._json_writer.write(json.dumps(record) + "\n")
             self._json_writer.flush()
+        if self.tracker:
+            self.tracker.log_metrics(new_metrics, self._step)
         self._step += 1
         clear_output(wait=True)
         self.plot_metrics()
@@ -236,6 +243,8 @@ class MetricsVisualizer:
             self._csv_writer.close()
         if self._json_writer:
             self._json_writer.close()
+        if self.tracker:
+            self.tracker.finish()
 
     def __del__(self) -> None:
         self.close()
