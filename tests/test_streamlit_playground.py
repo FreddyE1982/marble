@@ -708,3 +708,13 @@ def test_hybrid_memory_helpers(tmp_path):
     res = hybrid_memory_retrieve(marble, 1.0, top_k=1)
     assert res and res[0][0] == "k"
     hybrid_memory_forget(marble, max_entries=1)
+
+def test_activation_figure(tmp_path):
+    cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.dump(cfg, f)
+    m = initialize_marble(str(cfg_path))
+    activations = {n.id: float(n.value) for n in m.get_core().neurons}
+    fig = activation_figure(m.get_core(), activations)
+    assert hasattr(fig, "to_dict")

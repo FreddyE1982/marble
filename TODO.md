@@ -24,9 +24,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 20. [x] Implement gradient clipping utilities within Neuronenblitz.
 21. [x] Add a learning rate scheduler with cosine and exponential options.
 22. [x] Document all YAML parameters in `yaml-manual.txt` with examples.
-23. Provide GPU/CPU fallbacks for all heavy computations.
+23. [x] Provide GPU/CPU fallbacks for all heavy computations.
 24. [x] Add tests ensuring compatibility with PyTorch 2.7 and higher.
-25. Improve logging with structured JSON output.
+25. [x] Improve logging with structured JSON output.
 26. Implement distributed training across multiple GPUs.
 27. Provide higher-level wrappers for common reinforcement learning tasks.
 28. Add recurrent neural network neuron types to Marble Core.
@@ -56,7 +56,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 52. Support hierarchical reinforcement learning in Neuronenblitz.
 53. Implement efficient memory management for huge graphs.
 54. [x] Add checks for NaN/Inf propagation throughout the core.
-55. Provide an option to profile CPU and GPU usage during training.
+55. [x] Provide an option to profile CPU and GPU usage during training.
 56. [x] Integrate dataset sharding for distributed training.
 57. Create a cross-platform installer script.
 58. Provide a simple web API for remote inference.
@@ -83,9 +83,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 79. Integrate basic anomaly detection on training metrics.
 80. [x] Expand the scheduler with cyclic learning rate support.
 81. [x] Implement custom weight initialisation strategies.
-82. Provide a structured logging interface for the GUI.
+82. [x] Provide a structured logging interface for the GUI.
 83. Add latency tracking when using remote tiers.
-84. Implement automatic graph visualisation for debugging.
+84. [x] Implement automatic graph visualisation for debugging.
 85. [x] Provide wrappers to convert Marble models to ONNX.
 86. Improve the hybrid memory system for balanced usage.
 87. [x] Add a mechanism to export and import neuron state snapshots.
@@ -98,7 +98,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 94. Expand the remote offload module with bandwidth estimation.
 95. Implement dynamic route optimisation in Neuronenblitz.
 96. Add anomaly detection for wandering behaviour.
-97. Provide visual feedback for training progress in Streamlit.
+97. [x] Provide visual feedback for training progress in Streamlit.
 98. Offer integration examples with existing ML libraries.
 99. [x] Enhance documentation with troubleshooting guides.
 100. Establish a long-term roadmap with release milestones.

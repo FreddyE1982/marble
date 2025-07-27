@@ -18,3 +18,11 @@ def get_gpu_memory_usage(device: int = 0) -> float:
     if torch.cuda.is_available():
         return torch.cuda.memory_allocated(device) / (1024 ** 2)
     return 0.0
+
+def profile_resource_usage(device: int = 0) -> dict:
+    """Return current CPU usage, RAM and GPU memory usage."""
+    return {
+        "cpu_percent": get_cpu_usage(),
+        "ram_mb": get_system_memory_usage(),
+        "gpu_mb": get_gpu_memory_usage(device),
+    }

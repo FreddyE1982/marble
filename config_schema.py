@@ -34,6 +34,13 @@ CONFIG_SCHEMA = {
                 "shard_index": {"type": "integer", "minimum": 0},
             },
         },
+        "logging": {
+            "type": "object",
+            "properties": {
+                "structured": {"type": "boolean"},
+                "log_file": {"type": ["string", "null"]},
+            },
+        },
     },
     "required": ["core"],
 }

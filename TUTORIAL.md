@@ -67,6 +67,7 @@ This tutorial demonstrates every major component of MARBLE through a series of p
    ```python
    marble.brain.train(train_examples, epochs=10, validation_examples=val_examples)
    ```
+   Training progress is visualised with a sidebar progress bar in the Streamlit GUI.
 7. **Monitor progress** with `MetricsVisualizer` which plots loss and memory usage. Adjust the `fig_width` and `color_scheme` options under `metrics_visualizer` in `config.yaml` to change the appearance.
 8. **View metrics in your browser** by enabling `metrics_dashboard.enabled`. Set `window_size` to control the moving-average smoothing of the curves.
 9. **Gradually reduce regularization** by setting `dropout_probability` and `dropout_decay_rate` under `neuronenblitz`. A decay rate below `1.0` multiplies the current dropout value after each epoch.
