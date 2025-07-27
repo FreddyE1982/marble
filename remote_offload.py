@@ -7,6 +7,7 @@ import base64
 import json
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import time
 import requests
 
 class RemoteBrainServer:
@@ -116,21 +117,35 @@ class RemoteBrainClient:
         max_retries: int = 3,
         compression_level: int = 6,
         compression_enabled: bool = True,
+        backoff_factor: float = 0.5,
     ) -> None:
         self.url = url.rstrip('/')
         self.timeout = timeout
         self.max_retries = max_retries
-        self.compressor = DataCompressor(level=compression_level, compression_enabled=compression_enabled)
+        self.compressor = DataCompressor(
+            level=compression_level, compression_enabled=compression_enabled
+        )
         self.use_compression = compression_enabled
+        self.backoff_factor = backoff_factor
+
+    def _post(self, path: str, payload: dict, timeout: float) -> requests.Response:
+        """POST ``payload`` to ``path`` with retries."""
+        for attempt in range(self.max_retries):
+            try:
+                return requests.post(self.url + path, json=payload, timeout=timeout)
+            except requests.RequestException:
+                if attempt == self.max_retries - 1:
+                    raise
+                time.sleep(self.backoff_factor * (2**attempt))
 
     def offload(self, core) -> None:
         if self.use_compression:
             core_json = core_to_json(core).encode()
             comp = self.compressor.compress(core_json)
-            payload = {'core': base64.b64encode(comp).decode()}
+            payload = {"core": base64.b64encode(comp).decode()}
         else:
-            payload = {'core': json.loads(core_to_json(core))}
-        requests.post(self.url + '/offload', json=payload, timeout=self.timeout)
+            payload = {"core": json.loads(core_to_json(core))}
+        self._post("/offload", payload, self.timeout)
 
     def process(self, value: float, timeout: float | None = None) -> float:
         if self.use_compression:
@@ -140,7 +155,7 @@ class RemoteBrainClient:
         else:
             payload = {'value': value}
         req_timeout = timeout if timeout is not None else self.timeout
-        resp = requests.post(self.url + '/process', json=payload, timeout=req_timeout)
+        resp = self._post("/process", payload, req_timeout)
         data = resp.json()
         if self.use_compression:
             comp_out = base64.b64decode(data['output'].encode())

@@ -13,19 +13,19 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 9. Create tutorials that walk through real-world datasets.
 10. Add automatic benchmarking for message-passing operations.
 11. Support asynchronous training loops for large-scale experiments.
-12. Add configuration schemas to validate YAML files.
+12. [x] Add configuration schemas to validate YAML files.
 13. Expand the metrics dashboard with interactive visualizations.
 14. Implement a plugin system for custom neuron and synapse types.
-15. Create a dataset loader utility supporting local and remote sources.
+15. [x] Create a dataset loader utility supporting local and remote sources.
 16. Provide PyTorch interoperability layers for easier adoption.
 17. Improve the `MetricsVisualizer` to log to TensorBoard and CSV.
-18. Add memory usage tracking to the core.
+18. [x] Add memory usage tracking to the core.
 19. Support dynamic resizing of neuron representations at runtime.
 20. [x] Implement gradient clipping utilities within Neuronenblitz.
 21. [x] Add a learning rate scheduler with cosine and exponential options.
-22. Document all YAML parameters in `yaml-manual.txt` with examples.
+22. [x] Document all YAML parameters in `yaml-manual.txt` with examples.
 23. Provide GPU/CPU fallbacks for all heavy computations.
-24. Add tests ensuring compatibility with PyTorch 2.7 and higher.
+24. [x] Add tests ensuring compatibility with PyTorch 2.7 and higher.
 25. Improve logging with structured JSON output.
 26. Implement distributed training across multiple GPUs.
 27. Provide higher-level wrappers for common reinforcement learning tasks.
@@ -38,11 +38,11 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 34. Provide example projects for image and text domains.
 35. Implement a caching layer for expensive computations.
 36. Expand YAML configuration to allow hierarchical experiment setups.
-37. Add early stopping based on validation metrics.
+37. [x] Add early stopping based on validation metrics.
 38. [x] Provide utilities for synthetic dataset generation.
 39. Implement curriculum learning helpers in Neuronenblitz.
 40. Document best practices for hyperparameter tuning.
-41. Improve remote offload logic with retry and timeout strategies.
+41. [x] Improve remote offload logic with retry and timeout strategies.
 42. Add robust serialization for checkpointing training state.
 43. Integrate a progress bar for long-running operations.
 44. Expand the `examples` directory with end‑to‑end scripts.
@@ -64,7 +64,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 60. Implement automatic synchronization of config files across nodes.
 61. Enhance constant-time operations for cryptographic safety.
 62. Add more comprehensive adversarial training examples.
-63. Provide utilities for automatic dataset downloading and caching.
+63. [x] Provide utilities for automatic dataset downloading and caching.
 64. Integrate a simple hyperparameter search framework.
 65. [x] Add tests verifying deterministic behaviour with fixed seeds.
 66. Improve readability of configuration files with comments and sections.
@@ -81,7 +81,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 77. Incorporate gradient accumulation for large batch training.
 78. Add performance regression tests for critical functions.
 79. Integrate basic anomaly detection on training metrics.
-80. Expand the scheduler with cyclic learning rate support.
+80. [x] Expand the scheduler with cyclic learning rate support.
 81. Implement custom weight initialisation strategies.
 82. Provide a structured logging interface for the GUI.
 83. Add latency tracking when using remote tiers.
