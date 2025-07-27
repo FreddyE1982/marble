@@ -1,4 +1,5 @@
 import os, sys, time
+import requests
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from marble_core import Core, DataLoader
@@ -74,3 +75,24 @@ def test_remote_offload_uncompressed():
     out, _ = nb.dynamic_wander(0.3)
     assert isinstance(out, float)
     server.stop()
+
+
+def test_remote_client_retries(monkeypatch):
+    attempts = {"n": 0}
+
+    def fake_post(url, json=None, timeout=0):
+        attempts["n"] += 1
+        if attempts["n"] < 2:
+            raise requests.RequestException("fail")
+
+        class Res:
+            def json(self):
+                return {"output": 1.0}
+
+        return Res()
+
+    monkeypatch.setattr(requests, "post", fake_post)
+    client = RemoteBrainClient("http://localhost", max_retries=2, compression_enabled=False)
+    val = client.process(0.2)
+    assert val == 1.0
+    assert attempts["n"] == 2
