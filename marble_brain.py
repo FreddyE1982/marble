@@ -420,7 +420,13 @@ class Brain:
             return True
         return False
 
-    def train(self, train_examples, epochs=1, validation_examples=None):
+    def train(
+        self,
+        train_examples,
+        epochs: int = 1,
+        validation_examples=None,
+        progress_callback=None,
+    ):
         train_examples = _normalize_examples(train_examples)
         validation_examples = (
             _normalize_examples(validation_examples)
@@ -463,6 +469,8 @@ class Brain:
                 "VRAM(MB)": f"{self.core.get_usage_by_tier('vram'):.2f}",
             }
             pbar.set_postfix(metrics)
+            if progress_callback is not None:
+                progress_callback((epoch + 1) / epochs)
             if self.metrics_visualizer is not None:
                 ctx = self.neuromodulatory_system.get_context()
                 self.metrics_visualizer.update(
@@ -529,6 +537,9 @@ class Brain:
                 self.benchmark_step(example)
             if self.profiler and epoch % self.profile_interval == 0:
                 self.profiler.log_epoch(epoch)
+        if progress_callback is not None:
+            progress_callback(1.0)
+
         pbar.close()
 
     def validate(self, validation_examples):

@@ -76,9 +76,15 @@ def train_marble_system(
     train_examples: Iterable[Any],
     epochs: int = 1,
     validation_examples: Iterable[Any] | None = None,
+    progress_callback=None,
 ) -> None:
     """Train ``marble`` on ``train_examples`` for ``epochs``."""
-    marble.get_brain().train(train_examples, epochs=epochs, validation_examples=validation_examples)
+    marble.get_brain().train(
+        train_examples,
+        epochs=epochs,
+        validation_examples=validation_examples,
+        progress_callback=progress_callback,
+    )
 
 
 def distillation_train_marble_system(

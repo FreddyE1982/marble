@@ -1,6 +1,12 @@
 import json
 import numpy as np
 from marble_core import Core, Neuron, Synapse, _W1, _B1, _W2, _B2
+import torch
+
+def get_default_device() -> torch.device:
+    """Return CUDA device if available else CPU."""
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 
 def core_to_json(core: Core) -> str:
@@ -101,7 +107,7 @@ def export_core_to_onnx(core: Core, path: str) -> None:
             h = torch.tanh(x @ self.w1 + self.b1)
             return torch.tanh(h @ self.w2 + self.b2)
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = get_default_device()
     model = MPModel().to(device)
     dummy = torch.randn(len(core.neurons), core.rep_size, device=device)
     torch.onnx.export(model, dummy, path, input_names=["x"], output_names=["out"], opset_version=17)

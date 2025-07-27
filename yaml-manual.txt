@@ -8,6 +8,10 @@ dataset:
     than ``1`` each training worker should set ``shard_index`` to a unique value
     between ``0`` and ``num_shards - 1`` so that only a subset of samples is
     processed. This enables distributed training without duplicating effort.
+logging:
+  structured: When true, all logs are emitted as JSON objects. This simplifies parsing in tools like Logstash or Splunk.
+  log_file: File path where structured logs are written. If set to ``null`` the logs go to stderr.
+
   shard_index: Index of the shard this instance will process. Set to ``0`` when
     running on a single machine. Values outside the valid range raise an error
     during dataset loading.

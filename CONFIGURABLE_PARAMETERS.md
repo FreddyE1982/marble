@@ -347,6 +347,10 @@ Each entry is listed under its section heading.
 ## distillation
 - enabled
 - alpha
+## logging
+- structured
+- log_file
+
 - teacher_model
 
 ## reinforcement_learning

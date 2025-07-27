@@ -1494,7 +1494,17 @@ def run_playground() -> None:
         if not examples:
             st.sidebar.error("No dataset loaded")
         else:
-            train_marble_system(marble, examples, epochs=epochs)
+            progress_bar = st.sidebar.progress(0.0)
+            def _cb(p):
+                progress_bar.progress(min(p, 1.0))
+
+            train_marble_system(
+                marble,
+                examples,
+                epochs=epochs,
+                progress_callback=_cb,
+            )
+            progress_bar.empty()
             st.sidebar.success("Training complete")
             if marble.get_metrics_visualizer().fig:
                 st.pyplot(marble.get_metrics_visualizer().fig)
@@ -1976,6 +1986,10 @@ def run_playground() -> None:
             st.write("Visualize the current MARBLE core.")
             if st.button("Generate Graph", key="show_graph"):
                 fig = core_figure(marble.get_core())
+                st.plotly_chart(fig, use_container_width=True)
+            if st.button("Show Activations", key="show_acts"):
+                activations = {n.id: float(n.value) for n in marble.get_core().neurons}
+                fig = activation_figure(marble.get_core(), activations)
                 st.plotly_chart(fig, use_container_width=True)
 
         with tab_heat:
@@ -2511,3 +2525,34 @@ def run_playground() -> None:
 
 if __name__ == "__main__":
     run_playground()
+
+def activation_figure(core, activations: dict[int, float], layout: str = "spring") -> go.Figure:
+    """Return a Plotly figure showing neuron activations."""
+    g = core_to_networkx(core)
+    if layout == "circular":
+        pos = nx.circular_layout(g)
+    else:
+        pos = nx.spring_layout(g, seed=42)
+    edge_x, edge_y = [], []
+    for u, v in g.edges():
+        x0, y0 = pos[u]
+        x1, y1 = pos[v]
+        edge_x += [x0, x1, None]
+        edge_y += [y0, y1, None]
+    node_x, node_y, act_vals = [], [], []
+    for n in g.nodes():
+        x, y = pos[n]
+        node_x.append(x)
+        node_y.append(y)
+        act_vals.append(float(activations.get(n, 0.0)))
+    edge_trace = go.Scatter(x=edge_x, y=edge_y, mode="lines", line=dict(width=0.5, color="#888"), hoverinfo="none")
+    node_trace = go.Scatter(
+        x=node_x,
+        y=node_y,
+        mode="markers",
+        hoverinfo="text",
+        marker=dict(size=6, color=act_vals, colorscale="Viridis", colorbar=dict(title="Act")),
+    )
+    fig = go.Figure(data=[edge_trace, node_trace])
+    fig.update_layout(showlegend=False, margin=dict(l=0, r=0, t=0, b=0))
+    return fig
