@@ -53,6 +53,27 @@ CONFIG_SCHEMA = {
             "type": ["array", "string"],
             "items": {"type": "string"},
         },
+        "autograd": {
+            "type": "object",
+            "properties": {
+                "enabled": {"type": "boolean"},
+                "learning_rate": {"type": "number"},
+                "gradient_accumulation_steps": {"type": "integer", "minimum": 1},
+            },
+        },
+        "experiments": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string"},
+                    "core": {"type": "object"},
+                    "neuronenblitz": {"type": "object"},
+                    "brain": {"type": "object"},
+                },
+                "required": ["name"],
+            },
+        },
     },
     "required": ["core"],
 }

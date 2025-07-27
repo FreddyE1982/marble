@@ -1,5 +1,8 @@
 # Default configuration for MARBLE
-# Core parameters controlling neuron grid and message passing
+
+# ===================
+# Dataset and Logging
+# ===================
 
 dataset:
   num_shards: 1
@@ -10,6 +13,9 @@ logging:
 plugins: []
 
 
+# =====
+# Core
+# =====
 core:
   xmin: -2.0
   xmax: 1.0
@@ -68,6 +74,9 @@ core:
   synapse_echo_length: 5
   synapse_echo_decay: 0.9
   interconnection_prob: 0.05
+# ============
+# Neuronenblitz
+# ============
 neuronenblitz:
   backtrack_probability: 0.3
   consolidation_probability: 0.2
@@ -173,6 +182,9 @@ neuronenblitz:
   subpath_cache_size: 100
   subpath_cache_ttl: 300
   use_mixed_precision: false
+# =====
+# Brain
+# =====
 brain:
   save_threshold: 0.05
   max_saved_models: 5
@@ -331,6 +343,7 @@ metrics_dashboard:
 autograd:
   enabled: false
   learning_rate: 0.01
+  gradient_accumulation_steps: 1
 pytorch_challenge:
   enabled: false
   loss_penalty: 0.1
@@ -471,3 +484,13 @@ unified_learning:
   enabled: false
   gating_hidden: 8
   log_path: "unified_log.json"
+
+# =====================
+# Experiment Setups
+# =====================
+experiments:
+  - name: default
+    core:
+      representation_size: 4
+    neuronenblitz:
+      learning_rate: 0.01

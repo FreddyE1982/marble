@@ -338,6 +338,7 @@ Each entry is listed under its section heading.
 ## autograd
 - enabled
 - learning_rate
+- gradient_accumulation_steps
 ## pytorch_challenge
 - enabled
 - loss_penalty
@@ -495,3 +496,8 @@ Each entry is listed under its section heading.
 - enabled
 - gating_hidden
 - log_path
+
+## experiments
+- name
+- core
+- neuronenblitz

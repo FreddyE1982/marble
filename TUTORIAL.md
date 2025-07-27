@@ -270,7 +270,9 @@ a minimal web API.
 4. **Direct autograd integration** is possible by wrapping the brain with `MarbleAutogradLayer` so PyTorch optimizers can be applied directly:
    ```python
    from marble_autograd import MarbleAutogradLayer
-   layer = MarbleAutogradLayer(marble.brain)
+   layer = MarbleAutogradLayer(marble.brain, accumulation_steps=4)
+   # "accumulation_steps" accumulates gradients over multiple backward passes
+   # before applying them, enabling larger effective batch sizes.
    out = layer(torch.tensor(1.0, requires_grad=True))
    ```
 
@@ -1477,3 +1479,7 @@ Additional experiments can enable **prioritized experience replay** by setting `
 3. Initialize MARBLE via `create_marble_from_config` and your new types will be
    available for use when modifying the core or Neuronenblitz.
 
+
+## Organising Multiple Experiments
+
+You can define a list of experiment setups in `config.yaml` under the `experiments` section. Each entry overrides parameters for a single run. Invoke `create_marble_from_config` with a specific experiment name to load those settings.
