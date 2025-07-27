@@ -430,7 +430,10 @@ def search_repository_functions(query: str) -> list[str]:
     query = query.lower()
     funcs: set[str] = set()
     for name in list_repo_modules() + ["marble_interface"]:
-        module = importlib.import_module(name)
+        try:
+            module = importlib.import_module(name)
+        except ImportError:
+            continue
         for fname, obj in inspect.getmembers(module, inspect.isfunction):
             if fname.startswith("_"):
                 continue
@@ -673,15 +676,25 @@ def save_config_yaml(yaml_text: str, path: str) -> None:
         f.write(yaml_text)
 
 
-def render_config_editor(data: dict, path: str = "") -> dict:
-    """Render widgets for ``data`` and return updated values."""
+def render_config_editor(data: dict, path: str = "", depth: int = 0) -> dict:
+    """Render widgets for ``data`` and return updated values.
+
+    To comply with Streamlit's restriction against nested expanders, only the
+    top-level keys use :func:`st.expander`. Nested structures are rendered inside
+    simple containers instead of additional expanders.
+    """
 
     if isinstance(data, dict):
         out = {}
         for key, val in data.items():
             full = f"{path}.{key}" if path else key
-            with st.expander(key, expanded=False):
-                out[key] = render_config_editor(val, full)
+            if depth == 0:
+                with st.expander(key, expanded=False):
+                    out[key] = render_config_editor(val, full, depth + 1)
+            else:
+                with st.container():
+                    st.markdown(f"**{key}**")
+                    out[key] = render_config_editor(val, full, depth + 1)
         return out
     else:
         key = path
@@ -1402,13 +1415,13 @@ def _detect_client_settings() -> None:
 
 def run_playground() -> None:
     """Launch the Streamlit MARBLE playground."""
+    st.set_page_config(page_title="MARBLE Playground", layout="wide")
     _detect_client_settings()
     params = st.experimental_get_query_params()
     theme = params.get("theme", ["light"])[0]
     mobile = params.get("mobile", ["0"])[0] == "1"
     st.session_state["theme"] = theme
     st.session_state["mobile"] = mobile
-    st.set_page_config(page_title="MARBLE Playground", layout="wide")
     if theme == "dark":
         st.markdown(
             "<style>body{background-color:#0e1117;color:#d0d0d0;}</style>",
@@ -1423,8 +1436,12 @@ def run_playground() -> None:
     st.title("MARBLE Playground")
 
     if st.button("About"):
-        with st.dialog("About MARBLE"):
-            st.markdown(load_readme())
+        if hasattr(st, "dialog"):
+            with st.dialog("About MARBLE"):
+                st.markdown(load_readme())
+        else:
+            with st.expander("About MARBLE", expanded=True):
+                st.markdown(load_readme())
 
     if "registry" not in st.session_state:
         st.session_state["registry"] = MarbleRegistry()
