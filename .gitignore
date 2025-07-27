@@ -367,3 +367,10 @@ __pycache__/
 
 .pytest_cache/
 
+
+# Test artifacts
+metrics.csv
+metrics.jsonl
+symbolic_memory.pkl
+vector_store.pkl
+tb_logs/
