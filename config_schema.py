@@ -12,7 +12,11 @@ CONFIG_SCHEMA = {
                 "weight_init_strategy": {"type": "string"},
                 "show_message_progress": {"type": "boolean"},
                 "synapse_dropout_prob": {"type": "number", "minimum": 0, "maximum": 1},
-                "synapse_batchnorm_momentum": {"type": "number", "minimum": 0, "maximum": 1},
+                "synapse_batchnorm_momentum": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                },
             },
         },
         "neuronenblitz": {"type": "object"},
@@ -42,6 +46,10 @@ CONFIG_SCHEMA = {
                 "structured": {"type": "boolean"},
                 "log_file": {"type": ["string", "null"]},
             },
+        },
+        "plugins": {
+            "type": ["array", "string"],
+            "items": {"type": "string"},
         },
     },
     "required": ["core"],

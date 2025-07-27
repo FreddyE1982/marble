@@ -1458,3 +1458,22 @@ The playground provides toggles for dreaming and autograd features so you can
 experiment with MARBLE's advanced capabilities without writing code.
 
 Additional experiments can enable **prioritized experience replay** by setting `neuronenblitz.use_experience_replay` to `true` in `config.yaml`. This stores recent training examples and replays them based on their errors, improving convergence on challenging datasets.
+
+## Project 30 – Custom Plugin Modules
+
+**Goal:** Extend MARBLE with additional neuron and synapse types.
+
+1. Create a file `plugins/my_plugin.py` with a `register` function:
+   ```python
+   def register(register_neuron, register_synapse):
+       register_neuron("my_neuron")
+       register_synapse("my_synapse")
+   ```
+2. Edit `config.yaml` and add your plugin directory:
+   ```yaml
+   plugins:
+     - ./plugins
+   ```
+3. Initialize MARBLE via `create_marble_from_config` and your new types will be
+   available for use when modifying the core or Neuronenblitz.
+

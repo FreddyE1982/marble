@@ -12,6 +12,11 @@ logging:
   structured: When true, all logs are emitted as JSON objects. This simplifies parsing in tools like Logstash or Splunk.
   log_file: File path where structured logs are written. If set to ``null`` the logs go to stderr.
 
+plugins:
+  - List of directories containing plugin modules. Each module implements
+    ``register(register_neuron, register_synapse)`` to add custom neuron and
+    synapse types. Paths may be absolute or relative to the working directory.
+
   shard_index: Index of the shard this instance will process. Set to ``0`` when
     running on a single machine. Values outside the valid range raise an error
     during dataset loading.

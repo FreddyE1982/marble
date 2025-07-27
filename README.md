@@ -229,3 +229,4 @@ pre-commit install
 
 to automatically format and lint changes before each commit.
 
+\nMARBLE can be extended via a simple plugin system. Specify directories in the `plugins` list of the configuration and each module's `register` function will be invoked to add custom neuron or synapse types.
