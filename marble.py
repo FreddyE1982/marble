@@ -1,6 +1,7 @@
 import os
 import sys
 import torch
+from typing import Iterable, Any
 import numpy as np
 import json
 import tarfile
@@ -27,20 +28,60 @@ import torch.nn as nn
 
 
 def clear_output(wait: bool = True) -> None:
-    """Clear the terminal screen."""
-    os.system('cls' if os.name == 'nt' else 'clear')
+    """Clear the terminal screen.
+
+    Parameters
+    ----------
+    wait : bool, optional
+        Ignored parameter included for API compatibility with IPython's
+        :func:`~IPython.display.clear_output`.
+    """
+    os.system("cls" if os.name == "nt" else "clear")
 
 # -----------------------------------------------------
 # 1. Logging function
 # -----------------------------------------------------
-def log_metrics(epoch, tar_idx, loss, vram_usage):
-    with open('training_log.txt', 'a') as f:
-        f.write(f"Epoch {epoch}, Tar {tar_idx}: Loss={loss:.4f}, VRAM={vram_usage:.2f}MB\n")
+def log_metrics(epoch: int, tar_idx: int, loss: float, vram_usage: float) -> None:
+    """Append a formatted training metrics line to ``training_log.txt``.
+
+    Parameters
+    ----------
+    epoch : int
+        Current epoch number.
+    tar_idx : int
+        Index of the processed training archive.
+    loss : float
+        Training loss value for the batch.
+    vram_usage : float
+        Current VRAM usage in megabytes.
+    """
+    with open("training_log.txt", "a") as f:
+        f.write(
+            f"Epoch {epoch}, Tar {tar_idx}: Loss={loss:.4f}, VRAM={vram_usage:.2f}MB\n"
+        )
 
 # -----------------------------------------------------
 # 2. Download and process TAR archives (including LFS pointer detection)
 # -----------------------------------------------------
-def download_and_process_tar(url, temp_dir):
+def download_and_process_tar(url: str, temp_dir: str | os.PathLike[str]) -> list[tuple[str, str]]:
+    """Download a TAR archive and return paired image/json file paths.
+
+    The function transparently handles Hugging Face LFS pointer files and
+    extracts the archive into ``temp_dir``. Each image file that has a
+    corresponding JSON metadata file is returned as a tuple ``(image, json)``.
+
+    Parameters
+    ----------
+    url : str
+        HTTP or HTTPS URL pointing to the ``.tar`` file.
+    temp_dir : str or Path-like
+        Temporary directory used for downloads and extraction.
+
+    Returns
+    -------
+    list[tuple[str, str]]
+        Sorted list of ``(image_path, json_path)`` pairs.
+    """
     print(f"Starting download from {url}")
     headers = {
         'User-Agent': ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
