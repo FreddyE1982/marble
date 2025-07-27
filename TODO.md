@@ -6,7 +6,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 2. [x] Implement continuous integration to automatically run tests on pushes.
 3. [x] Improve error handling in `marble_core` for invalid neuron parameters.
 4. Add type hints to all functions for better static analysis.
-   - [ ] Add hints to marble_core.py
+   - [x] Add hints to marble_core.py
    - [ ] Add hints to marble_neuronenblitz.py
    - [ ] Add hints to streamlit_playground.py
 5. Integrate GPU acceleration into all neural computations.
@@ -55,7 +55,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 48. Add support for quantization and model compression.
 49. Implement a plugin-based remote tier for custom hardware.
 50. Create visualization utilities for neuron activation patterns.
-51. Add parameter scheduling for exploration/exploitation trade-offs.
+51. [x] Add parameter scheduling for exploration/exploitation trade-offs.
 52. Support hierarchical reinforcement learning in Neuronenblitz.
 53. Implement efficient memory management for huge graphs.
 54. [x] Add checks for NaN/Inf propagation throughout the core.
@@ -68,14 +68,14 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 61. Enhance constant-time operations for cryptographic safety.
 62. Add more comprehensive adversarial training examples.
 63. [x] Provide utilities for automatic dataset downloading and caching.
-64. Integrate a simple hyperparameter search framework.
+64. [x] Integrate a simple hyperparameter search framework.
 65. [x] Add tests verifying deterministic behaviour with fixed seeds.
 66. Improve readability of configuration files with comments and sections.
 67. [x] Implement graph pruning utilities to remove unused neurons.
 68. Create a repository of reusable neuron/synapse templates.
 69. Add support for mixed precision training when GPUs are available.
 70. [x] Provide dynamic graph visualisation within the GUI.
-71. Implement scheduled backups of experiment logs and results.
+71. [x] Implement scheduled backups of experiment logs and results.
 72. Add a compatibility layer for older Python versions where feasible.
 73. Provide self-contained Docker images for reproducibility.
 74. Implement offline mode with pre-packaged datasets.

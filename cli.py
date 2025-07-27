@@ -50,6 +50,10 @@ def main() -> None:
         help="Run message passing benchmark for N iterations",
     )
     parser.add_argument(
+        "--grid-search",
+        help="YAML file describing parameter grid for hyperparameter search",
+    )
+    parser.add_argument(
         "--no-early-stop", action="store_true", help="Disable early stopping"
     )
     args = parser.parse_args()
@@ -70,6 +74,16 @@ def main() -> None:
     if args.early_stopping_delta is not None:
         overrides["brain"]["early_stopping_delta"] = args.early_stopping_delta
     marble = create_marble_from_config(args.config, overrides=overrides)
+    if args.grid_search:
+        import yaml
+        from hyperparameter_search import grid_search
+
+        with open(args.grid_search, "r", encoding="utf-8") as f:
+            param_grid = yaml.safe_load(f)
+
+        results = grid_search(param_grid, lambda p: 0.0)
+        print(results)
+        return
     if args.no_early_stop:
         marble.get_brain().early_stop_enabled = False
     if args.train:

@@ -9,7 +9,7 @@ import time
 import functools
 from collections import deque
 from datetime import datetime
-from typing import Hashable
+from typing import Any, Hashable
 
 import numpy as np
 
@@ -334,7 +334,7 @@ class Tier(metaclass=TierMeta):
         self.limit_mb = None
         self.order = 100
 
-    def process(self, data):
+    def process(self, data: Any) -> Any:
         return data
 
 
@@ -374,7 +374,7 @@ class FileTier(Tier):
             with open(self.file_path, "wb") as f:
                 f.write(b"")
 
-    def process(self, data):
+    def process(self, data: Any) -> Any:
         modified_data = data * 1.1
         with open(self.file_path, "ab") as f:
             f.write(pickle.dumps(modified_data))
@@ -1176,20 +1176,20 @@ class ShortTermMemory:
     def __init__(self):
         self.data = {}
 
-    def store(self, key, value):
+    def store(self, key: Hashable, value: Any) -> None:
         self.data[key] = value
 
-    def retrieve(self, key):
+    def retrieve(self, key: Hashable) -> Any:
         return self.data.get(key)
 
-    def clear(self):
+    def clear(self) -> None:
         self.data.clear()
 
 
 class LongTermMemory:
     """Persistent storage backed by disk."""
 
-    def __init__(self, path="long_term_memory.pkl"):
+    def __init__(self, path: str = "long_term_memory.pkl"):
         self.path = path
         self.data = {}
         if os.path.exists(self.path):
@@ -1199,12 +1199,12 @@ class LongTermMemory:
                 except Exception:
                     self.data = {}
 
-    def store(self, key, value):
+    def store(self, key: Hashable, value: Any) -> None:
         self.data[key] = value
         with open(self.path, "wb") as f:
             pickle.dump(self.data, f)
 
-    def retrieve(self, key):
+    def retrieve(self, key: Hashable) -> Any:
         return self.data.get(key)
 
 
@@ -1223,12 +1223,12 @@ class MemorySystem:
         self.consolidation_interval = consolidation_interval
         self._since_consolidation = 0
 
-    def consolidate(self):
+    def consolidate(self) -> None:
         for k, v in list(self.short_term.data.items()):
             self.long_term.store(k, v)
         self.short_term.clear()
 
-    def choose_layer(self, context):
+    def choose_layer(self, context: dict) -> ShortTermMemory | LongTermMemory:
         if (
             context.get("arousal", 0) > self.threshold
             or context.get("reward", 0) > self.threshold
@@ -1236,7 +1236,7 @@ class MemorySystem:
             return self.long_term
         return self.short_term
 
-    def store(self, key, value, context=None):
+    def store(self, key: Hashable, value: Any, context: dict | None = None) -> None:
         layer = self.choose_layer(context or {})
         layer.store(key, value)
         self._since_consolidation += 1
@@ -1244,7 +1244,7 @@ class MemorySystem:
             self.consolidate()
             self._since_consolidation = 0
 
-    def retrieve(self, key):
+    def retrieve(self, key: Hashable) -> Any:
         val = self.short_term.retrieve(key)
         if val is None:
             val = self.long_term.retrieve(key)
@@ -1271,7 +1271,7 @@ class DataLoader:
         self.metrics_visualizer = metrics_visualizer
         self.tensor_dtype = cp.dtype(tensor_dtype)
 
-    def encode(self, data):
+    def encode(self, data: Any) -> np.ndarray:
         serialized = pickle.dumps(data)
         compressed = self.compressor.compress(serialized)
         if self.metrics_visualizer is not None:
@@ -1286,7 +1286,7 @@ class DataLoader:
             base = base.view(self.tensor_dtype)
         return base
 
-    def decode(self, tensor):
+    def decode(self, tensor: np.ndarray | "torch.Tensor") -> Any:
         compressed = tensor.tobytes()
         serialized = self.compressor.decompress(compressed)
         if self.metrics_visualizer is not None:

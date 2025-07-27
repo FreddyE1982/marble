@@ -297,6 +297,13 @@ neuronenblitz:
     epoch. Values below ``1.0`` decay the rate while values above ``1.0``
     increase it. ``0.95`` is a gentle decay while ``0.5`` halves the rate every
     epoch.
+  epsilon_scheduler: Scheduler controlling how ``rl_epsilon`` evolves. Supports
+    the same options as ``lr_scheduler`` and updates after each training batch.
+    ``"none"`` keeps the exploration probability constant.
+  epsilon_scheduler_steps: Controls the period of cosine or cyclic epsilon
+    schedules. Ignored for ``"exponential"``.
+  epsilon_scheduler_gamma: Multiplicative factor for the exponential epsilon
+    scheduler. Values below ``1.0`` decrease exploration more aggressively.
   momentum_coefficient: Coefficient used to blend the previous weight update
     with the current gradient. ``0.0`` disables momentum while values between
     ``0.0`` and ``1.0`` accelerate training by smoothing updates. Momentum is

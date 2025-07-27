@@ -712,6 +712,59 @@ def test_cyclic_scheduler_cycles_learning_rate():
     assert end_lr == pytest.approx(start_lr)
 
 
+def test_cosine_epsilon_scheduler():
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        epsilon_scheduler="cosine",
+        epsilon_scheduler_steps=2,
+        rl_epsilon=1.0,
+        rl_min_epsilon=0.1,
+    )
+    start = nb.rl_epsilon
+    nb.step_epsilon_scheduler()
+    mid = nb.rl_epsilon
+    nb.step_epsilon_scheduler()
+    end = nb.rl_epsilon
+    assert start > end
+    assert mid >= end
+
+
+def test_exponential_epsilon_scheduler():
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        epsilon_scheduler="exponential",
+        epsilon_scheduler_gamma=0.5,
+        rl_epsilon=1.0,
+        rl_min_epsilon=0.1,
+    )
+    nb.step_epsilon_scheduler()
+    assert nb.rl_epsilon == 0.5
+    nb.step_epsilon_scheduler()
+    assert nb.rl_epsilon == 0.25
+
+
+def test_cyclic_epsilon_scheduler():
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        epsilon_scheduler="cyclic",
+        epsilon_scheduler_steps=2,
+        rl_epsilon=1.0,
+        rl_min_epsilon=0.1,
+    )
+    nb.step_epsilon_scheduler()
+    start_eps = nb.rl_epsilon
+    nb.step_epsilon_scheduler()
+    mid_eps = nb.rl_epsilon
+    nb.step_epsilon_scheduler()
+    end_eps = nb.rl_epsilon
+    assert start_eps == pytest.approx(1.0)
+    assert mid_eps == pytest.approx(nb.rl_min_epsilon)
+    assert end_eps == pytest.approx(start_eps)
+
+
 def test_experience_replay_buffer_fills_and_replays():
     random.seed(0)
     np.random.seed(0)

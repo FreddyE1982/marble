@@ -67,3 +67,25 @@ def test_cli_scheduler_override(tmp_path):
         ]
     )
     assert result.returncode == 0
+
+
+def test_cli_grid_search(tmp_path):
+    cfg = Path(tmp_path) / "cfg.yaml"
+    import yaml
+
+    cfg.write_text(yaml.safe_dump({"core": minimal_params()}))
+    grid_file = tmp_path / "grid.yaml"
+    grid_file.write_text(yaml.safe_dump({"dropout_probability": [0.0, 0.1]}))
+    result = subprocess.run(
+        [
+            sys.executable,
+            "cli.py",
+            "--config",
+            str(cfg),
+            "--grid-search",
+            str(grid_file),
+        ],
+        capture_output=True,
+    )
+    assert result.returncode == 0
+    assert b"dropout_probability" in result.stdout
