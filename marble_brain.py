@@ -579,6 +579,36 @@ class Brain:
             self.neuronenblitz = data["neuronenblitz"]
         print(f"Model loaded from {filepath}")
 
+    def save_checkpoint(self, path: str, epoch: int) -> None:
+        """Persist full training state and epoch to ``path``."""
+        state = {
+            "epoch": epoch,
+            "core": self.core,
+            "neuronenblitz": self.neuronenblitz,
+            "meta_controller": self.meta_controller,
+            "memory_system": self.memory_system,
+            "lobe_manager": self.lobe_manager,
+            "random_state": random.getstate(),
+            "numpy_state": np.random.get_state(),
+        }
+        with open(path, "wb") as f:
+            pickle.dump(state, f)
+        print(f"Checkpoint saved to {path}")
+
+    def load_checkpoint(self, path: str) -> int:
+        """Load training state from ``path`` and return last epoch."""
+        with open(path, "rb") as f:
+            state = pickle.load(f)
+        self.core = state["core"]
+        self.neuronenblitz = state["neuronenblitz"]
+        self.meta_controller = state["meta_controller"]
+        self.memory_system = state["memory_system"]
+        self.lobe_manager = state["lobe_manager"]
+        random.setstate(state["random_state"])
+        np.random.set_state(state["numpy_state"])
+        print(f"Checkpoint loaded from {path}")
+        return int(state["epoch"])
+
     def infer(self, input_value):
         """Return the output of the trained model for ``input_value``."""
         key = round(float(input_value), 6)
