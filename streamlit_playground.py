@@ -25,6 +25,7 @@ from zipfile import ZipFile
 
 import networkx as nx
 import plotly.graph_objs as go
+import time
 
 import inspect
 import marble_interface
@@ -60,6 +61,15 @@ import yaml
 import torch
 from transformers import AutoModel
 import pytest
+
+
+def _auto_refresh(interval_ms: int, key: str) -> None:
+    """Rerun the app periodically when called inside the main loop."""
+    now = time.time()
+    last = st.session_state.get(key, 0.0)
+    if now - last >= interval_ms / 1000.0:
+        st.session_state[key] = now
+        st.experimental_rerun()
 
 
 def _load_image(file_obj: BytesIO) -> np.ndarray:
@@ -1984,9 +1994,18 @@ def run_playground() -> None:
 
         with tab_vis:
             st.write("Visualize the current MARBLE core.")
-            if st.button("Generate Graph", key="show_graph"):
+            auto = st.checkbox("Auto Refresh Graph", key="auto_graph")
+            interval = st.number_input(
+                "Refresh interval (s)", min_value=1, value=5, step=1, key="graph_interval"
+            )
+            container = st.empty()
+            if auto:
+                _auto_refresh(interval * 1000, "graph_refresh")
                 fig = core_figure(marble.get_core())
-                st.plotly_chart(fig, use_container_width=True)
+                container.plotly_chart(fig, use_container_width=True)
+            elif st.button("Generate Graph", key="show_graph"):
+                fig = core_figure(marble.get_core())
+                container.plotly_chart(fig, use_container_width=True)
             if st.button("Show Activations", key="show_acts"):
                 activations = {n.id: float(n.value) for n in marble.get_core().neurons}
                 fig = activation_figure(marble.get_core(), activations)

@@ -32,6 +32,8 @@ Each entry is listed under its section heading.
 - default_growth_tier
 - random_seed
 - message_passing_dropout
+- synapse_dropout_prob
+- synapse_batchnorm_momentum
 - representation_activation
 - apply_layer_norm
 - weight_init_mean

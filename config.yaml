@@ -38,6 +38,8 @@ core:
   default_growth_tier: "vram"
   random_seed: 42
   message_passing_dropout: 0.0
+  synapse_dropout_prob: 0.0
+  synapse_batchnorm_momentum: 0.1
   representation_activation: "tanh"
   apply_layer_norm: true
   weight_init_mean: 0.0

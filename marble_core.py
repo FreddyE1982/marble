@@ -6,6 +6,7 @@ import os
 import pickle
 import random
 import time
+import functools
 from collections import deque
 from datetime import datetime
 from typing import Hashable
@@ -309,6 +310,8 @@ SYNAPSE_TYPES = [
     "inhibitory",
     "modulatory",
     "interconnection",
+    "dropout",
+    "batchnorm",
 ]
 
 # Global registry for all tiers
@@ -998,12 +1001,14 @@ class Synapse:
         target,
         weight=1.0,
         synapse_type="standard",
-        fatigue=0.0,
+        fatigue: float = 0.0,
         frozen: bool = False,
         echo_length: int = 5,
         remote_core: "Core | None" = None,
         remote_target: int | None = None,
         phase: float = 0.0,
+        dropout_prob: float = 0.5,
+        momentum: float = 0.1,
     ):
         self.source = source
         self.target = target
@@ -1020,6 +1025,10 @@ class Synapse:
         self.remote_target = remote_target
         self.phase = float(phase)
         self.visit_count = 0
+        self.dropout_prob = float(dropout_prob)
+        self.momentum = float(momentum)
+        self.running_mean = 0.0
+        self.running_var = 1.0
 
     def update_fatigue(self, increase: float, decay: float) -> None:
         """Update fatigue using a decay factor and additive increase."""
@@ -1085,14 +1094,33 @@ class Synapse:
         """Compute the transmitted value and apply side effects."""
         self.apply_side_effects(core, source_value)
         w = self.effective_weight(context)
-        if torch.is_tensor(source_value):
-            return source_value * w
-        elif isinstance(source_value, cp.ndarray):
-            return source_value * w
-        else:
-            return source_value * w
+        if self.synapse_type == "dropout" and random.random() < self.dropout_prob:
+            if torch.is_tensor(source_value):
+                return source_value * 0
+            return 0.0 if not isinstance(source_value, cp.ndarray) else source_value * 0
+        out = source_value * w if not torch.is_tensor(source_value) else source_value * w
+        if self.synapse_type == "batchnorm":
+            if torch.is_tensor(out):
+                arr = out.detach().cpu().numpy()
+            elif isinstance(out, cp.ndarray):
+                arr = cp.asnumpy(out)
+            else:
+                arr = np.asarray(out)
+            mean = arr.mean()
+            var = arr.var()
+            self.running_mean = self.momentum * mean + (1 - self.momentum) * self.running_mean
+            self.running_var = self.momentum * var + (1 - self.momentum) * self.running_var
+            norm = (arr - self.running_mean) / np.sqrt(self.running_var + 1e-5)
+            if torch.is_tensor(out):
+                out = torch.as_tensor(norm, device=out.device)
+            elif isinstance(out, cp.ndarray):
+                out = cp.asarray(norm)
+            else:
+                out = float(norm)
+        return out
 
 
+@functools.lru_cache(maxsize=32)
 def compute_mandelbrot(
     xmin,
     xmax,
@@ -1105,6 +1133,9 @@ def compute_mandelbrot(
     power: int = 2,
 ):
     """Return a Mandelbrot set fragment as a 2D array.
+
+    Results are cached so repeated calls with the same parameters reuse
+    the previously computed array.
 
     Parameters
     ----------

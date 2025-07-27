@@ -11,6 +11,8 @@ CONFIG_SCHEMA = {
                 "message_passing_beta": {"type": "number", "minimum": 0, "maximum": 1},
                 "weight_init_strategy": {"type": "string"},
                 "show_message_progress": {"type": "boolean"},
+                "synapse_dropout_prob": {"type": "number", "minimum": 0, "maximum": 1},
+                "synapse_batchnorm_momentum": {"type": "number", "minimum": 0, "maximum": 1},
             },
         },
         "neuronenblitz": {"type": "object"},

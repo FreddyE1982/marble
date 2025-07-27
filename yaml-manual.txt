@@ -83,6 +83,12 @@ core:
     ensures reproducible initialization.
   message_passing_dropout: Fraction of messages dropped during propagation to
     regularize learning. ``0.0`` disables dropout.
+  synapse_dropout_prob: Probability of zeroing out connections of synapses
+    configured with the ``dropout`` type. ``0.0`` leaves all such synapses
+    active while ``1.0`` disables them completely on every transmission.
+  synapse_batchnorm_momentum: Momentum used by ``batchnorm`` synapses when
+    updating their running mean and variance. Values close to ``1.0`` adapt
+    quickly while lower values provide smoother statistics.
   representation_activation: Activation function used by the internal MLP for
     message passing. Typical values are ``"tanh"`` or ``"relu"``.
   apply_layer_norm: When true the hidden layer of ``_simple_mlp`` is normalised
