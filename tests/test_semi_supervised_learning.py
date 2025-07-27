@@ -1,3 +1,5 @@
+import os, sys
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from tests.test_core_functions import minimal_params
 from marble_core import Core
 from marble_neuronenblitz import Neuronenblitz
