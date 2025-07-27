@@ -11,7 +11,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 7. Refactor `marble_neuronenblitz.py` into logical submodules.
 8. Document all public APIs with docstrings and examples.
 9. Create tutorials that walk through real-world datasets.
-10. Add automatic benchmarking for message-passing operations.
+10. [x] Add automatic benchmarking for message-passing operations.
 11. Support asynchronous training loops for large-scale experiments.
 12. [x] Add configuration schemas to validate YAML files.
 13. Expand the metrics dashboard with interactive visualizations.
@@ -89,10 +89,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 85. [x] Provide wrappers to convert Marble models to ONNX.
 86. Improve the hybrid memory system for balanced usage.
 87. [x] Add a mechanism to export and import neuron state snapshots.
-88. Document the mathematics behind synaptic echo learning.
+88. [x] Document the mathematics behind synaptic echo learning.
 89. Implement context-aware attention mechanisms.
-90. Add unit tests ensuring backward compatibility between versions.
-91. Create a `core_benchmark.py` script for micro benchmarks.
+90. [x] Add unit tests ensuring backward compatibility between versions.
+91. [x] Create a `core_benchmark.py` script for micro benchmarks.
 92. Provide a template repository for new Marble-based projects.
 93. Add interactive tutorials in Jupyter notebooks.
 94. Expand the remote offload module with bandwidth estimation.
@@ -100,6 +100,6 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 96. Add anomaly detection for wandering behaviour.
 97. Provide visual feedback for training progress in Streamlit.
 98. Offer integration examples with existing ML libraries.
-99. Enhance documentation with troubleshooting guides.
+99. [x] Enhance documentation with troubleshooting guides.
 100. Establish a long-term roadmap with release milestones.
 

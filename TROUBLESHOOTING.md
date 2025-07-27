@@ -14,4 +14,10 @@ This guide lists common issues when running MARBLE and how to solve them.
 * **Loss becomes NaN** – This may be caused by extreme learning rates or numeric overflow. Enable gradient clipping in `config.yaml` and reduce `neuronenblitz.learning_rate`.
 * **Early stopping triggers too soon** – Increase `brain.early_stopping_patience` or adjust `brain.early_stopping_delta`.
 
+## Benchmarking Issues
+* **Unexpectedly slow message passing** – Use the CLI option `--benchmark-msgpass` to measure throughput.
+  A value above a few milliseconds per iteration on modern hardware may indicate
+  that GPU acceleration is disabled. Check that `cupy` detects your GPU and that
+  `torch.cuda.is_available()` returns `True`.
+
 For further help open an issue on the project repository with your configuration and logs.
