@@ -1,1 +1,1 @@
-pytest run interrupted
+All tests passed

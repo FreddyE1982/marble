@@ -537,8 +537,7 @@ class Brain:
                 self.benchmark_step(example)
             if self.profiler and epoch % self.profile_interval == 0:
                 self.profiler.log_epoch(epoch)
-        if progress_callback is not None:
-            progress_callback(1.0)
+
 
         pbar.close()
 
