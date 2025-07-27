@@ -46,3 +46,10 @@ def test_delta_encoding_roundtrip():
     compressed = dc.compress_array(arr)
     restored = dc.decompress_array(compressed)
     assert np.array_equal(restored, arr)
+
+
+def test_lzma_algorithm():
+    dc = DataCompressor(algorithm="lzma")
+    data = b"compress me" * 10
+    out = dc.decompress(dc.compress(data))
+    assert out == data

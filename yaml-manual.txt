@@ -688,6 +688,10 @@ data_compressor:
     ratios for smooth numeric data but slightly increases the cost of
     decompression. The first element is stored verbatim so the process remains
     lossless.
+  compression_algorithm: Selects the compression backend. ``"zlib"`` offers
+    quick general-purpose compression while ``"lzma"`` can provide higher ratios
+    at the expense of CPU time. Set according to your network bandwidth and CPU
+    availability.
 
 dataloader:
   # Settings for the ``DataLoader`` which serializes and compresses data.
