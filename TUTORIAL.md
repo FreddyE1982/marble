@@ -1285,6 +1285,14 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    ```python
    pairs = load_dataset("data.zip")
    ```
+4. **Load a specific shard of a dataset** for distributed training:
+   ```python
+   pairs = load_dataset(
+       "https://example.com/big.csv",
+       num_shards=4,
+       shard_index=1,
+   )
+   ```
 4. **Create and train a MARBLE system** using a pandas dataframe:
    ```python
    import pandas as pd

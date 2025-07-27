@@ -55,9 +55,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 51. Add parameter scheduling for exploration/exploitation trade-offs.
 52. Support hierarchical reinforcement learning in Neuronenblitz.
 53. Implement efficient memory management for huge graphs.
-54. Add checks for NaN/Inf propagation throughout the core.
+54. [x] Add checks for NaN/Inf propagation throughout the core.
 55. Provide an option to profile CPU and GPU usage during training.
-56. Integrate dataset sharding for distributed training.
+56. [x] Integrate dataset sharding for distributed training.
 57. Create a cross-platform installer script.
 58. Provide a simple web API for remote inference.
 59. [x] Add command line tools to export trained models.

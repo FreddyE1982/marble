@@ -3,6 +3,15 @@ section corresponds to a subsystem and exposes parameters that can be tuned to
 alter its behaviour.  When the file is loaded it is validated against an
 internal JSON schema to catch missing sections or invalid values early.
 
+dataset:
+  num_shards: Number of shards the training dataset is split into. When greater
+    than ``1`` each training worker should set ``shard_index`` to a unique value
+    between ``0`` and ``num_shards - 1`` so that only a subset of samples is
+    processed. This enables distributed training without duplicating effort.
+  shard_index: Index of the shard this instance will process. Set to ``0`` when
+    running on a single machine. Values outside the valid range raise an error
+    during dataset loading.
+
 core:
   xmin: Minimum X coordinate for the Mandelbrot seed. Defines the left boundary
     of the complex plane used when initializing neuron values.

@@ -88,3 +88,10 @@ def test_load_zipped_json(tmp_path):
     pairs = load_dataset(str(zip_path))
     assert pairs == [(1, 2)]
 
+
+def test_dataset_sharding(tmp_path):
+    csv_path = tmp_path / "shard.csv"
+    csv_path.write_text("input,target\n1,2\n3,4\n5,6\n7,8\n")
+    pairs = load_dataset(str(csv_path), num_shards=2, shard_index=1)
+    assert pairs == [(3, 4), (7, 8)]
+

@@ -340,6 +340,10 @@ Each entry is listed under its section heading.
 - dataset_path
 - batch_size
 
+## dataset
+- num_shards
+- shard_index
+
 ## distillation
 - enabled
 - alpha
