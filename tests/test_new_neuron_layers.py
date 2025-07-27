@@ -269,3 +269,15 @@ def test_embedding_neuron_operation():
     out_multi = n.process([0, 1])
     expected = np.array([[1.0, 2.0], [3.0, 4.0]])
     assert np.allclose(out_multi, expected)
+
+
+def test_rnn_neuron_operation():
+    n = Neuron(0, neuron_type="rnn")
+    for k in n.params:
+        n.params[k] = 1.0
+    out1 = n.process(1.0)
+    expected1 = math.tanh(1.0 * 1 + 0 * 1 + 1)
+    assert np.isclose(out1, expected1, atol=1e-6)
+    out2 = n.process(2.0)
+    expected2 = math.tanh(2.0 * 1 + out1 * 1 + 1)
+    assert np.isclose(out2, expected2, atol=1e-6)
