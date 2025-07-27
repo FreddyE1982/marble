@@ -305,6 +305,7 @@ data_compressor:
   compression_level: 6
   compression_enabled: true
   delta_encoding: false
+  compression_algorithm: "zlib"
 dataloader:
   tensor_dtype: "uint8"
 experiment_tracker:

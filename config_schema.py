@@ -51,6 +51,15 @@ CONFIG_SCHEMA = {
                 "log_file": {"type": ["string", "null"]},
             },
         },
+        "data_compressor": {
+            "type": "object",
+            "properties": {
+                "compression_level": {"type": "integer", "minimum": 0, "maximum": 9},
+                "compression_enabled": {"type": "boolean"},
+                "delta_encoding": {"type": "boolean"},
+                "compression_algorithm": {"type": "string", "enum": ["zlib", "lzma"]},
+            },
+        },
         "plugins": {
             "type": ["array", "string"],
             "items": {"type": "string"},

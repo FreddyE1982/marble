@@ -96,3 +96,34 @@ def test_remote_client_retries(monkeypatch):
     val = client.process(0.2)
     assert val == 1.0
     assert attempts["n"] == 2
+
+
+def test_bandwidth_and_route(monkeypatch):
+    def fake_post(url, data=None, timeout=0, headers=None):
+        class Res:
+            headers = {"Content-Length": str(len(data))}
+
+            def json(self):
+                return {"output": 1.0}
+
+        return Res()
+
+    def fake_get(url, timeout=0):
+        class Res:
+            pass
+
+        if "a" in url:
+            time.sleep(0.02)
+        else:
+            time.sleep(0.01)
+        return Res()
+
+    monkeypatch.setattr("requests.post", fake_post)
+    monkeypatch.setattr("requests.get", fake_get)
+    client = RemoteBrainClient("http://a", compression_enabled=False)
+    client.process(0.2)
+    bw1 = client.average_bandwidth
+    new_url = client.optimize_route(["http://a", "http://b"])  # should select b
+    assert new_url == "http://b"
+    client.process(0.3)
+    assert client.average_bandwidth > 0

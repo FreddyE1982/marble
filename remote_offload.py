@@ -21,17 +21,24 @@ class RemoteBrainServer:
         remote_url: str | None = None,
         compression_level: int = 6,
         compression_enabled: bool = True,
+        compression_algorithm: str = "zlib",
     ) -> None:
         self.host = host
         self.port = port
         self.remote_client = (
-            RemoteBrainClient(remote_url, compression_level=compression_level,
-                               compression_enabled=compression_enabled)
+            RemoteBrainClient(
+                remote_url,
+                compression_level=compression_level,
+                compression_enabled=compression_enabled,
+                compression_algorithm=compression_algorithm,
+            )
             if remote_url
             else None
         )
         self.compressor = DataCompressor(
-            level=compression_level, compression_enabled=compression_enabled
+            level=compression_level,
+            compression_enabled=compression_enabled,
+            algorithm=compression_algorithm,
         )
         self.use_compression = compression_enabled
         self.core = None
@@ -98,6 +105,14 @@ class RemoteBrainServer:
                     self.send_response(404)
                     self.end_headers()
 
+            def do_GET(self):
+                if self.path == '/ping':
+                    self._set_headers()
+                    self.wfile.write(b'{}')
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
         self.httpd = HTTPServer((self.host, self.port), Handler)
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
         self.thread.start()
@@ -118,6 +133,7 @@ class RemoteBrainClient:
         max_retries: int = 3,
         compression_level: int = 6,
         compression_enabled: bool = True,
+        compression_algorithm: str = "zlib",
         backoff_factor: float = 0.5,
         track_latency: bool = True,
     ) -> None:
@@ -125,20 +141,29 @@ class RemoteBrainClient:
         self.timeout = timeout
         self.max_retries = max_retries
         self.compressor = DataCompressor(
-            level=compression_level, compression_enabled=compression_enabled
+            level=compression_level,
+            compression_enabled=compression_enabled,
+            algorithm=compression_algorithm,
         )
         self.use_compression = compression_enabled
         self.backoff_factor = backoff_factor
         self.track_latency = track_latency
         self.latencies: deque[float] = deque(maxlen=100)
+        self.bytes_sent = 0
+        self.bytes_received = 0
+        self._bandwidth_start = time.monotonic()
 
     def _post(self, path: str, payload: dict, timeout: float) -> requests.Response:
         """POST ``payload`` to ``path`` with retries."""
         for attempt in range(self.max_retries):
             try:
+                payload_bytes = json.dumps(payload).encode()
                 start = time.monotonic()
                 resp = requests.post(self.url + path, json=payload, timeout=timeout)
                 latency = time.monotonic() - start
+                self.bytes_sent += len(payload_bytes)
+                headers = getattr(resp, "headers", {})
+                self.bytes_received += int(headers.get("Content-Length", "0"))
                 if self.track_latency:
                     self.latencies.append(latency)
                 return resp
@@ -182,3 +207,26 @@ class RemoteBrainClient:
     def latency_history(self) -> list[float]:
         """Return a list of recorded latencies."""
         return list(self.latencies)
+
+    def optimize_route(self, urls: list[str]) -> str:
+        """Select the fastest URL from ``urls`` based on ping latency."""
+        best_url = self.url
+        best_latency = float('inf')
+        for u in urls:
+            try:
+                start = time.monotonic()
+                requests.get(u.rstrip('/') + '/ping', timeout=1.0)
+                lat = time.monotonic() - start
+                if lat < best_latency:
+                    best_latency = lat
+                    best_url = u.rstrip('/')
+            except requests.RequestException:
+                continue
+        self.url = best_url
+        return best_url
+
+    @property
+    def average_bandwidth(self) -> float:
+        """Return average transfer rate in bytes/second since instantiation."""
+        elapsed = max(1e-6, time.monotonic() - self._bandwidth_start)
+        return float((self.bytes_sent + self.bytes_received) / elapsed)

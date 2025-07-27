@@ -20,6 +20,10 @@ class DataCompressor:
         When ``True`` arrays are delta encoded prior to compression which can
         substantially improve ratios on smoothly varying data. Defaults to
         ``False``.
+    algorithm : str, optional
+        Compression algorithm to use. ``"zlib"`` provides fast general
+        compression while ``"lzma"`` offers higher ratios at the cost of speed.
+        Defaults to ``"zlib"``.
     """
 
     def __init__(
@@ -27,10 +31,12 @@ class DataCompressor:
         level: int = 6,
         compression_enabled: bool = True,
         delta_encoding: bool = False,
+        algorithm: str = "zlib",
     ) -> None:
         self.level = level
         self.compression_enabled = compression_enabled
         self.delta_encoding = delta_encoding
+        self.algorithm = algorithm
 
     @staticmethod
     def bytes_to_bits(data: bytes) -> np.ndarray:
@@ -50,14 +56,26 @@ class DataCompressor:
         if not self.compression_enabled:
             return data
         bits = self.bytes_to_bits(data)
-        compressed = zlib.compress(bits.tobytes(), self.level)
-        return compressed
+        if self.algorithm == "zlib":
+            return zlib.compress(bits.tobytes(), self.level)
+        if self.algorithm == "lzma":
+            import lzma
+
+            return lzma.compress(bits.tobytes(), preset=self.level)
+        raise ValueError(f"Unknown compression algorithm {self.algorithm}")
 
     def decompress(self, compressed: bytes) -> bytes:
         """Decompress and convert the binary representation back to bytes."""
         if not self.compression_enabled:
             return compressed
-        bits_bytes = zlib.decompress(compressed)
+        if self.algorithm == "zlib":
+            bits_bytes = zlib.decompress(compressed)
+        elif self.algorithm == "lzma":
+            import lzma
+
+            bits_bytes = lzma.decompress(compressed)
+        else:
+            raise ValueError(f"Unknown compression algorithm {self.algorithm}")
         bits = np.frombuffer(bits_bytes, dtype=np.uint8)
         original_bytes = self.bits_to_bytes(bits)
         return original_bytes

@@ -77,10 +77,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 70. [x] Provide dynamic graph visualisation within the GUI.
 71. [x] Implement scheduled backups of experiment logs and results.
 72. Add a compatibility layer for older Python versions where feasible.
-73. Provide self-contained Docker images for reproducibility.
+73. [x] Provide self-contained Docker images for reproducibility.
 74. [x] Implement offline mode with pre-packaged datasets.
 75. Add automated packaging to publish releases on PyPI.
-76. Improve data compression for network transfers.
+76. [x] Improve data compression for network transfers.
 77. Incorporate gradient accumulation for large batch training.
 78. [x] Add performance regression tests for critical functions.
 79. [x] Integrate basic anomaly detection on training metrics.
@@ -98,8 +98,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 91. [x] Create a `core_benchmark.py` script for micro benchmarks.
 92. [x] Provide a template repository for new Marble-based projects.
 93. [x] Add interactive tutorials in Jupyter notebooks.
-94. Expand the remote offload module with bandwidth estimation.
-95. Implement dynamic route optimisation in Neuronenblitz.
+94. [x] Expand the remote offload module with bandwidth estimation.
+95. [x] Implement dynamic route optimisation in Neuronenblitz.
 96. Add anomaly detection for wandering behaviour.
 97. [x] Provide visual feedback for training progress in Streamlit.
 98. [x] [x] Offer integration examples with existing ML libraries.
@@ -118,7 +118,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 110. Implement a **Predictive Coding** plugin offering hierarchical predictions and active inference loops.
 111. Expand `context_history` and `replay_buffer` to store internal markers, goals and ToM information.
 112. Extend attention mechanisms to interface with the Global Workspace and plugin salience scores.
-113. Add YAML configuration options for all new plugins and document them thoroughly.
-114. Create unit and integration tests ensuring each plugin works on CPU and GPU.
+113. [x] Add YAML configuration options for all new plugins and document them thoroughly.
+114. [x] Create unit and integration tests ensuring each plugin works on CPU and GPU.
 115. Update tutorials and manuals with instructions on using the consciousness plugins.
 
