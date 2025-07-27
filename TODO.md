@@ -106,3 +106,19 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 99. [x] Enhance documentation with troubleshooting guides.
 100. [x] Establish a long-term roadmap with release milestones.
 
+101. Implement a **Global Workspace** plugin to broadcast conscious contents across all modules.
+102. Add **attention codelet** plugins that form coalitions and submit them to the Global Workspace.
+103. Create a **Self-Monitoring** plugin that maintains an internal state model and meta-cognitive evaluations.
+104. Integrate higher-order thought markers from Self-Monitoring into `context_history`.
+105. Link Self-Monitoring feedback to reinforcement learning and `dynamic_wander` adjustments.
+106. Implement an **Episodic Memory** plugin supporting transient buffers, long‑term storage and context-based retrieval.
+107. Provide an **episodic simulation** plugin to replay stored episodes for planning.
+108. Develop a **Goal Manager** plugin handling hierarchical goals and conflict resolution with active inference.
+109. Build a **Theory of Mind** plugin using character, mental-state and prediction subnets.
+110. Implement a **Predictive Coding** plugin offering hierarchical predictions and active inference loops.
+111. Expand `context_history` and `replay_buffer` to store internal markers, goals and ToM information.
+112. Extend attention mechanisms to interface with the Global Workspace and plugin salience scores.
+113. Add YAML configuration options for all new plugins and document them thoroughly.
+114. Create unit and integration tests ensuring each plugin works on CPU and GPU.
+115. Update tutorials and manuals with instructions on using the consciousness plugins.
+
