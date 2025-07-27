@@ -22,3 +22,25 @@ def test_autograd_forward_backward():
     loss.backward()
     changed = any(abs(syn.weight - before[i]) > 1e-6 for i, syn in enumerate(core.synapses))
     assert changed
+
+
+def test_autograd_gradient_accumulation():
+    torch.manual_seed(0)
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    brain = Brain(core, nb, DataLoader())
+    layer = MarbleAutogradLayer(brain, learning_rate=0.1, accumulation_steps=2)
+    inp = torch.tensor(0.5, requires_grad=True)
+    out = layer(inp)
+    loss = (out - 1.0) ** 2
+    before = [s.weight for s in core.synapses]
+    loss.backward()
+    changed = any(abs(syn.weight - before[i]) > 1e-6 for i, syn in enumerate(core.synapses))
+    assert not changed
+    inp2 = torch.tensor(0.5, requires_grad=True)
+    out2 = layer(inp2)
+    loss2 = (out2 - 1.0) ** 2
+    loss2.backward()
+    changed = any(abs(syn.weight - before[i]) > 1e-6 for i, syn in enumerate(core.synapses))
+    assert changed
