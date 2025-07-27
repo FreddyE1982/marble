@@ -330,6 +330,7 @@ NEURON_TYPES = [
     "dropout2d",
     "prelu",
     "embedding",
+    "rnn",
 ]
 
 # List of supported synapse types
@@ -611,6 +612,13 @@ class Neuron:
                 "embedding_dim": dim,
                 "weights": np.random.randn(num, dim).astype(float),
             }
+        elif self.neuron_type == "rnn":
+            self.params = {
+                "wx": random.uniform(-1.0, 1.0),
+                "wh": random.uniform(-1.0, 1.0),
+                "b": 0.0,
+            }
+            self.hidden_state = 0.0
         elif self.neuron_type == "lstm":
             self.params = {
                 "wi": random.uniform(-1.0, 1.0),
@@ -971,6 +979,13 @@ class Neuron:
             if isinstance(value, cp.ndarray):
                 return cp.asarray(result)
             return result
+        elif self.neuron_type == "rnn":
+            p = self.params
+            h = self.hidden_state
+            tanh = cp.tanh if isinstance(value, cp.ndarray) else math.tanh
+            h = tanh(value * p["wx"] + h * p["wh"] + p["b"])
+            self.hidden_state = h
+            return h
         elif self.neuron_type == "lstm":
             p = self.params
             h = self.hidden_state

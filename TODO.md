@@ -32,7 +32,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 25. [x] Improve logging with structured JSON output.
 26. Implement distributed training across multiple GPUs.
 27. Provide higher-level wrappers for common reinforcement learning tasks.
-28. Add recurrent neural network neuron types to Marble Core.
+28. [x] Add recurrent neural network neuron types to Marble Core.
 29. [x] Introduce dropout and batch normalization synapse types.
 30. [x] Create a graphical configuration editor in the Streamlit GUI.
 31. [x] Enhance the GUI with dark/light mode and mobile layout tweaks.
@@ -48,7 +48,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 41. [x] Improve remote offload logic with retry and timeout strategies.
 42. Add robust serialization for checkpointing training state.
 43. [x] Integrate a progress bar for long-running operations.
-44. Expand the `examples` directory with end‑to‑end scripts.
+44. [x] Expand the `examples` directory with end‑to‑end scripts.
 45. Provide conversion tools between Marble Core and other frameworks.
 46. [x] Implement an extensible metrics aggregation system.
 47. Improve code style consistency with automated formatting checks.

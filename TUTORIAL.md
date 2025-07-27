@@ -341,6 +341,39 @@ Run `python project5_gpt_training.py` after enabling GPT settings in `config.yam
 
 This final project introduces the **GPT components**, **distillation**, and the **dimensional search** capability if `dimensional_search.enabled` is set in the configuration. It also demonstrates the optional **n‑dimensional topology** feature controlled by `n_dimensional_topology.enabled`, which gradually expands the representation when learning stagnates.
 
+## Project 5b – RNN Sequence Modeling (Intermediate)
+
+**Goal:** Train a recurrent neural network on a short text corpus.**
+
+1. **Download the dataset** from Karpathy's char-rnn repository:
+   ```python
+   import requests
+   url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'
+   text = requests.get(url, timeout=10).text[:1000]
+   ```
+2. **Prepare sequences** by mapping characters to integer IDs and slicing windows of ten characters each.
+3. **Train** the network with the new `rnn` neuron type using the provided script.
+
+**Complete Example**
+```python
+# project05b_rnn_sequence_modeling.py
+from config_loader import load_config
+from marble_main import MARBLE
+import requests
+
+cfg = load_config()
+marble = MARBLE(cfg['core'])
+url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'
+text = requests.get(url, timeout=10).text[:1000]
+chars = sorted(set(text))
+char_to_idx = {c: i for i, c in enumerate(chars)}
+examples = [
+    ([char_to_idx[c] for c in text[i : i + 10]], char_to_idx[text[i + 10]])
+    for i in range(len(text) - 10)
+]
+marble.brain.train(examples[:500], epochs=1)
+```
+Run `python project05b_rnn_sequence_modeling.py` to train the simple RNN example.
 ## Project 6 – Reinforcement Learning (Master)
 
 **Goal:** Solve a simple GridWorld using Q-learning built on top of MARBLE.
