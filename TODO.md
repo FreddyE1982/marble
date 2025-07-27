@@ -59,7 +59,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 55. [x] Provide an option to profile CPU and GPU usage during training.
 56. [x] Integrate dataset sharding for distributed training.
 57. Create a cross-platform installer script.
-58. Provide a simple web API for remote inference.
+58. [x] Provide a simple web API for remote inference.
 59. [x] Add command line tools to export trained models.
 60. Implement automatic synchronization of config files across nodes.
 61. Enhance constant-time operations for cryptographic safety.

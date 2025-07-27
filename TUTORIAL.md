@@ -231,6 +231,31 @@ Execute the file on each machine as indicated to experiment with remote offloadi
 
 Remote offloading demonstrates **RemoteBrainServer**, **RemoteBrainClient** and the optional torrent‑based distribution.
 
+## Project 3b – Remote Inference API (Medium)
+
+**Goal:** Serve a trained MARBLE brain over HTTP for lightweight inference.
+
+1. **Create a brain** and start the API:
+   ```python
+   from tests.test_core_functions import minimal_params
+   from marble_core import Core, DataLoader
+   from marble_neuronenblitz import Neuronenblitz
+   from marble_brain import Brain
+   from web_api import InferenceServer
+
+   core = Core(minimal_params())
+   nb = Neuronenblitz(core)
+   brain = Brain(core, nb, DataLoader())
+   server = InferenceServer(brain)
+   server.start()
+   ```
+2. **Send requests** to `http://localhost:5000/infer` with JSON
+   `{"input": 0.42}` and read back the numeric output.
+3. **Stop the server** by calling `server.stop()` when finished.
+
+This project highlights how MARBLE can integrate with external services through
+a minimal web API.
+
 ## Project 4 – Autograd and PyTorch Challenge (Advanced)
 
 **Goal:** Combine MARBLE with a PyTorch model and compare results.

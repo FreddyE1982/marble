@@ -71,6 +71,33 @@ Use ``--save`` to persist the entire MARBLE object with pickle and
 ``--export-core`` to write just the core for later loading via
 ``import_core_from_json``.
 
+### Remote Inference API
+
+MARBLE can be exposed through a lightweight HTTP API. Launch the server with:
+
+```python
+from marble_core import Core, DataLoader
+from marble_neuronenblitz import Neuronenblitz
+from marble_brain import Brain
+from web_api import InferenceServer
+from tests.test_core_functions import minimal_params
+
+core = Core(minimal_params())
+nb = Neuronenblitz(core)
+brain = Brain(core, nb, DataLoader())
+server = InferenceServer(brain)
+server.start()
+```
+
+Query the API using ``curl``:
+
+```bash
+curl -X POST http://localhost:5000/infer -H 'Content-Type: application/json' \
+     -d '{"input": 0.5}'
+```
+
+Call ``server.stop()`` to shut it down.
+
 ### Playground
 
 An interactive Streamlit playground allows quick experimentation with all of
