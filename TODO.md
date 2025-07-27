@@ -34,8 +34,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 27. Provide higher-level wrappers for common reinforcement learning tasks.
 28. Add recurrent neural network neuron types to Marble Core.
 29. [x] Introduce dropout and batch normalization synapse types.
-30. Create a graphical configuration editor in the Streamlit GUI.
-31. Enhance the GUI with dark/light mode and mobile layout tweaks.
+30. [x] Create a graphical configuration editor in the Streamlit GUI.
+31. [x] Enhance the GUI with dark/light mode and mobile layout tweaks.
 32. [x] Add a data pre-processing pipeline with caching.
 33. [x] Integrate a remote experiment tracker (e.g., Weights & Biases).
 34. [x] Provide example projects for image and text domains.
@@ -43,7 +43,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 36. Expand YAML configuration to allow hierarchical experiment setups.
 37. [x] Add early stopping based on validation metrics.
 38. [x] Provide utilities for synthetic dataset generation.
-39. Implement curriculum learning helpers in Neuronenblitz.
+39. [x] Implement curriculum learning helpers in Neuronenblitz.
 40. [x] Document best practices for hyperparameter tuning.
 41. [x] Improve remote offload logic with retry and timeout strategies.
 42. Add robust serialization for checkpointing training state.

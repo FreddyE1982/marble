@@ -1,15 +1,18 @@
 from __future__ import annotations
 
-import os
-import json
-import sys
-import wave
-import tempfile
-from io import BytesIO
-import io
-import runpy
 import contextlib
 import glob
+import io
+import json
+import os
+import runpy
+import sys
+import tempfile
+import wave
+from io import BytesIO
+
+# ruff: noqa: E402
+
 
 sys.modules.setdefault("streamlit_playground", sys.modules[__name__])
 import warnings
@@ -20,51 +23,49 @@ warnings.filterwarnings(
     category=DeprecationWarning,
 )
 
-import streamlit as st
-import streamlit.components.v1 as components
-import pandas as pd
-import numpy as np
-from PIL import Image
+import importlib
+import inspect
+import pkgutil
+import time
 from zipfile import ZipFile
 
 import networkx as nx
+import numpy as np
+import pandas as pd
 import plotly.graph_objs as go
-import time
+import pytest
+import streamlit as st
+import streamlit.components.v1 as components
+import torch
+import yaml
+from PIL import Image
+from transformers import AutoModel
 
-import inspect
 import marble_interface
-from marble_registry import MarbleRegistry
-
 from marble_interface import (
-    new_marble_system,
-    train_marble_system,
-    infer_marble_system,
-    set_dreaming,
-    set_autograd,
-    save_marble_system,
-    load_marble_system,
-    export_core_to_json,
-    import_core_from_json,
-    load_hf_dataset,
-    expand_marble_core,
     add_neuron_to_marble,
     add_synapse_to_marble,
-    freeze_synapses_fraction,
-    increase_marble_representation,
     decrease_marble_representation,
-    run_core_message_passing,
-    reset_core_representations,
+    expand_marble_core,
+    export_core_to_json,
+    freeze_synapses_fraction,
+    import_core_from_json,
+    increase_marble_representation,
+    infer_marble_system,
+    load_hf_dataset,
+    load_marble_system,
+    new_marble_system,
     randomize_core_representations,
+    reset_core_representations,
+    run_core_message_passing,
+    save_marble_system,
+    set_autograd,
+    set_dreaming,
     train_autoencoder,
+    train_marble_system,
 )
-
+from marble_registry import MarbleRegistry
 from metrics_dashboard import MetricsDashboard
-import pkgutil
-import importlib
-import yaml
-import torch
-from transformers import AutoModel
-import pytest
 
 
 def _auto_refresh(interval_ms: int, key: str) -> None:
@@ -672,6 +673,27 @@ def save_config_yaml(yaml_text: str, path: str) -> None:
         f.write(yaml_text)
 
 
+def render_config_editor(data: dict, path: str = "") -> dict:
+    """Render widgets for ``data`` and return updated values."""
+
+    if isinstance(data, dict):
+        out = {}
+        for key, val in data.items():
+            full = f"{path}.{key}" if path else key
+            with st.expander(key, expanded=False):
+                out[key] = render_config_editor(val, full)
+        return out
+    else:
+        key = path
+        if isinstance(data, bool):
+            return st.checkbox(key, value=data, key=key)
+        if isinstance(data, int):
+            return int(st.number_input(key, value=data, step=1, key=key))
+        if isinstance(data, float):
+            return float(st.number_input(key, value=data, key=key))
+        return st.text_input(key, value=str(data), key=key)
+
+
 def core_to_networkx(core) -> nx.DiGraph:
     """Return a NetworkX graph representing ``core``."""
     g = nx.DiGraph()
@@ -751,7 +773,7 @@ def metrics_figure(marble, window_size: int = 10) -> go.Figure:
 
 def system_stats(device: int = 0) -> dict:
     """Return current CPU and GPU memory usage in megabytes."""
-    from system_metrics import get_system_memory_usage, get_gpu_memory_usage
+    from system_metrics import get_gpu_memory_usage, get_system_memory_usage
 
     return {
         "ram_mb": get_system_memory_usage(),
@@ -898,6 +920,7 @@ def load_example_code(project_name: str) -> str:
 
 
 if "run_example_project" not in globals():
+
     def run_example_project(project_name: str) -> str:
         """Execute an example project script and return captured output."""
         ex_dir = os.path.join(os.path.dirname(__file__), "examples")
@@ -955,7 +978,7 @@ def create_torrent_system(
     heartbeat_interval: int = 30,
 ) -> tuple[object, object]:
     """Return a tracker and connected ``BrainTorrentClient``."""
-    from torrent_offload import BrainTorrentTracker, BrainTorrentClient
+    from torrent_offload import BrainTorrentClient, BrainTorrentTracker
 
     tracker = BrainTorrentTracker()
     client = BrainTorrentClient(
@@ -1360,9 +1383,43 @@ def _persist_ui_state() -> None:
     components.html(script, height=0, width=0)
 
 
+def _detect_client_settings() -> None:
+    """Detect client theme and screen size via JavaScript."""
+
+    js = """
+    <script>
+    const theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    const mobile = window.innerWidth < 768 ? '1' : '0';
+    const url = new URL(window.location);
+    let changed = false;
+    if (url.searchParams.get('theme') !== theme) { url.searchParams.set('theme', theme); changed = true; }
+    if (url.searchParams.get('mobile') !== mobile) { url.searchParams.set('mobile', mobile); changed = true; }
+    if (changed) { window.location.replace(url); }
+    </script>
+    """
+    components.html(js, height=0)
+
+
 def run_playground() -> None:
     """Launch the Streamlit MARBLE playground."""
-    st.set_page_config(page_title="MARBLE Playground")
+    _detect_client_settings()
+    params = st.experimental_get_query_params()
+    theme = params.get("theme", ["light"])[0]
+    mobile = params.get("mobile", ["0"])[0] == "1"
+    st.session_state["theme"] = theme
+    st.session_state["mobile"] = mobile
+    st.set_page_config(page_title="MARBLE Playground", layout="wide")
+    if theme == "dark":
+        st.markdown(
+            "<style>body{background-color:#0e1117;color:#d0d0d0;}</style>",
+            unsafe_allow_html=True,
+        )
+    if mobile:
+        st.markdown(
+            "<style>div.block-container{padding:0.5rem;}"
+            "div[data-testid='stSidebar']{width:100%;}</style>",
+            unsafe_allow_html=True,
+        )
     st.title("MARBLE Playground")
 
     if st.button("About"):
@@ -2258,21 +2315,18 @@ def run_playground() -> None:
 
         with tab_cfg:
             st.write("Edit the active YAML configuration.")
-            param = st.text_input("Parameter Path", key="cfg_param")
-            val = st.text_input("Value", key="cfg_value")
-            if st.button("Update Config", key="cfg_update"):
-                if "config_yaml" not in st.session_state:
-                    st.error("No configuration loaded")
-                else:
-                    new_yaml = set_yaml_value(
-                        st.session_state["config_yaml"], param, _parse_value(val)
+            if "config_yaml" not in st.session_state:
+                st.info("No configuration loaded")
+            else:
+                cfg_data = yaml.safe_load(st.session_state["config_yaml"]) or {}
+                updated = render_config_editor(cfg_data)
+                if st.button("Apply Changes", key="cfg_apply"):
+                    st.session_state["config_yaml"] = yaml.safe_dump(
+                        updated, sort_keys=False
                     )
-                    st.session_state["config_yaml"] = new_yaml
-                    st.code(new_yaml, language="yaml")
-            if st.button("Reinitialize", key="cfg_reinit"):
-                if "config_yaml" not in st.session_state:
-                    st.error("No configuration loaded")
-                else:
+                    st.success("Configuration updated")
+                st.code(st.session_state["config_yaml"], language="yaml")
+                if st.button("Reinitialize", key="cfg_reinit"):
                     st.session_state["marble"] = initialize_marble(
                         None, yaml_text=st.session_state["config_yaml"]
                     )
