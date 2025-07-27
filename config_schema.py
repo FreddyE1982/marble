@@ -9,6 +9,8 @@ CONFIG_SCHEMA = {
                 "representation_size": {"type": "integer", "minimum": 1},
                 "message_passing_alpha": {"type": "number", "minimum": 0, "maximum": 1},
                 "message_passing_beta": {"type": "number", "minimum": 0, "maximum": 1},
+                "weight_init_strategy": {"type": "string"},
+                "show_message_progress": {"type": "boolean"},
             },
         },
         "neuronenblitz": {"type": "object"},

@@ -18,24 +18,53 @@ from marble_imports import *
 _REP_SIZE = 4
 
 
-def _init_weights(rep_size: int):
+def _init_weights(
+    rep_size: int,
+    *,
+    strategy: str = "uniform",
+    mean: float = 0.0,
+    std: float = 1.0,
+    min_val: float = -0.1,
+    max_val: float = 0.1,
+):
+    """Initialise MLP weights using the chosen strategy."""
     rs = np.random.RandomState(0)
-    w1 = rs.randn(rep_size, 8) * 0.1
-    b1 = rs.randn(8) * 0.1
-    w2 = rs.randn(8, rep_size) * 0.1
-    b2 = rs.randn(rep_size) * 0.1
+    if strategy == "normal":
+        w1 = rs.normal(mean, std, size=(rep_size, 8))
+        b1 = rs.normal(mean, std, size=8)
+        w2 = rs.normal(mean, std, size=(8, rep_size))
+        b2 = rs.normal(mean, std, size=rep_size)
+    else:
+        w1 = rs.uniform(min_val, max_val, size=(rep_size, 8))
+        b1 = rs.uniform(min_val, max_val, size=8)
+        w2 = rs.uniform(min_val, max_val, size=(8, rep_size))
+        b2 = rs.uniform(min_val, max_val, size=rep_size)
     return w1, b1, w2, b2
 
 
 _W1, _B1, _W2, _B2 = _init_weights(_REP_SIZE)
 
 
-def configure_representation_size(rep_size: int) -> None:
+def configure_representation_size(
+    rep_size: int,
+    *,
+    weight_strategy: str = "uniform",
+    mean: float = 0.0,
+    std: float = 1.0,
+    min_val: float = -0.1,
+    max_val: float = 0.1,
+) -> None:
     """Configure global representation size used for message passing."""
     global _REP_SIZE, _W1, _B1, _W2, _B2
-    if rep_size != _REP_SIZE:
-        _REP_SIZE = rep_size
-        _W1, _B1, _W2, _B2 = _init_weights(rep_size)
+    _REP_SIZE = rep_size
+    _W1, _B1, _W2, _B2 = _init_weights(
+        rep_size,
+        strategy=weight_strategy,
+        mean=mean,
+        std=std,
+        min_val=min_val,
+        max_val=max_val,
+    )
 
 
 def _apply_activation(arr: np.ndarray, activation: str) -> np.ndarray:
@@ -126,6 +155,7 @@ def perform_message_passing(
     attention_module: "AttentionModule | None" = None,
     *,
     global_phase: float | None = None,
+    show_progress: bool = False,
 ) -> float:
     """Propagate representations across synapses using attention.
 
@@ -140,6 +170,8 @@ def perform_message_passing(
     global_phase : float, optional
         Phase offset applied to all synapse weights to enable oscillatory gating.
         When omitted the value from ``core.global_phase`` is used.
+    show_progress : bool, optional
+        When ``True`` a progress bar visualises per-neuron updates.
     """
 
     if alpha is None:
@@ -159,7 +191,12 @@ def perform_message_passing(
 
     new_reps = [n.representation.copy() for n in core.neurons]
     old_reps = [n.representation.copy() for n in core.neurons]
-    for target in core.neurons:
+    targets = core.neurons
+    pbar = None
+    if show_progress:
+        pbar = tqdm(targets, desc="MsgPass", ncols=80)
+        targets = pbar
+    for target in targets:
         if target.energy < energy_thr:
             continue
         incoming = [
@@ -220,6 +257,8 @@ def perform_message_passing(
                 "representation_variance": variance,
             }
         )
+    if pbar is not None:
+        pbar.close()
     return avg_change
 
 
@@ -1278,7 +1317,15 @@ class Core:
         rep_size = params.get("representation_size", _REP_SIZE)
         if rep_size <= 0:
             raise ValueError("representation_size must be positive")
-        configure_representation_size(rep_size)
+        self.weight_init_strategy = params.get("weight_init_strategy", "uniform")
+        configure_representation_size(
+            rep_size,
+            weight_strategy=self.weight_init_strategy,
+            mean=params.get("weight_init_mean", 0.0),
+            std=params.get("weight_init_std", 1.0),
+            min_val=params.get("weight_init_min", 0.5),
+            max_val=params.get("weight_init_max", 1.5),
+        )
         self.rep_size = rep_size
         self.attention_module = AttentionModule(
             params.get("attention_temperature", 1.0)
@@ -1491,6 +1538,32 @@ class Core:
         self.neurons = remaining
         self.synapses = new_syn
 
+    def prune_unused_neurons(self) -> None:
+        """Remove neurons that have no incoming or outgoing synapses."""
+        used = {s.source for s in self.synapses} | {s.target for s in self.synapses}
+        if len(used) == len(self.neurons):
+            return
+        remaining = []
+        id_map = {}
+        for idx, neuron in enumerate(self.neurons):
+            if idx not in used:
+                continue
+            new_id = len(remaining)
+            id_map[idx] = new_id
+            neuron.id = new_id
+            remaining.append(neuron)
+        new_syn = []
+        for syn in self.synapses:
+            if syn.source not in id_map or syn.target not in id_map:
+                continue
+            syn.source = id_map[syn.source]
+            syn.target = id_map[syn.target]
+            new_syn.append(syn)
+        for neuron in remaining:
+            neuron.synapses = [s for s in new_syn if s.source == neuron.id]
+        self.neurons = remaining
+        self.synapses = new_syn
+
     def add_synapse(
         self,
         source_id,
@@ -1640,7 +1713,14 @@ class Core:
         if delta <= 0:
             return
         new_size = self.rep_size + delta
-        configure_representation_size(new_size)
+        configure_representation_size(
+            new_size,
+            weight_strategy=self.weight_init_strategy,
+            mean=self.weight_init_mean,
+            std=self.weight_init_std,
+            min_val=self.weight_init_min,
+            max_val=self.weight_init_max,
+        )
         for neuron in self.neurons:
             neuron.representation = np.pad(neuron.representation, (0, delta))
         self.rep_size = new_size
@@ -1654,7 +1734,14 @@ class Core:
         if delta <= 0:
             return
         new_size = self.rep_size - delta
-        configure_representation_size(new_size)
+        configure_representation_size(
+            new_size,
+            weight_strategy=self.weight_init_strategy,
+            mean=self.weight_init_mean,
+            std=self.weight_init_std,
+            min_val=self.weight_init_min,
+            max_val=self.weight_init_max,
+        )
         for neuron in self.neurons:
             neuron.representation = neuron.representation[:new_size]
         self.rep_size = new_size
