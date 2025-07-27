@@ -3,6 +3,7 @@ import sys
 import threading
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from functools import partial
+import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -94,4 +95,24 @@ def test_dataset_sharding(tmp_path):
     csv_path.write_text("input,target\n1,2\n3,4\n5,6\n7,8\n")
     pairs = load_dataset(str(csv_path), num_shards=2, shard_index=1)
     assert pairs == [(3, 4), (7, 8)]
+
+
+def test_offline_mode(tmp_path):
+    csv_path = tmp_path / "offline.csv"
+    csv_path.write_text("input,target\n9,10\n")
+    httpd, thread = _serve_directory(tmp_path, 9050)
+    try:
+        url = f"http://localhost:9050/{csv_path.name}"
+        cache = tmp_path / "cache"
+        # first download to cache
+        pairs = load_dataset(url, cache_dir=cache)
+        assert pairs == [(9, 10)]
+    finally:
+        httpd.shutdown()
+        thread.join()
+
+    pairs = load_dataset(url, cache_dir=cache, offline=True)
+    assert pairs == [(9, 10)]
+    with pytest.raises(FileNotFoundError):
+        load_dataset(url, cache_dir=tmp_path / "missing", offline=True)
 

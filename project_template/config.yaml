@@ -1,0 +1,7 @@
+dataset:
+  num_shards: 1
+  shard_index: 0
+  offline: false
+logging:
+  structured: false
+  log_file: run.log

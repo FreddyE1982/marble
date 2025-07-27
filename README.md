@@ -219,6 +219,15 @@ If training diverges or produces NaNs:
 
 For CUDA related errors confirm that your GPU drivers and PyTorch build match.
 
+## Additional Resources
+
+* **Interactive notebook** – A Jupyter notebook located under ``notebooks/``
+  demonstrates dataset loading and model training step by step.
+* **Template repository** – The ``project_template`` directory provides a
+  minimal project skeleton including a configuration file and entry point.
+* **Reusable neuron and synapse templates** – Found in ``templates/`` to help
+  kick start custom component development.
+
 ## Code Style
 This repository includes a pre-commit configuration using **black**, **isort**
 and **ruff**. After installing the `pre-commit` package run:

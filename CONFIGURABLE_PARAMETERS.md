@@ -361,6 +361,7 @@ Each entry is listed under its section heading.
 ## dataset
 - num_shards
 - shard_index
+- offline
 
 ## distillation
 - enabled

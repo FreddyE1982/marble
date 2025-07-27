@@ -10,6 +10,8 @@ This tutorial demonstrates every major component of MARBLE through a series of p
    ```
    After the packages are installed you can verify the environment by running `python -c "import marble_main"` which should finish silently.
 2. **Review the documentation**. Read [ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md) for a high level view of MARBLE and consult [yaml-manual.txt](yaml-manual.txt) for an explanation of every configuration option.
+3. **Open the interactive notebook** found in ``notebooks/tutorial.ipynb`` if
+   you prefer running the tutorial step by step inside Jupyter.
 
 3. **Use the command line interface**. The `cli.py` script allows training from
    the terminal without writing custom code. Scheduler and early-stopping
@@ -1516,3 +1518,15 @@ Additional experiments can enable **prioritized experience replay** by setting `
 ## Organising Multiple Experiments
 
 You can define a list of experiment setups in `config.yaml` under the `experiments` section. Each entry overrides parameters for a single run. Invoke `create_marble_from_config` with a specific experiment name to load those settings.
+
+## Using the Project Template
+
+For a quick start you can copy the contents of the `project_template` directory.
+It contains a ready-made `config.yaml` and `main.py` that follow the patterns
+described in this tutorial. Place your dataset in the directory and run
+
+```bash
+python main.py
+```
+
+to train using the default settings.

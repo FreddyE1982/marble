@@ -31,6 +31,7 @@ def load_dataset(
     target_col: str = "target",
     limit: int | None = None,
     force_refresh: bool = False,
+    offline: bool = False,
     num_shards: int | None = None,
     shard_index: int = 0,
 ) -> list[tuple[Any, Any]]:
@@ -39,7 +40,9 @@ def load_dataset(
     The ``source`` can be a local path, remote URL, or a ZIP archive containing
     either a CSV or JSON/JSONL file. Remote sources are automatically cached in
     ``cache_dir`` and reused on subsequent calls unless ``force_refresh`` is
-    ``True``. If the dataset is zipped only the first CSV/JSON file inside the
+    ``True``. When ``offline`` is ``True`` the function will only load from the
+    local cache and raise ``FileNotFoundError`` if the file is not present. If
+    the dataset is zipped only the first CSV/JSON file inside the
     archive is used. Large datasets can be split across multiple shards by
     specifying ``num_shards`` and ``shard_index``. When ``num_shards`` is
     greater than one, only every ``num_shards``-th sample starting at
@@ -51,7 +54,12 @@ def load_dataset(
         if not name:
             name = hashlib.md5(source.encode("utf-8")).hexdigest() + ".dat"
         cached = os.path.join(cache_dir, name)
-        if force_refresh or not os.path.exists(cached):
+        if offline:
+            if not os.path.exists(cached):
+                raise FileNotFoundError(
+                    f"{cached} not available in offline mode"
+                )
+        elif force_refresh or not os.path.exists(cached):
             _download_file(source, cached)
         path = cached
     else:
