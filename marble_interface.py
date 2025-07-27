@@ -1,20 +1,21 @@
 from __future__ import annotations
 
 import pickle
-from typing import Any, Iterable, Hashable
+import warnings
+from typing import Any, Hashable, Iterable
 
-import pandas as pd
 import numpy as np
-
-from distillation_trainer import DistillationTrainer
-from config_loader import create_marble_from_config, load_config
-from marble_main import MARBLE
-from marble_autograd import MarbleAutogradLayer
-from marble_utils import core_to_json, core_from_json
-from autoencoder_learning import AutoencoderLearner
+import pandas as pd
 import torch
 from datasets import load_dataset
-import warnings
+
+from autoencoder_learning import AutoencoderLearner
+from config_loader import create_marble_from_config, load_config
+from curriculum_learning import curriculum_train
+from distillation_trainer import DistillationTrainer
+from marble_autograd import MarbleAutogradLayer
+from marble_main import MARBLE
+from marble_utils import core_from_json, core_to_json
 
 warnings.filterwarnings(
     "ignore",
@@ -97,7 +98,31 @@ def distillation_train_marble_system(
 ) -> None:
     """Train ``student`` using ``teacher`` outputs for knowledge distillation."""
     trainer = DistillationTrainer(student.get_brain(), teacher.get_brain(), alpha=alpha)
-    trainer.train(train_examples, epochs=epochs, validation_examples=validation_examples)
+    trainer.train(
+        train_examples, epochs=epochs, validation_examples=validation_examples
+    )
+
+
+def curriculum_train_marble_system(
+    marble: MARBLE,
+    train_examples: Iterable[Any],
+    *,
+    epochs: int = 1,
+    difficulty_fn=None,
+    schedule: str = "linear",
+) -> list[float]:
+    """Train ``marble`` using curriculum learning."""
+
+    core = marble.get_core()
+    nb = marble.get_neuronenblitz()
+    return curriculum_train(
+        core,
+        nb,
+        list(train_examples),
+        epochs=epochs,
+        difficulty_fn=difficulty_fn,
+        schedule=schedule,
+    )
 
 
 def set_dreaming(marble: MARBLE, enabled: bool) -> None:
@@ -215,7 +240,9 @@ def train_from_dataframe(marble: MARBLE, df: pd.DataFrame, epochs: int = 1) -> N
     train_marble_system(marble, examples, epochs=epochs)
 
 
-def evaluate_marble_system(marble: MARBLE, examples: Iterable[tuple[Any, Any]]) -> float:
+def evaluate_marble_system(
+    marble: MARBLE, examples: Iterable[tuple[Any, Any]]
+) -> float:
     """Return mean squared error of ``marble`` predictions on ``examples``."""
     preds = []
     targets = []
@@ -278,7 +305,12 @@ def add_neuron_to_marble(
     core = marble.get_core()
     start = len(core.neurons)
     target = tier if tier is not None else core.choose_new_tier()
-    core.expand(num_new_neurons=1, num_new_synapses=0, target_tier=target, neuron_types=neuron_type)
+    core.expand(
+        num_new_neurons=1,
+        num_new_synapses=0,
+        target_tier=target,
+        neuron_types=neuron_type,
+    )
     return start
 
 
@@ -290,7 +322,9 @@ def add_synapse_to_marble(
     synapse_type: str = "standard",
 ) -> None:
     """Create a synapse in ``marble`` between two neurons."""
-    marble.get_core().add_synapse(source_id, target_id, weight=weight, synapse_type=synapse_type)
+    marble.get_core().add_synapse(
+        source_id, target_id, weight=weight, synapse_type=synapse_type
+    )
 
 
 def freeze_synapses_fraction(marble: MARBLE, fraction: float) -> None:
@@ -364,7 +398,9 @@ def cluster_marble_neurons(marble: MARBLE, k: int = 3) -> None:
     marble.get_core().cluster_neurons(k)
 
 
-def relocate_marble_clusters(marble: MARBLE, high: float = 1.0, medium: float = 0.1) -> None:
+def relocate_marble_clusters(
+    marble: MARBLE, high: float = 1.0, medium: float = 0.1
+) -> None:
     """Relocate neuron clusters based on attention scores."""
     marble.get_core().relocate_clusters(high, medium)
 
@@ -427,4 +463,3 @@ def train_autoencoder(
     )
     learner.train(list(map(float, values)), epochs=int(epochs))
     return float(learner.history[-1]["loss"]) if learner.history else 0.0
-
