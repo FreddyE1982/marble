@@ -247,6 +247,30 @@ def test_eligibility_traces_accumulate():
     assert np.isclose(syn.weight, 2.45470864944, atol=1e-6)
 
 
+def test_gradient_accumulation_steps():
+    random.seed(0)
+    core, syn = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        consolidation_probability=0.0,
+        weight_decay=0.0,
+        momentum_coefficient=0.0,
+        structural_plasticity_enabled=False,
+        synaptic_fatigue_enabled=False,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        gradient_accumulation_steps=2,
+    )
+    nb.learning_rate = 1.0
+    core.neurons[0].value = 1.0
+    prev = syn.weight
+    nb.apply_weight_updates_and_attention([syn], error=1.0)
+    assert syn.weight == pytest.approx(prev)
+    core.neurons[0].value = 1.0
+    nb.apply_weight_updates_and_attention([syn], error=1.0)
+    assert syn.weight != pytest.approx(prev)
+
+
 def test_dropout_prevents_synapse_use():
     random.seed(0)
     np.random.seed(0)
