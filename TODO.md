@@ -72,13 +72,13 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 65. [x] Add tests verifying deterministic behaviour with fixed seeds.
 66. Improve readability of configuration files with comments and sections.
 67. [x] Implement graph pruning utilities to remove unused neurons.
-68. Create a repository of reusable neuron/synapse templates.
+68. [x] Create a repository of reusable neuron/synapse templates.
 69. [x] Add support for mixed precision training when GPUs are available.
 70. [x] Provide dynamic graph visualisation within the GUI.
 71. [x] Implement scheduled backups of experiment logs and results.
 72. Add a compatibility layer for older Python versions where feasible.
 73. Provide self-contained Docker images for reproducibility.
-74. Implement offline mode with pre-packaged datasets.
+74. [x] Implement offline mode with pre-packaged datasets.
 75. Add automated packaging to publish releases on PyPI.
 76. Improve data compression for network transfers.
 77. Incorporate gradient accumulation for large batch training.
@@ -96,13 +96,13 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 89. Implement context-aware attention mechanisms.
 90. [x] Add unit tests ensuring backward compatibility between versions.
 91. [x] Create a `core_benchmark.py` script for micro benchmarks.
-92. Provide a template repository for new Marble-based projects.
-93. Add interactive tutorials in Jupyter notebooks.
+92. [x] Provide a template repository for new Marble-based projects.
+93. [x] Add interactive tutorials in Jupyter notebooks.
 94. Expand the remote offload module with bandwidth estimation.
 95. Implement dynamic route optimisation in Neuronenblitz.
 96. Add anomaly detection for wandering behaviour.
 97. [x] Provide visual feedback for training progress in Streamlit.
 98. [x] [x] Offer integration examples with existing ML libraries.
 99. [x] Enhance documentation with troubleshooting guides.
-100. Establish a long-term roadmap with release milestones.
+100. [x] Establish a long-term roadmap with release milestones.
 

@@ -14,3 +14,20 @@ This document outlines upcoming milestones for future Marble releases.
 
 Further versions will refine the API and add more tutorials based on
 community feedback.
+
+## Long Term Vision
+
+The following milestones provide a high level view of Marble's evolution over
+the coming years. Dates are tentative and may shift based on community needs.
+
+- **v1.0 – Q3 2025**
+  - Stable API with semantic versioning.
+  - Official template repository published on PyPI.
+  - Complete GUI test coverage across all features.
+- **v1.5 – Q1 2026**
+  - Initial support for distributed training across clusters.
+  - Offline mode enhancements with dataset packaging utilities.
+- **v2.0 – Q4 2026**
+  - Context-aware attention mechanisms.
+  - Full reinforcement learning suite including hierarchical methods.
+  - Optional remote hardware plugin tier for specialised accelerators.
