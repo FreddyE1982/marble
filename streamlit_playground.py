@@ -18,6 +18,7 @@ warnings.filterwarnings(
 )
 
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import numpy as np
 from PIL import Image
@@ -1299,6 +1300,47 @@ def run_tests(pattern: str | None = None) -> str:
     return buf.getvalue() + f"\nExit code: {code}\n"
 
 
+def _persist_ui_state() -> None:
+    """Persist tabs, expanders and scroll position across reruns using JS."""
+
+    script = """
+    <script>
+    const doc = window.parent.document;
+
+    // scroll position
+    const pos = sessionStorage.getItem('scrollPos') || 0;
+    window.scrollTo(0, parseFloat(pos));
+    window.addEventListener('scroll', () => {
+        sessionStorage.setItem('scrollPos', doc.documentElement.scrollTop || window.pageYOffset);
+    });
+
+    // active tab index
+    const tabs = doc.querySelectorAll('[data-baseweb="tab"]');
+    const savedTab = sessionStorage.getItem('activeTabIndex');
+    if (savedTab !== null && tabs[savedTab]) {
+        tabs[savedTab].click();
+    }
+    tabs.forEach((t, idx) => {
+        t.addEventListener('click', () => {
+            sessionStorage.setItem('activeTabIndex', idx);
+        });
+    });
+
+    // expander state
+    const expanders = doc.querySelectorAll('[data-testid="stExpander"] details');
+    expanders.forEach((exp, idx) => {
+        const open = sessionStorage.getItem('expander' + idx);
+        if (open === 'true') exp.open = true;
+        exp.addEventListener('toggle', () => {
+            sessionStorage.setItem('expander' + idx, exp.open);
+        });
+    });
+    </script>
+    """
+
+    components.html(script, height=0, width=0)
+
+
 def run_playground() -> None:
     """Launch the Streamlit MARBLE playground."""
     st.set_page_config(page_title="MARBLE Playground")
@@ -2540,6 +2582,8 @@ def run_playground() -> None:
             if st.button("Show Source", key="src_show"):
                 code = load_module_source(mod_choice)
                 st.code(code, language="python")
+
+    _persist_ui_state()
 
 
 if __name__ == "__main__":

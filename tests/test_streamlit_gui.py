@@ -954,3 +954,19 @@ def test_autoencoder_tab_training(monkeypatch):
     at = train_btn.click().run(timeout=20)
     auto_tab = next(t for t in at.tabs if t.label == "Autoencoder")
     assert any("Training complete" in s.value for s in auto_tab.success)
+
+
+def test_persist_ui_state_inserts_script(monkeypatch):
+    captured = {}
+
+    def fake_html(data, **kwargs):
+        captured['data'] = data
+
+    monkeypatch.setattr("streamlit.components.v1.html", fake_html)
+    import importlib
+    import streamlit_playground
+    importlib.reload(streamlit_playground)
+    streamlit_playground._persist_ui_state()
+    assert "scrollPos" in captured.get('data', '')
+
+
