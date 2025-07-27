@@ -120,6 +120,7 @@ class MetricsVisualizer:
         tracker: "ExperimentTracker" | None = None,
         backup_dir: str | None = None,
         backup_interval: float = 3600.0,
+        anomaly_std_threshold: float = 3.0,
     ):
         self.metrics = {
             "loss": [],
@@ -147,6 +148,7 @@ class MetricsVisualizer:
         self.dpi = dpi
         self.track_memory_usage = track_memory_usage
         self.track_cpu_usage = track_cpu_usage
+        self.anomaly_std_threshold = anomaly_std_threshold
         self.writer = SummaryWriter(log_dir) if log_dir else None
         self.tracker = tracker
         self.csv_log_path = csv_log_path
@@ -189,6 +191,17 @@ class MetricsVisualizer:
             self.metrics[key].append(value)
             if self.writer:
                 self.writer.add_scalar(key, value, self._step)
+            if self.anomaly_std_threshold and len(self.metrics[key]) > 5:
+                arr = np.asarray(self.metrics[key], dtype=float)
+                mean = arr.mean()
+                std = arr.std()
+                if std > 0 and abs(value - mean) > self.anomaly_std_threshold * std:
+                    msg = (
+                        f"Anomaly detected in {key}: {value} (mean {mean:.3f}, std {std:.3f})"
+                    )
+                    if self.writer:
+                        self.writer.add_text("anomaly", msg, self._step)
+                    print(msg)
         if self.track_memory_usage:
             self.metrics["ram_usage"].append(get_system_memory_usage())
             self.metrics["gpu_usage"].append(get_gpu_memory_usage())

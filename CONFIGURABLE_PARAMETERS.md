@@ -36,6 +36,7 @@ Each entry is listed under its section heading.
 - synapse_batchnorm_momentum
 - representation_activation
 - apply_layer_norm
+- use_mixed_precision
 - weight_init_mean
 - weight_init_std
 - weight_init_type

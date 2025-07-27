@@ -17,6 +17,7 @@ CONFIG_SCHEMA = {
                     "minimum": 0,
                     "maximum": 1,
                 },
+                "use_mixed_precision": {"type": "boolean"},
             },
         },
         "neuronenblitz": {"type": "object"},

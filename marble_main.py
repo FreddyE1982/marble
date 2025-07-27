@@ -49,6 +49,7 @@ class MARBLE:
             "log_dir": None,
             "csv_log_path": None,
             "json_log_path": None,
+            "anomaly_std_threshold": 3.0,
         }
         if mv_params is not None:
             mv_defaults.update(mv_params)
@@ -64,6 +65,7 @@ class MARBLE:
             log_dir=mv_defaults["log_dir"],
             csv_log_path=mv_defaults["csv_log_path"],
             json_log_path=mv_defaults["json_log_path"],
+            anomaly_std_threshold=mv_defaults["anomaly_std_threshold"],
         )
         self.metrics_dashboard = None
         if dashboard_params is not None and dashboard_params.get("enabled", False):

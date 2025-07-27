@@ -99,6 +99,11 @@ core:
   apply_layer_norm: When true the hidden layer of ``_simple_mlp`` is normalised
     to zero mean and unit variance before the final activation. This often
     stabilises training dynamics. Set ``false`` to disable.
+  use_mixed_precision: Enable automatic mixed precision for ``_simple_mlp`` and
+    other tensor operations. When set to ``true`` and a compatible GPU is
+    available, computations run in half precision within a ``torch.autocast``
+    context. This can greatly speed up training but may introduce minor numerical
+    differences compared to full precision.
   weight_init_mean: Mean of the normal distribution used to initialize
     synaptic weights.
   weight_init_std: Standard deviation of the normal distribution when
@@ -733,6 +738,10 @@ metrics_visualizer:
     update. Useful for analysis with spreadsheet tools.
   json_log_path: Path to a JSON lines file where each update is appended as a
     single JSON object. This provides structured logs for downstream tools.
+  anomaly_std_threshold: Number of standard deviations a new metric value must
+    exceed the running mean to be flagged as an anomaly. When this threshold is
+    crossed the event is printed and, if TensorBoard logging is enabled, written
+    as a text entry. Set to ``0`` to disable anomaly detection.
 
 metrics_dashboard:
   # Optional web dashboard built with Plotly Dash for real-time monitoring.
