@@ -105,6 +105,7 @@ from streamlit_playground import (
     hybrid_memory_store,
     hybrid_memory_retrieve,
     hybrid_memory_forget,
+    activation_figure,
 )
 
 

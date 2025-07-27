@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import json
+import sys
 import wave
 import tempfile
 from io import BytesIO
@@ -9,6 +10,8 @@ import io
 import runpy
 import contextlib
 import glob
+
+sys.modules.setdefault("streamlit_playground", sys.modules[__name__])
 import warnings
 
 warnings.filterwarnings(
@@ -446,7 +449,10 @@ def find_repository_functions(query: str) -> list[tuple[str, str]]:
     q = query.lower()
     matches: list[tuple[str, str]] = []
     for name in list_repo_modules() + ["marble_interface"]:
-        module = importlib.import_module(name)
+        try:
+            module = importlib.import_module(name)
+        except ImportError:
+            continue
         for fname, obj in inspect.getmembers(module, inspect.isfunction):
             if fname.startswith("_"):
                 continue
@@ -891,15 +897,16 @@ def load_example_code(project_name: str) -> str:
         return f.read()
 
 
-def run_example_project(project_name: str) -> str:
-    """Execute an example project script and return captured output."""
-    ex_dir = os.path.join(os.path.dirname(__file__), "examples")
-    path = os.path.join(ex_dir, project_name)
-    out_buf = io.StringIO()
-    err_buf = io.StringIO()
-    with contextlib.redirect_stdout(out_buf), contextlib.redirect_stderr(err_buf):
-        runpy.run_path(path, run_name="__main__")
-    return out_buf.getvalue() + err_buf.getvalue()
+if "run_example_project" not in globals():
+    def run_example_project(project_name: str) -> str:
+        """Execute an example project script and return captured output."""
+        ex_dir = os.path.join(os.path.dirname(__file__), "examples")
+        path = os.path.join(ex_dir, project_name)
+        out_buf = io.StringIO()
+        err_buf = io.StringIO()
+        with contextlib.redirect_stdout(out_buf), contextlib.redirect_stderr(err_buf):
+            runpy.run_path(path, run_name="__main__")
+        return out_buf.getvalue() + err_buf.getvalue()
 
 
 def start_remote_server(
@@ -972,7 +979,10 @@ def list_learner_modules() -> list[str]:
             or mod.name in {"streamlit_playground", "tests", "examples"}
         ):
             continue
-        module = importlib.import_module(mod.name)
+        try:
+            module = importlib.import_module(mod.name)
+        except ImportError:
+            continue
         for _name, obj in inspect.getmembers(module, inspect.isclass):
             if obj.__name__.endswith("Learner") or obj.__name__.endswith("Agent"):
                 modules.add(mod.name)
@@ -982,7 +992,10 @@ def list_learner_modules() -> list[str]:
 
 def list_learner_classes(module_name: str) -> list[str]:
     """Return learner class names in ``module_name``."""
-    module = importlib.import_module(module_name)
+    try:
+        module = importlib.import_module(module_name)
+    except ImportError:
+        return []
     classes = []
     for name, obj in inspect.getmembers(module, inspect.isclass):
         if name.endswith("Learner") or name.endswith("Agent"):
@@ -992,7 +1005,10 @@ def list_learner_classes(module_name: str) -> list[str]:
 
 def create_learner(module_name: str, class_name: str, marble, **params):
     """Instantiate a learner class using components from ``marble``."""
-    module = importlib.import_module(module_name)
+    try:
+        module = importlib.import_module(module_name)
+    except ImportError as e:
+        raise ImportError(f"Could not import {module_name}") from e
     if not hasattr(module, class_name):
         raise ValueError(f"Unknown class: {class_name}")
     cls = getattr(module, class_name)
