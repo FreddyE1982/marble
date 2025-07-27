@@ -158,6 +158,7 @@ class Neuronenblitz:
         use_gradient_path_scoring=True,
         activity_gate_exponent=1.0,
         subpath_cache_size=100,
+        gradient_accumulation_steps=1,
         subpath_cache_ttl=300,
         use_mixed_precision=False,
         remote_client=None,
@@ -320,6 +321,9 @@ class Neuronenblitz:
         self._subpath_cache_size = int(subpath_cache_size)
         self.subpath_cache_ttl = float(subpath_cache_ttl)
         self.use_mixed_precision = bool(use_mixed_precision)
+        self.gradient_accumulation_steps = int(max(1, gradient_accumulation_steps))
+        self._accum_step = 0
+        self._accum_updates = {}
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -1219,7 +1223,7 @@ class Neuronenblitz:
             cap = self.synapse_update_cap / depth_factor
             if abs(update) > cap:
                 update = math.copysign(cap, update)
-            syn.weight += update
+            self._accum_updates[syn] = self._accum_updates.get(syn, 0.0) + update
             syn.potential = min(
                 self.synapse_potential_cap,
                 syn.potential + abs(scaled_delta) * self.gradient_score_scale,
@@ -1232,6 +1236,21 @@ class Neuronenblitz:
                 syn.weight = -self._weight_limit
             score = abs(error) * abs(syn.weight) / max(path_length, 1)
             self.core.neurons[syn.target].attention_score += score
+        self._accum_step += 1
+        if self._accum_step >= self.gradient_accumulation_steps:
+            for syn, upd in self._accum_updates.items():
+                syn.weight += upd
+                if syn.weight > self._weight_limit:
+                    syn.weight = self._weight_limit
+                elif syn.weight < -self._weight_limit:
+                    syn.weight = -self._weight_limit
+            if self.weight_decay:
+                for syn in self.core.synapses:
+                    if getattr(syn, "frozen", False):
+                        continue
+                    syn.weight *= 1.0 - self.weight_decay
+            self._accum_updates.clear()
+            self._accum_step = 0
         if path:
             last_neuron = self.core.neurons[path[-1].target]
             last_neuron.attention_score += abs(error)
