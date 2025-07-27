@@ -2,8 +2,12 @@ import argparse
 
 from config_loader import create_marble_from_config
 from dataset_loader import load_dataset
-from marble_interface import (evaluate_marble_system, save_core_json_file,
-                              save_marble_system)
+from marble_core import benchmark_message_passing
+from marble_interface import (
+    evaluate_marble_system,
+    save_core_json_file,
+    save_marble_system,
+)
 
 
 def main() -> None:
@@ -32,10 +36,18 @@ def main() -> None:
     parser.add_argument("--min-lr", type=float, help="Minimum learning rate")
     parser.add_argument("--max-lr", type=float, help="Maximum learning rate")
     parser.add_argument(
-        "--early-stopping-patience", type=int, help="Patience for early stopping"
+        "--early-stopping-patience",
+        type=int,
+        help="Patience for early stopping",
     )
     parser.add_argument(
         "--early-stopping-delta", type=float, help="Delta for early stopping"
+    )
+    parser.add_argument(
+        "--benchmark-msgpass",
+        type=int,
+        metavar="N",
+        help="Run message passing benchmark for N iterations",
     )
     parser.add_argument(
         "--no-early-stop", action="store_true", help="Disable early stopping"
@@ -74,6 +86,13 @@ def main() -> None:
         save_marble_system(marble, args.save)
     if args.export_core:
         save_core_json_file(marble, args.export_core)
+    if args.benchmark_msgpass is not None:
+        iters, sec = benchmark_message_passing(
+            marble.get_core(), iterations=args.benchmark_msgpass
+        )
+        print(
+            f"Message passing benchmark: {iters} iterations in {sec:.6f}s per iteration"
+        )
 
 
 if __name__ == "__main__":

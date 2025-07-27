@@ -62,7 +62,17 @@ MARBLE watches demonstrations and tries to mimic them. It stores pairs of inputs
 An experimental method where inputs are encoded as sine waves. The frequency gradually changes, guiding MARBLE to capture periodic relationships.
 
 ### Synaptic Echo Learning
-Each synapse maintains an echo buffer $E_t$ updated as $E_t=\beta E_{t-1}+x_t y_t$ where $x_t$ and $y_t$ are the pre- and post-synaptic activations. The weight gradient is scaled by this buffer: $\Delta w=\eta E_t (\text{target}-\text{output})$, linking short-term memory with learning dynamics.
+Each synapse maintains an echo buffer $E_t$ updated according to
+\[
+E_t = \beta E_{t-1} + x_t y_t,\]
+where $x_t$ and $y_t$ are the pre- and post-synaptic activations and
+$\beta$ is a decay factor. During learning the standard error term is
+multiplied by this buffer so that
+\[
+\Delta w = \eta\,E_t\,(t - o),\]
+with learning rate $\eta$, target value $t$ and current output $o$.
+The echo term couples short-term activation history with plasticity,
+encouraging frequently co-active neurons to strengthen their connection.
 
 ### Fractal Dimension Learning
 MARBLE monitors the fractal dimension of activations and increases representation size when it grows too high.

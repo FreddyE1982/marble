@@ -1,3 +1,4 @@
+# ruff: noqa
 from __future__ import annotations
 
 import copy
@@ -12,7 +13,7 @@ from typing import Hashable
 import numpy as np
 
 from marble_base import MetricsVisualizer
-from marble_imports import *
+from marble_imports import *  # noqa: F401,F403,F405
 
 # Representation size for GNN-style message passing
 _REP_SIZE = 4
@@ -99,7 +100,8 @@ def _simple_mlp(
 ) -> np.ndarray | "torch.Tensor":
     """Tiny MLP with one hidden layer and configurable activations.
 
-    Uses GPU acceleration when ``x`` is a ``torch.Tensor`` and CUDA is available."""
+    Uses GPU acceleration when ``x`` is a ``torch.Tensor`` and CUDA is available.
+    """
     if torch.is_tensor(x):
         device = x.device
         h = _apply_activation_torch(
@@ -432,7 +434,9 @@ class Neuron:
         if "p" in self.params:
             p = float(self.params["p"])
             if not 0.0 <= p <= 1.0:
-                raise InvalidNeuronParamsError("dropout probability must be between 0 and 1")
+                raise InvalidNeuronParamsError(
+                    "dropout probability must be between 0 and 1"
+                )
         if "kernel" in self.params and not isinstance(
             self.params["kernel"], np.ndarray
         ):
@@ -457,7 +461,9 @@ class Neuron:
                 or op < 0
                 or (isinstance(stride, int) and op >= stride)
             ):
-                raise InvalidNeuronParamsError("output_padding must be >=0 and less than stride")
+                raise InvalidNeuronParamsError(
+                    "output_padding must be >=0 and less than stride"
+                )
         if "negative_slope" in self.params and self.params["negative_slope"] < 0:
             raise InvalidNeuronParamsError("negative_slope must be non-negative")
         if "alpha" in self.params and self.params["alpha"] <= 0:
@@ -482,9 +488,13 @@ class Neuron:
             dim = self.params["embedding_dim"]
             weights = self.params.get("weights")
             if not isinstance(num, int) or num <= 0:
-                raise InvalidNeuronParamsError("num_embeddings must be a positive integer")
+                raise InvalidNeuronParamsError(
+                    "num_embeddings must be a positive integer"
+                )
             if not isinstance(dim, int) or dim <= 0:
-                raise InvalidNeuronParamsError("embedding_dim must be a positive integer")
+                raise InvalidNeuronParamsError(
+                    "embedding_dim must be a positive integer"
+                )
             if weights is not None and (
                 not isinstance(weights, np.ndarray) or weights.shape != (num, dim)
             ):
@@ -506,7 +516,12 @@ class Neuron:
             kernel = np.random.randn(3, 3).astype(float)
             self.params = {"kernel": kernel, "stride": 1, "padding": 0}
         elif self.neuron_type == "batchnorm":
-            self.params = {"mean": 0.0, "var": 1.0, "momentum": 0.1, "eps": 1e-5}
+            self.params = {
+                "mean": 0.0,
+                "var": 1.0,
+                "momentum": 0.1,
+                "eps": 1e-5,
+            }
         elif self.neuron_type == "dropout":
             self.params = {"p": 0.5}
         elif self.neuron_type == "leakyrelu":
@@ -627,7 +642,9 @@ class Neuron:
             k = cp.asarray(kernel)
             if padding > 0:
                 arr = cp.pad(
-                    arr, ((padding, padding), (padding, padding)), mode="constant"
+                    arr,
+                    ((padding, padding), (padding, padding)),
+                    mode="constant",
                 )
             out_h = (arr.shape[0] - k.shape[0]) // stride + 1
             out_w = (arr.shape[1] - k.shape[1]) // stride + 1
@@ -707,7 +724,11 @@ class Neuron:
             if padding > 0:
                 arr = cp.pad(
                     arr,
-                    ((padding, padding), (padding, padding), (padding, padding)),
+                    (
+                        (padding, padding),
+                        (padding, padding),
+                        (padding, padding),
+                    ),
                     mode="constant",
                 )
             out_d = (arr.shape[0] - k.shape[0]) // stride + 1
@@ -882,7 +903,8 @@ class Neuron:
             for i in range(out_h):
                 for j in range(out_w):
                     region = arr[
-                        i * stride : i * stride + size, j * stride : j * stride + size
+                        i * stride : i * stride + size,
+                        j * stride : j * stride + size,
                     ]
                     if self.neuron_type == "maxpool2d":
                         result[i, j] = cp.max(region)
@@ -1211,7 +1233,8 @@ class DataLoader:
             compressor
             if compressor is not None
             else DataCompressor(
-                level=compression_level, compression_enabled=compression_enabled
+                level=compression_level,
+                compression_enabled=compression_enabled,
             )
         )
         self.metrics_visualizer = metrics_visualizer
@@ -1394,7 +1417,12 @@ class Core:
                 mandel_cpu = mandel_cpu + np.random.randn(*mandel_cpu.shape) * noise_std
             for val in mandel_cpu.flatten():
                 self.neurons.append(
-                    Neuron(nid, value=float(val), tier="vram", rep_size=self.rep_size)
+                    Neuron(
+                        nid,
+                        value=float(val),
+                        tier="vram",
+                        rep_size=self.rep_size,
+                    )
                 )
                 nid += 1
 
@@ -1453,7 +1481,7 @@ class Core:
 
     def get_memory_usage_metrics(self) -> dict[str, float]:
         """Return a dictionary with current memory usage metrics."""
-        from system_metrics import get_system_memory_usage, get_gpu_memory_usage
+        from system_metrics import get_gpu_memory_usage, get_system_memory_usage
 
         metrics = {
             "vram_usage": self.get_usage_by_tier("vram"),
@@ -1960,3 +1988,34 @@ class Core:
             metrics_visualizer.update({"avg_message_passing_change": avg_change})
         self.check_finite_state()
         return avg_change
+
+
+def benchmark_message_passing(
+    core: "Core", iterations: int = 100, warmup: int = 10
+) -> tuple[int, float]:
+    """Benchmark :func:`perform_message_passing` execution speed.
+
+    Parameters
+    ----------
+    core : Core
+        The :class:`Core` instance to benchmark.
+    iterations : int, optional
+        Number of timed iterations to run. ``100`` by default.
+    warmup : int, optional
+        Warm-up runs executed before timing starts to stabilise caches.
+
+    Returns
+    -------
+    tuple[int, float]
+        The number of iterations executed and the average seconds per
+        iteration.
+    """
+
+    for _ in range(int(warmup)):
+        perform_message_passing(core)
+
+    start = time.perf_counter()
+    for _ in range(int(iterations)):
+        perform_message_passing(core)
+    total = time.perf_counter() - start
+    return int(iterations), total / max(int(iterations), 1)
