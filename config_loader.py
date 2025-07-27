@@ -55,6 +55,7 @@ def create_marble_from_config(
         load_plugins(plugin_dirs)
 
     core_params = cfg.get("core", {})
+    qbits = core_params.get("quantization_bits", 0)
     nb_params = cfg.get("neuronenblitz", {})
     brain_params = cfg.get("brain", {})
     initial_neurogenesis_factor = brain_params.pop("initial_neurogenesis_factor", 1.0)
@@ -173,6 +174,9 @@ def create_marble_from_config(
         pytorch_challenge_params=pytorch_challenge_params,
         hybrid_memory_params=hybrid_memory_params,
     )
+    if qbits:
+        from model_quantization import quantize_core_weights
+        quantize_core_weights(int(qbits))
     if remote_server is not None:
         marble.remote_server = remote_server
 

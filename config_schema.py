@@ -18,6 +18,7 @@ CONFIG_SCHEMA = {
                     "maximum": 1,
                 },
                 "use_mixed_precision": {"type": "boolean"},
+                "quantization_bits": {"type": "integer", "minimum": 0, "maximum": 16},
             },
         },
         "neuronenblitz": {"type": "object"},
