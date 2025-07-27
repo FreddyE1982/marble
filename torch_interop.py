@@ -1,7 +1,9 @@
-import torch
 import numpy as np
+import torch
+
 import marble_core
-from marble_core import _W1, _B1, _W2, _B2, Core, configure_representation_size
+from marble_core import _B1, _B2, _W1, _W2, Core, configure_representation_size
+
 
 class MarbleTorchAdapter(torch.nn.Module):
     """PyTorch module mirroring Marble's message passing MLP."""
@@ -44,3 +46,32 @@ def torch_to_core(model: torch.nn.Module, core: Core) -> None:
     for n in core.neurons:
         if n.representation.shape != (rep_size,):
             n.representation = np.zeros(rep_size, dtype=float)
+
+
+def core_to_torch_graph(core: Core) -> tuple[torch.Tensor, torch.Tensor]:
+    """Return edge indices and node features as torch tensors."""
+    edge_index = []
+    for s in core.synapses:
+        edge_index.append([s.source, s.target])
+    edge_tensor = torch.tensor(edge_index, dtype=torch.long).t().contiguous()
+    feats = torch.tensor([n.representation for n in core.neurons], dtype=torch.float32)
+    return edge_tensor, feats
+
+
+def torch_graph_to_core(
+    edge_index: torch.Tensor, features: torch.Tensor, params: dict
+) -> Core:
+    """Create a Core from edge indices and node features."""
+    core = Core(params)
+    core.neurons = []
+    core.synapses = []
+    for i, feat in enumerate(features):
+        n = marble_core.Neuron(i, rep_size=features.shape[1])
+        n.representation = feat.detach().cpu().numpy().astype(float)
+        core.neurons.append(n)
+    edge_index = edge_index.t().tolist()
+    for src, tgt in edge_index:
+        syn = marble_core.Synapse(src, tgt)
+        core.synapses.append(syn)
+        core.neurons[src].synapses.append(syn)
+    return core

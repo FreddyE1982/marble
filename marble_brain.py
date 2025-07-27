@@ -1,9 +1,10 @@
-import time
 import asyncio
+import os
+import time
 
 import torch
 
-from marble_base import MetricsVisualizer
+from backup_utils import BackupScheduler
 from marble_core import TIER_REGISTRY, MemorySystem
 from marble_imports import *
 from marble_lobes import LobeManager
@@ -11,7 +12,6 @@ from meta_parameter_controller import MetaParameterController
 from neuromodulatory_system import NeuromodulatorySystem
 from system_metrics import get_gpu_memory_usage, get_system_memory_usage
 from usage_profiler import UsageProfiler
-from backup_utils import BackupScheduler
 
 
 def _parse_example(sample):
@@ -138,6 +138,7 @@ class Brain:
         checkpoint_format: str = "pickle",
         metrics_history_size: int = 100,
         early_stop_enabled: bool = True,
+        checkpoint_compress: bool = False,
         lobe_sync_interval: int = 60,
         cleanup_batch_size: int = 500,
         remote_sync_enabled: bool = False,
@@ -242,6 +243,7 @@ class Brain:
         self.dream_cycle_sleep = dream_cycle_sleep
         self.model_name = model_name
         self.checkpoint_format = checkpoint_format
+        self.checkpoint_compress = checkpoint_compress
         self.metrics_history_size = metrics_history_size
         self.early_stop_enabled = early_stop_enabled
         self.lobe_sync_interval = lobe_sync_interval
@@ -591,13 +593,23 @@ class Brain:
             "random_state": random.getstate(),
             "numpy_state": np.random.get_state(),
         }
-        with open(path, "wb") as f:
-            pickle.dump(state, f)
+        import gzip
+        import tempfile
+
+        mode = "wb"
+        opener = gzip.open if self.checkpoint_compress else open
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            with opener(tmp.name, mode) as f:
+                pickle.dump(state, f)
+        os.replace(tmp.name + (".gz" if self.checkpoint_compress else ""), path)
         print(f"Checkpoint saved to {path}")
 
     def load_checkpoint(self, path: str) -> int:
         """Load training state from ``path`` and return last epoch."""
-        with open(path, "rb") as f:
+        import gzip
+
+        opener = gzip.open if path.endswith(".gz") else open
+        with opener(path, "rb") as f:
             state = pickle.load(f)
         self.core = state["core"]
         self.neuronenblitz = state["neuronenblitz"]

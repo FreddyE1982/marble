@@ -4,10 +4,10 @@ import yaml
 
 from config_schema import validate_config_schema
 from marble_core import MemorySystem
-from plugin_system import load_plugins
 from marble_main import MARBLE
 from meta_parameter_controller import MetaParameterController
 from neuromodulatory_system import NeuromodulatorySystem
+from plugin_system import load_plugins
 from remote_offload import RemoteBrainClient, RemoteBrainServer
 from torrent_offload import BrainTorrentClient, BrainTorrentTracker
 
@@ -122,6 +122,8 @@ def create_marble_from_config(
             "neurogenesis_base_neurons": neuro_base_neurons,
             "neurogenesis_base_synapses": neuro_base_synapses,
             "super_evolution_mode": super_evolution_mode,
+            "checkpoint_format": brain_params.get("checkpoint_format", "pickle"),
+            "checkpoint_compress": brain_params.get("checkpoint_compress", False),
         }
     )
 
@@ -176,6 +178,7 @@ def create_marble_from_config(
     )
     if qbits:
         from model_quantization import quantize_core_weights
+
         quantize_core_weights(int(qbits))
     if remote_server is not None:
         marble.remote_server = remote_server

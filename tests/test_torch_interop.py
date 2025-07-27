@@ -1,13 +1,17 @@
 import os
 import sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import torch
+
+from marble_brain import Brain
 from marble_core import Core
 from marble_neuronenblitz import Neuronenblitz
-from marble_brain import Brain
-from torch_interop import MarbleTorchAdapter, core_to_torch, torch_to_core
 from tests.test_core_functions import minimal_params
+from torch_interop import (core_to_torch,
+                           core_to_torch_graph, torch_graph_to_core,
+                           torch_to_core)
 
 
 def test_marble_torch_adapter_forward():
@@ -48,3 +52,11 @@ def test_torch_to_core_updates_weights():
     assert (marble_core._W2 == 2.0).all()
     assert (marble_core._B2 == 0.1).all()
 
+
+def test_core_to_torch_graph_roundtrip():
+    params = minimal_params()
+    core = Core(params)
+    edge, feats = core_to_torch_graph(core)
+    new_core = torch_graph_to_core(edge, feats, params)
+    assert len(new_core.neurons) == len(core.neurons)
+    assert len(new_core.synapses) == len(core.synapses)

@@ -225,6 +225,7 @@ Each entry is listed under its section heading.
 - metrics_history_size
 - profile_enabled
 - profile_log_path
+- checkpoint_compress
 - profile_interval
 - early_stop_enabled
 - lobe_sync_interval

@@ -547,6 +547,7 @@ brain:
   model_name: Descriptive name used when saving checkpoints.
   checkpoint_format: Serialization format for checkpoints. ``"pickle"`` is
     the default but ``"safetensors"`` may be used for faster loading.
+  checkpoint_compress: When true checkpoints are gzip compressed and saved atomically to avoid corruption.
   metrics_history_size: Number of past epochs kept in memory for plotting
     performance metrics.
   profile_enabled: When true a ``UsageProfiler`` records CPU and GPU usage
