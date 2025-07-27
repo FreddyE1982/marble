@@ -4,6 +4,7 @@ import yaml
 
 from config_schema import validate_config_schema
 from marble_core import MemorySystem
+from plugin_system import load_plugins
 from marble_main import MARBLE
 from meta_parameter_controller import MetaParameterController
 from neuromodulatory_system import NeuromodulatorySystem
@@ -48,6 +49,10 @@ def create_marble_from_config(
     cfg = load_config(path)
     if overrides:
         _deep_update(cfg, overrides)
+
+    plugin_dirs = cfg.get("plugins", [])
+    if plugin_dirs:
+        load_plugins(plugin_dirs)
 
     core_params = cfg.get("core", {})
     nb_params = cfg.get("neuronenblitz", {})

@@ -2,23 +2,23 @@
 
 This TODO list outlines 100 enhancements spanning the Marble framework, the underlying Marble Core, and the Neuronenblitz learning system. The items are grouped by broad themes but are intentionally numbered for easy tracking.
 
-1. Expand unit test coverage across all modules.
+1. [x] Expand unit test coverage across all modules.
 2. [x] Implement continuous integration to automatically run tests on pushes.
 3. [x] Improve error handling in `marble_core` for invalid neuron parameters.
 4. Add type hints to all functions for better static analysis.
    - [x] Add hints to marble_core.py
-   - [ ] Add hints to marble_neuronenblitz.py
-   - [ ] Add hints to streamlit_playground.py
+   - [x] Add hints to marble_neuronenblitz.py
+   - [x] Add hints to streamlit_playground.py
 5. Integrate GPU acceleration into all neural computations.
 6. [x] Provide a command line interface for common training tasks.
 7. Refactor `marble_neuronenblitz.py` into logical submodules.
 8. Document all public APIs with docstrings and examples.
 9. [x] Create tutorials that walk through real-world datasets.
 10. [x] Add automatic benchmarking for message-passing operations.
-11. Support asynchronous training loops for large-scale experiments.
+11. [x] Support asynchronous training loops for large-scale experiments.
 12. [x] Add configuration schemas to validate YAML files.
 13. [x] Expand the metrics dashboard with interactive visualizations.
-14. Implement a plugin system for custom neuron and synapse types.
+14. [x] Implement a plugin system for custom neuron and synapse types.
 15. [x] Create a dataset loader utility supporting local and remote sources.
 16. Provide PyTorch interoperability layers for easier adoption.
 17. Improve the `MetricsVisualizer` to log to TensorBoard and CSV.

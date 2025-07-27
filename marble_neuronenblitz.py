@@ -12,7 +12,7 @@ from collections import deque
 import math
 
 
-def _wander_worker(state_bytes, input_value, seed):
+def _wander_worker(state_bytes: bytes, input_value: float, seed: int) -> tuple[float, int]:
     nb = pickle.loads(state_bytes)
     random.seed(seed)
     np.random.seed(seed % (2**32 - 1))
@@ -20,15 +20,17 @@ def _wander_worker(state_bytes, input_value, seed):
     return output, seed
 
 
-def default_combine_fn(x, w):
+def default_combine_fn(x: float, w: float) -> float:
     return max(x * w, 0)
 
 
-def default_loss_fn(target, output):
+def default_loss_fn(target: float, output: float) -> float:
     return target - output
 
 
-def default_weight_update_fn(source, error, path_len):
+def default_weight_update_fn(
+    source: float | None, error: float | None, path_len: int
+) -> float:
     if source is None:
         source = 0.0
     if error is None:

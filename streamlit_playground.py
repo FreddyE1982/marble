@@ -87,7 +87,10 @@ def _load_audio(file_obj: BytesIO) -> np.ndarray:
     return arr
 
 
-def _parse_value(val, zipf: ZipFile | None = None):
+from typing import Any
+
+
+def _parse_value(val: Any, zipf: ZipFile | None = None) -> float | np.ndarray:
     if isinstance(val, (float, int)):
         return float(val)
     if isinstance(val, str):
@@ -1547,6 +1550,7 @@ def run_playground() -> None:
             st.sidebar.error("No dataset loaded")
         else:
             progress_bar = st.sidebar.progress(0.0)
+
             def _cb(p):
                 progress_bar.progress(min(p, 1.0))
 
@@ -1911,8 +1915,12 @@ def run_playground() -> None:
                 type=["csv", "json", "jsonl", "zip", "txt"],
                 key="auto_vals",
             )
-            a_epochs = st.number_input("Epochs", value=1, min_value=1, step=1, key="auto_epochs")
-            a_std = st.number_input("Noise Std", value=0.1, format="%.2f", key="auto_std")
+            a_epochs = st.number_input(
+                "Epochs", value=1, min_value=1, step=1, key="auto_epochs"
+            )
+            a_std = st.number_input(
+                "Noise Std", value=0.1, format="%.2f", key="auto_std"
+            )
             a_decay = st.number_input(
                 "Noise Decay", value=0.99, format="%.2f", step=0.01, key="auto_decay"
             )
@@ -2038,7 +2046,11 @@ def run_playground() -> None:
             st.write("Visualize the current MARBLE core.")
             auto = st.checkbox("Auto Refresh Graph", key="auto_graph")
             interval = st.number_input(
-                "Refresh interval (s)", min_value=1, value=5, step=1, key="graph_interval"
+                "Refresh interval (s)",
+                min_value=1,
+                value=5,
+                step=1,
+                key="graph_interval",
             )
             container = st.empty()
             if auto:
@@ -2589,7 +2601,10 @@ def run_playground() -> None:
 if __name__ == "__main__":
     run_playground()
 
-def activation_figure(core, activations: dict[int, float], layout: str = "spring") -> go.Figure:
+
+def activation_figure(
+    core, activations: dict[int, float], layout: str = "spring"
+) -> go.Figure:
     """Return a Plotly figure showing neuron activations."""
     g = core_to_networkx(core)
     if layout == "circular":
@@ -2608,13 +2623,21 @@ def activation_figure(core, activations: dict[int, float], layout: str = "spring
         node_x.append(x)
         node_y.append(y)
         act_vals.append(float(activations.get(n, 0.0)))
-    edge_trace = go.Scatter(x=edge_x, y=edge_y, mode="lines", line=dict(width=0.5, color="#888"), hoverinfo="none")
+    edge_trace = go.Scatter(
+        x=edge_x,
+        y=edge_y,
+        mode="lines",
+        line=dict(width=0.5, color="#888"),
+        hoverinfo="none",
+    )
     node_trace = go.Scatter(
         x=node_x,
         y=node_y,
         mode="markers",
         hoverinfo="text",
-        marker=dict(size=6, color=act_vals, colorscale="Viridis", colorbar=dict(title="Act")),
+        marker=dict(
+            size=6, color=act_vals, colorscale="Viridis", colorbar=dict(title="Act")
+        ),
     )
     fig = go.Figure(data=[edge_trace, node_trace])
     fig.update_layout(showlegend=False, margin=dict(l=0, r=0, t=0, b=0))

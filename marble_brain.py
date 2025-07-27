@@ -1,4 +1,5 @@
 import time
+import asyncio
 
 import torch
 
@@ -538,7 +539,6 @@ class Brain:
             if self.profiler and epoch % self.profile_interval == 0:
                 self.profiler.log_epoch(epoch)
 
-
         pbar.close()
 
     def validate(self, validation_examples):
@@ -652,6 +652,22 @@ class Brain:
         """Block until background training finishes."""
         if self.training_thread is not None:
             self.training_thread.join()
+
+    async def train_async(
+        self,
+        train_examples,
+        epochs: int = 1,
+        validation_examples=None,
+        progress_callback=None,
+    ) -> None:
+        """Asynchronously run :meth:`train` in a worker thread."""
+        await asyncio.to_thread(
+            self.train,
+            train_examples,
+            epochs=epochs,
+            validation_examples=validation_examples,
+            progress_callback=progress_callback,
+        )
 
     def start_auto_firing(self, input_generator=None):
         self.auto_fire_active = True

@@ -1,5 +1,6 @@
 import time
 import os, sys
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from marble_core import Core, DataLoader
@@ -16,6 +17,7 @@ def test_start_training_background():
     brain = Brain(core, nb, DataLoader())
     # patch tqdm to avoid notebook dependency
     import marble_brain as mb
+
     mb.tqdm = std_tqdm
     train_examples = [(0.1, 0.2)] * 20
     brain.start_training(train_examples, epochs=2)
@@ -34,6 +36,7 @@ def test_training_and_inference_simultaneous():
     nb = Neuronenblitz(core)
     brain = Brain(core, nb, DataLoader())
     import marble_brain as mb
+
     mb.tqdm = std_tqdm
     train_examples = [(0.1, 0.2)] * 50
     brain.start_training(train_examples, epochs=3)
@@ -46,3 +49,21 @@ def test_training_and_inference_simultaneous():
     assert path
     brain.wait_for_training()
     assert not brain.training_active
+
+
+import asyncio
+
+
+def test_train_async():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    brain = Brain(core, nb, DataLoader())
+    import marble_brain as mb
+
+    mb.tqdm = std_tqdm
+
+    async def run():
+        await brain.train_async([(0.1, 0.2)] * 10, epochs=1)
+
+    asyncio.run(run())
