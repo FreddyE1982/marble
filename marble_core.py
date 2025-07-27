@@ -70,6 +70,26 @@ def configure_representation_size(
     )
 
 
+def resize_neuron_representations(core: "Core", new_size: int) -> None:
+    """Resize all neuron representations in ``core`` to ``new_size``.
+
+    This updates the global representation configuration and preserves existing
+    values by truncation or zero-padding as needed.
+    """
+    old_size = core.rep_size
+    if new_size == old_size:
+        return
+    configure_representation_size(new_size)
+    for neuron in core.neurons:
+        rep = neuron.representation
+        if new_size > rep.size:
+            padded = np.zeros(new_size, dtype=rep.dtype)
+            padded[: rep.size] = rep
+            neuron.representation = padded
+        else:
+            neuron.representation = rep[:new_size]
+
+
 def _apply_activation(arr: np.ndarray, activation: str) -> np.ndarray:
     """Return ``arr`` passed through the given activation function."""
     if activation == "relu":

@@ -37,6 +37,7 @@ Each entry is listed under its section heading.
 - representation_activation
 - apply_layer_norm
 - use_mixed_precision
+- quantization_bits
 - weight_init_mean
 - weight_init_std
 - weight_init_type
@@ -164,6 +165,7 @@ Each entry is listed under its section heading.
 - subpath_cache_size
 - subpath_cache_ttl
 - use_mixed_precision
+- quantization_bits
 
 ## brain
 - save_threshold

@@ -104,6 +104,11 @@ core:
     available, computations run in half precision within a ``torch.autocast``
     context. This can greatly speed up training but may introduce minor numerical
     differences compared to full precision.
+  quantization_bits: Number of bits used to quantize the core MLP weights. When
+    greater than ``0`` the weights of the message passing MLP are uniformly
+    quantized to this precision after loading the configuration. Typical values
+    are ``8`` for moderate compression or ``4`` for aggressive size reduction.
+    Setting ``0`` disables quantization and keeps weights in full precision.
   weight_init_mean: Mean of the normal distribution used to initialize
     synaptic weights.
   weight_init_std: Standard deviation of the normal distribution when
@@ -420,6 +425,10 @@ neuronenblitz:
   use_mixed_precision: Enable PyTorch automatic mixed precision during
     training. This trades some numerical precision for faster execution on
     compatible GPUs.
+  quantization_bits: Bit precision used when quantizing the core weights on
+    start-up. A value of ``0`` disables quantization. Larger values retain more
+    accuracy but provide less compression. Values above ``16`` are not
+    supported.
 
 brain:
   save_threshold: Minimum improvement in validation loss required before the

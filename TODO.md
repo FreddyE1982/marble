@@ -23,7 +23,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 16. Provide PyTorch interoperability layers for easier adoption.
 17. [x] Improve the `MetricsVisualizer` to log to TensorBoard and CSV.
 18. [x] Add memory usage tracking to the core.
-19. Support dynamic resizing of neuron representations at runtime.
+19. [x] Support dynamic resizing of neuron representations at runtime.
 20. [x] Implement gradient clipping utilities within Neuronenblitz.
 21. [x] Add a learning rate scheduler with cosine and exponential options.
 22. [x] Document all YAML parameters in `yaml-manual.txt` with examples.
@@ -52,7 +52,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 45. Provide conversion tools between Marble Core and other frameworks.
 46. [x] Implement an extensible metrics aggregation system.
 47. Improve code style consistency with automated formatting checks.
-48. Add support for quantization and model compression.
+48. [x] Add support for quantization and model compression.
 49. Implement a plugin-based remote tier for custom hardware.
 50. [x] Create visualization utilities for neuron activation patterns.
 51. [x] Add parameter scheduling for exploration/exploitation trade-offs.
