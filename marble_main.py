@@ -1,11 +1,11 @@
 # ruff: noqa: F401, F403, F405
-from marble_imports import *
-from marble_core import Core, DataLoader, TIER_REGISTRY
-from marble_neuronenblitz import Neuronenblitz
-from marble_brain import Brain, BenchmarkManager
+from marble import MarbleConverter
 from marble_autograd import MarbleAutogradLayer
 from marble_base import MetricsVisualizer
-from marble import MarbleConverter
+from marble_brain import BenchmarkManager, Brain
+from marble_core import TIER_REGISTRY, Core, DataLoader
+from marble_imports import *
+from marble_neuronenblitz import Neuronenblitz
 
 
 class MARBLE:
@@ -181,6 +181,7 @@ class MARBLE:
             "benchmark_interval": 2,
             "model_name": "marble_default",
             "checkpoint_format": "pickle",
+            "checkpoint_compress": False,
             "metrics_history_size": 100,
             "early_stop_enabled": True,
             "lobe_sync_interval": 60,
@@ -213,9 +214,15 @@ class MARBLE:
         if hybrid_memory_params:
             from hybrid_memory import HybridMemory
 
-            vector_path = hybrid_memory_params.get("vector_store_path", "vector_store.pkl")
-            symbolic_path = hybrid_memory_params.get("symbolic_store_path", "symbolic_memory.pkl")
-            self.hybrid_memory = HybridMemory(self.core, self.neuronenblitz, vector_path, symbolic_path)
+            vector_path = hybrid_memory_params.get(
+                "vector_store_path", "vector_store.pkl"
+            )
+            symbolic_path = hybrid_memory_params.get(
+                "symbolic_store_path", "symbolic_memory.pkl"
+            )
+            self.hybrid_memory = HybridMemory(
+                self.core, self.neuronenblitz, vector_path, symbolic_path
+            )
 
         self.benchmark_manager = BenchmarkManager(self)
 

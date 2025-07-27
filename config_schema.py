@@ -32,6 +32,8 @@ CONFIG_SCHEMA = {
                 "backup_dir": {"type": "string"},
                 "profile_enabled": {"type": "boolean"},
                 "profile_log_path": {"type": "string"},
+                "checkpoint_format": {"type": "string"},
+                "checkpoint_compress": {"type": "boolean"},
                 "profile_interval": {"type": "integer", "minimum": 1},
             },
         },

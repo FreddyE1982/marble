@@ -20,3 +20,25 @@ FAILED tests/test_streamlit_gui.py::test_autoencoder_tab_training - IndexErro...
 FAILED tests/test_streamlit_playground.py::test_save_config_yaml_and_search
 FAILED tests/test_torch_interop.py::test_torch_to_core_updates_weights - Asse...
 60 failed, 406 passed, 1 skipped, 7 warnings in 178.41s (0:02:58)
+Failed tests on Sun Jul 27 17:10:10 UTC 2025:
+collected 469 items
+
+tests/test_activation_utils.py .                                         [  0%]
+tests/test_advanced_gpt.py ...                                           [  0%]
+tests/test_adversarial_learning.py .                                     [  1%]
+tests/test_async_training.py ...                                         [  1%]
+tests/test_attention_module.py ..                                        [  2%]
+tests/test_autoencoder_learning.py ..                                    [  2%]
+tests/test_autograd_layer.py ..                                          [  2%]
+tests/test_backcronym.py .                                               [  3%]
+tests/test_backup_utils.py ..                                            [  3%]
+tests/test_backward_compatibility.py .                                   [  3%]
+tests/test_benchmark_autograd_vs_marble.py .....                         [  4%]
+tests/test_benchmark_super_evolution.py .                                [  5%]
+tests/test_brain_benchmark.py .                                          [  5%]
+tests/test_brain_io.py .....                                             [  6%]
+tests/test_chain_of_thought.py .                                         [  6%]
+tests/test_cli.py .....                                                  [  7%]
+tests/test_concept_association.py .                                      [  7%]
+tests/test_conceptual_integration.py .                                   [  8%]
+tests/test_config.py ......                                              [  9%]

@@ -244,6 +244,7 @@ brain:
     ram_usage_threshold: 0.9
   model_name: "marble_default"
   checkpoint_format: "pickle"
+  checkpoint_compress: false
   metrics_history_size: 100
   profile_enabled: false
   profile_log_path: "profile.csv"
