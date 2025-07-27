@@ -44,10 +44,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 40. Document best practices for hyperparameter tuning.
 41. [x] Improve remote offload logic with retry and timeout strategies.
 42. Add robust serialization for checkpointing training state.
-43. Integrate a progress bar for long-running operations.
+43. [x] Integrate a progress bar for long-running operations.
 44. Expand the `examples` directory with end‑to‑end scripts.
 45. Provide conversion tools between Marble Core and other frameworks.
-46. Implement an extensible metrics aggregation system.
+46. [x] Implement an extensible metrics aggregation system.
 47. Improve code style consistency with automated formatting checks.
 48. Add support for quantization and model compression.
 49. Implement a plugin-based remote tier for custom hardware.
@@ -68,7 +68,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 64. Integrate a simple hyperparameter search framework.
 65. [x] Add tests verifying deterministic behaviour with fixed seeds.
 66. Improve readability of configuration files with comments and sections.
-67. Implement graph pruning utilities to remove unused neurons.
+67. [x] Implement graph pruning utilities to remove unused neurons.
 68. Create a repository of reusable neuron/synapse templates.
 69. Add support for mixed precision training when GPUs are available.
 70. Provide dynamic graph visualisation within the GUI.
@@ -82,13 +82,13 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 78. Add performance regression tests for critical functions.
 79. Integrate basic anomaly detection on training metrics.
 80. [x] Expand the scheduler with cyclic learning rate support.
-81. Implement custom weight initialisation strategies.
+81. [x] Implement custom weight initialisation strategies.
 82. Provide a structured logging interface for the GUI.
 83. Add latency tracking when using remote tiers.
 84. Implement automatic graph visualisation for debugging.
-85. Provide wrappers to convert Marble models to ONNX.
+85. [x] Provide wrappers to convert Marble models to ONNX.
 86. Improve the hybrid memory system for balanced usage.
-87. Add a mechanism to export and import neuron state snapshots.
+87. [x] Add a mechanism to export and import neuron state snapshots.
 88. Document the mathematics behind synaptic echo learning.
 89. Implement context-aware attention mechanisms.
 90. Add unit tests ensuring backward compatibility between versions.

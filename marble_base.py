@@ -239,3 +239,20 @@ class MetricsVisualizer:
 
     def __del__(self) -> None:
         self.close()
+
+
+class MetricsAggregator:
+    """Aggregate metrics from multiple visualizers."""
+
+    def __init__(self) -> None:
+        self.sources: list[MetricsVisualizer] = []
+
+    def add_source(self, source: MetricsVisualizer) -> None:
+        self.sources.append(source)
+
+    def aggregate(self) -> dict[str, float]:
+        combined: dict[str, list[float]] = {}
+        for src in self.sources:
+            for key, values in src.metrics.items():
+                combined.setdefault(key, []).extend(values)
+        return {k: float(np.mean(v)) if v else 0.0 for k, v in combined.items()}

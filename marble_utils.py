@@ -1,6 +1,6 @@
 import json
 import numpy as np
-from marble_core import Core, Neuron, Synapse
+from marble_core import Core, Neuron, Synapse, _W1, _B1, _W2, _B2
 
 
 def core_to_json(core: Core) -> str:
@@ -66,5 +66,44 @@ def core_from_json(json_str: str) -> Core:
         core.synapses.append(syn)
         core.neurons[syn.source].synapses.append(syn)
     return core
+
+
+def export_neuron_state(core: Core, path: str) -> None:
+    """Persist neuron states to disk for later restoration."""
+    data = [n.representation.tolist() for n in core.neurons]
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f)
+
+
+def import_neuron_state(core: Core, path: str) -> None:
+    """Load neuron states from ``path`` into ``core``."""
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    if len(data) != len(core.neurons):
+        raise ValueError("Neuron count mismatch when importing state")
+    for rep, neuron in zip(data, core.neurons):
+        neuron.representation = np.asarray(rep, dtype=float)
+
+
+def export_core_to_onnx(core: Core, path: str) -> None:
+    """Export the message passing MLP to an ONNX file."""
+    import torch
+
+    class MPModel(torch.nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.w1 = torch.nn.Parameter(torch.tensor(_W1, dtype=torch.float32))
+            self.b1 = torch.nn.Parameter(torch.tensor(_B1, dtype=torch.float32))
+            self.w2 = torch.nn.Parameter(torch.tensor(_W2, dtype=torch.float32))
+            self.b2 = torch.nn.Parameter(torch.tensor(_B2, dtype=torch.float32))
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:  # pragma: no cover
+            h = torch.tanh(x @ self.w1 + self.b1)
+            return torch.tanh(h @ self.w2 + self.b2)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = MPModel().to(device)
+    dummy = torch.randn(len(core.neurons), core.rep_size, device=device)
+    torch.onnx.export(model, dummy, path, input_names=["x"], output_names=["out"], opset_version=17)
 
 

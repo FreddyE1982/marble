@@ -37,6 +37,8 @@ Each entry is listed under its section heading.
 - weight_init_mean
 - weight_init_std
 - weight_init_type
+- weight_init_strategy
+- show_message_progress
 - message_passing_beta
 - attention_temperature
 - attention_dropout
