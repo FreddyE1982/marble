@@ -39,10 +39,18 @@ def torch_to_core(model: torch.nn.Module, core: Core) -> None:
     """
     rep_size = model.w1.shape[0]
     configure_representation_size(rep_size)
-    marble_core._W1 = model.w1.detach().cpu().numpy().astype(np.float64)
-    marble_core._B1 = model.b1.detach().cpu().numpy().astype(np.float64)
-    marble_core._W2 = model.w2.detach().cpu().numpy().astype(np.float64)
-    marble_core._B2 = model.b2.detach().cpu().numpy().astype(np.float64)
+    marble_core._W1 = np.round(
+        model.w1.detach().cpu().numpy().astype(np.float64), 8
+    )
+    marble_core._B1 = np.round(
+        model.b1.detach().cpu().numpy().astype(np.float64), 8
+    )
+    marble_core._W2 = np.round(
+        model.w2.detach().cpu().numpy().astype(np.float64), 8
+    )
+    marble_core._B2 = np.round(
+        model.b2.detach().cpu().numpy().astype(np.float64), 8
+    )
     for n in core.neurons:
         if n.representation.shape != (rep_size,):
             n.representation = np.zeros(rep_size, dtype=float)
