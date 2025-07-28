@@ -260,3 +260,5 @@ To publish a new release to PyPI:
 4. Upload to TestPyPI with `twine upload --repository testpypi dist/*` and verify installation.
 5. Once validated, upload to PyPI.
 
+
+See `examples/configs/attention_codelets.yaml` for a minimal configuration enabling the attention codelet plugin.

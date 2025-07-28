@@ -1,0 +1,10 @@
+# Neuronenblitz Package Overview
+
+This package contains the implementation of the adaptive learning system used by MARBLE. The modules are organised as follows:
+
+- `core.py` – main `Neuronenblitz` class with dynamic wandering and synaptic plasticity logic.
+- `learning.py` – reinforcement learning helpers used by `Neuronenblitz` and the high level agents.
+- `memory.py` – utilities for managing memory gate strengths and eligibility traces.
+- `__init__.py` – exports commonly used functions and the core class.
+
+These modules can be imported individually, allowing advanced users to extend or replace specific functionality.

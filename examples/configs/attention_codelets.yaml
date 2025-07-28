@@ -1,0 +1,5 @@
+core:
+  random_seed: 42
+attention_codelets:
+  enabled: true
+  coalition_size: 2
