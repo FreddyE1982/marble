@@ -1,6 +1,16 @@
 import json
 import numpy as np
-from marble_core import Core, Neuron, Synapse, _W1, _B1, _W2, _B2
+from marble_core import (
+    Core,
+    Neuron,
+    Synapse,
+    _W1,
+    _B1,
+    _W2,
+    _B2,
+    _REP_SIZE,
+    _simple_mlp,
+)
 import torch
 
 def get_default_device() -> torch.device:
@@ -111,5 +121,21 @@ def export_core_to_onnx(core: Core, path: str) -> None:
     model = MPModel().to(device)
     dummy = torch.randn(len(core.neurons), core.rep_size, device=device)
     torch.onnx.export(model, dummy, path, input_names=["x"], output_names=["out"], opset_version=17)
+
+
+def is_gpu_available() -> bool:
+    """Return True if a CUDA GPU is available."""
+    return torch.cuda.is_available()
+
+
+def check_gpu_compatibility() -> bool:
+    """Check that CPU and GPU implementations produce the same results."""
+    if not is_gpu_available():
+        return True
+    x_np = np.random.randn(2, _REP_SIZE).astype(np.float32)
+    cpu_out = _simple_mlp(x_np)
+    x_gpu = torch.tensor(x_np, device="cuda")
+    gpu_out = _simple_mlp(x_gpu).cpu().numpy()
+    return np.allclose(cpu_out, gpu_out, atol=1e-6)
 
 

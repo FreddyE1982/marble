@@ -56,7 +56,26 @@ def main() -> None:
     parser.add_argument(
         "--no-early-stop", action="store_true", help="Disable early stopping"
     )
+    parser.add_argument(
+        "--sync-config",
+        nargs="+",
+        metavar="DEST",
+        help="Synchronise config to destination paths and exit",
+    )
+    parser.add_argument(
+        "--sync-src",
+        help="Source config to synchronise (defaults to --config)",
+    )
     args = parser.parse_args()
+
+    if args.sync_config:
+        src = args.sync_src or args.config
+        if src is None:
+            raise ValueError("Provide --sync-src or --config")
+        from config_sync_service import sync_config
+
+        sync_config(src, args.sync_config)
+        return
 
     overrides: dict[str, dict] = {"neuronenblitz": {}, "brain": {}}
     if args.lr_scheduler:

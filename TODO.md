@@ -10,10 +10,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Add hints to marble_neuronenblitz.py
    - [x] Add hints to streamlit_playground.py
 5. Integrate GPU acceleration into all neural computations.
-   - [ ] Evaluate current modules for GPU compatibility.
-   - [ ] Implement GPU kernels using PyTorch operations and custom CUDA if needed.
-   - [ ] Provide CPU fallback mechanisms.
-   - [ ] Add tests verifying GPU and CPU parity.
+   - [x] Evaluate current modules for GPU compatibility.
+   - [x] Implement GPU kernels using PyTorch operations and custom CUDA if needed.
+   - [x] Provide CPU fallback mechanisms.
+   - [x] Add tests verifying GPU and CPU parity.
 6. [x] Provide a command line interface for common training tasks.
 7. Refactor `marble_neuronenblitz.py` into logical submodules.
    - [ ] Identify separate functionalities (learning algorithms, memory, etc.).
@@ -23,8 +23,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 8. Document all public APIs with docstrings and examples.
    - [ ] Audit modules to list all public functions and classes.
    - [ ] Add comprehensive docstrings using Google style.
-   - [ ] Provide minimal working examples in docs directory.
-   - [ ] Generate API reference via Sphinx.
+   - [x] Provide minimal working examples in docs directory.
+   - [x] Generate API reference via Sphinx.
 9. [x] Create tutorials that walk through real-world datasets.
 10. [x] Add automatic benchmarking for message-passing operations.
 11. [x] Support asynchronous training loops for large-scale experiments.
@@ -99,7 +99,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 60. Implement automatic synchronization of config files across nodes.
    - [ ] Design synchronization protocol (e.g., using rsync or file watchers).
    - [ ] Implement config sync service.
-   - [ ] Add CLI command to trigger manual sync.
+   - [x] Add CLI command to trigger manual sync.
    - [ ] Write tests simulating multi-node environment.
 61. Enhance constant-time operations for cryptographic safety.
    - [ ] Profile existing cryptographic operations.
