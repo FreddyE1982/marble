@@ -17,6 +17,7 @@ from tests.test_core_functions import minimal_params
 
 from streamlit_playground import (
     load_examples,
+    load_value_list,
     initialize_marble,
     list_marble_functions,
     execute_marble_function,
@@ -138,6 +139,41 @@ def test_load_examples_zip(tmp_path):
         ex = load_examples(f)
     assert len(ex) == 1
     assert isinstance(ex[0][0], np.ndarray)
+
+
+def test_load_examples_excel(tmp_path):
+    df = pd.DataFrame({"input": [1, 2], "target": [2, 4]})
+    xls_path = tmp_path / "data.xlsx"
+    df.to_excel(xls_path, index=False)
+    with open(xls_path, "rb") as f:
+        ex = load_examples(f)
+    assert ex == [(1.0, 2.0), (2.0, 4.0)]
+
+
+def test_load_value_list_excel(tmp_path):
+    df = pd.DataFrame({"value": [0.1, 0.2, 0.3]})
+    xls_path = tmp_path / "values.xlsx"
+    df.to_excel(xls_path, index=False)
+    with open(xls_path, "rb") as f:
+        vals = load_value_list(f)
+    assert vals == [0.1, 0.2, 0.3]
+
+    zip_path = tmp_path / "values.zip"
+    with ZipFile(zip_path, "w") as zf:
+        zf.write(xls_path, arcname="values.xlsx")
+    with open(zip_path, "rb") as f:
+        vals = load_value_list(f)
+    assert vals == [0.1, 0.2, 0.3]
+
+    dataset_df = pd.DataFrame({"input": [1, 2], "target": [2, 4]})
+    ds_path = tmp_path / "dataset.xlsx"
+    dataset_df.to_excel(ds_path, index=False)
+    zip_path = tmp_path / "data.zip"
+    with ZipFile(zip_path, "w") as zf:
+        zf.write(ds_path, arcname="dataset.xlsx")
+    with open(zip_path, "rb") as f:
+        ex = load_examples(f)
+    assert ex == [(1.0, 2.0), (2.0, 4.0)]
 
 
 def test_initialize_marble(tmp_path):
@@ -399,13 +435,16 @@ def test_load_hf_model_and_convert():
     auto.assert_called_once_with("dummy", trust_remote_code=True)
     assert model is dummy_model
 
-    with mock.patch(
-        "streamlit_playground.load_hf_model",
-        return_value=dummy_model,
-    ) as loader, mock.patch(
-        "streamlit_playground.marble_interface.convert_pytorch_model",
-        return_value="marble",
-    ) as conv:
+    with (
+        mock.patch(
+            "streamlit_playground.load_hf_model",
+            return_value=dummy_model,
+        ) as loader,
+        mock.patch(
+            "streamlit_playground.marble_interface.convert_pytorch_model",
+            return_value="marble",
+        ) as conv,
+    ):
         out = convert_hf_model("dummy")
     loader.assert_called_once_with("dummy")
     conv.assert_called_once()
@@ -501,12 +540,15 @@ def test_metrics_and_docs_helpers(tmp_path):
 
 
 def test_system_stats():
-    with mock.patch(
-        "system_metrics.get_system_memory_usage",
-        return_value=123.0,
-    ), mock.patch(
-        "system_metrics.get_gpu_memory_usage",
-        return_value=45.0,
+    with (
+        mock.patch(
+            "system_metrics.get_system_memory_usage",
+            return_value=123.0,
+        ),
+        mock.patch(
+            "system_metrics.get_gpu_memory_usage",
+            return_value=45.0,
+        ),
     ):
         stats = system_stats()
     assert stats == {"ram_mb": 123.0, "gpu_mb": 45.0}
@@ -709,6 +751,7 @@ def test_hybrid_memory_helpers(tmp_path):
     res = hybrid_memory_retrieve(marble, 1.0, top_k=1)
     assert res and res[0][0] == "k"
     hybrid_memory_forget(marble, max_entries=1)
+
 
 def test_activation_figure(tmp_path):
     cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
