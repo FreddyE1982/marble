@@ -101,7 +101,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Implement config sync service.
    - [x] Add CLI command to trigger manual sync.
    - [x] Write tests simulating multi-node environment.
-61. Enhance constant-time operations for cryptographic safety.
+61. [x] Enhance constant-time operations for cryptographic safety.
    - [x] Profile existing cryptographic operations.
    - [x] Replace variable-time functions with constant-time equivalents.
    - [x] Add unit tests verifying timing does not leak secrets.
@@ -114,7 +114,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 63. [x] Provide utilities for automatic dataset downloading and caching.
 64. [x] Integrate a simple hyperparameter search framework.
 65. [x] Add tests verifying deterministic behaviour with fixed seeds.
-66. Improve readability of configuration files with comments and sections.
+66. [x] Improve readability of configuration files with comments and sections.
    - [x] Group related config parameters into sections.
    - [x] Add descriptive comments for each parameter.
    - [x] Provide script to auto-generate sample config with comments.
