@@ -43,10 +43,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 24. [x] Add tests ensuring compatibility with PyTorch 2.7 and higher.
 25. [x] Improve logging with structured JSON output.
 26. Implement distributed training across multiple GPUs.
-   - [ ] Research distributed training approaches (DDP, Horovod).
-   - [ ] Add distributed setup utilities to `marble_core`.
-   - [ ] Implement distributed training pipeline in `marble_neuronenblitz`.
-   - [ ] Write tests using CPU-based simulator.
+   - [x] Research distributed training approaches (DDP, Horovod).
+   - [x] Add distributed setup utilities to `marble_core`.
+   - [x] Implement distributed training pipeline in `marble_neuronenblitz`.
+   - [x] Write tests using CPU-based simulator.
 27. Provide higher-level wrappers for common reinforcement learning tasks.
    - [x] Design RL environment interface.
    - [x] Implement wrappers for policy gradient, Q-learning, etc.
@@ -86,10 +86,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Add low-level policy modules.
    - [x] Provide example training script.
 53. Implement efficient memory management for huge graphs.
-   - [ ] Identify memory-heavy structures.
-   - [ ] Implement streaming / chunking of graph data.
+   - [x] Identify memory-heavy structures.
+   - [x] Implement streaming / chunking of graph data.
    - [x] Add memory pooling and reference counting.
-   - [ ] Benchmark and optimize.
+   - [x] Benchmark and optimize.
 54. [x] Add checks for NaN/Inf propagation throughout the core.
 55. [x] Provide an option to profile CPU and GPU usage during training.
 56. [x] Integrate dataset sharding for distributed training.
@@ -107,10 +107,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Add unit tests verifying timing does not leak secrets.
    - [x] Document cryptographic safety guidelines.
 62. Add more comprehensive adversarial training examples.
-   - [ ] Implement adversarial example generators.
-   - [ ] Add training loops demonstrating adversarial robustness.
+   - [x] Implement adversarial example generators.
+   - [x] Add training loops demonstrating adversarial robustness.
    - [x] Provide dataset wrappers for adversarial data.
-   - [ ] Document new examples in TUTORIAL.
+   - [x] Document new examples in TUTORIAL.
 63. [x] Provide utilities for automatic dataset downloading and caching.
 64. [x] Integrate a simple hyperparameter search framework.
 65. [x] Add tests verifying deterministic behaviour with fixed seeds.

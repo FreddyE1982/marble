@@ -47,3 +47,33 @@ class AdversarialLearner:
         for _ in range(int(epochs)):
             for val in real_values:
                 self.train_step(float(val))
+
+
+def train_with_adversarial_examples(
+    model: torch.nn.Module,
+    dataset: torch.utils.data.Dataset,
+    *,
+    epsilon: float = 0.1,
+    epochs: int = 1,
+    device: str | torch.device | None = None,
+) -> None:
+    """Simple FGSM adversarial training loop for a PyTorch model."""
+
+    device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+    loader = torch.utils.data.DataLoader(dataset, batch_size=8, shuffle=True)
+    opt = torch.optim.SGD(model.parameters(), lr=0.01)
+    loss_fn = torch.nn.MSELoss()
+    model.to(device)
+    for _ in range(int(epochs)):
+        for x, y in loader:
+            x = x.to(device).detach().clone().requires_grad_(True)
+            y = y.to(device)
+            opt.zero_grad()
+            out = model(x)
+            loss = loss_fn(out, y)
+            loss.backward()
+            adv_x = (x + epsilon * x.grad.sign()).detach()
+            adv_out = model(adv_x)
+            adv_loss = loss_fn(adv_out, y)
+            adv_loss.backward()
+            opt.step()
