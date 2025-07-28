@@ -1257,6 +1257,8 @@ class Neuronenblitz:
                     syn.weight *= 1.0 - self.weight_decay
             self._accum_updates.clear()
             self._accum_step = 0
+            self.step_lr_scheduler()
+            self.step_epsilon_scheduler()
         if path:
             last_neuron = self.core.neurons[path[-1].target]
             last_neuron.attention_score += abs(error)
@@ -1368,8 +1370,6 @@ class Neuronenblitz:
             self.last_message_passing_change = change
             self.decide_synapse_action()
             self.adjust_learning_rate()
-            self.step_lr_scheduler()
-            self.step_epsilon_scheduler()
             if (
                 self.use_experience_replay
                 and len(self.replay_buffer) >= self.replay_batch_size

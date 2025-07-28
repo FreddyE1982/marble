@@ -10,9 +10,9 @@ from tests.test_core_functions import minimal_params
 
 
 def test_remote_offload_roundtrip():
-    server = RemoteBrainServer(port=8001)
+    server = RemoteBrainServer(port=8001, auth_token="secret")
     server.start()
-    client = RemoteBrainClient("http://localhost:8001")
+    client = RemoteBrainClient("http://localhost:8001", auth_token="secret")
 
     params = minimal_params()
     core = Core(params)
@@ -77,15 +77,44 @@ def test_remote_offload_uncompressed():
     server.stop()
 
 
+def test_remote_auth_token_required():
+    server = RemoteBrainServer(port=8005, auth_token="tok")
+    server.start()
+    client = RemoteBrainClient("http://localhost:8005", auth_token="tok")
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core, remote_client=client)
+    brain = Brain(core, nb, DataLoader(), remote_client=client, offload_enabled=True)
+    brain.lobe_manager.genesis(range(len(core.neurons)))
+    brain.offload_high_attention(threshold=-1.0)
+    out, _ = nb.dynamic_wander(0.1)
+    assert isinstance(out, float)
+    server.stop()
+
+
+def test_remote_auth_token_invalid():
+    server = RemoteBrainServer(port=8006, auth_token="tok")
+    server.start()
+    client = RemoteBrainClient("http://localhost:8006", auth_token="wrong")
+    try:
+        client.process(0.1)
+        success = True
+    except requests.HTTPError:
+        success = False
+    assert not success
+    server.stop()
+
+
 def test_remote_client_retries(monkeypatch):
     attempts = {"n": 0}
 
-    def fake_post(url, json=None, timeout=0):
+    def fake_post(url, json=None, timeout=0, **kwargs):
         attempts["n"] += 1
         if attempts["n"] < 2:
             raise requests.RequestException("fail")
 
         class Res:
+            status_code = 200
             def json(self):
                 return {"output": 1.0}
 
@@ -99,16 +128,17 @@ def test_remote_client_retries(monkeypatch):
 
 
 def test_bandwidth_and_route(monkeypatch):
-    def fake_post(url, data=None, timeout=0, headers=None):
+    def fake_post(url, data=None, timeout=0, headers=None, **kwargs):
         class Res:
-            headers = {"Content-Length": str(len(data))}
+            headers = {"Content-Length": str(len(data or ""))}
+            status_code = 200
 
             def json(self):
                 return {"output": 1.0}
 
         return Res()
 
-    def fake_get(url, timeout=0):
+    def fake_get(url, timeout=0, **kwargs):
         class Res:
             pass
 

@@ -4,9 +4,10 @@ from remote_offload import RemoteBrainClient
 
 
 def test_remote_client_latency_tracking(monkeypatch):
-    def fake_post(url, json=None, timeout=0):
+    def fake_post(url, json=None, timeout=0, **kwargs):
         time.sleep(0.01)
         class Res:
+            status_code = 200
             def json(self):
                 return {"output": 1.0}
         return Res()

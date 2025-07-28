@@ -166,6 +166,7 @@ def test_remote_server_start(tmp_path):
         "host": "localhost",
         "port": 8123,
         "remote_url": None,
+        "auth_token": "abc",
     }
     with open(cfg_path, "w", encoding="utf-8") as f:
         yaml.safe_dump(cfg, f)

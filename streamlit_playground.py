@@ -951,6 +951,7 @@ def start_remote_server(
     remote_url: str | None = None,
     compression_level: int = 6,
     compression_enabled: bool = True,
+    auth_token: str | None = None,
 ) -> object:
     """Start and return a ``RemoteBrainServer`` instance."""
     from remote_offload import RemoteBrainServer
@@ -961,6 +962,7 @@ def start_remote_server(
         remote_url=remote_url,
         compression_level=compression_level,
         compression_enabled=compression_enabled,
+        auth_token=auth_token,
     )
     server.start()
     return server
@@ -972,6 +974,7 @@ def create_remote_client(
     max_retries: int = 3,
     compression_level: int = 6,
     compression_enabled: bool = True,
+    auth_token: str | None = None,
 ) -> object:
     """Return a configured ``RemoteBrainClient``."""
     from remote_offload import RemoteBrainClient
@@ -982,6 +985,7 @@ def create_remote_client(
         max_retries=max_retries,
         compression_level=compression_level,
         compression_enabled=compression_enabled,
+        auth_token=auth_token,
     )
 
 

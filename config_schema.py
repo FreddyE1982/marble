@@ -64,6 +64,12 @@ CONFIG_SCHEMA = {
             "type": ["array", "string"],
             "items": {"type": "string"},
         },
+        "remote_server": {
+            "type": "object",
+            "properties": {
+                "auth_token": {"type": ["string", "null"]},
+            },
+        },
         "autograd": {
             "type": "object",
             "properties": {

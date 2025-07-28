@@ -301,6 +301,7 @@ Each entry is listed under its section heading.
 - host
 - port
 - remote_url
+- auth_token
 - ssl_enabled
 - ssl_cert_file
 - ssl_key_file

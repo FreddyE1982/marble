@@ -318,6 +318,7 @@ remote_server:
   host: "localhost"
   port: 8000
   remote_url: null
+  auth_token: null
   ssl_enabled: false
   ssl_cert_file: "server.crt"
   ssl_key_file: "server.key"
