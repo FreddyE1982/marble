@@ -78,6 +78,13 @@ CONFIG_SCHEMA = {
                 "gradient_accumulation_steps": {"type": "integer", "minimum": 1},
             },
         },
+        "global_workspace": {
+            "type": "object",
+            "properties": {
+                "enabled": {"type": "boolean"},
+                "capacity": {"type": "integer", "minimum": 1},
+            },
+        },
         "experiments": {
             "type": "array",
             "items": {

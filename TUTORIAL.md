@@ -1522,6 +1522,11 @@ Additional experiments can enable **prioritized experience replay** by setting `
    `n_plugin.activate("my_plugin")`. The plugin's `activate(nb)` function
    receives the instance for unrestricted access.
 
+The new *Global Workspace* plugin is loaded in the same way. Add
+`global_workspace` settings to `config.yaml` and call
+`n_plugin.activate("global_workspace")` to share broadcast messages between
+plugins and components.
+
 
 ## Organising Multiple Experiments
 

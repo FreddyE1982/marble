@@ -107,6 +107,7 @@ def create_marble_from_config(
     }
 
     autograd_params = cfg.get("autograd", {})
+    gw_cfg = cfg.get("global_workspace", {})
     pytorch_challenge_params = cfg.get("pytorch_challenge", {})
     gpt_cfg = cfg.get("gpt", {})
 
@@ -178,6 +179,13 @@ def create_marble_from_config(
         pytorch_challenge_params=pytorch_challenge_params,
         hybrid_memory_params=hybrid_memory_params,
     )
+    if gw_cfg.get("enabled", False):
+        from global_workspace import activate as activate_global_workspace
+
+        activate_global_workspace(
+            marble.neuronenblitz if hasattr(marble, "neuronenblitz") else None,
+            capacity=gw_cfg.get("capacity", 100),
+        )
     if qbits:
         from model_quantization import quantize_core_weights
 
