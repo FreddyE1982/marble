@@ -20,7 +20,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Split file into modules under new package `marble_neuronenblitz/`.
    - [x] Update imports across the project.
    - [x] Add tests ensuring modules operate as before.
-8. Document all public APIs with docstrings and examples.
+8. [x] Document all public APIs with docstrings and examples.
    - [x] Audit modules to list all public functions and classes.
    - [x] Add comprehensive docstrings using Google style.
    - [x] Provide minimal working examples in docs directory.
@@ -47,7 +47,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Add distributed setup utilities to `marble_core`.
    - [x] Implement distributed training pipeline in `marble_neuronenblitz`.
    - [x] Write tests using CPU-based simulator.
-27. Provide higher-level wrappers for common reinforcement learning tasks.
+27. [x] Provide higher-level wrappers for common reinforcement learning tasks.
    - [x] Design RL environment interface.
    - [x] Implement wrappers for policy gradient, Q-learning, etc.
    - [x] Add examples demonstrating wrappers.
