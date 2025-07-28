@@ -71,6 +71,16 @@ Use ``--save`` to persist the entire MARBLE object with pickle and
 ``--export-core`` to write just the core for later loading via
 ``import_core_from_json``.
 
+### Manual Config Synchronisation
+
+To copy the current configuration to additional nodes run:
+
+```bash
+python cli.py --config config.yaml --sync-config /mnt/nodeA/config.yaml /mnt/nodeB/config.yaml
+```
+
+Pass ``--sync-src`` to specify an alternative source file.
+
 ### Remote Inference API
 
 MARBLE can be exposed through a lightweight HTTP API. Launch the server with:
