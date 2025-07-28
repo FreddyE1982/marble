@@ -24,3 +24,7 @@ For further help open an issue on the project repository with your configuration
 
 ## Python 3.8/3.9 Support
 MARBLE uses modern type hint syntax. Run `scripts/convert_to_py38.py` on the source tree when using Python 3.8 or 3.9. Some optional features may be unavailable.
+
+## Plugin Troubleshooting
+* **Global workspace messages not appearing** – Ensure `global_workspace.enabled` is `true` in your configuration and that the plugin is activated before other plugins.
+* **Attention codelets have no effect** – Verify that `attention_codelets.enabled` is `true` and that at least one codelet has been registered. Call `attention_codelets.run_cycle()` during training to broadcast proposals.

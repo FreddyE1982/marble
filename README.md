@@ -251,6 +251,10 @@ to automatically format and lint changes before each commit.
 \nMARBLE can be extended via a simple plugin system. Specify directories in the `plugins` list of the configuration and each module's `register` function will be invoked to add custom neuron or synapse types.
 Neuronenblitz exposes a runtime plugin API. After creating a `Neuronenblitz` instance you may activate modules via `n_plugin.activate("my_plugin")`. The plugin\x27s `activate(nb)` function receives the instance and can freely read or modify any attributes or methods.
 The repository now also provides a `global_workspace` plugin which broadcasts small messages to all registered listeners. Enable it by adding a `global_workspace` section to `config.yaml` and activating the plugin with `n_plugin.activate("global_workspace")`.
+An additional `attention_codelets` plugin can broadcast the output of custom
+codelets through the workspace. Register your own codelets via
+`attention_codelets.register_codelet` and invoke
+`attention_codelets.run_cycle()` during training.
 
 ## Release Process
 To publish a new release to PyPI:

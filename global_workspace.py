@@ -1,3 +1,5 @@
+"""Global Workspace plugin used by consciousness modules."""
+
 from __future__ import annotations
 
 from collections import deque
@@ -23,14 +25,23 @@ class GlobalWorkspace:
         self.subscribers: List[Callable[[BroadcastMessage], None]] = []
 
     def publish(self, source: str, content: Any) -> None:
-        """Add a message and notify all subscribers."""
+        """Add a message and notify all subscribers.
+
+        Args:
+            source: Identifier of the sender.
+            content: Arbitrary payload to deliver.
+        """
         msg = BroadcastMessage(source, content)
         self.queue.append(msg)
         for cb in list(self.subscribers):
             cb(msg)
 
     def subscribe(self, callback: Callable[[BroadcastMessage], None]) -> None:
-        """Register ``callback`` to receive future messages."""
+        """Register ``callback`` to receive future messages.
+
+        Args:
+            callback: Function invoked with each :class:`BroadcastMessage`.
+        """
         self.subscribers.append(callback)
 
 
@@ -39,7 +50,16 @@ workspace: GlobalWorkspace | None = None
 
 
 def activate(nb: object | None = None, capacity: int = 100) -> GlobalWorkspace:
-    """Initialise the global workspace and attach to ``nb`` if given."""
+    """Initialise the global workspace and optionally attach it to ``nb``.
+
+    Args:
+        nb: Object to attach the workspace to. If ``None`` the workspace is
+            created but not assigned.
+        capacity: Maximum number of messages stored.
+
+    Returns:
+        The shared :class:`GlobalWorkspace` instance.
+    """
     global workspace
     if workspace is None or workspace.queue.maxlen != capacity:
         workspace = GlobalWorkspace(capacity)
@@ -49,5 +69,9 @@ def activate(nb: object | None = None, capacity: int = 100) -> GlobalWorkspace:
 
 
 def register(*_: Callable[[str], None]) -> None:
-    """No neuron or synapse types are registered by this plugin."""
+    """Required plugin entry point.
+
+    The global workspace does not register custom neuron or synapse types,
+    but this function is provided for consistency with the plugin interface.
+    """
     return

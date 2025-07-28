@@ -1,0 +1,11 @@
+# Example config for consciousness plugins
+plugins:
+  - ./plugins
+
+global_workspace:
+  enabled: true
+  capacity: 20
+
+attention_codelets:
+  enabled: true
+  coalition_size: 2

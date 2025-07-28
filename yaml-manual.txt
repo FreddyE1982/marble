@@ -814,6 +814,8 @@ global_workspace:
   capacity: Maximum number of messages kept in the queue. When the queue
     exceeds this length older entries are discarded. Typical values range from
     ``10`` to ``100`` depending on how much history you wish to retain.
+  # The workspace is automatically attached to a ``Neuronenblitz`` instance
+  # when :func:`global_workspace.activate` is called with ``nb``.
 attention_codelets:
   # Attention codelets are lightweight plugins that each propose a piece of
   # information along with a salience ``score``. During every cycle the
@@ -827,6 +829,9 @@ attention_codelets:
     ``5`` depending on how much information you want to expose at once.
   # See ``examples/configs/attention_codelets.yaml`` for a minimal
   # configuration demonstrating these settings.
+  # To create your own codelet define a callable that returns an
+  # :class:`AttentionProposal` and register it with
+  # :func:`attention_codelets.register_codelet`.
 pytorch_challenge:
   enabled: If true the training loop compares MARBLE with a pretrained PyTorch model after every training example. When MARBLE's validation loss, inference speed or model size exceed the PyTorch model, neuromodulatory stress is increased which lowers plasticity on subsequent updates.
   loss_penalty: Amount of stress added when MARBLE's loss is worse than the PyTorch baseline. Values around 0.1 provide noticeable pressure without overwhelming the system.
