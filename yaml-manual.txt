@@ -745,6 +745,11 @@ experiment_tracker:
       (no compression) to 9 (maximum compression).
     compression_enabled: Set to ``false`` to disable compression entirely. When
       disabled the server expects plain JSON payloads.
+remote_hardware:
+  tier_plugin: Path to a Python module implementing
+    ``get_remote_tier``. Set to ``null`` to disable.
+  grpc:
+    address: Address of the gRPC service handling remote computation.
 
 metrics_visualizer:
   # Configure the live metrics plot size. These values are passed directly to

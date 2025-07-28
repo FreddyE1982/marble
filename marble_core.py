@@ -8,6 +8,7 @@ import random
 import time
 import functools
 from collections import deque
+from memory_pool import MemoryPool
 from datetime import datetime
 from typing import Any, Hashable
 import contextlib
@@ -1411,6 +1412,8 @@ class Core:
                 pass
         self.params = params
         self.metrics_visualizer = metrics_visualizer
+        self.neuron_pool = MemoryPool(lambda: Neuron(-1, rep_size=_REP_SIZE))
+        self.synapse_pool = MemoryPool(lambda: Synapse(0, 0))
         if "file" in TIER_REGISTRY:
             fpath = params.get("file_tier_path")
             if fpath is not None:
@@ -1474,7 +1477,8 @@ class Core:
             except Exception as e:
                 raise ValueError(f"Formula parsing failed: {e}")
             for i in range(formula_num_neurons):
-                neuron = Neuron(nid, value=0.0, tier="vram", rep_size=self.rep_size)
+                neuron = self.neuron_pool.allocate()
+                neuron.__init__(nid, value=0.0, tier="vram", rep_size=self.rep_size)
                 neuron.formula = expr
                 self.neurons.append(neuron)
                 nid += 1
@@ -1495,14 +1499,14 @@ class Core:
             if noise_std:
                 mandel_cpu = mandel_cpu + np.random.randn(*mandel_cpu.shape) * noise_std
             for val in mandel_cpu.flatten():
-                self.neurons.append(
-                    Neuron(
-                        nid,
-                        value=float(val),
-                        tier="vram",
-                        rep_size=self.rep_size,
-                    )
+                neuron = self.neuron_pool.allocate()
+                neuron.__init__(
+                    nid,
+                    value=float(val),
+                    tier="vram",
+                    rep_size=self.rep_size,
                 )
+                self.neurons.append(neuron)
                 nid += 1
 
         num_neurons = len(self.neurons)
@@ -1642,6 +1646,11 @@ class Core:
             new_syn.append(syn)
         for neuron in remaining:
             neuron.synapses = [s for s in new_syn if s.source == neuron.id]
+        for idx in to_remove:
+            self.neuron_pool.release(self.neurons[idx])
+        removed_syn = [s for s in self.synapses if s.source in to_remove or s.target in to_remove]
+        for syn in removed_syn:
+            self.synapse_pool.release(syn)
         self.neurons = remaining
         self.synapses = new_syn
 
@@ -1668,8 +1677,15 @@ class Core:
             new_syn.append(syn)
         for neuron in remaining:
             neuron.synapses = [s for s in new_syn if s.source == neuron.id]
+        removed_ids = [i for i in range(len(self.neurons)) if i not in used]
+        for idx in removed_ids:
+            self.neuron_pool.release(self.neurons[idx])
+        old_syn = self.synapses
         self.neurons = remaining
         self.synapses = new_syn
+        for syn in old_syn:
+            if syn not in new_syn:
+                self.synapse_pool.release(syn)
 
     def add_synapse(
         self,
@@ -1681,7 +1697,8 @@ class Core:
         echo_length: int | None = None,
         phase: float = 0.0,
     ):
-        syn = Synapse(
+        syn = self.synapse_pool.allocate()
+        syn.__init__(
             source_id,
             target_id,
             weight=weight,
@@ -1787,15 +1804,15 @@ class Core:
                 n_type = random.choice(neuron_types) if neuron_types else "standard"
             else:
                 n_type = neuron_types if neuron_types is not None else "standard"
-            self.neurons.append(
-                Neuron(
-                    start_id + i,
-                    value=0.0,
-                    tier=target_tier,
-                    neuron_type=n_type,
-                    rep_size=self.rep_size,
-                )
+            neuron = self.neuron_pool.allocate()
+            neuron.__init__(
+                start_id + i,
+                value=0.0,
+                tier=target_tier,
+                neuron_type=n_type,
+                rep_size=self.rep_size,
             )
+            self.neurons.append(neuron)
         for _ in range(num_new_synapses):
             src = random.choice(self.neurons).id
             tgt = random.choice(self.neurons).id

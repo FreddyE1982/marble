@@ -283,6 +283,9 @@ Each entry is listed under its section heading.
 ## data_compressor
 - compression_level
 - compression_enabled
+## remote_hardware
+- tier_plugin
+- grpc.address
 - delta_encoding
 - compression_algorithm
 
@@ -311,6 +314,9 @@ Each entry is listed under its section heading.
 - max_connections
 - compression_level
 - compression_enabled
+## remote_hardware
+- tier_plugin
+- grpc.address
 
 ## metrics_visualizer
 - fig_width
