@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Callable, List
 
+import numpy as np
 import global_workspace
 
 
@@ -40,13 +41,22 @@ def get_codelets() -> list[Callable[[], AttentionProposal]]:
 
 
 def form_coalition(coalition_size: int | None = None) -> list[AttentionProposal]:
-    """Return the top proposals from all registered codelets."""
+    """Return the winning proposals from all registered codelets.
+
+    Proposals are ranked by a softmax over their scores to allow more
+    nuanced selection than strict sorting. The highest ranked proposals are
+    returned according to ``coalition_size``.
+    """
 
     if coalition_size is None:
         coalition_size = _default_coalition_size
     proposals = [codelet() for codelet in _codelets]
-    proposals.sort(key=lambda p: p.score, reverse=True)
-    return proposals[:coalition_size]
+    if not proposals:
+        return []
+    scores = np.array([p.score for p in proposals], dtype=float)
+    probs = np.exp(scores) / np.sum(np.exp(scores))
+    idx = np.argsort(probs)[-coalition_size:][::-1]
+    return [proposals[i] for i in idx]
 
 
 def broadcast_coalition(coalition: list[AttentionProposal]) -> None:

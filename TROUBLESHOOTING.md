@@ -21,3 +21,6 @@ This guide lists common issues when running MARBLE and how to solve them.
   `torch.cuda.is_available()` returns `True`.
 
 For further help open an issue on the project repository with your configuration and logs.
+
+## Python 3.8/3.9 Support
+MARBLE uses modern type hint syntax. Run `scripts/convert_to_py38.py` on the source tree when using Python 3.8 or 3.9. Some optional features may be unavailable.

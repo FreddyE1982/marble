@@ -21,3 +21,8 @@ def test_constant_time_compare_timing():
     diff_time = time.perf_counter_ns() - start
     assert abs(equal_time - diff_time) < 5_000_000  # 5 ms
 
+from crypto_profile import profile_compare
+
+def test_profile_compare():
+    diff = profile_compare(trials=1000)
+    assert diff < 1000  # ns
