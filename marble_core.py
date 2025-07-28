@@ -22,6 +22,16 @@ from marble_imports import *  # noqa: F401,F403,F405
 _REP_SIZE = 4
 
 
+def _neuron_factory() -> "Neuron":
+    """Factory for creating blank neurons used by :class:`MemoryPool`."""
+    return Neuron(-1, rep_size=_REP_SIZE)
+
+
+def _synapse_factory() -> "Synapse":
+    """Factory for creating blank synapses used by :class:`MemoryPool`."""
+    return Synapse(0, 0)
+
+
 def _init_weights(
     rep_size: int,
     *,
@@ -1412,8 +1422,8 @@ class Core:
                 pass
         self.params = params
         self.metrics_visualizer = metrics_visualizer
-        self.neuron_pool = MemoryPool(lambda: Neuron(-1, rep_size=_REP_SIZE))
-        self.synapse_pool = MemoryPool(lambda: Synapse(0, 0))
+        self.neuron_pool = MemoryPool(_neuron_factory)
+        self.synapse_pool = MemoryPool(_synapse_factory)
         if "file" in TIER_REGISTRY:
             fpath = params.get("file_tier_path")
             if fpath is not None:
