@@ -369,6 +369,7 @@ distillation:
   teacher_model: null
 reinforcement_learning:
   enabled: false
+  algorithm: q_learning
   episodes: 10
   max_steps: 50
   discount_factor: 0.9

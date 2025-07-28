@@ -1,10 +1,35 @@
 import random
+from abc import ABC, abstractmethod
+from typing import Any, Sequence
+
 import numpy as np
+import torch
+import torch.nn as nn
+
 from marble_core import Core
 from marble_neuronenblitz import Neuronenblitz
 
+from marble_autograd import MarbleAutogradLayer
 
-class GridWorld:
+
+class RLEnvironment(ABC):
+    """Abstract base class for RL environments."""
+
+    @property
+    @abstractmethod
+    def n_actions(self) -> int:
+        """Number of discrete actions available."""
+
+    @abstractmethod
+    def reset(self) -> Any:
+        """Reset environment and return initial state."""
+
+    @abstractmethod
+    def step(self, action: int) -> tuple[Any, float, bool]:
+        """Perform ``action`` and return ``(state, reward, done)``."""
+
+
+class GridWorld(RLEnvironment):
     """Simple grid environment with deterministic transitions."""
 
     def __init__(self, size: int = 4) -> None:
@@ -119,6 +144,58 @@ class MarbleQLearningAgent:
         self.epsilon = max(self.min_epsilon, self.epsilon * self.epsilon_decay)
 
 
+class MarblePolicyGradientAgent:
+    """Policy gradient agent using a small neural network with MARBLE integration."""
+
+    def __init__(
+        self,
+        core: Core,
+        nb: Neuronenblitz,
+        state_dim: int = 2,
+        hidden_dim: int = 16,
+        lr: float = 0.01,
+        gamma: float = 0.99,
+    ) -> None:
+        self.core = core
+        self.nb = nb
+        self.gamma = gamma
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.model = nn.Sequential(
+            nn.Linear(state_dim + 1, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, 4),
+            nn.Softmax(dim=-1),
+        ).to(self.device)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
+        self.log_probs: list[torch.Tensor] = []
+
+    def select_action(self, state: Sequence[float], n_actions: int) -> int:
+        wander_inp = float(sum(state))
+        wander_out, _ = self.nb.dynamic_wander(wander_inp)
+        st = torch.tensor(list(state) + [wander_out], dtype=torch.float32, device=self.device)
+        probs = self.model(st)
+        dist = torch.distributions.Categorical(probs)
+        action = dist.sample()
+        self.log_probs.append(dist.log_prob(action))
+        return int(action.item())
+
+    def finish_episode(self, rewards: list[float]) -> None:
+        R = 0.0
+        returns = []
+        for r in reversed(rewards):
+            R = r + self.gamma * R
+            returns.insert(0, R)
+        returns_t = torch.tensor(returns, dtype=torch.float32, device=self.device)
+        returns_t = (returns_t - returns_t.mean()) / (returns_t.std() + 1e-8)
+        policy_loss = [-(lp * ret) for lp, ret in zip(self.log_probs, returns_t)]
+        self.optimizer.zero_grad()
+        torch.stack(policy_loss).sum().backward()
+        self.optimizer.step()
+        self.log_probs.clear()
+
+
 def train_gridworld(
     agent: MarbleQLearningAgent,
     env: GridWorld,
@@ -144,3 +221,30 @@ def train_gridworld(
                 break
         rewards.append(total)
     return rewards
+
+
+def train_policy_gradient(
+    agent: MarblePolicyGradientAgent,
+    env: RLEnvironment,
+    episodes: int,
+    max_steps: int = 50,
+    seed: int | None = 0,
+) -> list[float]:
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+    reward_history = []
+    for _ in range(episodes):
+        state = env.reset()
+        episode_rewards: list[float] = []
+        for _ in range(max_steps):
+            action = agent.select_action(state, env.n_actions)
+            next_state, reward, done = env.step(action)
+            episode_rewards.append(reward)
+            state = next_state
+            if done:
+                break
+        agent.finish_episode(episode_rewards)
+        reward_history.append(sum(episode_rewards))
+    return reward_history

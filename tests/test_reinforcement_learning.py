@@ -4,7 +4,13 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from reinforcement_learning import GridWorld, MarbleQLearningAgent, train_gridworld
+from reinforcement_learning import (
+    GridWorld,
+    MarbleQLearningAgent,
+    MarblePolicyGradientAgent,
+    train_gridworld,
+    train_policy_gradient,
+)
 from tests.test_core_functions import minimal_params
 from marble_core import Core
 from marble_neuronenblitz import Neuronenblitz
@@ -57,4 +63,14 @@ def test_double_q_learning_updates_both_tables():
     train_gridworld(agent, env, episodes=2, max_steps=5)
     total_entries = len(agent.q_table_a) + len(agent.q_table_b)
     assert total_entries > 0
+
+
+def test_policy_gradient_improves_reward():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    agent = MarblePolicyGradientAgent(core, nb, lr=0.01, gamma=0.9)
+    env = GridWorld(size=3)
+    rewards = train_policy_gradient(agent, env, episodes=50, max_steps=20, seed=0)
+    assert rewards[-1] >= rewards[0] - 1e-9
 
