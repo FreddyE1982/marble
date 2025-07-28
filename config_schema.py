@@ -64,10 +64,17 @@ CONFIG_SCHEMA = {
             "type": ["array", "string"],
             "items": {"type": "string"},
         },
-        "remote_server": {
+        "network": {
             "type": "object",
             "properties": {
-                "auth_token": {"type": ["string", "null"]},
+                "remote_server": {
+                    "type": "object",
+                    "properties": {
+                        "auth_token": {"type": ["string", "null"]},
+                    },
+                },
+                "remote_client": {"type": "object"},
+                "torrent_client": {"type": "object"},
             },
         },
         "autograd": {

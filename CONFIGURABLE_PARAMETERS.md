@@ -263,7 +263,8 @@ Each entry is listed under its section heading.
 - symbolic_store_path
 - max_entries
 
-## remote_client
+
+## network.remote_client
 - url
 - timeout
 - max_retries
@@ -274,7 +275,7 @@ Each entry is listed under its section heading.
 - heartbeat_timeout
 - use_compression
 
-## torrent_client
+## network.torrent_client
 - client_id
 - buffer_size
 - heartbeat_interval
@@ -298,7 +299,7 @@ Each entry is listed under its section heading.
 - formula
 - formula_num_neurons
 
-## remote_server
+## network.remote_server
 - enabled
 - host
 - port

@@ -289,20 +289,6 @@ hybrid_memory:
   vector_store_path: "vector_store.pkl"
   symbolic_store_path: "symbolic_memory.pkl"
   max_entries: 1000
-remote_client:
-  url: "http://localhost:8001"
-  timeout: 5.0
-  max_retries: 3
-  track_latency: true
-  auth_token: null
-  ssl_verify: true
-  connect_retry_interval: 5
-  heartbeat_timeout: 10
-  use_compression: true
-torrent_client:
-  client_id: "main"
-  buffer_size: 10
-  heartbeat_interval: 30
 data_compressor:
   compression_level: 6
   compression_enabled: true
@@ -315,18 +301,34 @@ experiment_tracker:
   project: "marble"
   entity: null
   run_name: null
-remote_server:
-  enabled: false
-  host: "localhost"
-  port: 8000
-  remote_url: null
-  auth_token: null
-  ssl_enabled: false
-  ssl_cert_file: "server.crt"
-  ssl_key_file: "server.key"
-  max_connections: 100
-  compression_level: 6
-  compression_enabled: true
+  
+network:
+  remote_client:
+    url: "http://localhost:8001"
+    timeout: 5.0
+    max_retries: 3
+    track_latency: true
+    auth_token: null
+    ssl_verify: true
+    connect_retry_interval: 5
+    heartbeat_timeout: 10
+    use_compression: true
+  torrent_client:
+    client_id: "main"
+    buffer_size: 10
+    heartbeat_interval: 30
+  remote_server:
+    enabled: false
+    host: "localhost"
+    port: 8000
+    remote_url: null
+    auth_token: null
+    ssl_enabled: false
+    ssl_cert_file: "server.crt"
+    ssl_key_file: "server.key"
+    max_connections: 100
+    compression_level: 6
+    compression_enabled: true
 metrics_visualizer:
   fig_width: 10
   fig_height: 6

@@ -8,8 +8,8 @@ def test_extended_config_parameters():
     assert cfg["core"]["random_seed"] == 42
     assert cfg["neuronenblitz"]["plasticity_modulation"] == 1.0
     assert cfg["brain"]["model_name"] == "marble_default"
-    assert cfg["remote_client"]["auth_token"] is None
-    assert cfg["remote_server"]["ssl_enabled"] is False
-    assert cfg["remote_server"]["auth_token"] is None
+    assert cfg["network"]["remote_client"]["auth_token"] is None
+    assert cfg["network"]["remote_server"]["ssl_enabled"] is False
+    assert cfg["network"]["remote_server"]["auth_token"] is None
     assert cfg["metrics_visualizer"]["refresh_rate"] == 1
     assert cfg["brain"]["super_evolution_mode"] is False
