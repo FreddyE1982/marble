@@ -143,6 +143,9 @@ def load_examples(file) -> list[tuple]:
     if ext == ".csv" or not ext:
         df = pd.read_csv(file)
         return _pairs_from_df(df)
+    if ext in {".xlsx", ".xls"}:
+        df = pd.read_excel(file)
+        return _pairs_from_df(df)
     if ext == ".json" or ext == ".jsonl":
         js = json.load(file)
         df = pd.DataFrame(js)
@@ -152,6 +155,13 @@ def load_examples(file) -> list[tuple]:
             if "dataset.csv" in zf.namelist():
                 with zf.open("dataset.csv") as f:
                     df = pd.read_csv(f)
+                return _pairs_from_df(df, zf)
+            if "dataset.xlsx" in zf.namelist() or "dataset.xls" in zf.namelist():
+                fname = (
+                    "dataset.xlsx" if "dataset.xlsx" in zf.namelist() else "dataset.xls"
+                )
+                with zf.open(fname) as f:
+                    df = pd.read_excel(f)
                 return _pairs_from_df(df, zf)
             if "dataset.json" in zf.namelist():
                 with zf.open("dataset.json") as f:
@@ -175,6 +185,10 @@ def load_value_list(file) -> list[float]:
         df = pd.read_csv(file)
         col = "value" if "value" in df.columns else df.columns[0]
         return df[col].astype(float).tolist()
+    if ext in {".xlsx", ".xls"}:
+        df = pd.read_excel(file)
+        col = "value" if "value" in df.columns else df.columns[0]
+        return df[col].astype(float).tolist()
     if ext in {".json", ".jsonl"}:
         js = json.load(file)
         if isinstance(js, list):
@@ -190,6 +204,14 @@ def load_value_list(file) -> list[float]:
             if "values.csv" in zf.namelist():
                 with zf.open("values.csv") as f:
                     df = pd.read_csv(f)
+                col = "value" if "value" in df.columns else df.columns[0]
+                return df[col].astype(float).tolist()
+            if "values.xlsx" in zf.namelist() or "values.xls" in zf.namelist():
+                fname = (
+                    "values.xlsx" if "values.xlsx" in zf.namelist() else "values.xls"
+                )
+                with zf.open(fname) as f:
+                    df = pd.read_excel(f)
                 col = "value" if "value" in df.columns else df.columns[0]
                 return df[col].astype(float).tolist()
             if "values.json" in zf.namelist():
