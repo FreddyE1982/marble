@@ -2168,17 +2168,18 @@ def run_playground() -> None:
                 step=1,
                 key="graph_interval",
             )
+            layout = st.selectbox("Layout", ["spring", "circular"], key="graph_layout")
             container = st.empty()
             if auto:
                 _auto_refresh(interval * 1000, "graph_refresh")
-                fig = core_figure(marble.get_core())
+                fig = core_figure(marble.get_core(), layout=layout)
                 container.plotly_chart(fig, use_container_width=True)
             elif st.button("Generate Graph", key="show_graph"):
-                fig = core_figure(marble.get_core())
+                fig = core_figure(marble.get_core(), layout=layout)
                 container.plotly_chart(fig, use_container_width=True)
             if st.button("Show Activations", key="show_acts"):
                 activations = {n.id: float(n.value) for n in marble.get_core().neurons}
-                fig = activation_figure(marble.get_core(), activations)
+                fig = activation_figure(marble.get_core(), activations, layout=layout)
                 st.plotly_chart(fig, use_container_width=True)
 
         with tab_heat:
@@ -2186,8 +2187,13 @@ def run_playground() -> None:
             limit = st.number_input(
                 "Max Neurons", min_value=1, value=100, step=1, key="heat_limit"
             )
+            color = st.selectbox(
+                "Color Scale", ["Viridis", "Cividis", "Plasma"], key="heat_color"
+            )
             if st.button("Generate Heatmap", key="show_heatmap"):
-                fig = core_heatmap_figure(marble.get_core(), limit=int(limit))
+                fig = core_heatmap_figure(
+                    marble.get_core(), limit=int(limit), color_scale=color
+                )
                 st.plotly_chart(fig, use_container_width=True)
 
         with tab_metrics:

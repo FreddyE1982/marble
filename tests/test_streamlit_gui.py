@@ -2,20 +2,21 @@ import os
 import sys
 import warnings
 
+from _pytest.warning_types import PytestDeprecationWarning
+from streamlit.testing.v1 import AppTest
+
 # Suppress protobuf deprecation warnings from dependencies before importing
 warnings.filterwarnings(
     "ignore",
     message=".*PyType_Spec.*",
     category=DeprecationWarning,
 )
-from _pytest.warning_types import PytestDeprecationWarning
+
 warnings.filterwarnings(
     "ignore",
     category=PytestDeprecationWarning,
     module="dash.testing.plugin",
 )
-
-from streamlit.testing.v1 import AppTest
 
 # Ensure repo root is on path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -131,6 +132,7 @@ def test_hybrid_memory_store_and_retrieve():
 def test_visualization_and_heatmap_tabs():
     at = _setup_advanced_playground()
     vis_tab = next(t for t in at.tabs if t.label == "Visualization")
+    vis_tab.selectbox[0].set_value("circular")
     vis_tab.button[0].click()
     at = vis_tab.run(timeout=20)
     vis_tab = next(t for t in at.tabs if t.label == "Visualization")
@@ -138,6 +140,7 @@ def test_visualization_and_heatmap_tabs():
 
     heat_tab = next(t for t in at.tabs if t.label == "Weight Heatmap")
     heat_tab.number_input[0].set_value(10)
+    heat_tab.selectbox[0].set_value("Plasma")
     heat_tab.button[0].click()
     at = heat_tab.run(timeout=20)
     heat_tab = next(t for t in at.tabs if t.label == "Weight Heatmap")
@@ -151,6 +154,7 @@ def test_documentation_tab_view():
     at = docs_tab.run(timeout=20)
     docs_tab = next(t for t in at.tabs if t.label == "Documentation")
     assert docs_tab.code and "MARBLE" in docs_tab.code[0].value
+
 
 def test_function_search_count_synapses():
     at = _setup_advanced_playground()
@@ -251,9 +255,7 @@ def test_async_training_start_and_wait(monkeypatch):
     monkeypatch.setattr(
         "streamlit_playground.start_background_training", lambda *a, **k: None
     )
-    monkeypatch.setattr(
-        "streamlit_playground.wait_for_training", lambda *a, **k: None
-    )
+    monkeypatch.setattr("streamlit_playground.wait_for_training", lambda *a, **k: None)
     at = _setup_advanced_playground()
     at.session_state["hf_examples"] = [(1, 2)]
     async_tab = next(t for t in at.tabs if t.label == "Async Training")
@@ -309,14 +311,12 @@ def test_projects_tab_show_code():
     proj_tab.selectbox[0].set_value("project05_gpt_training.py")
     at = proj_tab.run(timeout=20)
     proj_tab = next(t for t in at.tabs if t.label == "Projects")
-    assert (
-        proj_tab.expander[0].code
-        and "import" in proj_tab.expander[0].code[0].value
-    )
+    assert proj_tab.expander[0].code and "import" in proj_tab.expander[0].code[0].value
 
 
 def test_model_conversion_preview(monkeypatch):
     import torch
+
     monkeypatch.setattr(
         "transformers.AutoModel.from_pretrained",
         lambda *a, **k: torch.nn.Linear(1, 1),
@@ -332,9 +332,7 @@ def test_model_conversion_preview(monkeypatch):
 
 def test_offloading_remote_server(monkeypatch):
     dummy = type("Srv", (), {"stop": lambda self: None})()
-    monkeypatch.setattr(
-        "streamlit_playground.start_remote_server", lambda **kw: dummy
-    )
+    monkeypatch.setattr("streamlit_playground.start_remote_server", lambda **kw: dummy)
     at = _setup_advanced_playground()
     off_tab = next(t for t in at.tabs if t.label == "Offloading")
 
@@ -351,9 +349,7 @@ def test_offloading_remote_server(monkeypatch):
 
 def test_offloading_client_and_torrent(monkeypatch):
     client = object()
-    monkeypatch.setattr(
-        "streamlit_playground.create_remote_client", lambda url: client
-    )
+    monkeypatch.setattr("streamlit_playground.create_remote_client", lambda url: client)
     tclient = type("TC", (), {"disconnect": lambda self: None})()
     monkeypatch.setattr(
         "streamlit_playground.create_torrent_system",
@@ -418,9 +414,7 @@ def test_nb_explorer_parallel_and_history(monkeypatch):
 
     at = _setup_advanced_playground()
     nb = at.session_state["marble"].get_neuronenblitz()
-    monkeypatch.setattr(
-        nb, "get_training_history", lambda: [{"step": 1, "loss": 0.5}]
-    )
+    monkeypatch.setattr(nb, "get_training_history", lambda: [{"step": 1, "loss": 0.5}])
 
     nb_tab = next(t for t in at.tabs if t.label == "NB Explorer")
     nb_tab.text_input[0].input("0.5")
@@ -550,7 +544,9 @@ def test_core_tools_operations():
     assert any("reset" in s.value.lower() for s in core_tab.success)
 
     core_tab.number_input[10].set_value(1.0)
-    rand_btn = next(b for b in core_tab.button if b.label == "Randomize Representations")
+    rand_btn = next(
+        b for b in core_tab.button if b.label == "Randomize Representations"
+    )
     at = rand_btn.click().run(timeout=20)
     core_tab = next(t for t in at.tabs if t.label == "Core Tools")
     assert any("randomized" in s.value.lower() for s in core_tab.success)
@@ -570,7 +566,9 @@ def test_config_editor_reinitialize():
 
 
 def test_adaptive_control_actions(monkeypatch):
-    monkeypatch.setattr("streamlit_playground.adjust_meta_controller", lambda *a, **k: 0.5)
+    monkeypatch.setattr(
+        "streamlit_playground.adjust_meta_controller", lambda *a, **k: 0.5
+    )
     at = _setup_advanced_playground()
     adapt_tab = next(t for t in at.tabs if t.label == "Adaptive Control")
 
@@ -655,7 +653,9 @@ def test_offload_and_convert(monkeypatch):
 
 def test_sidebar_toggles_and_dashboard(monkeypatch):
     dash = type("Dash", (), {"stop": lambda self: None})()
-    monkeypatch.setattr("streamlit_playground.start_metrics_dashboard", lambda *a, **k: dash)
+    monkeypatch.setattr(
+        "streamlit_playground.start_metrics_dashboard", lambda *a, **k: dash
+    )
     monkeypatch.setattr("streamlit_playground.set_dreaming", lambda *a, **k: None)
     monkeypatch.setattr("streamlit_playground.set_autograd", lambda *a, **k: None)
 
@@ -672,8 +672,11 @@ def test_sidebar_toggles_and_dashboard(monkeypatch):
     at = dash_cb.toggle().run(timeout=20)
     assert at.session_state["dashboard"] is None
 
+
 def test_training_sidebar_action(monkeypatch):
-    monkeypatch.setattr("streamlit_playground.train_marble_system", lambda *a, **k: None)
+    monkeypatch.setattr(
+        "streamlit_playground.train_marble_system", lambda *a, **k: None
+    )
     at = _setup_basic_playground()
     at.session_state["hf_examples"] = [(1, 2)]
     train_btn = next(b for b in at.sidebar.button if b.label == "Train")
@@ -689,6 +692,7 @@ def test_basic_text_inference():
     at = infer_btn.click().run(timeout=20)
     assert any("Output:" in md.value for md in at.markdown)
 
+
 def test_save_config_file(monkeypatch):
     at = _setup_basic_playground()
     exp = at.sidebar.expander[0]
@@ -701,9 +705,7 @@ def test_save_config_file(monkeypatch):
 
 
 def test_duplicate_instance(monkeypatch):
-    monkeypatch.setattr(
-        "streamlit_playground.save_marble_system", lambda *a, **k: None
-    )
+    monkeypatch.setattr("streamlit_playground.save_marble_system", lambda *a, **k: None)
     monkeypatch.setattr(
         "streamlit_playground.MarbleRegistry.duplicate", lambda *a, **k: None
     )
@@ -711,6 +713,7 @@ def test_duplicate_instance(monkeypatch):
     dup_btn = next(b for b in at.sidebar.button if b.label == "Duplicate Instance")
     at = dup_btn.click().run(timeout=20)
     assert any("duplicated" in s.value.lower() for s in at.sidebar.success)
+
 
 def test_pipeline_reorder_and_remove():
     at = _setup_advanced_playground()
@@ -732,6 +735,7 @@ def test_pipeline_reorder_and_remove():
     at = rm_btn.click().run(timeout=20)
     assert len(at.session_state["pipeline"]) == 1
 
+
 def test_auto_firing_start_stop():
     at = _setup_advanced_playground()
     async_tab = next(t for t in at.tabs if t.label == "Async Training")
@@ -743,6 +747,7 @@ def test_auto_firing_start_stop():
     at = stop_btn.click().run(timeout=20)
     async_tab = next(t for t in at.tabs if t.label == "Async Training")
     assert any("stopped" in s.value.lower() for s in async_tab.success)
+
 
 def test_save_marble(monkeypatch, tmp_path):
     monkeypatch.setattr("streamlit_playground.save_marble_system", lambda m, p: None)
@@ -756,7 +761,9 @@ def test_save_marble(monkeypatch, tmp_path):
 
 
 def test_create_instance_button(monkeypatch):
-    monkeypatch.setattr("streamlit_playground.MarbleRegistry.create", lambda *a, **k: object())
+    monkeypatch.setattr(
+        "streamlit_playground.MarbleRegistry.create", lambda *a, **k: object()
+    )
     at = AppTest.from_file("streamlit_playground.py").run(timeout=15)
     create_btn = next(b for b in at.sidebar.button if b.label == "Create Instance")
     at = create_btn.click().run(timeout=20)
@@ -764,7 +771,9 @@ def test_create_instance_button(monkeypatch):
 
 
 def test_attach_remote_client(monkeypatch):
-    monkeypatch.setattr("streamlit_playground.create_remote_client", lambda url: object())
+    monkeypatch.setattr(
+        "streamlit_playground.create_remote_client", lambda url: object()
+    )
     at = _setup_advanced_playground()
     off_tab = next(t for t in at.tabs if t.label == "Offloading")
     client_exp = off_tab.expander[1]
@@ -774,12 +783,6 @@ def test_attach_remote_client(monkeypatch):
     at = attach_btn.click().run(timeout=20)
     off_tab = next(t for t in at.tabs if t.label == "Offloading")
     assert any("attached" in s.value for s in off_tab.success)
-
-
-
-
-
-
 
 
 def test_stats_refresh():
@@ -794,12 +797,14 @@ def test_stats_refresh():
 def test_misc_gui_buttons():
     at = _setup_advanced_playground()
     vis_tab = next(t for t in at.tabs if t.label == "Visualization")
+    vis_tab.selectbox[0].set_value("circular")
     graph_btn = next(b for b in vis_tab.button if b.label == "Generate Graph")
     at = graph_btn.click().run(timeout=20)
     vis_tab = next(t for t in at.tabs if t.label == "Visualization")
     assert vis_tab.get("plotly_chart")
     heat_tab = next(t for t in at.tabs if t.label == "Weight Heatmap")
     heat_tab.number_input[0].set_value(5)
+    heat_tab.selectbox[0].set_value("Cividis")
     heat_btn = next(b for b in heat_tab.button if b.label == "Generate Heatmap")
     at = heat_btn.click().run(timeout=20)
     heat_tab = next(t for t in at.tabs if t.label == "Weight Heatmap")
@@ -813,12 +818,16 @@ def test_misc_gui_buttons():
 
 
 def test_start_background_training(monkeypatch):
-    monkeypatch.setattr("streamlit_playground.start_background_training", lambda *a, **k: None)
+    monkeypatch.setattr(
+        "streamlit_playground.start_background_training", lambda *a, **k: None
+    )
     monkeypatch.setattr("streamlit_playground.wait_for_training", lambda *a, **k: None)
     at = _setup_advanced_playground()
     at.session_state["hf_examples"] = [(1, 2)]
     async_tab = next(t for t in at.tabs if t.label == "Async Training")
-    start_btn = next(b for b in async_tab.button if b.label == "Start Background Training")
+    start_btn = next(
+        b for b in async_tab.button if b.label == "Start Background Training"
+    )
     at = start_btn.click().run(timeout=20)
     async_tab = next(t for t in at.tabs if t.label == "Async Training")
     assert any("Training started" in s.value for s in async_tab.success)
@@ -827,14 +836,17 @@ def test_start_background_training(monkeypatch):
     async_tab = next(t for t in at.tabs if t.label == "Async Training")
     assert any("complete" in s.value.lower() for s in async_tab.success)
 
+
 def test_model_search_and_preview(monkeypatch):
     monkeypatch.setattr(
         "streamlit_playground.search_hf_models",
         lambda q: ["dummy-model"],
     )
+
     class Dummy:
         def named_parameters(self):
             return []
+
     monkeypatch.setattr(
         "streamlit_playground.load_hf_model",
         lambda name: Dummy(),
@@ -858,15 +870,11 @@ def test_adaptive_control_extra(monkeypatch):
     monkeypatch.setattr(
         "streamlit_playground.super_evo_changes", lambda m: [{"step": 1}]
     )
-    monkeypatch.setattr(
-        "streamlit_playground.clear_super_evo_changes", lambda m: None
-    )
+    monkeypatch.setattr("streamlit_playground.clear_super_evo_changes", lambda m: None)
     monkeypatch.setattr(
         "streamlit_playground.run_dimensional_search", lambda m, loss: 1
     )
-    monkeypatch.setattr(
-        "streamlit_playground.run_nd_topology", lambda m, loss: 1
-    )
+    monkeypatch.setattr("streamlit_playground.run_nd_topology", lambda m, loss: 1)
 
     at = _setup_advanced_playground()
     marble = at.session_state["marble"]
@@ -888,7 +896,9 @@ def test_adaptive_control_extra(monkeypatch):
     adapt_tab = next(t for t in at.tabs if t.label == "Adaptive Control")
     assert any("Cleared" in s.value for s in adapt_tab.success)
 
-    ds_btn = next(b for b in adapt_tab.button if b.label == "Evaluate Dimensional Search")
+    ds_btn = next(
+        b for b in adapt_tab.button if b.label == "Evaluate Dimensional Search"
+    )
     at = ds_btn.click().run(timeout=20)
     adapt_tab = next(t for t in at.tabs if t.label == "Adaptive Control")
     nd_btn = next(b for b in adapt_tab.button if b.label == "Evaluate N-D Topology")
@@ -960,13 +970,13 @@ def test_persist_ui_state_inserts_script(monkeypatch):
     captured = {}
 
     def fake_html(data, **kwargs):
-        captured['data'] = data
+        captured["data"] = data
 
     monkeypatch.setattr("streamlit.components.v1.html", fake_html)
     import importlib
+
     import streamlit_playground
+
     importlib.reload(streamlit_playground)
     streamlit_playground._persist_ui_state()
-    assert "scrollPos" in captured.get('data', '')
-
-
+    assert "scrollPos" in captured.get("data", "")
