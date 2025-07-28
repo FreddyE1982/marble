@@ -5,3 +5,7 @@ dataset:
 logging:
   structured: false
   log_file: run.log
+
+attention_codelets:
+  enabled: true
+  coalition_size: 2
