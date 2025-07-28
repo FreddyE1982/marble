@@ -109,7 +109,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 62. Add more comprehensive adversarial training examples.
    - [ ] Implement adversarial example generators.
    - [ ] Add training loops demonstrating adversarial robustness.
-   - [ ] Provide dataset wrappers for adversarial data.
+   - [x] Provide dataset wrappers for adversarial data.
    - [ ] Document new examples in TUTORIAL.
 63. [x] Provide utilities for automatic dataset downloading and caching.
 64. [x] Integrate a simple hyperparameter search framework.
