@@ -348,6 +348,9 @@ autograd:
   enabled: false
   learning_rate: 0.01
   gradient_accumulation_steps: 1
+global_workspace:
+  enabled: false
+  capacity: 100
 pytorch_challenge:
   enabled: false
   loss_penalty: 0.1

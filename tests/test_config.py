@@ -2,11 +2,11 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from config_loader import load_config, create_marble_from_config
-from config_schema import validate_config_schema
-import pytest
 import jsonschema
+import pytest
 import yaml
+
+from config_loader import create_marble_from_config, load_config
 from marble_main import MARBLE
 from remote_offload import RemoteBrainClient
 from torrent_offload import BrainTorrentClient
@@ -200,6 +200,19 @@ def test_new_nb_parameters_configurable(tmp_path):
     assert marble.neuronenblitz._cache_max_size == 7
     assert marble.neuronenblitz._rmsprop_beta == 0.8
     assert marble.neuronenblitz._grad_epsilon == 1e-6
+
+
+def test_global_workspace_config(tmp_path):
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg = load_config()
+    cfg["global_workspace"] = {"enabled": True, "capacity": 2}
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(cfg, f)
+    marble = create_marble_from_config(str(cfg_path))
+    import global_workspace
+
+    assert hasattr(marble.neuronenblitz, "global_workspace")
+    assert global_workspace.workspace.queue.maxlen == 2
 
 
 def test_invalid_config_raises(tmp_path):

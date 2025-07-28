@@ -792,6 +792,15 @@ autograd:
   enabled: Set to true to wrap the Brain with a transparent PyTorch autograd layer. When enabled, gradients from PyTorch operations are applied to MARBLE synapse weights without altering the underlying architecture.
   learning_rate: Step size used when the autograd layer applies gradient updates to synapse weights during backward passes. Typical values range from 0.001 to 0.1.
   gradient_accumulation_steps: Number of training examples to process before applying weight updates. MARBLE accumulates gradients from each call to ``train_example`` and only updates synapse weights once this many examples have been seen. This allows effectively larger batch sizes even when GPU memory is limited. Values between ``1`` and ``32`` are common.
+global_workspace:
+  # Central broadcast system shared by plugins and components. When enabled all
+  # modules can publish short ``BroadcastMessage`` objects which are queued and
+  # delivered to subscribed listeners. This acts as a simplified Global
+  # Workspace for consciousness-inspired information exchange.
+  enabled: Set to ``true`` to create the global workspace on startup.
+  capacity: Maximum number of messages kept in the queue. When the queue
+    exceeds this length older entries are discarded. Typical values range from
+    ``10`` to ``100`` depending on how much history you wish to retain.
 pytorch_challenge:
   enabled: If true the training loop compares MARBLE with a pretrained PyTorch model after every training example. When MARBLE's validation loss, inference speed or model size exceed the PyTorch model, neuromodulatory stress is increased which lowers plasticity on subsequent updates.
   loss_penalty: Amount of stress added when MARBLE's loss is worse than the PyTorch baseline. Values around 0.1 provide noticeable pressure without overwhelming the system.

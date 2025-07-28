@@ -175,12 +175,12 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 100. [x] Establish a long-term roadmap with release milestones.
 
 101. Implement a **Global Workspace** plugin to broadcast conscious contents across all modules.
-   - [ ] Define data structures for global workspace broadcast.
-   - [ ] Implement plugin with message queue.
-   - [ ] Expose configuration options.
-   - [ ] Add tests verifying broadcast across modules.
+   - [x] Define data structures for global workspace broadcast.
+   - [x] Implement plugin with message queue.
+   - [x] Expose configuration options.
+   - [x] Add tests verifying broadcast across modules.
 102. Add **attention codelet** plugins that form coalitions and submit them to the Global Workspace.
-   - [ ] Create plugin interface for attention codelets.
+   - [x] Create plugin interface for attention codelets.
    - [ ] Implement coalition formation logic.
    - [ ] Connect with Global Workspace plugin.
    - [ ] Add example configuration.

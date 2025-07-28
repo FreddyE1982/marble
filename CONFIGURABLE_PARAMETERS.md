@@ -342,6 +342,9 @@ Each entry is listed under its section heading.
 - enabled
 - learning_rate
 - gradient_accumulation_steps
+## global_workspace
+- enabled
+- capacity
 ## pytorch_challenge
 - enabled
 - loss_penalty
