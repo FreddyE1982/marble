@@ -502,10 +502,16 @@ Execute this file to observe Hebbian updates on your data.
    ```python
    from datasets import load_dataset
    ds = load_dataset('mnist', split='train')
-   real_values = [x['image'].reshape(-1).numpy() / 255.0 for x in ds]
    ```
-4. **Construct an `AdversarialLearner`** and call `learner.train(real_values)` to alternate generator and discriminator updates.
-5. **Sample new data** after training by passing random noise vectors to the generator's `dynamic_wander` method.
+4. **Wrap the dataset** with `FGSMDataset` to generate adversarial variants on the fly:
+   ```python
+   from adversarial_dataset import FGSMDataset
+   model = ToyModel()
+   adv_ds = FGSMDataset(ds, model, epsilon=0.05)
+   real_values = [x[0] for x in adv_ds]
+   ```
+5. **Construct an `AdversarialLearner`** and call `learner.train(real_values)` to alternate generator and discriminator updates.
+6. **Sample new data** after training by passing random noise vectors to the generator's `dynamic_wander` method.
 
 **Complete Example**
 ```python
