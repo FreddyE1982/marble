@@ -134,6 +134,7 @@ def create_marble_from_config(
             remote_cfg["url"],
             timeout=remote_cfg.get("timeout", 5.0),
             max_retries=remote_cfg.get("max_retries", 3),
+            auth_token=remote_cfg.get("auth_token"),
         )
 
     remote_server = None
@@ -143,6 +144,7 @@ def create_marble_from_config(
             host=server_cfg.get("host", "localhost"),
             port=server_cfg.get("port", 8000),
             remote_url=server_cfg.get("remote_url"),
+            auth_token=server_cfg.get("auth_token"),
         )
         remote_server.start()
 

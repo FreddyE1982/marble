@@ -3,6 +3,7 @@ from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain
 from marble_core import DataLoader
 from data_compressor import DataCompressor
+from crypto_utils import constant_time_compare
 import base64
 import json
 import threading
@@ -22,9 +23,11 @@ class RemoteBrainServer:
         compression_level: int = 6,
         compression_enabled: bool = True,
         compression_algorithm: str = "zlib",
+        auth_token: str | None = None,
     ) -> None:
         self.host = host
         self.port = port
+        self.auth_token = auth_token
         self.remote_client = (
             RemoteBrainClient(
                 remote_url,
@@ -56,7 +59,19 @@ class RemoteBrainServer:
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
 
+            def _authorized(self) -> bool:
+                if server.auth_token is None:
+                    return True
+                header = self.headers.get('Authorization', '')
+                return constant_time_compare(
+                    header, f"Bearer {server.auth_token}"
+                )
+
             def do_POST(self):
+                if not self._authorized():
+                    self.send_response(401)
+                    self.end_headers()
+                    return
                 length = int(self.headers.get('Content-Length', 0))
                 data = self.rfile.read(length).decode()
                 payload = json.loads(data or '{}')
@@ -106,6 +121,10 @@ class RemoteBrainServer:
                     self.end_headers()
 
             def do_GET(self):
+                if not self._authorized():
+                    self.send_response(401)
+                    self.end_headers()
+                    return
                 if self.path == '/ping':
                     self._set_headers()
                     self.wfile.write(b'{}')
@@ -136,10 +155,12 @@ class RemoteBrainClient:
         compression_algorithm: str = "zlib",
         backoff_factor: float = 0.5,
         track_latency: bool = True,
+        auth_token: str | None = None,
     ) -> None:
         self.url = url.rstrip('/')
         self.timeout = timeout
         self.max_retries = max_retries
+        self.auth_token = auth_token
         self.compressor = DataCompressor(
             level=compression_level,
             compression_enabled=compression_enabled,
@@ -159,7 +180,14 @@ class RemoteBrainClient:
             try:
                 payload_bytes = json.dumps(payload).encode()
                 start = time.monotonic()
-                resp = requests.post(self.url + path, json=payload, timeout=timeout)
+                headers = {}
+                if self.auth_token is not None:
+                    headers["Authorization"] = f"Bearer {self.auth_token}"
+                resp = requests.post(
+                    self.url + path, json=payload, timeout=timeout, headers=headers
+                )
+                if resp.status_code >= 400:
+                    resp.raise_for_status()
                 latency = time.monotonic() - start
                 self.bytes_sent += len(payload_bytes)
                 headers = getattr(resp, "headers", {})
@@ -215,7 +243,12 @@ class RemoteBrainClient:
         for u in urls:
             try:
                 start = time.monotonic()
-                requests.get(u.rstrip('/') + '/ping', timeout=1.0)
+                headers = (
+                    {"Authorization": f"Bearer {self.auth_token}"}
+                    if self.auth_token is not None
+                    else None
+                )
+                requests.get(u.rstrip('/') + '/ping', timeout=1.0, headers=headers)
                 lat = time.monotonic() - start
                 if lat < best_latency:
                     best_latency = lat
