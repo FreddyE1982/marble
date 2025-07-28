@@ -329,6 +329,10 @@ network:
     max_connections: 100
     compression_level: 6
     compression_enabled: true
+remote_hardware:
+  tier_plugin: null
+  grpc:
+    address: "localhost:50051"
 metrics_visualizer:
   fig_width: 10
   fig_height: 6

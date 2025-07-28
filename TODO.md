@@ -74,21 +74,21 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 47. [x] Improve code style consistency with automated formatting checks.
 48. [x] Add support for quantization and model compression.
 49. Implement a plugin-based remote tier for custom hardware.
-   - [ ] Define plugin API for remote hardware tiers.
-   - [ ] Implement sample plugin using gRPC to remote server.
-   - [ ] Update configuration to select remote tiers.
-   - [ ] Add tests for plugin initialization and data transfer.
+   - [x] Define plugin API for remote hardware tiers.
+   - [x] Implement sample plugin using gRPC to remote server.
+   - [x] Update configuration to select remote tiers.
+   - [x] Add tests for plugin initialization and data transfer.
 50. [x] Create visualization utilities for neuron activation patterns.
 51. [x] Add parameter scheduling for exploration/exploitation trade-offs.
 52. Support hierarchical reinforcement learning in Neuronenblitz.
    - [ ] Research HRL algorithms applicable to the architecture.
-   - [ ] Implement high-level action controller.
-   - [ ] Add low-level policy modules.
-   - [ ] Provide example training script.
+   - [x] Implement high-level action controller.
+   - [x] Add low-level policy modules.
+   - [x] Provide example training script.
 53. Implement efficient memory management for huge graphs.
    - [ ] Identify memory-heavy structures.
    - [ ] Implement streaming / chunking of graph data.
-   - [ ] Add memory pooling and reference counting.
+   - [x] Add memory pooling and reference counting.
    - [ ] Benchmark and optimize.
 54. [x] Add checks for NaN/Inf propagation throughout the core.
 55. [x] Provide an option to profile CPU and GPU usage during training.
@@ -105,7 +105,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [ ] Profile existing cryptographic operations.
    - [ ] Replace variable-time functions with constant-time equivalents.
    - [ ] Add unit tests verifying timing does not leak secrets.
-   - [ ] Document cryptographic safety guidelines.
+   - [x] Document cryptographic safety guidelines.
 62. Add more comprehensive adversarial training examples.
    - [ ] Implement adversarial example generators.
    - [ ] Add training loops demonstrating adversarial robustness.
@@ -140,7 +140,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 77. Incorporate gradient accumulation for large batch training.
    - [x] Modify training loop to accumulate gradients across steps.
    - [x] Expose accumulation steps via config.
-   - [ ] Update scheduler and optimizer logic.
+   - [x] Update scheduler and optimizer logic.
    - [x] Add tests verifying behavior.
 78. [x] Add performance regression tests for critical functions.
 79. [x] Integrate basic anomaly detection on training metrics.

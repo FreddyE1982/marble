@@ -3,11 +3,12 @@ from pathlib import Path
 import yaml
 
 from config_schema import validate_config_schema
-from marble_core import MemorySystem
+from marble_core import MemorySystem, TIER_REGISTRY
 from marble_main import MARBLE
 from meta_parameter_controller import MetaParameterController
 from neuromodulatory_system import NeuromodulatorySystem
 from plugin_system import load_plugins
+from remote_hardware import load_remote_tier_plugin
 from remote_offload import RemoteBrainClient, RemoteBrainServer
 from torrent_offload import BrainTorrentClient, BrainTorrentTracker
 
@@ -130,6 +131,7 @@ def create_marble_from_config(
     )
 
     network_cfg = cfg.get("network", {})
+    rh_cfg = cfg.get("remote_hardware", {})
     remote_client = None
     remote_cfg = network_cfg.get("remote_client", {})
     if isinstance(remote_cfg, dict) and remote_cfg.get("url"):
@@ -150,6 +152,13 @@ def create_marble_from_config(
             auth_token=server_cfg.get("auth_token"),
         )
         remote_server.start()
+
+    remote_tier = None
+    if isinstance(rh_cfg, dict) and rh_cfg.get("tier_plugin"):
+        plugin = rh_cfg["tier_plugin"]
+        kwargs = rh_cfg.get("grpc", {})
+        remote_tier = load_remote_tier_plugin(plugin, **kwargs)
+        TIER_REGISTRY[remote_tier.name] = remote_tier
 
     torrent_client = None
     torrent_cfg = network_cfg.get("torrent_client", {})

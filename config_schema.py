@@ -64,6 +64,18 @@ CONFIG_SCHEMA = {
             "type": ["array", "string"],
             "items": {"type": "string"},
         },
+        "remote_hardware": {
+            "type": "object",
+            "properties": {
+                "tier_plugin": {"type": ["string", "null"]},
+                "grpc": {
+                    "type": "object",
+                    "properties": {
+                        "address": {"type": "string"},
+                    },
+                },
+            },
+        },
         "network": {
             "type": "object",
             "properties": {

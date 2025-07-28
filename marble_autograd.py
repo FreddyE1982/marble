@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from marble_brain import Brain
+from typing import Callable, Optional
 
 class MarbleAutogradFunction(torch.autograd.Function):
     @staticmethod
@@ -28,16 +29,27 @@ class MarbleAutogradFunction(torch.autograd.Function):
                 syn.weight -= wrapper.learning_rate * (total / wrapper.accumulation_steps)
             wrapper._grad_buffer.clear()
             wrapper._accum_counter = 0
+            wrapper._step += 1
+            if wrapper.scheduler:
+                wrapper.learning_rate = wrapper.scheduler(wrapper._step)
         return None, grad_output.clone()
 
 class MarbleAutogradLayer(nn.Module):
     """Transparent autograd wrapper for a :class:`Brain` instance."""
 
-    def __init__(self, brain: Brain, learning_rate: float = 0.01, accumulation_steps: int = 1) -> None:
+    def __init__(
+        self,
+        brain: Brain,
+        learning_rate: float = 0.01,
+        accumulation_steps: int = 1,
+        scheduler: Optional[Callable[[int], float]] = None,
+    ) -> None:
         super().__init__()
         self.brain = brain
         self.learning_rate = learning_rate
         self.accumulation_steps = max(1, int(accumulation_steps))
+        self.scheduler = scheduler
+        self._step = 0
         self._grad_buffer: dict = {}
         self._accum_counter = 0
 
