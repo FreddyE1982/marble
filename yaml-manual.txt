@@ -840,6 +840,10 @@ reinforcement_learning:
   enabled: Activate training in a reinforcement learning loop using the MARBLE
     core and Neuronenblitz. Set to ``true`` to begin episodic interaction with
     the environment defined in ``reinforcement_learning.py``.
+  algorithm: Selects the RL algorithm implementation. ``"q_learning"`` runs a
+    tabular Q-learning agent while ``"policy_gradient"`` trains a small
+    differentiable policy network integrated with MARBLE via
+    ``MarblePolicyGradientAgent``.
   episodes: Number of training episodes to run. More episodes generally yield
     better policies but increase computation time.
   max_steps: Maximum steps per episode before resetting the environment.

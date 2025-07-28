@@ -48,10 +48,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [ ] Implement distributed training pipeline in `marble_neuronenblitz`.
    - [ ] Write tests using CPU-based simulator.
 27. Provide higher-level wrappers for common reinforcement learning tasks.
-   - [ ] Design RL environment interface.
-   - [ ] Implement wrappers for policy gradient, Q-learning, etc.
-   - [ ] Add examples demonstrating wrappers.
-   - [ ] Document usage in README/TUTORIAL.
+   - [x] Design RL environment interface.
+   - [x] Implement wrappers for policy gradient, Q-learning, etc.
+   - [x] Add examples demonstrating wrappers.
+   - [x] Document usage in README/TUTORIAL.
 28. [x] Add recurrent neural network neuron types to Marble Core.
 29. [x] Introduce dropout and batch normalization synapse types.
 30. [x] Create a graphical configuration editor in the Streamlit GUI.
@@ -132,16 +132,16 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 73. [x] Provide self-contained Docker images for reproducibility.
 74. [x] Implement offline mode with pre-packaged datasets.
 75. Add automated packaging to publish releases on PyPI.
-   - [ ] Create setup.py and pyproject.toml for packaging.
+   - [x] Create setup.py and pyproject.toml for packaging.
    - [ ] Setup CI workflow for building and uploading to TestPyPI.
-   - [ ] Add versioning scheme.
-   - [ ] Document release process.
+   - [x] Add versioning scheme.
+   - [x] Document release process.
 76. [x] Improve data compression for network transfers.
 77. Incorporate gradient accumulation for large batch training.
-   - [ ] Modify training loop to accumulate gradients across steps.
-   - [ ] Expose accumulation steps via config.
+   - [x] Modify training loop to accumulate gradients across steps.
+   - [x] Expose accumulation steps via config.
    - [ ] Update scheduler and optimizer logic.
-   - [ ] Add tests verifying behavior.
+   - [x] Add tests verifying behavior.
 78. [x] Add performance regression tests for critical functions.
 79. [x] Integrate basic anomaly detection on training metrics.
 80. [x] Expand the scheduler with cyclic learning rate support.

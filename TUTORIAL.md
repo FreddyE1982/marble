@@ -394,6 +394,11 @@ Run `python project05b_rnn_sequence_modeling.py` to train the simple RNN example
    This uses helper functions that drive the environment and update the Q-table stored inside the Neuronenblitz object.
 4. **Check rewards** in `history` after each episode to verify that the policy improves over time.
 
+To experiment with a differentiable approach set ``reinforcement_learning.algorithm``
+to ``"policy_gradient"`` and run ``project06b_policy_gradient.py``. This file
+trains ``MarblePolicyGradientAgent`` using a policy network wrapped with
+``MarbleAutogradLayer``. Rewards should steadily increase across episodes.
+
 **Complete Example**
 ```python
 # project6_reinforcement_learning.py

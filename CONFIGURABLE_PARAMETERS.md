@@ -375,6 +375,7 @@ Each entry is listed under its section heading.
 
 ## reinforcement_learning
 - enabled
+- algorithm
 - episodes
 - max_steps
 - discount_factor

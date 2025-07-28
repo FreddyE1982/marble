@@ -1012,7 +1012,7 @@ def list_learner_modules() -> list[str]:
         if (
             mod.ispkg
             or mod.name.startswith("_")
-            or mod.name in {"streamlit_playground", "tests", "examples"}
+            or mod.name in {"streamlit_playground", "tests", "examples", "setup"}
         ):
             continue
         try:
