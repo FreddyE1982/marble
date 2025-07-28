@@ -283,6 +283,13 @@ neuronenblitz:
   wander_cache_ttl: Time-to-live in seconds for ``dynamic_wander`` cache
     entries. Cached paths older than this value are removed before reuse.
     Values above ``0`` enable expiration while ``0`` keeps results indefinitely.
+  wander_anomaly_threshold: Number of standard deviations a wander path length
+    must differ from the running mean to be flagged as anomalous. When exceeded
+    a warning is logged and ``MetricsVisualizer`` records ``wandering_anomaly``
+    with a value of ``1``.
+  wander_history_size: How many recent path lengths are kept to compute the
+    running mean and standard deviation for anomaly detection. Larger values
+    smooth out short-term fluctuations.
   phase_rate: Amount added to ``global_phase`` each time ``dynamic_wander``
     runs. Higher values make the oscillator advance more quickly, altering
     the cosine gating applied to every synapse.

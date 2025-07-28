@@ -126,6 +126,8 @@ neuronenblitz:
   parallel_wanderers: 1
   beam_width: 1
   wander_cache_ttl: 300
+  wander_anomaly_threshold: 3.0
+  wander_history_size: 100
   phase_rate: 0.1
   phase_adaptation_rate: 0.05
   synaptic_fatigue_enabled: true
