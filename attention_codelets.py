@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, List
 
 import numpy as np
+
 import global_workspace
 
 
@@ -26,12 +27,17 @@ class AttentionProposal:
     score: float
     content: Any
 
+
 _codelets: List[Callable[[], AttentionProposal]] = []
 _default_coalition_size = 1
 
 
 def register_codelet(func: Callable[[], AttentionProposal]) -> None:
-    """Register an attention codelet callback."""
+    """Register an attention codelet callback.
+
+    Args:
+        func: Callable that returns an :class:`AttentionProposal` when invoked.
+    """
     _codelets.append(func)
 
 
@@ -41,11 +47,14 @@ def get_codelets() -> list[Callable[[], AttentionProposal]]:
 
 
 def form_coalition(coalition_size: int | None = None) -> list[AttentionProposal]:
-    """Return the winning proposals from all registered codelets.
+    """Return the highest scoring proposals.
 
-    Proposals are ranked by a softmax over their scores to allow more
-    nuanced selection than strict sorting. The highest ranked proposals are
-    returned according to ``coalition_size``.
+    Args:
+        coalition_size: Number of proposals to return. When ``None`` the
+            default from :func:`activate` is used.
+
+    Returns:
+        The winning proposals sorted by score.
     """
 
     if coalition_size is None:
@@ -60,7 +69,11 @@ def form_coalition(coalition_size: int | None = None) -> list[AttentionProposal]
 
 
 def broadcast_coalition(coalition: list[AttentionProposal]) -> None:
-    """Broadcast each proposal to the global workspace if active."""
+    """Broadcast proposals via the global workspace if available.
+
+    Args:
+        coalition: Proposals returned by :func:`form_coalition`.
+    """
 
     if global_workspace.workspace is None:
         return
@@ -78,11 +91,8 @@ def run_cycle(coalition_size: int | None = None) -> None:
 def activate(*, coalition_size: int = 1) -> None:
     """Activate the attention codelet subsystem.
 
-    Parameters
-    ----------
-    coalition_size:
-        Number of proposals to broadcast per cycle when :func:`run_cycle` is
-        called. Defaults to ``1``.
+    Args:
+        coalition_size: Number of proposals broadcast per cycle.
     """
 
     global _default_coalition_size

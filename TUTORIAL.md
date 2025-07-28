@@ -1530,6 +1530,35 @@ The new *Global Workspace* plugin is loaded in the same way. Add
 `n_plugin.activate("global_workspace")` to share broadcast messages between
 plugins and components.
 
+### Using Attention Codelets
+
+1. Define a codelet that returns an ``AttentionProposal``:
+   ```python
+   from attention_codelets import AttentionProposal, register_codelet
+
+   def my_codelet():
+       # score can be any float; higher values are more salient
+       return AttentionProposal(score=1.0, content="Hello World")
+
+   register_codelet(my_codelet)
+   ```
+2. Enable the plugin in ``config.yaml``:
+   ```yaml
+   attention_codelets:
+     enabled: true
+     coalition_size: 1
+   ```
+3. Activate both plugins before training:
+   ```python
+   import global_workspace
+   import attention_codelets
+
+   gw = global_workspace.activate(marble.brain, capacity=10)
+   attention_codelets.activate(coalition_size=1)
+   ```
+4. Call ``attention_codelets.run_cycle()`` periodically to broadcast proposals
+   through the workspace. Subscribers can listen via ``gw.subscribe``.
+
 
 ## Organising Multiple Experiments
 

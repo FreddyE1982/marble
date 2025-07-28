@@ -16,13 +16,13 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Add tests verifying GPU and CPU parity.
 6. [x] Provide a command line interface for common training tasks.
 7. Refactor `marble_neuronenblitz.py` into logical submodules.
-   - [ ] Identify separate functionalities (learning algorithms, memory, etc.).
-   - [ ] Split file into modules under new package `marble_neuronenblitz/`.
-   - [ ] Update imports across the project.
-   - [ ] Add tests ensuring modules operate as before.
+   - [x] Identify separate functionalities (learning algorithms, memory, etc.).
+   - [x] Split file into modules under new package `marble_neuronenblitz/`.
+   - [x] Update imports across the project.
+   - [x] Add tests ensuring modules operate as before.
 8. Document all public APIs with docstrings and examples.
-   - [ ] Audit modules to list all public functions and classes.
-   - [ ] Add comprehensive docstrings using Google style.
+   - [x] Audit modules to list all public functions and classes.
+   - [x] Add comprehensive docstrings using Google style.
    - [x] Provide minimal working examples in docs directory.
    - [x] Generate API reference via Sphinx.
 9. [x] Create tutorials that walk through real-world datasets.
@@ -133,7 +133,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 74. [x] Implement offline mode with pre-packaged datasets.
 75. Add automated packaging to publish releases on PyPI.
    - [x] Create setup.py and pyproject.toml for packaging.
-   - [ ] Setup CI workflow for building and uploading to TestPyPI.
+   - [x] Setup CI workflow for building and uploading to TestPyPI.
    - [x] Add versioning scheme.
    - [x] Document release process.
 76. [x] Improve data compression for network transfers.
@@ -237,8 +237,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 113. [x] Add YAML configuration options for all new plugins and document them thoroughly.
 114. [x] Create unit and integration tests ensuring each plugin works on CPU and GPU.
 115. Update tutorials and manuals with instructions on using the consciousness plugins.
-   - [ ] Write step-by-step tutorial for each new plugin.
-   - [ ] Update yaml-manual with plugin parameters.
-   - [ ] Add troubleshooting section.
-   - [ ] Provide example configuration files.
+   - [x] Write step-by-step tutorial for each new plugin.
+   - [x] Update yaml-manual with plugin parameters.
+   - [x] Add troubleshooting section.
+   - [x] Provide example configuration files.
 
