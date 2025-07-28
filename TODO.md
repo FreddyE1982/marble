@@ -16,12 +16,12 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Add tests verifying GPU and CPU parity.
 6. [x] Provide a command line interface for common training tasks.
 7. Refactor `marble_neuronenblitz.py` into logical submodules.
-   - [ ] Identify separate functionalities (learning algorithms, memory, etc.).
+   - [x] Identify separate functionalities (learning algorithms, memory, etc.).
    - [ ] Split file into modules under new package `marble_neuronenblitz/`.
    - [ ] Update imports across the project.
    - [ ] Add tests ensuring modules operate as before.
 8. Document all public APIs with docstrings and examples.
-   - [ ] Audit modules to list all public functions and classes.
+   - [x] Audit modules to list all public functions and classes.
    - [ ] Add comprehensive docstrings using Google style.
    - [x] Provide minimal working examples in docs directory.
    - [x] Generate API reference via Sphinx.
@@ -43,7 +43,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 24. [x] Add tests ensuring compatibility with PyTorch 2.7 and higher.
 25. [x] Improve logging with structured JSON output.
 26. Implement distributed training across multiple GPUs.
-   - [ ] Research distributed training approaches (DDP, Horovod).
+   - [x] Research distributed training approaches (DDP, Horovod).
    - [ ] Add distributed setup utilities to `marble_core`.
    - [ ] Implement distributed training pipeline in `marble_neuronenblitz`.
    - [ ] Write tests using CPU-based simulator.
@@ -107,10 +107,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Add unit tests verifying timing does not leak secrets.
    - [x] Document cryptographic safety guidelines.
 62. Add more comprehensive adversarial training examples.
-   - [ ] Implement adversarial example generators.
-   - [ ] Add training loops demonstrating adversarial robustness.
-   - [ ] Provide dataset wrappers for adversarial data.
-   - [ ] Document new examples in TUTORIAL.
+   - [x] Implement adversarial example generators.
+   - [x] Add training loops demonstrating adversarial robustness.
+   - [x] Provide dataset wrappers for adversarial data.
+   - [x] Document new examples in TUTORIAL.
 63. [x] Provide utilities for automatic dataset downloading and caching.
 64. [x] Integrate a simple hyperparameter search framework.
 65. [x] Add tests verifying deterministic behaviour with fixed seeds.
@@ -133,7 +133,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 74. [x] Implement offline mode with pre-packaged datasets.
 75. Add automated packaging to publish releases on PyPI.
    - [x] Create setup.py and pyproject.toml for packaging.
-   - [ ] Setup CI workflow for building and uploading to TestPyPI.
+   - [x] Setup CI workflow for building and uploading to TestPyPI.
    - [x] Add versioning scheme.
    - [x] Document release process.
 76. [x] Improve data compression for network transfers.
@@ -185,12 +185,12 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Connect with Global Workspace plugin.
    - [x] Add example configuration.
 103. Create a **Self-Monitoring** plugin that maintains an internal state model and meta-cognitive evaluations.
-   - [ ] Design internal state data structures.
+   - [x] Design internal state data structures.
    - [ ] Implement self-monitoring algorithms.
    - [ ] Connect output to context_history.
    - [ ] Write tests for self-monitoring updates.
 104. Integrate higher-order thought markers from Self-Monitoring into `context_history`.
-   - [ ] Extend context_history data structure.
+   - [x] Extend context_history data structure.
    - [ ] Add functions to log HOT markers.
    - [ ] Update Self-Monitoring plugin to emit markers.
    - [ ] Add tests verifying markers saved.

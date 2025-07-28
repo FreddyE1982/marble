@@ -873,7 +873,7 @@ def test_active_forgetting_decays_context():
     nb = Neuronenblitz(core, forgetting_rate=0.5)
     nb.update_context(reward=1.0)
     nb.dynamic_wander(1.0)
-    assert nb.context_history[0]['reward'] < 1.0
+    assert nb.context_history[0].context['reward'] < 1.0
 
 
 def test_structural_dropout_skips_plasticity(monkeypatch):

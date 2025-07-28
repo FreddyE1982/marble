@@ -1546,3 +1546,11 @@ python main.py
 ```
 
 to train using the default settings.
+
+### New Example: `examples/adversarial_training.py`
+This script demonstrates using the new `fgsm_attack` helper and `AdversarialDataset` wrapper for robustness.
+Run:
+```bash
+python examples/adversarial_training.py
+```
+

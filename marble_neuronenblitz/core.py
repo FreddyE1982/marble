@@ -9,6 +9,7 @@ import random
 import numpy as np
 from datetime import datetime, timezone
 from collections import deque
+from context_history import ContextEntry
 import math
 import logging
 
@@ -293,7 +294,7 @@ class Neuronenblitz:
         self._prev_gradients = {}
         # Track path usage for shortcut creation
         self._path_usage = {}
-        self.context_history = deque(maxlen=self.context_history_size)
+        self.context_history: deque[ContextEntry] = deque(maxlen=self.context_history_size)
         self._concept_pairs = {}
         self.use_experience_replay = bool(use_experience_replay)
         self.replay_buffer_size = int(replay_buffer_size)
@@ -361,12 +362,12 @@ class Neuronenblitz:
         adjustment = reward - stress
         self.plasticity_threshold = max(0.5, self.plasticity_threshold - adjustment)
         self.last_context = context.copy()
-        self.context_history.append(self.last_context.copy())
+        self.context_history.append(ContextEntry(self.last_context.copy()))
 
     def update_context(self, **kwargs):
         """Update the stored neuromodulatory context without modifying plasticity."""
         self.last_context.update(kwargs)
-        self.context_history.append(self.last_context.copy())
+        self.context_history.append(ContextEntry(self.last_context.copy()))
 
     def get_context(self):
         """Return a copy of the most recently stored neuromodulatory context."""
@@ -382,10 +383,10 @@ class Neuronenblitz:
         ]
         vec = np.zeros(3, dtype=float)
         total = 0.0
-        for w, ctx in zip(weights, reversed(self.context_history)):
-            vec[0] += w * float(ctx.get("arousal", 0.0))
-            vec[1] += w * float(ctx.get("stress", 0.0))
-            vec[2] += w * float(ctx.get("reward", 0.0))
+        for w, entry in zip(weights, reversed(self.context_history)):
+            vec[0] += w * float(entry.context.get("arousal", 0.0))
+            vec[1] += w * float(entry.context.get("stress", 0.0))
+            vec[2] += w * float(entry.context.get("reward", 0.0))
             total += w
         vec /= max(total, 1e-6)
         return vec
@@ -396,13 +397,13 @@ class Neuronenblitz:
             return
         size = int(self.context_history_size)
         new_hist = deque(maxlen=size)
-        for ctx in self.context_history:
+        for entry in self.context_history:
             decayed = {
                 k: (v * self.forgetting_rate if isinstance(v, (int, float)) else v)
-                for k, v in ctx.items()
+                for k, v in entry.context.items()
             }
             if any(isinstance(v, (int, float)) and abs(v) > 1e-6 for v in decayed.values()):
-                new_hist.append(decayed)
+                new_hist.append(ContextEntry(decayed, entry.markers, entry.goals, entry.theory_of_mind))
         self.context_history = new_hist
 
     def reset_neuron_values(self):

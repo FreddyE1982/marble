@@ -9,6 +9,10 @@ setup(
         "marble",
         "marble_brain",
         "reinforcement_learning",
+        "adversarial_utils",
+        "adversarial_dataset_wrapper",
+        "self_monitoring_plugin",
+        "context_history",
     ],
     install_requires=[],
 )
