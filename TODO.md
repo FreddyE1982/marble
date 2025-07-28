@@ -97,10 +97,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 58. [x] Provide a simple web API for remote inference.
 59. [x] Add command line tools to export trained models.
 60. Implement automatic synchronization of config files across nodes.
-   - [ ] Design synchronization protocol (e.g., using rsync or file watchers).
-   - [ ] Implement config sync service.
+   - [x] Design synchronization protocol (e.g., using rsync or file watchers).
+   - [x] Implement config sync service.
    - [x] Add CLI command to trigger manual sync.
-   - [ ] Write tests simulating multi-node environment.
+   - [x] Write tests simulating multi-node environment.
 61. Enhance constant-time operations for cryptographic safety.
    - [ ] Profile existing cryptographic operations.
    - [ ] Replace variable-time functions with constant-time equivalents.
