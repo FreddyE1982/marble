@@ -613,6 +613,15 @@ class Brain:
             state = pickle.load(f)
         self.core = state["core"]
         self.neuronenblitz = state["neuronenblitz"]
+        # Migrate old checkpoints missing extended context or replay data
+        for ctx in self.neuronenblitz.context_history:
+            ctx.setdefault("markers", [])
+            ctx.setdefault("goals", [])
+            ctx.setdefault("tom", {})
+        for i, item in enumerate(self.neuronenblitz.replay_buffer):
+            if len(item) == 2:
+                inp, tgt = item
+                self.neuronenblitz.replay_buffer[i] = (inp, tgt, [], [], {})
         self.meta_controller = state["meta_controller"]
         self.memory_system = state["memory_system"]
         self.lobe_manager = state["lobe_manager"]

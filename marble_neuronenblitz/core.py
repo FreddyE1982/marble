@@ -273,7 +273,8 @@ class Neuronenblitz:
 
         self.training_history = []
         self.global_activation_count = 0
-        self.last_context = {}
+        self.last_context = {"markers": [], "goals": [], "tom": {}}
+        self.current_goals: list = []
         self.type_attention = {nt: 0.0 for nt in NEURON_TYPES}
         self.type_speed_attention = {nt: 0.0 for nt in NEURON_TYPES}
         self.synapse_loss_attention = {st: 0.0 for st in SYNAPSE_TYPES}
@@ -305,6 +306,9 @@ class Neuronenblitz:
         # Track path usage for shortcut creation
         self._path_usage = {}
         self.context_history = deque(maxlen=self.context_history_size)
+        # Each context entry may store neuromodulatory values along with
+        # "markers" (higher-order thought annotations), currently active
+        # "goals" and optional theory-of-mind ("tom") information.
         self._concept_pairs = {}
         self.use_experience_replay = bool(use_experience_replay)
         self.replay_buffer_size = int(replay_buffer_size)
@@ -371,13 +375,31 @@ class Neuronenblitz:
         stress = context.get("stress", 0.0)
         adjustment = reward - stress
         self.plasticity_threshold = max(0.5, self.plasticity_threshold - adjustment)
-        self.last_context = context.copy()
-        self.context_history.append(self.last_context.copy())
+        ctx = {
+            **context,
+            "markers": self.last_context.get("markers", []),
+            "goals": self.current_goals.copy(),
+            "tom": self.last_context.get("tom", {}),
+        }
+        self.last_context = ctx
+        self.context_history.append(ctx.copy())
 
     def update_context(self, **kwargs):
         """Update the stored neuromodulatory context without modifying plasticity."""
         self.last_context.update(kwargs)
+        if "markers" not in self.last_context:
+            self.last_context["markers"] = []
+        if "goals" not in self.last_context:
+            self.last_context["goals"] = self.current_goals.copy()
+        if "tom" not in self.last_context:
+            self.last_context["tom"] = {}
         self.context_history.append(self.last_context.copy())
+
+    def log_hot_marker(self, marker: Any) -> None:
+        """Append ``marker`` to the most recent context entry."""
+        if not self.context_history:
+            self.update_context()
+        self.context_history[-1].setdefault("markers", []).append(marker)
 
     def get_context(self):
         """Return a copy of the most recently stored neuromodulatory context."""
@@ -444,7 +466,12 @@ class Neuronenblitz:
         if len(self.replay_buffer) >= self.replay_buffer_size:
             self.replay_buffer.popleft()
             self.replay_priorities.popleft()
-        self.replay_buffer.append((float(input_value), float(target_value)))
+        markers = self.last_context.get("markers", [])
+        goals = self.last_context.get("goals", [])
+        tom = self.last_context.get("tom", {})
+        self.replay_buffer.append(
+            (float(input_value), float(target_value), list(markers), list(goals), tom)
+        )
         self.replay_priorities.append(abs(float(error)) + 1e-6)
 
     def sample_replay_indices(self, batch_size: int) -> list[int]:
@@ -1408,7 +1435,7 @@ class Neuronenblitz:
             ):
                 idxs = self.sample_replay_indices(self.replay_batch_size)
                 for i in idxs:
-                    inp, tgt = self.replay_buffer[i]
+                    inp, tgt, *_ = self.replay_buffer[i]
                     _, err, _ = self.train_example(inp, tgt)
                     self.replay_priorities[i] = abs(err) + 1e-6
             self.update_exploration_schedule()
