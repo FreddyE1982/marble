@@ -2,112 +2,111 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-import yaml
-from unittest import mock
-
-import pandas as pd
-from PIL import Image
-from zipfile import ZipFile
-from io import BytesIO
-import numpy as np
 import time
+from io import BytesIO
+from unittest import mock
+from zipfile import ZipFile
+
+import numpy as np
+import pandas as pd
+import yaml
+from PIL import Image
 from plotly.graph_objs import Figure
 
-from tests.test_core_functions import minimal_params
-
 from streamlit_playground import (
-    load_examples,
-    load_value_list,
-    initialize_marble,
-    list_marble_functions,
-    execute_marble_function,
-    list_repo_modules,
-    list_module_functions,
-    list_module_classes,
-    create_module_object,
-    execute_module_function,
-    execute_function_sequence,
-    save_marble_system,
-    load_marble_system,
-    export_core_to_json,
-    import_core_from_json,
-    load_hf_examples,
-    start_metrics_dashboard,
-    preview_file_dataset,
-    preview_hf_dataset,
-    save_pipeline_to_json,
-    load_pipeline_from_json,
-    move_pipeline_step,
-    remove_pipeline_step,
-    pipeline_to_networkx,
-    pipeline_figure,
-    run_custom_code,
-    core_to_networkx,
-    core_figure,
-    load_yaml_manual,
-    set_yaml_value,
-    load_hf_model,
+    activation_figure,
+    add_lobe,
+    adjust_meta_controller,
+    clear_super_evo_changes,
     convert_hf_model,
-    model_summary,
-    search_hf_datasets,
-    list_example_projects,
-    load_example_code,
-    run_example_project,
-    start_remote_server,
+    core_figure,
+    core_heatmap_figure,
+    core_statistics,
+    core_to_networkx,
+    core_weight_matrix,
+    create_gridworld_env,
+    create_hybrid_memory,
+    create_learner,
+    create_module_object,
     create_remote_client,
     create_torrent_system,
-    list_learner_modules,
+    execute_function_sequence,
+    execute_marble_function,
+    execute_module_function,
+    export_core_to_json,
+    find_repository_functions,
+    get_neuromod_state,
+    hybrid_memory_forget,
+    hybrid_memory_retrieve,
+    hybrid_memory_store,
+    import_core_from_json,
+    initialize_marble,
+    list_documentation_files,
+    list_example_projects,
     list_learner_classes,
-    create_learner,
-    train_learner,
-    start_background_training,
-    wait_for_training,
-    training_in_progress,
-    start_auto_firing,
-    stop_auto_firing,
-    create_gridworld_env,
-    run_gridworld_episode,
-    metrics_dataframe,
-    metrics_figure,
+    list_learner_modules,
+    list_marble_functions,
+    list_module_classes,
+    list_module_functions,
+    list_repo_modules,
+    list_test_files,
+    load_documentation,
+    load_example_code,
+    load_examples,
+    load_hf_examples,
+    load_hf_model,
+    load_marble_system,
+    load_module_source,
+    load_pipeline_from_json,
     load_readme,
     load_tutorial,
-    search_hf_models,
-    core_statistics,
-    system_stats,
-    get_neuromod_state,
-    set_neuromod_state,
+    load_value_list,
+    load_yaml_manual,
     lobe_info,
-    add_lobe,
-    organize_lobes,
-    self_attention_lobes,
-    select_high_attention_neurons,
-    list_test_files,
-    run_tests,
-    list_documentation_files,
-    load_documentation,
-    load_module_source,
-    wander_neuronenblitz,
-    parallel_wander_neuronenblitz,
-    core_weight_matrix,
-    core_heatmap_figure,
     meta_controller_info,
-    update_meta_controller,
-    adjust_meta_controller,
+    metrics_dataframe,
+    metrics_figure,
+    model_summary,
+    move_pipeline_step,
+    organize_lobes,
+    parallel_wander_neuronenblitz,
+    pipeline_figure,
+    pipeline_to_networkx,
+    preview_file_dataset,
+    preview_hf_dataset,
+    remove_pipeline_step,
     reset_meta_loss_history,
-    super_evo_history,
-    super_evo_changes,
-    clear_super_evo_changes,
+    run_custom_code,
     run_dimensional_search,
+    run_example_project,
+    run_gridworld_episode,
     run_nd_topology,
+    run_tests,
     save_config_yaml,
+    save_marble_system,
+    save_pipeline_to_json,
+    search_hf_datasets,
+    search_hf_models,
     search_repository_functions,
-    find_repository_functions,
-    create_hybrid_memory,
-    hybrid_memory_store,
-    hybrid_memory_retrieve,
-    hybrid_memory_forget,
-    activation_figure,
+    select_high_attention_neurons,
+    self_attention_lobes,
+    set_neuromod_state,
+    set_yaml_value,
+    start_auto_firing,
+    start_background_training,
+    start_metrics_dashboard,
+    start_remote_server,
+    stop_auto_firing,
+    super_evo_changes,
+    super_evo_history,
+    system_stats,
+    train_learner,
+    training_in_progress,
+    update_meta_controller,
+    wait_for_training,
+    wander_neuronenblitz,
 )
+from tests.test_core_functions import minimal_params
 
 
 def test_load_examples_csv_and_json(tmp_path):
@@ -389,7 +388,7 @@ def test_core_network_visualization(tmp_path):
     m = initialize_marble(str(cfg_path))
     g = core_to_networkx(m.get_core())
     assert g.number_of_nodes() == len(m.get_core().neurons)
-    fig = core_figure(m.get_core())
+    fig = core_figure(m.get_core(), layout="circular")
     assert hasattr(fig, "to_dict")
 
 
@@ -402,7 +401,7 @@ def test_core_weight_matrix_and_heatmap(tmp_path):
     mat = core_weight_matrix(m.get_core())
     assert mat.shape[0] == len(m.get_core().neurons)
     assert mat.shape[1] == len(m.get_core().neurons)
-    fig = core_heatmap_figure(m.get_core(), limit=2)
+    fig = core_heatmap_figure(m.get_core(), limit=2, color_scale="Plasma")
     assert hasattr(fig, "to_dict")
 
 
@@ -760,5 +759,5 @@ def test_activation_figure(tmp_path):
         yaml.dump(cfg, f)
     m = initialize_marble(str(cfg_path))
     activations = {n.id: float(n.value) for n in m.get_core().neurons}
-    fig = activation_figure(m.get_core(), activations)
+    fig = activation_figure(m.get_core(), activations, layout="circular")
     assert hasattr(fig, "to_dict")
