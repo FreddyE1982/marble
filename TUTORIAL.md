@@ -1567,10 +1567,25 @@ plugins and components.
    import attention_codelets
 
    gw = global_workspace.activate(marble.brain, capacity=10)
-   attention_codelets.activate(coalition_size=1)
-   ```
+  attention_codelets.activate(coalition_size=1)
+  ```
 4. Call ``attention_codelets.run_cycle()`` periodically to broadcast proposals
    through the workspace. Subscribers can listen via ``gw.subscribe``.
+
+### Episodic Simulation for Planning
+
+1. Ensure ``episodic_simulation`` is listed in ``plugins`` within ``config.yaml``
+   and set ``episodic_sim_length`` to control how many past episodes are
+   replayed.
+2. Activate the plugin and run simulations before taking an action:
+   ```python
+   import episodic_memory
+   import episodic_simulation
+
+   mem = episodic_memory.EpisodicMemory()
+   rewards = episodic_simulation.simulate(nb, mem, length=5)
+   ```
+   The list ``rewards`` contains predicted outcomes for the top episodes.
 
 
 ## Organising Multiple Experiments

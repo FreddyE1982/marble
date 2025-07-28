@@ -175,6 +175,7 @@ neuronenblitz:
   episodic_memory_size: 50
   episodic_memory_threshold: 0.1
   episodic_memory_prob: 0.1
+  episodic_sim_length: 5
   curiosity_strength: 0.0
   depth_clip_scaling: 1.0
   forgetting_rate: 0.99

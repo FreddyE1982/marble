@@ -408,6 +408,9 @@ neuronenblitz:
     in episodic memory.
   episodic_memory_prob: Probability that wandering will be biased by episodic
     memory on a given call.
+  episodic_sim_length: Number of episodes replayed during episodic simulation
+    planning. Higher values explore more possibilities but increase
+    computation time. Typical range is ``1`` to ``10``.
   curiosity_strength: Weight of novelty-driven curiosity in ``weighted_choice``.
     Higher values encourage exploring rarely visited synapses.
   depth_clip_scaling: Scaling factor controlling how strongly gradient clipping

@@ -201,19 +201,19 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Add integration tests.
 106. Implement an **Episodic Memory** plugin supporting transient buffers, long‑term storage and context-based retrieval.
    - [x] Design schemas for episodic entries.
-   - [ ] Implement transient buffer and long-term storage.
-   - [ ] Add retrieval API with context queries.
-   - [ ] Write tests for storing and retrieving episodes.
+   - [x] Implement transient buffer and long-term storage.
+   - [x] Add retrieval API with context queries.
+   - [x] Write tests for storing and retrieving episodes.
 107. Provide an **episodic simulation** plugin to replay stored episodes for planning.
-   - [ ] Implement episode selection and playback engine.
-   - [ ] Integrate with planning modules.
-   - [ ] Provide configuration options for simulation length.
-   - [ ] Document usage.
+   - [x] Implement episode selection and playback engine.
+   - [x] Integrate with planning modules.
+   - [x] Provide configuration options for simulation length.
+   - [x] Document usage.
 108. Develop a **Goal Manager** plugin handling hierarchical goals and conflict resolution with active inference.
-   - [ ] Define goal hierarchy structures.
-   - [ ] Implement conflict resolution algorithms.
-   - [ ] Connect with reinforcement learning modules.
-   - [ ] Add tests for typical goal scenarios.
+   - [x] Define goal hierarchy structures.
+   - [x] Implement conflict resolution algorithms.
+   - [x] Connect with reinforcement learning modules.
+   - [x] Add tests for typical goal scenarios.
 109. Build a **Theory of Mind** plugin using character, mental-state and prediction subnets.
    - [ ] Research ToM models suitable for integration.
    - [ ] Implement subnets for character modelling and prediction.

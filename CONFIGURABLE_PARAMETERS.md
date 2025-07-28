@@ -157,6 +157,7 @@ Each entry is listed under its section heading.
 - episodic_memory_size
 - episodic_memory_threshold
 - episodic_memory_prob
+- episodic_sim_length
 - curiosity_strength
 - depth_clip_scaling
 - forgetting_rate
