@@ -1,3 +1,4 @@
+from .context_attention import ContextAwareAttention
 from .core import (
     Neuronenblitz,
     default_combine_fn,
@@ -19,4 +20,6 @@ __all__ = [
     "rl_select_action",
     "rl_update",
     "decay_memory_gates",
+    "ContextAwareAttention",
 ]
+

@@ -174,6 +174,8 @@ class Neuronenblitz:
         wander_anomaly_threshold=3.0,
         wander_history_size=100,
         subpath_cache_ttl=300,
+        monitor_wander_factor=0.0,
+        monitor_epsilon_factor=0.0,
         use_mixed_precision=False,
         remote_client=None,
         torrent_client=None,
@@ -338,6 +340,8 @@ class Neuronenblitz:
         self._subpath_order = deque()
         self._subpath_cache_size = int(subpath_cache_size)
         self.subpath_cache_ttl = float(subpath_cache_ttl)
+        self.monitor_wander_factor = float(monitor_wander_factor)
+        self.monitor_epsilon_factor = float(monitor_epsilon_factor)
         self.use_mixed_precision = bool(use_mixed_precision)
         self.gradient_accumulation_steps = int(max(1, gradient_accumulation_steps))
         self._accum_step = 0

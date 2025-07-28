@@ -434,6 +434,13 @@ neuronenblitz:
     of additional memory.
   subpath_cache_ttl: Time in seconds before cached subpaths expire. ``0`` keeps
     entries indefinitely.
+  monitor_wander_factor: Multiplicative factor applied to the self-monitoring
+    mean error when adjusting ``wander_depth_noise``. Higher values make
+    wandering more exploratory as errors increase. Typical range ``0.0`` to
+    ``0.5``.
+  monitor_epsilon_factor: How strongly the self-monitoring mean error reduces
+    the agent's exploration epsilon. ``0.1`` decreases epsilon by ``10%`` of the
+    error each step. ``0.0`` disables this coupling.
   use_mixed_precision: Enable PyTorch automatic mixed precision during
     training. This trades some numerical precision for faster execution on
     compatible GPUs.

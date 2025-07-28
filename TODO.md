@@ -81,7 +81,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 50. [x] Create visualization utilities for neuron activation patterns.
 51. [x] Add parameter scheduling for exploration/exploitation trade-offs.
 52. Support hierarchical reinforcement learning in Neuronenblitz.
-   - [ ] Research HRL algorithms applicable to the architecture.
+   - [x] Research HRL algorithms applicable to the architecture.
    - [x] Implement high-level action controller.
    - [x] Add low-level policy modules.
    - [x] Provide example training script.
@@ -154,10 +154,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 87. [x] Add a mechanism to export and import neuron state snapshots.
 88. [x] Document the mathematics behind synaptic echo learning.
 89. Implement context-aware attention mechanisms.
-   - [ ] Research existing attention mechanisms.
-   - [ ] Design architecture for context-aware attention.
-   - [ ] Implement module in Neuronenblitz.
-   - [ ] Provide unit tests and example usage.
+   - [x] Research existing attention mechanisms.
+   - [x] Design architecture for context-aware attention.
+   - [x] Implement module in Neuronenblitz.
+   - [x] Provide unit tests and example usage.
 90. [x] Add unit tests ensuring backward compatibility between versions.
 91. [x] Create a `core_benchmark.py` script for micro benchmarks.
 92. [x] Provide a template repository for new Marble-based projects.
@@ -195,12 +195,12 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Update Self-Monitoring plugin to emit markers.
    - [x] Add tests verifying markers saved.
 105. Link Self-Monitoring feedback to reinforcement learning and `dynamic_wander` adjustments.
-   - [ ] Create interface between self-monitoring and RL modules.
-   - [ ] Adjust dynamic_wander parameters based on self-monitoring output.
-   - [ ] Provide configuration hooks.
-   - [ ] Add integration tests.
+   - [x] Create interface between self-monitoring and RL modules.
+   - [x] Adjust dynamic_wander parameters based on self-monitoring output.
+   - [x] Provide configuration hooks.
+   - [x] Add integration tests.
 106. Implement an **Episodic Memory** plugin supporting transient buffers, long‑term storage and context-based retrieval.
-   - [ ] Design schemas for episodic entries.
+   - [x] Design schemas for episodic entries.
    - [ ] Implement transient buffer and long-term storage.
    - [ ] Add retrieval API with context queries.
    - [ ] Write tests for storing and retrieving episodes.

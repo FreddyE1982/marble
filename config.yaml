@@ -184,6 +184,8 @@ neuronenblitz:
   activity_gate_exponent: 1.0
   subpath_cache_size: 100
   subpath_cache_ttl: 300
+  monitor_wander_factor: 0.0
+  monitor_epsilon_factor: 0.0
   use_mixed_precision: false
 # =====
 # Brain
