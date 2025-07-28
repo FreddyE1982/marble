@@ -166,6 +166,8 @@ Each entry is listed under its section heading.
 - activity_gate_exponent
 - subpath_cache_size
 - subpath_cache_ttl
+- monitor_wander_factor
+- monitor_epsilon_factor
 - use_mixed_precision
 - quantization_bits
 

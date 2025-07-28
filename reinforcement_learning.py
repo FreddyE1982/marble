@@ -82,6 +82,9 @@ class MarbleQLearningAgent:
         self.epsilon_decay = epsilon_decay
         self.min_epsilon = min_epsilon
         self.double_q = double_q
+        # Factors for self-monitoring integration
+        self.monitor_wander_factor = getattr(nb, "monitor_wander_factor", 0.0)
+        self.monitor_epsilon_factor = getattr(nb, "monitor_epsilon_factor", 0.0)
         if double_q:
             self.q_table_a: dict[tuple[tuple[int, int], int], float] = {}
             self.q_table_b: dict[tuple[tuple[int, int], int], float] = {}
@@ -92,7 +95,20 @@ class MarbleQLearningAgent:
         """Encode state-action pair into a numeric input."""
         return float(state[0] * 10 + state[1] + action / 10)
 
+    def apply_monitor_adjustments(self) -> None:
+        """Adjust epsilon and wander behaviour based on self-monitoring."""
+        monitor = getattr(self.nb, "self_monitor", None)
+        if monitor is None:
+            return
+        mean_error = float(monitor.state.mean_error)
+        self.nb.wander_depth_noise += mean_error * self.monitor_wander_factor
+        self.epsilon = max(
+            self.min_epsilon,
+            self.epsilon * (1.0 - mean_error * self.monitor_epsilon_factor),
+        )
+
     def select_action(self, state: tuple[int, int], n_actions: int) -> int:
+        self.apply_monitor_adjustments()
         if random.random() < self.epsilon:
             return random.randrange(n_actions)
         if self.double_q:
