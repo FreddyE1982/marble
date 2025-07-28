@@ -176,6 +176,7 @@ class Neuronenblitz:
         subpath_cache_ttl=300,
         monitor_wander_factor=0.0,
         monitor_epsilon_factor=0.0,
+        episodic_sim_length=5,
         use_mixed_precision=False,
         remote_client=None,
         torrent_client=None,
@@ -342,6 +343,7 @@ class Neuronenblitz:
         self.subpath_cache_ttl = float(subpath_cache_ttl)
         self.monitor_wander_factor = float(monitor_wander_factor)
         self.monitor_epsilon_factor = float(monitor_epsilon_factor)
+        self.episodic_sim_length = int(episodic_sim_length)
         self.use_mixed_precision = bool(use_mixed_precision)
         self.gradient_accumulation_steps = int(max(1, gradient_accumulation_steps))
         self._accum_step = 0
