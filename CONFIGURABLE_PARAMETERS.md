@@ -348,6 +348,9 @@ Each entry is listed under its section heading.
 ## global_workspace
 - enabled
 - capacity
+## attention_codelets
+- enabled
+- coalition_size
 ## pytorch_challenge
 - enabled
 - loss_penalty

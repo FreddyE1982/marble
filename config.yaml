@@ -355,6 +355,9 @@ autograd:
 global_workspace:
   enabled: false
   capacity: 100
+attention_codelets:
+  enabled: false
+  coalition_size: 1
 pytorch_challenge:
   enabled: false
   loss_penalty: 0.1

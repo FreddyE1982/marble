@@ -1,2 +1,4 @@
 Failed tests after latest changes:
-None
+- tests/test_attention_codelets.py::test_coalition_and_broadcast
+- tests/test_streamlit_all_buttons.py::test_click_all_buttons
+- tests/test_streamlit_gui.py::test_function_search_count_synapses

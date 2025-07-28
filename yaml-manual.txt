@@ -809,6 +809,17 @@ global_workspace:
   capacity: Maximum number of messages kept in the queue. When the queue
     exceeds this length older entries are discarded. Typical values range from
     ``10`` to ``100`` depending on how much history you wish to retain.
+attention_codelets:
+  # Attention codelets are lightweight plugins that each propose a piece of
+  # information along with a salience ``score``. During every cycle the
+  # ``attention_codelets`` module forms a coalition of the top proposals and
+  # broadcasts their ``content`` through the global workspace if it is active.
+  enabled: Set to ``true`` to allow codelet proposals to be evaluated and
+    broadcast.
+  coalition_size: Number of top proposals broadcast each cycle when
+    ``attention_codelets.run_cycle`` is invoked. A value of ``1`` means only the
+    highest scoring proposal is shared. Typical values are between ``1`` and
+    ``5`` depending on how much information you want to expose at once.
 pytorch_challenge:
   enabled: If true the training loop compares MARBLE with a pretrained PyTorch model after every training example. When MARBLE's validation loss, inference speed or model size exceed the PyTorch model, neuromodulatory stress is increased which lowers plasticity on subsequent updates.
   loss_penalty: Amount of stress added when MARBLE's loss is worse than the PyTorch baseline. Values around 0.1 provide noticeable pressure without overwhelming the system.
