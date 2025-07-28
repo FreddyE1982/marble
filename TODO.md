@@ -185,15 +185,15 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Connect with Global Workspace plugin.
    - [x] Add example configuration.
 103. Create a **Self-Monitoring** plugin that maintains an internal state model and meta-cognitive evaluations.
-   - [ ] Design internal state data structures.
-   - [ ] Implement self-monitoring algorithms.
-   - [ ] Connect output to context_history.
-   - [ ] Write tests for self-monitoring updates.
+   - [x] Design internal state data structures.
+   - [x] Implement self-monitoring algorithms.
+   - [x] Connect output to context_history.
+   - [x] Write tests for self-monitoring updates.
 104. Integrate higher-order thought markers from Self-Monitoring into `context_history`.
-   - [ ] Extend context_history data structure.
-   - [ ] Add functions to log HOT markers.
-   - [ ] Update Self-Monitoring plugin to emit markers.
-   - [ ] Add tests verifying markers saved.
+   - [x] Extend context_history data structure.
+   - [x] Add functions to log HOT markers.
+   - [x] Update Self-Monitoring plugin to emit markers.
+   - [x] Add tests verifying markers saved.
 105. Link Self-Monitoring feedback to reinforcement learning and `dynamic_wander` adjustments.
    - [ ] Create interface between self-monitoring and RL modules.
    - [ ] Adjust dynamic_wander parameters based on self-monitoring output.
@@ -225,10 +225,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [ ] Integrate with reinforcement learning and episodic memory.
    - [ ] Provide tests verifying prediction accuracy.
 111. Expand `context_history` and `replay_buffer` to store internal markers, goals and ToM information.
-   - [ ] Extend data structures to include markers, goals, ToM.
-   - [ ] Update save/load logic.
-   - [ ] Add migration for old checkpoints.
-   - [ ] Write tests for new buffer behavior.
+   - [x] Extend data structures to include markers, goals, ToM.
+   - [x] Update save/load logic.
+   - [x] Add migration for old checkpoints.
+   - [x] Write tests for new buffer behavior.
 112. Extend attention mechanisms to interface with the Global Workspace and plugin salience scores.
    - [ ] Modify attention modules to accept salience inputs.
    - [ ] Connect to Global Workspace for broadcast.
