@@ -10,9 +10,21 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Add hints to marble_neuronenblitz.py
    - [x] Add hints to streamlit_playground.py
 5. Integrate GPU acceleration into all neural computations.
+   - [ ] Evaluate current modules for GPU compatibility.
+   - [ ] Implement GPU kernels using PyTorch operations and custom CUDA if needed.
+   - [ ] Provide CPU fallback mechanisms.
+   - [ ] Add tests verifying GPU and CPU parity.
 6. [x] Provide a command line interface for common training tasks.
 7. Refactor `marble_neuronenblitz.py` into logical submodules.
+   - [ ] Identify separate functionalities (learning algorithms, memory, etc.).
+   - [ ] Split file into modules under new package `marble_neuronenblitz/`.
+   - [ ] Update imports across the project.
+   - [ ] Add tests ensuring modules operate as before.
 8. Document all public APIs with docstrings and examples.
+   - [ ] Audit modules to list all public functions and classes.
+   - [ ] Add comprehensive docstrings using Google style.
+   - [ ] Provide minimal working examples in docs directory.
+   - [ ] Generate API reference via Sphinx.
 9. [x] Create tutorials that walk through real-world datasets.
 10. [x] Add automatic benchmarking for message-passing operations.
 11. [x] Support asynchronous training loops for large-scale experiments.
@@ -31,7 +43,15 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 24. [x] Add tests ensuring compatibility with PyTorch 2.7 and higher.
 25. [x] Improve logging with structured JSON output.
 26. Implement distributed training across multiple GPUs.
+   - [ ] Research distributed training approaches (DDP, Horovod).
+   - [ ] Add distributed setup utilities to `marble_core`.
+   - [ ] Implement distributed training pipeline in `marble_neuronenblitz`.
+   - [ ] Write tests using CPU-based simulator.
 27. Provide higher-level wrappers for common reinforcement learning tasks.
+   - [ ] Design RL environment interface.
+   - [ ] Implement wrappers for policy gradient, Q-learning, etc.
+   - [ ] Add examples demonstrating wrappers.
+   - [ ] Document usage in README/TUTORIAL.
 28. [x] Add recurrent neural network neuron types to Marble Core.
 29. [x] Introduce dropout and batch normalization synapse types.
 30. [x] Create a graphical configuration editor in the Streamlit GUI.
@@ -54,10 +74,22 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 47. [x] Improve code style consistency with automated formatting checks.
 48. [x] Add support for quantization and model compression.
 49. Implement a plugin-based remote tier for custom hardware.
+   - [ ] Define plugin API for remote hardware tiers.
+   - [ ] Implement sample plugin using gRPC to remote server.
+   - [ ] Update configuration to select remote tiers.
+   - [ ] Add tests for plugin initialization and data transfer.
 50. [x] Create visualization utilities for neuron activation patterns.
 51. [x] Add parameter scheduling for exploration/exploitation trade-offs.
 52. Support hierarchical reinforcement learning in Neuronenblitz.
+   - [ ] Research HRL algorithms applicable to the architecture.
+   - [ ] Implement high-level action controller.
+   - [ ] Add low-level policy modules.
+   - [ ] Provide example training script.
 53. Implement efficient memory management for huge graphs.
+   - [ ] Identify memory-heavy structures.
+   - [ ] Implement streaming / chunking of graph data.
+   - [ ] Add memory pooling and reference counting.
+   - [ ] Benchmark and optimize.
 54. [x] Add checks for NaN/Inf propagation throughout the core.
 55. [x] Provide an option to profile CPU and GPU usage during training.
 56. [x] Integrate dataset sharding for distributed training.
@@ -65,23 +97,51 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 58. [x] Provide a simple web API for remote inference.
 59. [x] Add command line tools to export trained models.
 60. Implement automatic synchronization of config files across nodes.
+   - [ ] Design synchronization protocol (e.g., using rsync or file watchers).
+   - [ ] Implement config sync service.
+   - [ ] Add CLI command to trigger manual sync.
+   - [ ] Write tests simulating multi-node environment.
 61. Enhance constant-time operations for cryptographic safety.
+   - [ ] Profile existing cryptographic operations.
+   - [ ] Replace variable-time functions with constant-time equivalents.
+   - [ ] Add unit tests verifying timing does not leak secrets.
+   - [ ] Document cryptographic safety guidelines.
 62. Add more comprehensive adversarial training examples.
+   - [ ] Implement adversarial example generators.
+   - [ ] Add training loops demonstrating adversarial robustness.
+   - [ ] Provide dataset wrappers for adversarial data.
+   - [ ] Document new examples in TUTORIAL.
 63. [x] Provide utilities for automatic dataset downloading and caching.
 64. [x] Integrate a simple hyperparameter search framework.
 65. [x] Add tests verifying deterministic behaviour with fixed seeds.
 66. Improve readability of configuration files with comments and sections.
+   - [ ] Group related config parameters into sections.
+   - [ ] Add descriptive comments for each parameter.
+   - [ ] Provide script to auto-generate sample config with comments.
+   - [ ] Update YAML manual accordingly.
 67. [x] Implement graph pruning utilities to remove unused neurons.
 68. [x] Create a repository of reusable neuron/synapse templates.
 69. [x] Add support for mixed precision training when GPUs are available.
 70. [x] Provide dynamic graph visualisation within the GUI.
 71. [x] Implement scheduled backups of experiment logs and results.
 72. Add a compatibility layer for older Python versions where feasible.
+   - [ ] Identify features incompatible with Python 3.8 and 3.9.
+   - [ ] Implement polyfills or wrappers.
+   - [ ] Setup CI matrix to test older versions.
+   - [ ] Document limitations.
 73. [x] Provide self-contained Docker images for reproducibility.
 74. [x] Implement offline mode with pre-packaged datasets.
 75. Add automated packaging to publish releases on PyPI.
+   - [ ] Create setup.py and pyproject.toml for packaging.
+   - [ ] Setup CI workflow for building and uploading to TestPyPI.
+   - [ ] Add versioning scheme.
+   - [ ] Document release process.
 76. [x] Improve data compression for network transfers.
 77. Incorporate gradient accumulation for large batch training.
+   - [ ] Modify training loop to accumulate gradients across steps.
+   - [ ] Expose accumulation steps via config.
+   - [ ] Update scheduler and optimizer logic.
+   - [ ] Add tests verifying behavior.
 78. [x] Add performance regression tests for critical functions.
 79. [x] Integrate basic anomaly detection on training metrics.
 80. [x] Expand the scheduler with cyclic learning rate support.
@@ -94,6 +154,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 87. [x] Add a mechanism to export and import neuron state snapshots.
 88. [x] Document the mathematics behind synaptic echo learning.
 89. Implement context-aware attention mechanisms.
+   - [ ] Research existing attention mechanisms.
+   - [ ] Design architecture for context-aware attention.
+   - [ ] Implement module in Neuronenblitz.
+   - [ ] Provide unit tests and example usage.
 90. [x] Add unit tests ensuring backward compatibility between versions.
 91. [x] Create a `core_benchmark.py` script for micro benchmarks.
 92. [x] Provide a template repository for new Marble-based projects.
@@ -101,24 +165,80 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 94. [x] Expand the remote offload module with bandwidth estimation.
 95. [x] Implement dynamic route optimisation in Neuronenblitz.
 96. Add anomaly detection for wandering behaviour.
+   - [ ] Define metrics to measure wandering.
+   - [ ] Implement anomaly detection algorithm.
+   - [ ] Integrate with training logs.
+   - [ ] Add tests for detection accuracy.
 97. [x] Provide visual feedback for training progress in Streamlit.
 98. [x] [x] Offer integration examples with existing ML libraries.
 99. [x] Enhance documentation with troubleshooting guides.
 100. [x] Establish a long-term roadmap with release milestones.
 
 101. Implement a **Global Workspace** plugin to broadcast conscious contents across all modules.
+   - [ ] Define data structures for global workspace broadcast.
+   - [ ] Implement plugin with message queue.
+   - [ ] Expose configuration options.
+   - [ ] Add tests verifying broadcast across modules.
 102. Add **attention codelet** plugins that form coalitions and submit them to the Global Workspace.
+   - [ ] Create plugin interface for attention codelets.
+   - [ ] Implement coalition formation logic.
+   - [ ] Connect with Global Workspace plugin.
+   - [ ] Add example configuration.
 103. Create a **Self-Monitoring** plugin that maintains an internal state model and meta-cognitive evaluations.
+   - [ ] Design internal state data structures.
+   - [ ] Implement self-monitoring algorithms.
+   - [ ] Connect output to context_history.
+   - [ ] Write tests for self-monitoring updates.
 104. Integrate higher-order thought markers from Self-Monitoring into `context_history`.
+   - [ ] Extend context_history data structure.
+   - [ ] Add functions to log HOT markers.
+   - [ ] Update Self-Monitoring plugin to emit markers.
+   - [ ] Add tests verifying markers saved.
 105. Link Self-Monitoring feedback to reinforcement learning and `dynamic_wander` adjustments.
+   - [ ] Create interface between self-monitoring and RL modules.
+   - [ ] Adjust dynamic_wander parameters based on self-monitoring output.
+   - [ ] Provide configuration hooks.
+   - [ ] Add integration tests.
 106. Implement an **Episodic Memory** plugin supporting transient buffers, long‑term storage and context-based retrieval.
+   - [ ] Design schemas for episodic entries.
+   - [ ] Implement transient buffer and long-term storage.
+   - [ ] Add retrieval API with context queries.
+   - [ ] Write tests for storing and retrieving episodes.
 107. Provide an **episodic simulation** plugin to replay stored episodes for planning.
+   - [ ] Implement episode selection and playback engine.
+   - [ ] Integrate with planning modules.
+   - [ ] Provide configuration options for simulation length.
+   - [ ] Document usage.
 108. Develop a **Goal Manager** plugin handling hierarchical goals and conflict resolution with active inference.
+   - [ ] Define goal hierarchy structures.
+   - [ ] Implement conflict resolution algorithms.
+   - [ ] Connect with reinforcement learning modules.
+   - [ ] Add tests for typical goal scenarios.
 109. Build a **Theory of Mind** plugin using character, mental-state and prediction subnets.
+   - [ ] Research ToM models suitable for integration.
+   - [ ] Implement subnets for character modelling and prediction.
+   - [ ] Connect ToM to Global Workspace and Self-Monitoring.
+   - [ ] Add example training script.
 110. Implement a **Predictive Coding** plugin offering hierarchical predictions and active inference loops.
+   - [ ] Design predictive coding architecture.
+   - [ ] Implement hierarchical prediction modules.
+   - [ ] Integrate with reinforcement learning and episodic memory.
+   - [ ] Provide tests verifying prediction accuracy.
 111. Expand `context_history` and `replay_buffer` to store internal markers, goals and ToM information.
+   - [ ] Extend data structures to include markers, goals, ToM.
+   - [ ] Update save/load logic.
+   - [ ] Add migration for old checkpoints.
+   - [ ] Write tests for new buffer behavior.
 112. Extend attention mechanisms to interface with the Global Workspace and plugin salience scores.
+   - [ ] Modify attention modules to accept salience inputs.
+   - [ ] Connect to Global Workspace for broadcast.
+   - [ ] Provide weight tuning parameters.
+   - [ ] Add tests for attention with salience.
 113. [x] Add YAML configuration options for all new plugins and document them thoroughly.
 114. [x] Create unit and integration tests ensuring each plugin works on CPU and GPU.
 115. Update tutorials and manuals with instructions on using the consciousness plugins.
+   - [ ] Write step-by-step tutorial for each new plugin.
+   - [ ] Update yaml-manual with plugin parameters.
+   - [ ] Add troubleshooting section.
+   - [ ] Provide example configuration files.
 
