@@ -10,6 +10,7 @@ import numpy as np
 from datetime import datetime, timezone
 from collections import deque
 import math
+import logging
 
 
 def _wander_worker(state_bytes: bytes, input_value: float, seed: int) -> tuple[float, int]:
@@ -159,6 +160,8 @@ class Neuronenblitz:
         activity_gate_exponent=1.0,
         subpath_cache_size=100,
         gradient_accumulation_steps=1,
+        wander_anomaly_threshold=3.0,
+        wander_history_size=100,
         subpath_cache_ttl=300,
         use_mixed_precision=False,
         remote_client=None,
@@ -324,6 +327,9 @@ class Neuronenblitz:
         self.gradient_accumulation_steps = int(max(1, gradient_accumulation_steps))
         self._accum_step = 0
         self._accum_updates = {}
+        self.wander_anomaly_threshold = float(wander_anomaly_threshold)
+        self.wander_history_size = int(max(5, wander_history_size))
+        self._wander_history = deque(maxlen=self.wander_history_size)
         try:
             import n_plugin
 
@@ -599,6 +605,30 @@ class Neuronenblitz:
         while len(self._subpath_order) > self._subpath_cache_size:
             old = self._subpath_order.popleft()
             self.subpath_cache.pop(old, None)
+
+    def detect_wandering_anomaly(self, length: int) -> bool:
+        """Return ``True`` if ``length`` is an anomalous wander path."""
+        self._wander_history.append(length)
+        if self.metrics_visualizer is not None:
+            self.metrics_visualizer.update({"wander_path_length": length})
+        if len(self._wander_history) < 5:
+            if self.metrics_visualizer is not None:
+                self.metrics_visualizer.update({"wandering_anomaly": 0.0})
+            return False
+        arr = np.asarray(self._wander_history, dtype=float)
+        mean = float(arr.mean())
+        std = float(arr.std())
+        anomaly = std > 0 and abs(length - mean) > self.wander_anomaly_threshold * std
+        if self.metrics_visualizer is not None:
+            self.metrics_visualizer.update({"wandering_anomaly": 1.0 if anomaly else 0.0})
+        if anomaly:
+            logging.warning(
+                "Wandering anomaly detected: length %s (mean %.3f, std %.3f)",
+                length,
+                mean,
+                std,
+            )
+        return anomaly
 
     def _get_cached_subpath(self, path):
         """Return cached result for ``path`` if still valid."""
@@ -1017,6 +1047,7 @@ class Neuronenblitz:
                     datetime.now(timezone.utc),
                 )
                 self._cache_order.append(input_value)
+            self.detect_wandering_anomaly(len(result_path))
             self.check_finite_state()
             return final_neuron.value, result_path
 

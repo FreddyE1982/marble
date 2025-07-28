@@ -1462,10 +1462,13 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
     `neuronenblitz.emergent_connection_prob` on the *Settings* tab. A value near
     `0.1` lets `dynamic_wander` occasionally create new random synapses, which
     can foster unexpected network behaviour.
-24. **Manage lobes** on the *Lobe Manager* tab. View attention scores for each
+24. **Detect wandering anomalies** by setting `wander_anomaly_threshold` under
+    `neuronenblitz`. When path lengths deviate markedly from the running mean a
+    warning is logged and the *Metrics* tab highlights the anomaly.
+25. **Manage lobes** on the *Lobe Manager* tab. View attention scores for each
     lobe, create new lobes from selected neuron IDs, reorganize the current
     structure or apply self-attention updates with a single click.
-24. **Read the documentation** on the *Documentation* tab. Every markdown file
+26. **Read the documentation** on the *Documentation* tab. Every markdown file
     in the repository, including the architecture overview, configurable
     parameters list and machine learning handbook, can be opened here for quick
     reference.

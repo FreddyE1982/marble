@@ -165,10 +165,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 94. [x] Expand the remote offload module with bandwidth estimation.
 95. [x] Implement dynamic route optimisation in Neuronenblitz.
 96. Add anomaly detection for wandering behaviour.
-   - [ ] Define metrics to measure wandering.
-   - [ ] Implement anomaly detection algorithm.
-   - [ ] Integrate with training logs.
-   - [ ] Add tests for detection accuracy.
+   - [x] Define metrics to measure wandering.
+   - [x] Implement anomaly detection algorithm.
+   - [x] Integrate with training logs.
+   - [x] Add tests for detection accuracy.
 97. [x] Provide visual feedback for training progress in Streamlit.
 98. [x] [x] Offer integration examples with existing ML libraries.
 99. [x] Enhance documentation with troubleshooting guides.
