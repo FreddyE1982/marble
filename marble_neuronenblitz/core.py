@@ -1,19 +1,30 @@
-from marble_imports import *
-from marble_core import Neuron, SYNAPSE_TYPES, NEURON_TYPES, perform_message_passing
-from contrastive_learning import ContrastiveLearner
-from imitation_learning import ImitationLearner
-import threading
+from __future__ import annotations
+
+import logging
+import math
 import multiprocessing as mp
 import pickle
 import random
-import numpy as np
-from datetime import datetime, timezone
+import threading
 from collections import deque
-import math
-import logging
+from datetime import datetime, timezone
+
+import numpy as np
+
+from contrastive_learning import ContrastiveLearner
+from imitation_learning import ImitationLearner
+from marble_core import NEURON_TYPES, SYNAPSE_TYPES, Neuron, perform_message_passing
+from marble_imports import *  # noqa: F401,F403
+
+from . import learning as _learning
+from . import memory as _memory
+
+# ruff: noqa: F405
 
 
-def _wander_worker(state_bytes: bytes, input_value: float, seed: int) -> tuple[float, int]:
+def _wander_worker(
+    state_bytes: bytes, input_value: float, seed: int
+) -> tuple[float, int]:
     nb = pickle.loads(state_bytes)
     random.seed(seed)
     np.random.seed(seed % (2**32 - 1))
@@ -401,7 +412,9 @@ class Neuronenblitz:
                 k: (v * self.forgetting_rate if isinstance(v, (int, float)) else v)
                 for k, v in ctx.items()
             }
-            if any(isinstance(v, (int, float)) and abs(v) > 1e-6 for v in decayed.values()):
+            if any(
+                isinstance(v, (int, float)) and abs(v) > 1e-6 for v in decayed.values()
+            ):
                 new_hist.append(decayed)
         self.context_history = new_hist
 
@@ -422,7 +435,9 @@ class Neuronenblitz:
         for syn in self.core.synapses:
             syn.visit_count *= decay
 
-    def add_to_replay(self, input_value: float, target_value: float, error: float) -> None:
+    def add_to_replay(
+        self, input_value: float, target_value: float, error: float
+    ) -> None:
         """Store an experience and its priority for replay."""
         if not self.use_experience_replay:
             return
@@ -438,7 +453,7 @@ class Neuronenblitz:
         if pri.sum() == 0:
             probs = np.ones_like(pri) / len(pri)
         else:
-            probs = pri ** self.replay_alpha
+            probs = pri**self.replay_alpha
             probs = probs / probs.sum()
         idx = np.random.choice(len(pri), size=batch_size, p=probs)
         return list(map(int, idx))
@@ -473,10 +488,7 @@ class Neuronenblitz:
 
     def decay_memory_gates(self) -> None:
         """Decay memory gate strengths over time."""
-        for syn in list(self.memory_gates.keys()):
-            self.memory_gates[syn] *= self.memory_gate_decay
-            if self.memory_gates[syn] < 1e-6:
-                del self.memory_gates[syn]
+        _memory.decay_memory_gates(self)
 
     def _update_traces(self, path, decay: float = 0.9) -> None:
         """Update eligibility traces for the given path."""
@@ -620,7 +632,9 @@ class Neuronenblitz:
         std = float(arr.std())
         anomaly = std > 0 and abs(length - mean) > self.wander_anomaly_threshold * std
         if self.metrics_visualizer is not None:
-            self.metrics_visualizer.update({"wandering_anomaly": 1.0 if anomaly else 0.0})
+            self.metrics_visualizer.update(
+                {"wandering_anomaly": 1.0 if anomaly else 0.0}
+            )
         if anomaly:
             logging.warning(
                 "Wandering anomaly detected: length %s (mean %.3f, std %.3f)",
@@ -656,22 +670,15 @@ class Neuronenblitz:
     # Reinforcement learning utilities
     def enable_rl(self) -> None:
         """Enable built-in reinforcement learning."""
-        self.rl_enabled = True
+        _learning.enable_rl(self)
 
     def disable_rl(self) -> None:
         """Disable built-in reinforcement learning."""
-        self.rl_enabled = False
+        _learning.disable_rl(self)
 
     def rl_select_action(self, state: tuple[int, int], n_actions: int) -> int:
         """Return an action using epsilon-greedy selection."""
-        if not self.rl_enabled:
-            raise RuntimeError("reinforcement learning disabled")
-        if random.random() < self.rl_epsilon:
-            return random.randrange(n_actions)
-        q_vals = [
-            self.dynamic_wander(self.q_encoding(state, a))[0] for a in range(n_actions)
-        ]
-        return int(np.argmax(q_vals))
+        return _learning.rl_select_action(self, state, n_actions)
 
     def rl_update(
         self,
@@ -683,19 +690,7 @@ class Neuronenblitz:
         n_actions: int = 4,
     ) -> None:
         """Perform a Q-learning update using ``dynamic_wander``."""
-        if not self.rl_enabled:
-            return
-        next_q = 0.0
-        if not done:
-            next_q = max(
-                self.dynamic_wander(self.q_encoding(next_state, a))[0]
-                for a in range(n_actions)
-            )
-        target = reward + self.rl_discount * next_q
-        self.train([(self.q_encoding(state, action), target)], epochs=1)
-        self.rl_epsilon = max(
-            self.rl_min_epsilon, self.rl_epsilon * self.rl_epsilon_decay
-        )
+        _learning.rl_update(self, state, action, reward, next_state, done, n_actions)
 
     def weighted_choice(self, synapses):
         """Select a synapse using fatigue- and attention-aware softmax."""
@@ -882,11 +877,15 @@ class Neuronenblitz:
                 neuron = self.core.neurons[key]
                 neuron.value = avg_value
                 merged.append((neuron, rep_path))
+
         def _score(tup):
             neuron, path = tup
             base = neuron.value
             if self.use_gradient_path_scoring:
-                base += self.gradient_path_score_scale * self.compute_path_gradient_score(path)
+                base += (
+                    self.gradient_path_score_scale
+                    * self.compute_path_gradient_score(path)
+                )
             return base
 
         final_neuron, final_path = max(merged, key=_score)
@@ -1151,7 +1150,7 @@ class Neuronenblitz:
                     new_weight1 = self._weight_limit
                 elif new_weight1 < -self._weight_limit:
                     new_weight1 = -self._weight_limit
-                new_syn1 = self.core.add_synapse(
+                self.core.add_synapse(
                     source.id,
                     new_id,
                     weight=new_weight1,
@@ -1168,7 +1167,7 @@ class Neuronenblitz:
                     new_weight2 = self._weight_limit
                 elif new_weight2 < -self._weight_limit:
                     new_weight2 = -self._weight_limit
-                new_syn2 = self.core.add_synapse(
+                self.core.add_synapse(
                     new_id,
                     target.id,
                     weight=new_weight2,
@@ -1252,7 +1251,7 @@ class Neuronenblitz:
             if self.synaptic_fatigue_enabled:
                 fatigue_factor = 1.0 - getattr(syn, "fatigue", 0.0)
                 update *= max(0.0, fatigue_factor)
-            activity_factor = 1.0 / (1.0 + syn.visit_count ** self.activity_gate_exponent)
+            activity_factor = 1.0 / (1.0 + syn.visit_count**self.activity_gate_exponent)
             update *= activity_factor
             depth_factor = 1.0 + self.depth_clip_scaling * (
                 path_length / max(1, self.max_wander_depth)
@@ -1303,7 +1302,9 @@ class Neuronenblitz:
             if abs(error) < self.episodic_memory_threshold:
                 mem_path = []
                 for syn in path:
-                    self.memory_gates[syn] = self.memory_gates.get(syn, 0.0) + self.memory_gate_strength
+                    self.memory_gates[syn] = (
+                        self.memory_gates.get(syn, 0.0) + self.memory_gate_strength
+                    )
                     mem_path.append(syn)
                 self.episodic_memory.append(mem_path)
         if self.weight_decay:

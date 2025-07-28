@@ -825,6 +825,8 @@ attention_codelets:
     ``attention_codelets.run_cycle`` is invoked. A value of ``1`` means only the
     highest scoring proposal is shared. Typical values are between ``1`` and
     ``5`` depending on how much information you want to expose at once.
+  # See ``examples/configs/attention_codelets.yaml`` for a minimal
+  # configuration demonstrating these settings.
 pytorch_challenge:
   enabled: If true the training loop compares MARBLE with a pretrained PyTorch model after every training example. When MARBLE's validation loss, inference speed or model size exceed the PyTorch model, neuromodulatory stress is increased which lowers plasticity on subsequent updates.
   loss_penalty: Amount of stress added when MARBLE's loss is worse than the PyTorch baseline. Values around 0.1 provide noticeable pressure without overwhelming the system.

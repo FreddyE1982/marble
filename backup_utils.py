@@ -1,12 +1,17 @@
+from __future__ import annotations
+
 import os
 import shutil
 import threading
 from datetime import datetime
 
+
 class BackupScheduler:
     """Periodically copy files from ``src_dir`` to ``dst_dir``."""
 
-    def __init__(self, src_dir: str, dst_dir: str, interval_sec: float = 3600.0) -> None:
+    def __init__(
+        self, src_dir: str, dst_dir: str, interval_sec: float = 3600.0
+    ) -> None:
         self.src_dir = src_dir
         self.dst_dir = dst_dir
         self.interval_sec = interval_sec
