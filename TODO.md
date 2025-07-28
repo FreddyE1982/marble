@@ -102,9 +102,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Add CLI command to trigger manual sync.
    - [x] Write tests simulating multi-node environment.
 61. Enhance constant-time operations for cryptographic safety.
-   - [ ] Profile existing cryptographic operations.
-   - [ ] Replace variable-time functions with constant-time equivalents.
-   - [ ] Add unit tests verifying timing does not leak secrets.
+   - [x] Profile existing cryptographic operations.
+   - [x] Replace variable-time functions with constant-time equivalents.
+   - [x] Add unit tests verifying timing does not leak secrets.
    - [x] Document cryptographic safety guidelines.
 62. Add more comprehensive adversarial training examples.
    - [ ] Implement adversarial example generators.
@@ -115,8 +115,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 64. [x] Integrate a simple hyperparameter search framework.
 65. [x] Add tests verifying deterministic behaviour with fixed seeds.
 66. Improve readability of configuration files with comments and sections.
-   - [ ] Group related config parameters into sections.
-   - [ ] Add descriptive comments for each parameter.
+   - [x] Group related config parameters into sections.
+   - [x] Add descriptive comments for each parameter.
    - [x] Provide script to auto-generate sample config with comments.
    - [x] Update YAML manual accordingly.
 67. [x] Implement graph pruning utilities to remove unused neurons.
@@ -125,10 +125,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 70. [x] Provide dynamic graph visualisation within the GUI.
 71. [x] Implement scheduled backups of experiment logs and results.
 72. Add a compatibility layer for older Python versions where feasible.
-   - [ ] Identify features incompatible with Python 3.8 and 3.9.
-   - [ ] Implement polyfills or wrappers.
-   - [ ] Setup CI matrix to test older versions.
-   - [ ] Document limitations.
+   - [x] Identify features incompatible with Python 3.8 and 3.9.
+   - [x] Implement polyfills or wrappers.
+   - [x] Setup CI matrix to test older versions.
+   - [x] Document limitations.
 73. [x] Provide self-contained Docker images for reproducibility.
 74. [x] Implement offline mode with pre-packaged datasets.
 75. Add automated packaging to publish releases on PyPI.
@@ -181,9 +181,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Add tests verifying broadcast across modules.
 102. Add **attention codelet** plugins that form coalitions and submit them to the Global Workspace.
    - [x] Create plugin interface for attention codelets.
-   - [ ] Implement coalition formation logic.
-   - [ ] Connect with Global Workspace plugin.
-   - [ ] Add example configuration.
+   - [x] Implement coalition formation logic.
+   - [x] Connect with Global Workspace plugin.
+   - [x] Add example configuration.
 103. Create a **Self-Monitoring** plugin that maintains an internal state model and meta-cognitive evaluations.
    - [ ] Design internal state data structures.
    - [ ] Implement self-monitoring algorithms.

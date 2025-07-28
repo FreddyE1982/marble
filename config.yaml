@@ -5,28 +5,28 @@
 # ===================
 
 dataset:
-  num_shards: 1
-  shard_index: 0
-  offline: false
+  num_shards: 1       # Total shards for distributed datasets
+  shard_index: 0      # Index of this shard for multi-node setups
+  offline: false      # Disable remote dataset downloads
 logging:
-  structured: false
-  log_file: "marble.log"
-plugins: []
+  structured: false   # Output logs in JSON format when true
+  log_file: "marble.log"  # Path of the main log file
+plugins: []           # Additional plugin modules to load
 
 
 # =====
 # Core
 # =====
 core:
-  xmin: -2.0
-  xmax: 1.0
-  ymin: -1.5
-  ymax: 1.5
-  width: 30
-  height: 30
-  max_iter: 50
-  representation_size: 4
-  message_passing_alpha: 0.5
+  xmin: -2.0                    # Mandelbrot minimum x value
+  xmax: 1.0                     # Mandelbrot maximum x value
+  ymin: -1.5                    # Mandelbrot minimum y value
+  ymax: 1.5                     # Mandelbrot maximum y value
+  width: 30                     # Grid width
+  height: 30                    # Grid height
+  max_iter: 50                  # Iterations per wander step
+  representation_size: 4        # Number of floats in neuron representation
+  message_passing_alpha: 0.5    # Scaling for message aggregation
   weight_init_min: 0.5
   weight_init_max: 1.5
   mandelbrot_escape_radius: 2.0
