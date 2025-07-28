@@ -117,8 +117,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 66. Improve readability of configuration files with comments and sections.
    - [ ] Group related config parameters into sections.
    - [ ] Add descriptive comments for each parameter.
-   - [ ] Provide script to auto-generate sample config with comments.
-   - [ ] Update YAML manual accordingly.
+   - [x] Provide script to auto-generate sample config with comments.
+   - [x] Update YAML manual accordingly.
 67. [x] Implement graph pruning utilities to remove unused neurons.
 68. [x] Create a repository of reusable neuron/synapse templates.
 69. [x] Add support for mixed precision training when GPUs are available.
