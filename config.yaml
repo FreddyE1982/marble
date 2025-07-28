@@ -60,6 +60,7 @@ core:
   message_passing_beta: 1.0
   attention_temperature: 1.0
   attention_dropout: 0.0
+  salience_weight: 1.0
   energy_threshold: 0.5
   reinforcement_learning_enabled: false
   rl_discount: 0.9
@@ -506,6 +507,16 @@ unified_learning:
   enabled: false
   gating_hidden: 8
   log_path: "unified_log.json"
+
+theory_of_mind:
+  hidden_size: 16
+  num_layers: 1
+  prediction_horizon: 1
+
+predictive_coding:
+  num_layers: 2
+  latent_dim: 16
+  learning_rate: 0.001
 
 # =====================
 # Experiment Setups

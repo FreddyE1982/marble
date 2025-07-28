@@ -140,6 +140,9 @@ core:
     while ``1.0`` results in no neighbours being considered. When messages are
     dropped the remaining attention weights are renormalized so the sum equals
     one.
+  salience_weight: Scaling factor applied to salience inputs provided through
+    attention codelets. Increase above ``1.0`` to emphasise externally supplied
+    salience scores during coalition formation.
   global_phase_rate: Amount added to ``global_phase`` every time
     ``run_message_passing`` executes. Combined with each synapse's individual
     ``phase`` value, this creates oscillatory gating via the cosine in
@@ -1158,6 +1161,23 @@ unified_learning:
   gating_hidden: Number of hidden units in the gating network. Typical values
     range from 4--32 depending on how many context features are used.
   log_path: File path for the decision log. Set to ``null`` to disable logging.
+
+theory_of_mind:
+  hidden_size: Size of the LSTM hidden state used to model each character. Larger
+    values capture more nuanced behaviours but use more memory.
+  num_layers: Number of stacked recurrent layers. Increasing this improves
+    modelling capacity at a computational cost.
+  prediction_horizon: How many future steps are predicted when observations are
+    not supplied. Small values like ``1`` or ``2`` are typical for short-term
+    planning.
+
+predictive_coding:
+  num_layers: Number of predictive coding layers arranged hierarchically.
+    Each layer refines the residual error of the previous one. ``1`` to ``4``
+    layers are usually sufficient.
+  latent_dim: Dimensionality of the latent state per layer. Choose between ``8``
+    and ``64`` depending on task complexity.
+  learning_rate: Optimizer step size used to minimise prediction error.
 
 experiments:
   # Allows grouping multiple experiment configurations in a single YAML file.
