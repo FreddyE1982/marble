@@ -398,7 +398,7 @@ def list_repo_modules() -> list[str]:
         if mod.ispkg:
             continue
         name = mod.name
-        if name.startswith("_") or name in {"streamlit_playground", "tests"}:
+        if name.startswith("_") or name in {"streamlit_playground", "tests", "setup"}:
             continue
         modules.append(name)
     return sorted(modules)

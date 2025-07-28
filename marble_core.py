@@ -1443,12 +1443,31 @@ class DataLoader:
 class Core:
     def __init__(
         self,
-        params,
+        params: dict | None = None,
         formula=None,
         formula_num_neurons=100,
         metrics_visualizer: "MetricsVisualizer | None" = None,
+        width: int | None = None,
+        height: int | None = None,
     ):
         print("Initializing MARBLE Core...")
+        params = params.copy() if isinstance(params, dict) else {}
+        if width is not None:
+            params.setdefault("width", width)
+        if height is not None:
+            params.setdefault("height", height)
+        params.setdefault("xmin", -2.0)
+        params.setdefault("xmax", 1.0)
+        params.setdefault("ymin", -1.5)
+        params.setdefault("ymax", 1.5)
+        params.setdefault("width", 30)
+        params.setdefault("height", 30)
+        params.setdefault("max_iter", 50)
+        params.setdefault("representation_size", 4)
+        params.setdefault("message_passing_alpha", 0.5)
+        params.setdefault("vram_limit_mb", 0.5)
+        params.setdefault("ram_limit_mb", 1.0)
+        params.setdefault("disk_limit_mb", 10)
         seed = params.get("random_seed")
         if seed is not None:
             random.seed(seed)

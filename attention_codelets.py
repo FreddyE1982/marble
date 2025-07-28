@@ -97,7 +97,11 @@ def run_cycle(coalition_size: int | None = None) -> None:
     """Form a coalition and broadcast the winners."""
 
     coalition = form_coalition(coalition_size)
-    broadcast_coalition(coalition)
+    if global_workspace.workspace is not None:
+        for proposal in coalition:
+            global_workspace.workspace.publish("attention_codelets", proposal.content)
+    else:
+        broadcast_coalition(coalition)
 
 
 def activate(*, coalition_size: int = 1, salience_weight: float = 1.0) -> None:
