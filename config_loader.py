@@ -128,8 +128,9 @@ def create_marble_from_config(
         }
     )
 
+    network_cfg = cfg.get("network", {})
     remote_client = None
-    remote_cfg = cfg.get("remote_client", {})
+    remote_cfg = network_cfg.get("remote_client", {})
     if isinstance(remote_cfg, dict) and remote_cfg.get("url"):
         remote_client = RemoteBrainClient(
             remote_cfg["url"],
@@ -139,7 +140,7 @@ def create_marble_from_config(
         )
 
     remote_server = None
-    server_cfg = cfg.get("remote_server", {})
+    server_cfg = network_cfg.get("remote_server", {})
     if isinstance(server_cfg, dict) and server_cfg.get("enabled", False):
         remote_server = RemoteBrainServer(
             host=server_cfg.get("host", "localhost"),
@@ -150,7 +151,7 @@ def create_marble_from_config(
         remote_server.start()
 
     torrent_client = None
-    torrent_cfg = cfg.get("torrent_client", {})
+    torrent_cfg = network_cfg.get("torrent_client", {})
     if isinstance(torrent_cfg, dict) and torrent_cfg.get("client_id"):
         tracker = BrainTorrentTracker()
         torrent_client = BrainTorrentClient(

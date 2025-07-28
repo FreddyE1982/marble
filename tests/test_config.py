@@ -37,11 +37,11 @@ def test_load_config_defaults():
     assert cfg["brain"]["save_threshold"] == 0.05
     assert cfg["meta_controller"]["history_length"] == 5
     assert cfg["neuromodulatory_system"]["initial"]["emotion"] == "neutral"
-    assert cfg["remote_client"]["url"] == "http://localhost:8001"
-    assert cfg["remote_client"]["timeout"] == 5.0
-    assert cfg["remote_client"]["max_retries"] == 3
-    assert cfg["torrent_client"]["client_id"] == "main"
-    assert cfg["torrent_client"]["buffer_size"] == 10
+    assert cfg["network"]["remote_client"]["url"] == "http://localhost:8001"
+    assert cfg["network"]["remote_client"]["timeout"] == 5.0
+    assert cfg["network"]["remote_client"]["max_retries"] == 3
+    assert cfg["network"]["torrent_client"]["client_id"] == "main"
+    assert cfg["network"]["torrent_client"]["buffer_size"] == 10
     assert cfg["brain"]["initial_neurogenesis_factor"] == 1.0
     assert cfg["brain"]["offload_enabled"] is False
     assert cfg["brain"]["torrent_offload_enabled"] is False
@@ -95,7 +95,7 @@ def test_load_config_defaults():
     assert cfg["brain"]["dream_cycle_sleep"] == 0.1
     assert cfg["lobe_manager"]["attention_increase_factor"] == 1.05
     assert cfg["lobe_manager"]["attention_decrease_factor"] == 0.95
-    assert cfg["remote_server"]["enabled"] is False
+    assert cfg["network"]["remote_server"]["enabled"] is False
     assert cfg["metrics_visualizer"]["fig_width"] == 10
     assert cfg["metrics_visualizer"]["fig_height"] == 6
     assert cfg["metrics_visualizer"]["track_cpu_usage"] is False
@@ -161,7 +161,7 @@ def test_create_marble_from_config():
 def test_remote_server_start(tmp_path):
     cfg_path = tmp_path / "cfg.yaml"
     cfg = load_config()
-    cfg["remote_server"] = {
+    cfg.setdefault("network", {})["remote_server"] = {
         "enabled": True,
         "host": "localhost",
         "port": 8123,

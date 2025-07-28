@@ -655,34 +655,35 @@ hybrid_memory:
     stores. When the count exceeds this limit the oldest entries are removed
     to keep memory usage bounded.
 
-remote_client:
-  # Configuration for forwarding parts of the brain to a remote server. When
-  # ``offload_enabled`` is true the brain serializes a subcore and sends it to
-  # this endpoint for processing.
-  url: Base URL for the remote HTTP brain server.
-  timeout: Seconds to wait for remote requests before they are aborted. Values
-    between 5 and 30 are typical depending on network latency.
-  max_retries: Number of times a remote operation is retried upon failure.
-  track_latency: When true the client records the time taken for each
-    request so average latency can be inspected through the API.
-  auth_token: Optional token sent as an ``Authorization`` header on each
-    request.
-  ssl_verify: Whether HTTPS certificates should be verified. Set to ``false``
-    when using self-signed certificates.
-  connect_retry_interval: Seconds to wait between connection retry attempts.
-  heartbeat_timeout: Maximum time to wait for a heartbeat response when
-    maintaining persistent connections.
-  use_compression: If ``true`` payloads are compressed before transmission.
+network:
+  remote_client:
+    # Configuration for forwarding parts of the brain to a remote server. When
+    # ``offload_enabled`` is true the brain serializes a subcore and sends it to
+    # this endpoint for processing.
+    url: Base URL for the remote HTTP brain server.
+    timeout: Seconds to wait for remote requests before they are aborted. Values
+      between 5 and 30 are typical depending on network latency.
+    max_retries: Number of times a remote operation is retried upon failure.
+    track_latency: When true the client records the time taken for each
+      request so average latency can be inspected through the API.
+    auth_token: Optional token sent as an ``Authorization`` header on each
+      request.
+    ssl_verify: Whether HTTPS certificates should be verified. Set to ``false``
+      when using self-signed certificates.
+    connect_retry_interval: Seconds to wait between connection retry attempts.
+    heartbeat_timeout: Maximum time to wait for a heartbeat response when
+      maintaining persistent connections.
+    use_compression: If ``true`` payloads are compressed before transmission.
 
-torrent_client:
-  # Enables distribution of brain parts through the tracker network. Each client
-  # processes assigned subcores asynchronously.
-  client_id: Identifier used when registering with the torrent tracker. Must be
-    unique across participating clients.
-  buffer_size: Maximum number of asynchronous tasks queued for a torrent
-    client. Larger values allow more parallel requests but use more memory.
-  heartbeat_interval: Seconds between status pings sent to the tracker. Has no
-    effect in the current simplified implementation but reserved for future use.
+  torrent_client:
+    # Enables distribution of brain parts through the tracker network. Each client
+    # processes assigned subcores asynchronously.
+    client_id: Identifier used when registering with the torrent tracker. Must be
+      unique across participating clients.
+    buffer_size: Maximum number of asynchronous tasks queued for a torrent
+      client. Larger values allow more parallel requests but use more memory.
+    heartbeat_interval: Seconds between status pings sent to the tracker. Has no
+      effect in the current simplified implementation but reserved for future use.
 
 data_compressor:
   # Controls how strongly the DataCompressor reduces data size before it is
@@ -720,30 +721,30 @@ experiment_tracker:
   entity: Optional account or team under which the run is recorded.
   run_name: Custom name assigned to the run. If ``null`` Wandb generates one.
 
-remote_server:
-  # Launches an optional local ``RemoteBrainServer`` so this MARBLE instance can
-  # forward computation to another machine. When ``enabled`` is ``true`` the
-  # server starts automatically using the provided ``host`` and ``port``. If
-  # ``remote_url`` is specified the server itself forwards heavy requests to that
-  # address, creating a chain of offload targets.
-  enabled: Whether to start the server alongside the main process.
-  host: Interface address to bind the HTTP server to. Usually ``"localhost"``
-    for local testing.
-  port: TCP port used by the server.
-  remote_url: Optional URL of another remote brain server to which this server
-    offloads work.
-  auth_token: Optional shared secret required in the ``Authorization`` header of
-    every request. When set, clients must supply ``"Bearer <token>"`` and the
-    server compares it using constant-time logic to avoid timing attacks.
-  ssl_enabled: Enables HTTPS with the provided certificate and key files.
-  ssl_cert_file: Path to the SSL certificate used when ``ssl_enabled`` is true.
-  ssl_key_file: Path to the private key for the certificate.
-  max_connections: Maximum concurrent connections the server will accept.
-  compression_level: Compression strength used when exchanging data with
-    clients. The value is passed to ``zlib.compress`` and ranges from 0
-    (no compression) to 9 (maximum compression).
-  compression_enabled: Set to ``false`` to disable compression entirely. When
-    disabled the server expects plain JSON payloads.
+  remote_server:
+    # Launches an optional local ``RemoteBrainServer`` so this MARBLE instance can
+    # forward computation to another machine. When ``enabled`` is ``true`` the
+    # server starts automatically using the provided ``host`` and ``port``. If
+    # ``remote_url`` is specified the server itself forwards heavy requests to that
+    # address, creating a chain of offload targets.
+    enabled: Whether to start the server alongside the main process.
+    host: Interface address to bind the HTTP server to. Usually ``"localhost"``
+      for local testing.
+    port: TCP port used by the server.
+    remote_url: Optional URL of another remote brain server to which this server
+      offloads work.
+    auth_token: Optional shared secret required in the ``Authorization`` header of
+      every request. When set, clients must supply ``"Bearer <token>"`` and the
+      server compares it using constant-time logic to avoid timing attacks.
+    ssl_enabled: Enables HTTPS with the provided certificate and key files.
+    ssl_cert_file: Path to the SSL certificate used when ``ssl_enabled`` is true.
+    ssl_key_file: Path to the private key for the certificate.
+    max_connections: Maximum concurrent connections the server will accept.
+    compression_level: Compression strength used when exchanging data with
+      clients. The value is passed to ``zlib.compress`` and ranges from 0
+      (no compression) to 9 (maximum compression).
+    compression_enabled: Set to ``false`` to disable compression entirely. When
+      disabled the server expects plain JSON payloads.
 
 metrics_visualizer:
   # Configure the live metrics plot size. These values are passed directly to
