@@ -9,13 +9,13 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Add hints to marble_core.py
    - [x] Add hints to marble_neuronenblitz.py
    - [x] Add hints to streamlit_playground.py
-5. Integrate GPU acceleration into all neural computations.
+5. [x] Integrate GPU acceleration into all neural computations.
    - [x] Evaluate current modules for GPU compatibility.
    - [x] Implement GPU kernels using PyTorch operations and custom CUDA if needed.
    - [x] Provide CPU fallback mechanisms.
    - [x] Add tests verifying GPU and CPU parity.
 6. [x] Provide a command line interface for common training tasks.
-7. Refactor `marble_neuronenblitz.py` into logical submodules.
+7. [x] Refactor `marble_neuronenblitz.py` into logical submodules.
    - [x] Identify separate functionalities (learning algorithms, memory, etc.).
    - [x] Split file into modules under new package `marble_neuronenblitz/`.
    - [x] Update imports across the project.
@@ -42,7 +42,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 23. [x] Provide GPU/CPU fallbacks for all heavy computations.
 24. [x] Add tests ensuring compatibility with PyTorch 2.7 and higher.
 25. [x] Improve logging with structured JSON output.
-26. Implement distributed training across multiple GPUs.
+26. [x] Implement distributed training across multiple GPUs.
    - [x] Research distributed training approaches (DDP, Horovod).
    - [x] Add distributed setup utilities to `marble_core`.
    - [x] Implement distributed training pipeline in `marble_neuronenblitz`.
@@ -73,19 +73,19 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 46. [x] Implement an extensible metrics aggregation system.
 47. [x] Improve code style consistency with automated formatting checks.
 48. [x] Add support for quantization and model compression.
-49. Implement a plugin-based remote tier for custom hardware.
+49. [x] Implement a plugin-based remote tier for custom hardware.
    - [x] Define plugin API for remote hardware tiers.
    - [x] Implement sample plugin using gRPC to remote server.
    - [x] Update configuration to select remote tiers.
    - [x] Add tests for plugin initialization and data transfer.
 50. [x] Create visualization utilities for neuron activation patterns.
 51. [x] Add parameter scheduling for exploration/exploitation trade-offs.
-52. Support hierarchical reinforcement learning in Neuronenblitz.
+52. [x] Support hierarchical reinforcement learning in Neuronenblitz.
    - [x] Research HRL algorithms applicable to the architecture.
    - [x] Implement high-level action controller.
    - [x] Add low-level policy modules.
    - [x] Provide example training script.
-53. Implement efficient memory management for huge graphs.
+53. [x] Implement efficient memory management for huge graphs.
    - [x] Identify memory-heavy structures.
    - [x] Implement streaming / chunking of graph data.
    - [x] Add memory pooling and reference counting.
@@ -96,7 +96,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 57. [x] Create a cross-platform installer script.
 58. [x] Provide a simple web API for remote inference.
 59. [x] Add command line tools to export trained models.
-60. Implement automatic synchronization of config files across nodes.
+60. [x] Implement automatic synchronization of config files across nodes.
    - [x] Design synchronization protocol (e.g., using rsync or file watchers).
    - [x] Implement config sync service.
    - [x] Add CLI command to trigger manual sync.
@@ -124,20 +124,20 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 69. [x] Add support for mixed precision training when GPUs are available.
 70. [x] Provide dynamic graph visualisation within the GUI.
 71. [x] Implement scheduled backups of experiment logs and results.
-72. Add a compatibility layer for older Python versions where feasible.
+72. [x] Add a compatibility layer for older Python versions where feasible.
    - [x] Identify features incompatible with Python 3.8 and 3.9.
    - [x] Implement polyfills or wrappers.
    - [x] Setup CI matrix to test older versions.
    - [x] Document limitations.
 73. [x] Provide self-contained Docker images for reproducibility.
 74. [x] Implement offline mode with pre-packaged datasets.
-75. Add automated packaging to publish releases on PyPI.
+75. [x] Add automated packaging to publish releases on PyPI.
    - [x] Create setup.py and pyproject.toml for packaging.
    - [x] Setup CI workflow for building and uploading to TestPyPI.
    - [x] Add versioning scheme.
    - [x] Document release process.
 76. [x] Improve data compression for network transfers.
-77. Incorporate gradient accumulation for large batch training.
+77. [x] Incorporate gradient accumulation for large batch training.
    - [x] Modify training loop to accumulate gradients across steps.
    - [x] Expose accumulation steps via config.
    - [x] Update scheduler and optimizer logic.
@@ -164,7 +164,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 93. [x] Add interactive tutorials in Jupyter notebooks.
 94. [x] Expand the remote offload module with bandwidth estimation.
 95. [x] Implement dynamic route optimisation in Neuronenblitz.
-96. Add anomaly detection for wandering behaviour.
+96. [x] Add anomaly detection for wandering behaviour.
    - [x] Define metrics to measure wandering.
    - [x] Implement anomaly detection algorithm.
    - [x] Integrate with training logs.
@@ -174,17 +174,17 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 99. [x] Enhance documentation with troubleshooting guides.
 100. [x] Establish a long-term roadmap with release milestones.
 
-101. Implement a **Global Workspace** plugin to broadcast conscious contents across all modules.
+101. [x] Implement a **Global Workspace** plugin to broadcast conscious contents across all modules.
    - [x] Define data structures for global workspace broadcast.
    - [x] Implement plugin with message queue.
    - [x] Expose configuration options.
    - [x] Add tests verifying broadcast across modules.
-102. Add **attention codelet** plugins that form coalitions and submit them to the Global Workspace.
+102. [x] Add **attention codelet** plugins that form coalitions and submit them to the Global Workspace.
    - [x] Create plugin interface for attention codelets.
    - [x] Implement coalition formation logic.
    - [x] Connect with Global Workspace plugin.
    - [x] Add example configuration.
-103. Create a **Self-Monitoring** plugin that maintains an internal state model and meta-cognitive evaluations.
+103. [x] Create a **Self-Monitoring** plugin that maintains an internal state model and meta-cognitive evaluations.
    - [x] Design internal state data structures.
    - [x] Implement self-monitoring algorithms.
    - [x] Connect output to context_history.
@@ -209,34 +209,34 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Integrate with planning modules.
    - [x] Provide configuration options for simulation length.
    - [x] Document usage.
-108. Develop a **Goal Manager** plugin handling hierarchical goals and conflict resolution with active inference.
+108. [x] Develop a **Goal Manager** plugin handling hierarchical goals and conflict resolution with active inference.
    - [x] Define goal hierarchy structures.
    - [x] Implement conflict resolution algorithms.
    - [x] Connect with reinforcement learning modules.
    - [x] Add tests for typical goal scenarios.
-109. Build a **Theory of Mind** plugin using character, mental-state and prediction subnets.
+109. [x] Build a **Theory of Mind** plugin using character, mental-state and prediction subnets.
    - [x] Research ToM models suitable for integration.
    - [x] Implement subnets for character modelling and prediction.
    - [x] Connect ToM to Global Workspace and Self-Monitoring.
    - [x] Add example training script.
-110. Implement a **Predictive Coding** plugin offering hierarchical predictions and active inference loops.
+110. [x] Implement a **Predictive Coding** plugin offering hierarchical predictions and active inference loops.
    - [x] Design predictive coding architecture.
    - [x] Implement hierarchical prediction modules.
    - [x] Integrate with reinforcement learning and episodic memory.
    - [x] Provide tests verifying prediction accuracy.
-111. Expand `context_history` and `replay_buffer` to store internal markers, goals and ToM information.
+111. [x] Expand `context_history` and `replay_buffer` to store internal markers, goals and ToM information.
    - [x] Extend data structures to include markers, goals, ToM.
    - [x] Update save/load logic.
    - [x] Add migration for old checkpoints.
    - [x] Write tests for new buffer behavior.
-112. Extend attention mechanisms to interface with the Global Workspace and plugin salience scores.
+112. [x] Extend attention mechanisms to interface with the Global Workspace and plugin salience scores.
    - [x] Modify attention modules to accept salience inputs.
    - [x] Connect to Global Workspace for broadcast.
    - [x] Provide weight tuning parameters.
    - [x] Add tests for attention with salience.
 113. [x] Add YAML configuration options for all new plugins and document them thoroughly.
 114. [x] Create unit and integration tests ensuring each plugin works on CPU and GPU.
-115. Update tutorials and manuals with instructions on using the consciousness plugins.
+115. [x] Update tutorials and manuals with instructions on using the consciousness plugins.
    - [x] Write step-by-step tutorial for each new plugin.
    - [x] Update yaml-manual with plugin parameters.
    - [x] Add troubleshooting section.
