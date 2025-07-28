@@ -30,6 +30,7 @@ class AttentionProposal:
 
 _codelets: List[Callable[[], AttentionProposal]] = []
 _default_coalition_size = 1
+_salience_weight = 1.0
 
 
 def register_codelet(func: Callable[[], AttentionProposal]) -> None:
@@ -46,7 +47,12 @@ def get_codelets() -> list[Callable[[], AttentionProposal]]:
     return list(_codelets)
 
 
-def form_coalition(coalition_size: int | None = None) -> list[AttentionProposal]:
+def form_coalition(
+    coalition_size: int | None = None,
+    *,
+    saliences: list[float] | None = None,
+    salience_weight: float | None = None,
+) -> list[AttentionProposal]:
     """Return the highest scoring proposals.
 
     Args:
@@ -59,10 +65,15 @@ def form_coalition(coalition_size: int | None = None) -> list[AttentionProposal]
 
     if coalition_size is None:
         coalition_size = _default_coalition_size
+    if salience_weight is None:
+        salience_weight = _salience_weight
     proposals = [codelet() for codelet in _codelets]
     if not proposals:
         return []
     scores = np.array([p.score for p in proposals], dtype=float)
+    if saliences is not None:
+        sarr = np.array(saliences, dtype=float)
+        scores = scores + salience_weight * sarr
     probs = np.exp(scores) / np.sum(np.exp(scores))
     idx = np.argsort(probs)[-coalition_size:][::-1]
     return [proposals[i] for i in idx]
@@ -78,7 +89,8 @@ def broadcast_coalition(coalition: list[AttentionProposal]) -> None:
     if global_workspace.workspace is None:
         return
     for proposal in coalition:
-        global_workspace.workspace.publish("attention_codelets", proposal.content)
+        msg = {"content": proposal.content, "score": proposal.score}
+        global_workspace.workspace.publish("attention_codelets", msg)
 
 
 def run_cycle(coalition_size: int | None = None) -> None:
@@ -88,12 +100,13 @@ def run_cycle(coalition_size: int | None = None) -> None:
     broadcast_coalition(coalition)
 
 
-def activate(*, coalition_size: int = 1) -> None:
+def activate(*, coalition_size: int = 1, salience_weight: float = 1.0) -> None:
     """Activate the attention codelet subsystem.
 
     Args:
         coalition_size: Number of proposals broadcast per cycle.
     """
 
-    global _default_coalition_size
+    global _default_coalition_size, _salience_weight
     _default_coalition_size = coalition_size
+    _salience_weight = salience_weight

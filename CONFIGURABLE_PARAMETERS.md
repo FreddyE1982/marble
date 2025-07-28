@@ -46,6 +46,7 @@ Each entry is listed under its section heading.
 - message_passing_beta
 - attention_temperature
 - attention_dropout
+- salience_weight
 - energy_threshold
 - reinforcement_learning_enabled
 - rl_discount
@@ -519,6 +520,16 @@ Each entry is listed under its section heading.
 - enabled
 - gating_hidden
 - log_path
+
+## theory_of_mind
+- hidden_size
+- num_layers
+- prediction_horizon
+
+## predictive_coding
+- num_layers
+- latent_dim
+- learning_rate
 
 ## experiments
 - name

@@ -21,3 +21,13 @@ tests/test_streamlit_gui.py::test_function_search_count_synapses RuntimeError: A
 - FAILED tests/test_streamlit_playground.py::test_find_repository_functions - S...
 - FAILED tests/test_wandering_anomaly.py::test_detect_wandering_anomaly - asser...
 - ====== 65 failed, 445 passed, 1 skipped, 9 warnings in 168.55s (0:02:48) =======
+Full test suite run resulted in failures before adjustments:
+- tests/test_async_training.py::test_training_and_inference_simultaneous
+- tests/test_attention_codelets.py::test_coalition_and_broadcast
+- tests/test_config.py::test_create_marble_from_config
+- tests/test_config.py::test_remote_server_start
+- tests/test_config.py::test_synapse_update_cap_configurable
+- tests/test_config.py::test_new_nb_parameters_configurable
+- tests/test_config.py::test_global_workspace_config
+- tests/test_episodic_simulation.py::test_simulate_returns_rewards
+- tests/test_predictive_coding_plugin.py::test_predictive_coding_step (fixed)

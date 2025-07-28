@@ -215,25 +215,25 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Connect with reinforcement learning modules.
    - [x] Add tests for typical goal scenarios.
 109. Build a **Theory of Mind** plugin using character, mental-state and prediction subnets.
-   - [ ] Research ToM models suitable for integration.
-   - [ ] Implement subnets for character modelling and prediction.
-   - [ ] Connect ToM to Global Workspace and Self-Monitoring.
-   - [ ] Add example training script.
+   - [x] Research ToM models suitable for integration.
+   - [x] Implement subnets for character modelling and prediction.
+   - [x] Connect ToM to Global Workspace and Self-Monitoring.
+   - [x] Add example training script.
 110. Implement a **Predictive Coding** plugin offering hierarchical predictions and active inference loops.
-   - [ ] Design predictive coding architecture.
-   - [ ] Implement hierarchical prediction modules.
-   - [ ] Integrate with reinforcement learning and episodic memory.
-   - [ ] Provide tests verifying prediction accuracy.
+   - [x] Design predictive coding architecture.
+   - [x] Implement hierarchical prediction modules.
+   - [x] Integrate with reinforcement learning and episodic memory.
+   - [x] Provide tests verifying prediction accuracy.
 111. Expand `context_history` and `replay_buffer` to store internal markers, goals and ToM information.
    - [x] Extend data structures to include markers, goals, ToM.
    - [x] Update save/load logic.
    - [x] Add migration for old checkpoints.
    - [x] Write tests for new buffer behavior.
 112. Extend attention mechanisms to interface with the Global Workspace and plugin salience scores.
-   - [ ] Modify attention modules to accept salience inputs.
-   - [ ] Connect to Global Workspace for broadcast.
-   - [ ] Provide weight tuning parameters.
-   - [ ] Add tests for attention with salience.
+   - [x] Modify attention modules to accept salience inputs.
+   - [x] Connect to Global Workspace for broadcast.
+   - [x] Provide weight tuning parameters.
+   - [x] Add tests for attention with salience.
 113. [x] Add YAML configuration options for all new plugins and document them thoroughly.
 114. [x] Create unit and integration tests ensuring each plugin works on CPU and GPU.
 115. Update tutorials and manuals with instructions on using the consciousness plugins.
