@@ -511,7 +511,14 @@ Execute this file to observe Hebbian updates on your data.
    real_values = [x[0] for x in adv_ds]
    ```
 5. **Construct an `AdversarialLearner`** and call `learner.train(real_values)` to alternate generator and discriminator updates.
-6. **Sample new data** after training by passing random noise vectors to the generator's `dynamic_wander` method.
+6. **Optionally perform adversarial fine-tuning** of a standard PyTorch model using
+   `train_with_adversarial_examples`:
+   ```python
+   from adversarial_learning import train_with_adversarial_examples, ToyModel
+   model = ToyModel()
+   train_with_adversarial_examples(model, adv_ds, epsilon=0.05, epochs=3)
+   ```
+7. **Sample new data** after training by passing random noise vectors to the generator's `dynamic_wander` method.
 
 **Complete Example**
 ```python

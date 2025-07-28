@@ -17,6 +17,43 @@ import numpy as np
 
 from marble_base import MetricsVisualizer
 from marble_imports import *  # noqa: F401,F403,F405
+import torch
+import torch.distributed as dist
+
+
+def init_distributed(world_size: int, rank: int = 0, backend: str = "gloo") -> bool:
+    """Initialize torch distributed if available.
+
+    Parameters
+    ----------
+    world_size:
+        Total number of processes participating in training.
+    rank:
+        Rank of the current process.
+    backend:
+        Backend to use (``gloo`` or ``nccl``).
+
+    Returns
+    -------
+    bool
+        ``True`` when initialization succeeded, ``False`` otherwise.
+    """
+
+    if not dist.is_available():  # pragma: no cover - depends on torch build
+        return False
+    if dist.is_initialized():  # pragma: no cover - already init
+        return True
+    os.environ.setdefault("MASTER_ADDR", "127.0.0.1")
+    os.environ.setdefault("MASTER_PORT", "29500")
+    dist.init_process_group(backend=backend, world_size=world_size, rank=rank)
+    return True
+
+
+def cleanup_distributed() -> None:
+    """Destroy the default distributed process group if initialized."""
+
+    if dist.is_available() and dist.is_initialized():  # pragma: no cover
+        dist.destroy_process_group()
 
 # Representation size for GNN-style message passing
 _REP_SIZE = 4

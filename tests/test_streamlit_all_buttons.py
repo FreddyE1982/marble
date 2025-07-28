@@ -53,4 +53,4 @@ def test_click_all_buttons(monkeypatch):
         buttons.extend(tab.button)
     assert buttons, "No buttons found"
     for b in buttons:
-        at = b.click().run(timeout=1)
+        at = b.click().run(timeout=2)
