@@ -30,6 +30,25 @@ Full test suite run resulted in failures before adjustments:
 - tests/test_config.py::test_new_nb_parameters_configurable
 - tests/test_config.py::test_global_workspace_config
 - tests/test_episodic_simulation.py::test_simulate_returns_rewards
+- tests/test_streamlit_gui.py::test_basic_text_inference
+- tests/test_streamlit_gui.py::test_save_config_file
+- tests/test_streamlit_gui.py::test_duplicate_instance
+- tests/test_streamlit_gui.py::test_pipeline_reorder_and_remove
+- tests/test_streamlit_gui.py::test_auto_firing_start_stop
+- tests/test_streamlit_gui.py::test_save_marble
+- tests/test_streamlit_gui.py::test_attach_remote_client
+- tests/test_streamlit_gui.py::test_stats_refresh
+- tests/test_streamlit_gui.py::test_misc_gui_buttons
+- tests/test_streamlit_gui.py::test_start_background_training
+- tests/test_streamlit_gui.py::test_model_search_and_preview
+- tests/test_streamlit_gui.py::test_adaptive_control_extra
+- tests/test_streamlit_gui.py::test_hybrid_memory_forget
+- tests/test_streamlit_gui.py::test_instance_switch_and_delete
+- tests/test_streamlit_gui.py::test_autoencoder_tab_training
+- tests/test_streamlit_playground.py::test_example_project_helpers
+- tests/test_streamlit_playground.py::test_save_config_yaml_and_search
+- tests/test_streamlit_playground.py::test_find_repository_functions
+- tests/test_wandering_anomaly.py::test_detect_wandering_anomaly
 - tests/test_predictive_coding_plugin.py::test_predictive_coding_step (fixed)
 
 Latest test run:
