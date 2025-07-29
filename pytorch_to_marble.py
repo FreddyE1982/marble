@@ -172,6 +172,16 @@ def _get_converter(layer: torch.nn.Module) -> LayerConverter:
     )
 
 
+def _print_dry_run_summary(core: Core, node_outputs: Dict[str, List[int]]) -> None:
+    """Print summary statistics for a dry-run conversion."""
+    print(
+        f"[DRY RUN] created {len(core.neurons)} neurons and {len(core.synapses)} synapses"
+    )
+    for name, ids in node_outputs.items():
+        if name != "output":
+            print(f"[DRY RUN] {name}: {len(ids)} neurons")
+
+
 def convert_model(
     model: torch.nn.Module, core_params: Dict | None = None, dry_run: bool = False
 ) -> Core:
@@ -225,6 +235,7 @@ def convert_model(
                 f"Operation {node.op} is not supported for conversion"
             )
     if dry_run:
+        _print_dry_run_summary(core, node_outputs)
         return core
     return core
 
