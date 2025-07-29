@@ -263,7 +263,7 @@ The project ships with a converter that maps PyTorch models into the MARBLE
 format. Run the CLI to transform a saved ``.pt`` file into JSON:
 
 Supported layers currently include ``Linear``, ``Conv2d`` (multi-channel),
-``BatchNorm1d``, ``BatchNorm2d``, ``Dropout``, ``Flatten``, ``MaxPool2d``,
+``Embedding``, ``BatchNorm1d``, ``BatchNorm2d``, ``Dropout``, ``Flatten``, ``MaxPool2d``,
 ``AvgPool2d``, ``GlobalAvgPool2d`` and the adaptive pooling variants
 ``AdaptiveAvgPool2d`` and ``AdaptiveMaxPool2d`` as well as the
 element-wise activations ``ReLU``, ``Sigmoid``, ``Tanh`` and ``GELU``. Functional reshaping

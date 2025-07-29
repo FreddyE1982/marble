@@ -51,7 +51,7 @@
   - [ ] Handle torch.nn.Sequential recursion
   - [ ] Support ModuleList iteration
   - [ ] Unit tests for container handling
-- [ ] Embedding layers
+- [x] Embedding layers
 - [ ] Recurrent layers (RNN, LSTM, GRU)
 - [ ] Normalization layers (LayerNorm, GroupNorm)
 - [ ] Transformer blocks
