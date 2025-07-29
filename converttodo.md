@@ -84,8 +84,8 @@
 ### 3. Weight and activation handling
 - [x] Extract weights and biases from PyTorch layers
 - [x] Store activation type in neuron metadata
-- [ ] Support GPU and CPU weight formats
-- [ ] Verify bias neurons are created correctly
+ - [x] Support GPU and CPU weight formats
+ - [x] Verify bias neurons are created correctly
 
 ### 4. Custom layer converter support
 - [x] Decorator-based registration for user-defined layers
