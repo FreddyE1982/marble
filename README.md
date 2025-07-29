@@ -270,6 +270,13 @@ activations ``ReLU``, ``Sigmoid``, ``Tanh`` and ``GELU``.
 python convert_model.py --pytorch my_model.pt --output marble_model.json
 ```
 
+To store a full MARBLE snapshot instead of JSON simply use the `.marble`
+extension:
+
+```bash
+python convert_model.py --pytorch my_model.pt --output marble_model.marble
+```
+
 Specify ``--dry-run`` to see the resulting graph statistics without writing a
 file. You can also call ``convert_model`` directly:
 

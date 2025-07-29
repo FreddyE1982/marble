@@ -17,6 +17,7 @@
 
 ### 0. Core conversion engine
 - [ ] Ensure `convert_model` handles functional operations from `torch.nn.functional`
+- [ ] Document layer mapping registry in developer docs
 - [x] Graceful fallback when `torch.fx` tracing fails
 - [x] Provide clear error when layer type is not registered
 - [x] Raise error for unsupported functional operations
@@ -51,11 +52,13 @@
 - [ ] Helper to add synapses with weights and bias
 - [ ] Parameterized wrappers for linear and convolutional layers
 - [ ] Documentation for graph builder utilities
+- [ ] Examples demonstrating dynamic message passing setup
 
 ### 3. Weight and activation handling
 - [ ] Extract weights and biases from PyTorch layers
 - [ ] Store activation type in neuron metadata
 - [ ] Support GPU and CPU weight formats
+- [ ] Verify bias neurons are created correctly
 
 ### 4. Custom layer converter support
 - [ ] Decorator-based registration for user-defined layers
@@ -73,9 +76,10 @@
   - [ ] Unit tests for small networks
   - [ ] Integration test for a custom model
   - [ ] CLI option to run validation automatically
+- [ ] Numerical tolerances for output comparison
 
 ### 7. Additional tooling
-- [ ] Support converting `.pt` files directly into `.marble` snapshots
+- [x] Support converting `.pt` files directly into `.marble` snapshots
 - [ ] Provide auto-inference mode summarizing created graph without saving
 - [ ] Command line interface for one-step conversion
 - [ ] Programmatic API returning a `Core` object
@@ -86,6 +90,7 @@
 - [ ] Programmatic `convert_model` function usable in other scripts
 - [ ] Example usage documented in README
 - [ ] Load checkpoints saved with `torch.save` automatically
+- [ ] Support `.json` or `.marble` output based on extension
 
 ### 9. Graph visualization and inspection
 - [ ] Visualize generated MARBLE graph structure
@@ -100,3 +105,4 @@
 - [ ] Map PyTorch control flow to MARBLE dynamic topology
 - [ ] Handle evolving neuron and synapse creation during inference
 - [ ] Unit tests covering dynamic model conversion paths
+- [ ] Research torch.fx support for control flow constructs
