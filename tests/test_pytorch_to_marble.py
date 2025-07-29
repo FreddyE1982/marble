@@ -16,6 +16,7 @@ from pytorch_to_marble import (
     _add_fully_connected_layer,
     convert_model,
     register_converter,
+    GlobalAvgPool2d,
 )
 from tests.test_core_functions import minimal_params
 
@@ -194,6 +195,36 @@ class AvgPoolModel(torch.nn.Module):
         return self.pool(x)
 
 
+class GlobalAvgPoolModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.pool = GlobalAvgPool2d()
+        self.input_size = (1, 4, 4)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.pool(x)
+
+
+class AdaptiveAvgPoolModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.pool = torch.nn.AdaptiveAvgPool2d((2, 2))
+        self.input_size = (1, 4, 4)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.pool(x)
+
+
+class AdaptiveMaxPoolModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.pool = torch.nn.AdaptiveMaxPool2d((2, 2))
+        self.input_size = (1, 4, 4)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.pool(x)
+
+
 def test_basic_conversion():
     model = SimpleModel()
     params = minimal_params()
@@ -303,6 +334,27 @@ def test_avgpool2d_conversion():
     params = minimal_params()
     core = convert_model(model, core_params=params)
     assert any(n.neuron_type == "avgpool2d" for n in core.neurons)
+
+
+def test_globalavgpool2d_conversion():
+    model = GlobalAvgPoolModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "avgpool2d" for n in core.neurons)
+
+
+def test_adaptiveavgpool2d_conversion():
+    model = AdaptiveAvgPoolModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "avgpool2d" for n in core.neurons)
+
+
+def test_adaptivemaxpool2d_conversion():
+    model = AdaptiveMaxPoolModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "maxpool2d" for n in core.neurons)
 
 
 def test_dry_run_summary(capsys):

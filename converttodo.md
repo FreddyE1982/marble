@@ -43,9 +43,9 @@
   - [x] Error message for unsupported configuration
 - [ ] Pooling layers
   - [x] MaxPool2d and AvgPool2d
-  - [ ] GlobalAvgPool2d converter
-  - [ ] Adaptive pooling layers
-  - [ ] Unit tests for global/adaptive pooling
+  - [x] GlobalAvgPool2d converter
+  - [x] Adaptive pooling layers
+  - [x] Unit tests for global/adaptive pooling
   - [x] Update docs for pooling support
 - [ ] Sequential and ModuleList containers
   - [ ] Handle torch.nn.Sequential recursion
