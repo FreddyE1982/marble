@@ -56,9 +56,45 @@ def _add_fully_connected_layer(
     return out_ids
 
 
+def _add_conv2d_layer(
+    core: Core, input_ids: List[int], layer: torch.nn.Conv2d
+) -> List[int]:
+    if layer.in_channels != 1 or len(input_ids) != 1 or layer.groups != 1:
+        raise UnsupportedLayerError("Conv2d with in_channels!=1 is not supported for conversion")
+    out_ids = []
+    weight = layer.weight.detach().cpu().numpy()
+    stride = layer.stride[0] if isinstance(layer.stride, tuple) else layer.stride
+    padding = layer.padding[0] if isinstance(layer.padding, tuple) else layer.padding
+    inp = input_ids[0]
+    for j in range(layer.out_channels):
+        nid = len(core.neurons)
+        neuron = Neuron(nid, value=0.0, tier="vram", neuron_type="conv2d")
+        neuron.params["kernel"] = weight[j, 0]
+        neuron.params["stride"] = stride
+        neuron.params["padding"] = padding
+        core.neurons.append(neuron)
+        syn = Synapse(inp, nid, weight=1.0)
+        core.neurons[inp].synapses.append(syn)
+        core.synapses.append(syn)
+        if layer.bias is not None:
+            bias_id = len(core.neurons)
+            core.neurons.append(Neuron(bias_id, value=1.0, tier="vram"))
+            b = float(layer.bias.detach().cpu().numpy()[j])
+            bsyn = Synapse(bias_id, nid, weight=b)
+            core.neurons[bias_id].synapses.append(bsyn)
+            core.synapses.append(bsyn)
+        out_ids.append(nid)
+    return out_ids
+
+
 @register_converter(torch.nn.Linear)
 def _convert_linear(layer: torch.nn.Linear, core: Core, inputs: List[int]) -> List[int]:
     return _add_fully_connected_layer(core, inputs, layer)
+
+
+@register_converter(torch.nn.Conv2d)
+def _convert_conv2d(layer: torch.nn.Conv2d, core: Core, inputs: List[int]) -> List[int]:
+    return _add_conv2d_layer(core, inputs, layer)
 
 
 @register_converter(torch.nn.ReLU)
