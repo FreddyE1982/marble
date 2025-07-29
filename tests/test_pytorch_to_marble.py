@@ -175,6 +175,16 @@ class UnflattenModel(torch.nn.Module):
         return self.seq(x)
 
 
+class EmbeddingModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.embedding = torch.nn.Embedding(5, 3)
+        self.input_size = 1
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.embedding(x)
+
+
 class MaxPoolModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -320,6 +330,13 @@ def test_unflatten_conversion():
     n = next(n for n in core.neurons if n.neuron_type == "unflatten")
     assert n.params["dim"] == 1
     assert tuple(n.params["unflattened_size"]) == (2, 2)
+
+
+def test_embedding_conversion():
+    model = EmbeddingModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "embedding" for n in core.neurons)
 
 
 def test_maxpool2d_conversion():

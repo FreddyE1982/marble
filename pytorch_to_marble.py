@@ -203,6 +203,30 @@ def _add_adaptive_pool2d_layer(
     return [nid]
 
 
+def _add_embedding_layer(
+    core: Core, input_ids: List[int], layer: torch.nn.Embedding
+) -> List[int]:
+    """Add an ``Embedding`` layer using one index input."""
+    if len(input_ids) != 1:
+        raise UnsupportedLayerError(
+            f"{layer.__class__.__name__} is not supported for conversion"
+        )
+    inp = input_ids[0]
+    out_ids: List[int] = []
+    weight = layer.weight.detach().cpu().numpy()
+    for j in range(layer.embedding_dim):
+        nid = len(core.neurons)
+        neuron = Neuron(nid, value=0.0, tier="vram", neuron_type="embedding")
+        neuron.params["weights"] = weight[:, j].tolist()
+        neuron.params["num_embeddings"] = layer.num_embeddings
+        core.neurons.append(neuron)
+        syn = Synapse(inp, nid, weight=1.0)
+        core.neurons[inp].synapses.append(syn)
+        core.synapses.append(syn)
+        out_ids.append(nid)
+    return out_ids
+
+
 @register_converter(torch.nn.Linear)
 def _convert_linear(
     layer: torch.nn.Linear, core: Core, inputs: List[int], *args, **kwargs
@@ -362,6 +386,13 @@ def _convert_unflatten(
         n.params["dim"] = int(layer.dim)
         n.params["unflattened_size"] = tuple(layer.unflattened_size)
     return inputs
+
+
+@register_converter(torch.nn.Embedding)
+def _convert_embedding(
+    layer: torch.nn.Embedding, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    return _add_embedding_layer(core, inputs, layer)
 
 
 @register_function_converter(torch.reshape)
