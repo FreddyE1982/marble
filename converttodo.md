@@ -17,7 +17,7 @@
 
 ### 0. Core conversion engine
 - [ ] Ensure `convert_model` handles functional operations from `torch.nn.functional`
-- [ ] Graceful fallback when `torch.fx` tracing fails
+- [x] Graceful fallback when `torch.fx` tracing fails
 - [ ] Provide clear error when layer type is not registered
 
 ### Functional layer converters
@@ -93,3 +93,8 @@
 ### 10. Error handling and logging
 - [x] Unsupported layers raise `"[layer type name] is not supported for conversion"`
 - [ ] Logging statements for each conversion step
+
+### 11. Dynamic graph support
+- [ ] Map PyTorch control flow to MARBLE dynamic topology
+- [ ] Handle evolving neuron and synapse creation during inference
+- [ ] Unit tests covering dynamic model conversion paths
