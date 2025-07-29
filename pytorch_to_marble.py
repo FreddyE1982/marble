@@ -1,5 +1,5 @@
 import argparse
-from typing import Callable, Dict, List, Type, Any
+from typing import Any, Callable, Dict, List, Type
 
 import torch
 import torch.nn.functional as F
@@ -12,6 +12,10 @@ from marble_utils import core_to_json
 
 class UnsupportedLayerError(Exception):
     """Raised when a layer type is not supported for conversion."""
+
+
+class TracingFailedError(Exception):
+    """Raised when ``torch.fx`` fails to trace a model."""
 
 
 LayerConverter = Callable[[Any, Core, List[int]], List[int]]
@@ -34,7 +38,9 @@ def register_converter(
     return decorator
 
 
-def register_function_converter(func: Callable) -> Callable[[LayerConverter], LayerConverter]:
+def register_function_converter(
+    func: Callable,
+) -> Callable[[LayerConverter], LayerConverter]:
     """Decorator to register a converter for a functional op."""
 
     def decorator(conv: LayerConverter) -> LayerConverter:
@@ -84,7 +90,9 @@ def _add_conv2d_layer(
     core: Core, input_ids: List[int], layer: torch.nn.Conv2d
 ) -> List[int]:
     if layer.in_channels != 1 or len(input_ids) != 1 or layer.groups != 1:
-        raise UnsupportedLayerError("Conv2d with in_channels!=1 is not supported for conversion")
+        raise UnsupportedLayerError(
+            "Conv2d with in_channels!=1 is not supported for conversion"
+        )
     out_ids = []
     weight = layer.weight.detach().cpu().numpy()
     stride = layer.stride[0] if isinstance(layer.stride, tuple) else layer.stride
@@ -129,7 +137,9 @@ def _convert_relu(layer: torch.nn.ReLU, core: Core, inputs: List[int]) -> List[i
 
 
 @register_converter(torch.nn.Sigmoid)
-def _convert_sigmoid(layer: torch.nn.Sigmoid, core: Core, inputs: List[int]) -> List[int]:
+def _convert_sigmoid(
+    layer: torch.nn.Sigmoid, core: Core, inputs: List[int]
+) -> List[int]:
     for nid in inputs:
         core.neurons[nid].neuron_type = "sigmoid"
     return inputs
@@ -170,7 +180,9 @@ def _convert_f_tanh(func: Callable, core: Core, inputs: List[int]) -> List[int]:
 
 
 @register_converter(torch.nn.Dropout)
-def _convert_dropout(layer: torch.nn.Dropout, core: Core, inputs: List[int]) -> List[int]:
+def _convert_dropout(
+    layer: torch.nn.Dropout, core: Core, inputs: List[int]
+) -> List[int]:
     for nid in inputs:
         n = core.neurons[nid]
         n.neuron_type = "dropout"
@@ -190,14 +202,18 @@ def _convert_batchnorm(layer: _BatchNorm, core: Core, inputs: List[int]) -> List
 
 
 @register_converter(torch.nn.Flatten)
-def _convert_flatten(layer: torch.nn.Flatten, core: Core, inputs: List[int]) -> List[int]:
+def _convert_flatten(
+    layer: torch.nn.Flatten, core: Core, inputs: List[int]
+) -> List[int]:
     for nid in inputs:
         core.neurons[nid].neuron_type = "flatten"
     return inputs
 
 
 @register_converter(torch.nn.Unflatten)
-def _convert_unflatten(layer: torch.nn.Unflatten, core: Core, inputs: List[int]) -> List[int]:
+def _convert_unflatten(
+    layer: torch.nn.Unflatten, core: Core, inputs: List[int]
+) -> List[int]:
     for nid in inputs:
         n = core.neurons[nid]
         n.neuron_type = "unflatten"
@@ -254,7 +270,10 @@ def convert_model(
             "ram_limit_mb": 0.1,
             "disk_limit_mb": 0.1,
         }
-    traced = symbolic_trace(model)
+    try:
+        traced = symbolic_trace(model)
+    except Exception as exc:
+        raise TracingFailedError(f"FX tracing failed: {exc}") from exc
     core = Core(core_params, formula="0", formula_num_neurons=0)
     node_outputs: Dict[str, List[int]] = {}
     for node in traced.graph.nodes:

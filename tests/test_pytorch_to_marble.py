@@ -3,11 +3,11 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-import torch
 import pytest
+import torch
 
-from pytorch_to_marble import convert_model, UnsupportedLayerError
 from marble_core import Core
+from pytorch_to_marble import TracingFailedError, UnsupportedLayerError, convert_model
 from tests.test_core_functions import minimal_params
 
 
@@ -251,4 +251,15 @@ def test_functional_tanh_conversion():
     assert any(n.neuron_type == "tanh" for n in core.neurons)
 
 
+class FailingModel(torch.nn.Module):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if x.sum() > 0:
+            return x * 2
+        return x - 1
 
+
+def test_tracing_failed_error():
+    model = FailingModel()
+    params = minimal_params()
+    with pytest.raises(TracingFailedError):
+        convert_model(model, core_params=params)
