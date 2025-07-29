@@ -39,6 +39,10 @@
   - [ ] MaxPool2d and AvgPool2d
   - [ ] GlobalAvgPool2d and adaptive pooling
 - [ ] Sequential and ModuleList containers
+- [ ] Embedding layers
+- [ ] Recurrent layers (RNN, LSTM, GRU)
+- [ ] Normalization layers (LayerNorm, GroupNorm)
+- [ ] Transformer blocks
 
 ### 2. High-level graph construction API
 - [ ] Helper to add neuron groups with activations
@@ -80,3 +84,12 @@
 - [ ] Programmatic `convert_model` function usable in other scripts
 - [ ] Example usage documented in README
 - [ ] Load checkpoints saved with `torch.save` automatically
+
+### 9. Graph visualization and inspection
+- [ ] Visualize generated MARBLE graph structure
+- [ ] Display neuron and synapse counts per layer
+- [ ] Interactive tool to inspect neuron parameters
+
+### 10. Error handling and logging
+- [x] Unsupported layers raise `"[layer type name] is not supported for conversion"`
+- [ ] Logging statements for each conversion step
