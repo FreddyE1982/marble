@@ -35,6 +35,72 @@ class ConvModel(torch.nn.Module):
         return self.conv(x)
 
 
+class BNModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.seq = torch.nn.Sequential(
+            torch.nn.Linear(3, 3),
+            torch.nn.BatchNorm1d(3, momentum=0.2),
+        )
+        self.input_size = 3
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.seq(x)
+
+
+class DropoutModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.seq = torch.nn.Sequential(
+            torch.nn.Linear(2, 2),
+            torch.nn.Dropout(p=0.6),
+        )
+        self.input_size = 2
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.seq(x)
+
+
+class ActivationModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+        self.seq = torch.nn.Sequential(
+            torch.nn.Linear(2, 2),
+            torch.nn.Sigmoid(),
+        )
+        self.input_size = 2
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.seq(x)
+
+
+class TanhModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.seq = torch.nn.Sequential(
+            torch.nn.Linear(2, 2),
+            torch.nn.Tanh(),
+        )
+        self.input_size = 2
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.seq(x)
+
+
+class FlattenModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.seq = torch.nn.Sequential(
+            torch.nn.Conv2d(1, 1, kernel_size=2),
+            torch.nn.Flatten(),
+        )
+        self.input_size = (1, 3, 3)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.seq(x)
+
+
 def test_basic_conversion():
     model = SimpleModel()
     params = minimal_params()
@@ -62,4 +128,43 @@ def test_conv2d_conversion():
     params = minimal_params()
     core = convert_model(model, core_params=params)
     assert any(n.neuron_type == "conv2d" for n in core.neurons)
+
+
+def test_batchnorm_conversion():
+    model = BNModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "batchnorm" for n in core.neurons)
+    bn_neuron = next(n for n in core.neurons if n.neuron_type == "batchnorm")
+    assert bn_neuron.params["momentum"] == 0.2
+
+
+def test_dropout_conversion():
+    model = DropoutModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "dropout" for n in core.neurons)
+    d_neuron = next(n for n in core.neurons if n.neuron_type == "dropout")
+    assert d_neuron.params["p"] == 0.6
+
+
+def test_activation_conversion():
+    model = ActivationModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "sigmoid" for n in core.neurons)
+
+
+def test_tanh_conversion():
+    model = TanhModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "tanh" for n in core.neurons)
+
+
+def test_flatten_conversion():
+    model = FlattenModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "flatten" for n in core.neurons)
 

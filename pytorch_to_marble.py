@@ -3,6 +3,7 @@ from typing import Callable, Dict, List, Type
 
 import torch
 from torch.fx import symbolic_trace
+from torch.nn.modules.batchnorm import _BatchNorm
 
 from marble_core import Core, Neuron, Synapse
 from marble_utils import core_to_json
@@ -101,6 +102,54 @@ def _convert_conv2d(layer: torch.nn.Conv2d, core: Core, inputs: List[int]) -> Li
 def _convert_relu(layer: torch.nn.ReLU, core: Core, inputs: List[int]) -> List[int]:
     for nid in inputs:
         core.neurons[nid].params["activation"] = "relu"
+    return inputs
+
+
+@register_converter(torch.nn.Sigmoid)
+def _convert_sigmoid(layer: torch.nn.Sigmoid, core: Core, inputs: List[int]) -> List[int]:
+    for nid in inputs:
+        core.neurons[nid].neuron_type = "sigmoid"
+    return inputs
+
+
+@register_converter(torch.nn.Tanh)
+def _convert_tanh(layer: torch.nn.Tanh, core: Core, inputs: List[int]) -> List[int]:
+    for nid in inputs:
+        core.neurons[nid].neuron_type = "tanh"
+    return inputs
+
+
+@register_converter(torch.nn.GELU)
+def _convert_gelu(layer: torch.nn.GELU, core: Core, inputs: List[int]) -> List[int]:
+    for nid in inputs:
+        core.neurons[nid].neuron_type = "gelu"
+    return inputs
+
+
+@register_converter(torch.nn.Dropout)
+def _convert_dropout(layer: torch.nn.Dropout, core: Core, inputs: List[int]) -> List[int]:
+    for nid in inputs:
+        n = core.neurons[nid]
+        n.neuron_type = "dropout"
+        n.params["p"] = float(layer.p)
+    return inputs
+
+
+@register_converter(torch.nn.BatchNorm1d)
+@register_converter(torch.nn.BatchNorm2d)
+def _convert_batchnorm(layer: _BatchNorm, core: Core, inputs: List[int]) -> List[int]:
+    for nid in inputs:
+        n = core.neurons[nid]
+        n.neuron_type = "batchnorm"
+        n.params["momentum"] = float(layer.momentum or 0.1)
+        n.params["eps"] = float(layer.eps)
+    return inputs
+
+
+@register_converter(torch.nn.Flatten)
+def _convert_flatten(layer: torch.nn.Flatten, core: Core, inputs: List[int]) -> List[int]:
+    for nid in inputs:
+        core.neurons[nid].neuron_type = "flatten"
     return inputs
 
 
