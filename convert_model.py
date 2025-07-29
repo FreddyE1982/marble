@@ -14,7 +14,6 @@ def main() -> None:
     parser.add_argument("--pytorch", required=True, help="Path to PyTorch model")
     parser.add_argument(
         "--output",
-        required=True,
         help="Output path (.json or .marble)",
     )
     parser.add_argument(
@@ -22,9 +21,35 @@ def main() -> None:
         action="store_true",
         help="Run conversion without saving JSON",
     )
+    parser.add_argument(
+        "--summary",
+        action="store_true",
+        help="Print dry-run summary and exit",
+    )
+    parser.add_argument(
+        "--summary-output",
+        help="Path to save dry-run summary JSON",
+    )
     args = parser.parse_args()
 
+    if not args.output and not (
+        args.dry_run or args.summary or args.summary_output
+    ):
+        parser.error("--output is required unless running in dry-run or summary mode")
+
     model = torch.load(args.pytorch, map_location="cpu", weights_only=False)
+
+    if args.summary or args.summary_output:
+        core, summary = convert_model(
+            model, dry_run=True, return_summary=True
+        )
+        if args.summary_output:
+            import json
+
+            with open(args.summary_output, "w", encoding="utf-8") as f:
+                json.dump(summary, f, indent=2)
+        return
+
     core = convert_model(model, dry_run=args.dry_run)
 
     if args.dry_run:
