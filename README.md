@@ -258,6 +258,22 @@ codelets through the workspace. Register your own codelets via
 `attention_codelets.register_codelet` and invoke
 `attention_codelets.run_cycle()` during training.
 
+## PyTorch to MARBLE Conversion
+The project ships with a converter that maps PyTorch models into the MARBLE
+format. Run the CLI to transform a saved ``.pt`` file into JSON:
+
+```bash
+python convert_model.py --pytorch my_model.pt --output marble_model.json
+```
+
+Specify ``--dry-run`` to see the resulting graph statistics without writing a
+file. You can also call ``convert_model`` directly:
+
+```python
+from pytorch_to_marble import convert_model
+marble_brain = convert_model(torch_model)
+```
+
 ## Release Process
 To publish a new release to PyPI:
 1. Update the version number in `pyproject.toml` and `setup.py`.
