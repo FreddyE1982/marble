@@ -599,6 +599,57 @@ def test_embedding_conversion():
     assert emb_neuron.params["embedding_dim"] == 3
 
 
+class RNNModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.rnn = torch.nn.RNN(3, 2, batch_first=True)
+        self.input_size = (1, 1, 3)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.rnn(x)[0]
+
+
+class LSTMModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.rnn = torch.nn.LSTM(3, 2, batch_first=True)
+        self.input_size = (1, 1, 3)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.rnn(x)[0]
+
+
+class GRUModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.rnn = torch.nn.GRU(3, 2, batch_first=True)
+        self.input_size = (1, 1, 3)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.rnn(x)[0]
+
+
+def test_rnn_conversion():
+    model = RNNModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "rnn" for n in core.neurons)
+
+
+def test_lstm_conversion():
+    model = LSTMModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "lstm" for n in core.neurons)
+
+
+def test_gru_conversion():
+    model = GRUModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "gru" for n in core.neurons)
+
+
 def test_embeddingbag_conversion():
     model = EmbeddingBagModel()
     params = minimal_params()

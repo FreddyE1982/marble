@@ -79,6 +79,14 @@ def register_method_converter(name: str) -> Callable[[LayerConverter], LayerConv
     return decorator
 
 
+@register_function_converter(__import__('operator').getitem)
+def _convert_getitem(func: Callable, core: Core, inputs: List[int], idx, *args, **kwargs) -> List[int]:
+    """Support tuple indexing by returning the input unchanged for idx 0."""
+    if isinstance(idx, int) and idx == 0:
+        return inputs
+    raise UnsupportedLayerError("getitem is not supported for conversion")
+
+
 def _add_fully_connected_layer(
     core: Core, input_ids: List[int], layer: torch.nn.Linear
 ) -> List[int]:
@@ -208,6 +216,57 @@ def _add_embedding_layer(
     return [nid]
 
 
+def _add_recurrent_layer(
+    core: Core,
+    input_ids: List[int],
+    layer: torch.nn.modules.rnn.RNNBase,
+    neuron_type: str,
+) -> List[int]:
+    """Add a recurrent layer (RNN/LSTM/GRU)."""
+    if layer.num_layers != 1 or layer.bidirectional or getattr(layer, "proj_size", 0) != 0:
+        raise UnsupportedLayerError(
+            f"{layer.__class__.__name__} is not supported for conversion"
+        )
+
+    out_ids: List[int] = []
+    weight_ih = layer.weight_ih_l0.detach().cpu().numpy()
+    weight_hh = layer.weight_hh_l0.detach().cpu().numpy()
+    bias = None
+    if layer.bias:
+        bias = (
+            layer.bias_ih_l0.detach().cpu().numpy()
+            + layer.bias_hh_l0.detach().cpu().numpy()
+        )
+
+    # create neurons first
+    for j in range(layer.hidden_size):
+        nid = len(core.neurons)
+        neuron = Neuron(nid, value=0.0, tier="vram", neuron_type=neuron_type)
+        neuron.params["weight_ih"] = weight_ih[j]
+        neuron.params["weight_hh"] = weight_hh[j]
+        if bias is not None:
+            neuron.params["bias"] = float(bias[j])
+        if neuron_type == "rnn":
+            neuron.params["nonlinearity"] = layer.nonlinearity
+        neuron.params["input_size"] = int(layer.input_size)
+        neuron.params["hidden_size"] = int(layer.hidden_size)
+        core.neurons.append(neuron)
+        out_ids.append(nid)
+
+    # connect inputs and recurrent connections
+    for j, out_id in enumerate(out_ids):
+        for in_id in input_ids:
+            syn = Synapse(in_id, out_id, weight=1.0)
+            core.neurons[in_id].synapses.append(syn)
+            core.synapses.append(syn)
+        for h_id in out_ids:
+            syn = Synapse(h_id, out_id, weight=1.0)
+            core.neurons[h_id].synapses.append(syn)
+            core.synapses.append(syn)
+
+    return out_ids
+
+
 @register_converter(torch.nn.Linear)
 def _convert_linear(
     layer: torch.nn.Linear, core: Core, inputs: List[int], *args, **kwargs
@@ -335,6 +394,27 @@ def _convert_embeddingbag(
     layer: torch.nn.EmbeddingBag, core: Core, inputs: List[int], *args, **kwargs
 ) -> List[int]:
     return _add_embedding_layer(core, inputs, layer)
+
+
+@register_converter(torch.nn.RNN)
+def _convert_rnn(
+    layer: torch.nn.RNN, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    return _add_recurrent_layer(core, inputs, layer, "rnn")
+
+
+@register_converter(torch.nn.LSTM)
+def _convert_lstm(
+    layer: torch.nn.LSTM, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    return _add_recurrent_layer(core, inputs, layer, "lstm")
+
+
+@register_converter(torch.nn.GRU)
+def _convert_gru(
+    layer: torch.nn.GRU, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    return _add_recurrent_layer(core, inputs, layer, "gru")
 
 
 class GlobalAvgPool2d(torch.nn.AdaptiveAvgPool2d):

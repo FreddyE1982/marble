@@ -57,11 +57,13 @@
   - [x] Unit tests for embeddings
   - [ ] Support ``padding_idx`` and ``max_norm`` options
   - [ ] Test embeddings on GPU and CPU
-- [ ] Recurrent layers (RNN, LSTM, GRU)
-  - [ ] Converter for ``RNN``
-  - [ ] Converter for ``LSTM``
-  - [ ] Converter for ``GRU``
-  - [ ] Unit tests with tiny sequences
+- [x] Recurrent layers (RNN, LSTM, GRU)
+  - [x] Converter for ``RNN``
+  - [x] Converter for ``LSTM``
+  - [x] Converter for ``GRU``
+  - [x] Unit tests with tiny sequences
+  - [ ] Bidirectional and multi-layer support
+  - [ ] Persistent hidden state mapping
 - [x] Normalization layers (LayerNorm, GroupNorm)
   - [x] ``LayerNorm`` converter
   - [x] ``GroupNorm`` converter
