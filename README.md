@@ -266,10 +266,11 @@ Supported layers currently include ``Linear``, ``Conv2d`` (multi-channel),
 ``BatchNorm1d``, ``BatchNorm2d``, ``LayerNorm``, ``GroupNorm``, ``Dropout``,
 ``Flatten``, ``MaxPool2d``, ``AvgPool2d``, ``GlobalAvgPool2d`` and the adaptive
 pooling variants ``AdaptiveAvgPool2d`` and ``AdaptiveMaxPool2d`` as well as the
-element-wise activations ``ReLU``, ``Sigmoid``, ``Tanh`` and ``GELU``. Functional reshaping
-operations via ``view`` or ``torch.reshape`` are also recognized. In addition,
-``Sequential`` containers and ``ModuleList`` objects are expanded recursively
-during conversion.
+element-wise activations ``ReLU``, ``Sigmoid``, ``Tanh`` and ``GELU``. ``Embedding`` and
+``EmbeddingBag`` layers are supported, together with recurrent modules ``RNN``, ``LSTM`` and
+``GRU``. Functional reshaping operations via ``view`` or ``torch.reshape`` are also
+recognized. In addition, ``Sequential`` containers and ``ModuleList`` objects are expanded
+recursively during conversion.
 
 ```bash
 python convert_model.py --pytorch my_model.pt --output marble_model.json
