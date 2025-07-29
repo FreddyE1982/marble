@@ -264,7 +264,8 @@ format. Run the CLI to transform a saved ``.pt`` file into JSON:
 
 Supported layers currently include ``Linear``, ``Conv2d`` (single-channel),
 ``BatchNorm1d``, ``BatchNorm2d``, ``Dropout``, ``Flatten`` and the element-wise
-activations ``ReLU``, ``Sigmoid``, ``Tanh`` and ``GELU``.
+activations ``ReLU``, ``Sigmoid``, ``Tanh`` and ``GELU``. Functional reshaping
+operations via ``view`` or ``torch.reshape`` are also recognized.
 
 ```bash
 python convert_model.py --pytorch my_model.pt --output marble_model.json
