@@ -14,23 +14,26 @@
 - [x] Document CLI usage in README.
 
 ## Upcoming Features
-- [ ] Expand registry with more PyTorch layers
+- **Auto-inference mode for dry runs**
+  - [ ] Print neuron and synapse statistics
+  - [ ] Visualize MARBLE graph structure
+- **Expand registry with more PyTorch layers**
   - [ ] BatchNorm and Dropout
   - [ ] Flatten and Reshape operations
   - [ ] Additional activations (Sigmoid, Tanh, GELU)
   - [ ] Multi-channel Conv2d
   - [ ] MaxPool2d and AvgPool2d
-- [ ] Create high-level graph construction API
+- **Create high-level graph construction API**
   - [ ] Helper to add neuron groups with activations
   - [ ] Helper to add synapses with weights and bias
   - [ ] Parameterized wrappers for linear and convolutional layers
-- [ ] Support custom layer converters via decorator registration
+- **Support custom layer converters via decorator registration**
   - [ ] Example converter for a user-defined PyTorch layer
   - [ ] Unit tests for custom converter workflow
   - [ ] Conversion of Sequential and ModuleList containers
-- [ ] Enhance `dry_run` mode to output summary statistics
+- **Enhance `dry_run` mode to output summary statistics**
   - [ ] Number of neurons and synapses created
   - [ ] Per-layer mapping information
-- [ ] Validate converted models by comparing PyTorch and MARBLE outputs
+- **Validate converted models by comparing PyTorch and MARBLE outputs**
   - [ ] Unit tests for small networks
   - [ ] Integration test for custom model

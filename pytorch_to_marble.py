@@ -60,7 +60,9 @@ def _add_conv2d_layer(
     core: Core, input_ids: List[int], layer: torch.nn.Conv2d
 ) -> List[int]:
     if layer.in_channels != 1 or len(input_ids) != 1 or layer.groups != 1:
-        raise UnsupportedLayerError("Conv2d with in_channels!=1 is not supported for conversion")
+        raise UnsupportedLayerError(
+            f"{layer.__class__.__name__} with in_channels!=1 is not supported for conversion"
+        )
     out_ids = []
     weight = layer.weight.detach().cpu().numpy()
     stride = layer.stride[0] if isinstance(layer.stride, tuple) else layer.stride

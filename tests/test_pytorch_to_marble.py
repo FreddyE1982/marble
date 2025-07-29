@@ -3,11 +3,11 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-import torch
 import pytest
+import torch
 
-from pytorch_to_marble import convert_model, UnsupportedLayerError
 from marble_core import Core
+from pytorch_to_marble import UnsupportedLayerError, convert_model
 from tests.test_core_functions import minimal_params
 
 
@@ -50,15 +50,11 @@ def test_basic_conversion():
 
 
 def test_unsupported_layer():
-    class Unsupported(torch.nn.Module):
-        def forward(self, x):
-            return torch.sigmoid(x)
-
-    model = torch.nn.Sequential(Unsupported())
+    model = torch.nn.Sequential(torch.nn.Sigmoid())
     params = minimal_params()
     with pytest.raises(UnsupportedLayerError) as exc:
         convert_model(model, core_params=params)
-    assert "not supported" in str(exc.value)
+    assert "Sigmoid is not supported for conversion" in str(exc.value)
 
 
 def test_conv2d_conversion():
@@ -66,4 +62,3 @@ def test_conv2d_conversion():
     params = minimal_params()
     core = convert_model(model, core_params=params)
     assert any(n.neuron_type == "conv2d" for n in core.neurons)
-
