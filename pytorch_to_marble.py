@@ -1,7 +1,8 @@
 import argparse
-from typing import Callable, Dict, List, Type
+from typing import Callable, Dict, List, Type, Any
 
 import torch
+import torch.nn.functional as F
 from torch.fx import symbolic_trace
 from torch.nn.modules.batchnorm import _BatchNorm
 
@@ -13,10 +14,12 @@ class UnsupportedLayerError(Exception):
     """Raised when a layer type is not supported for conversion."""
 
 
-LayerConverter = Callable[[torch.nn.Module, Core, List[int]], List[int]]
+LayerConverter = Callable[[Any, Core, List[int]], List[int]]
 
 
 LAYER_CONVERTERS: Dict[Type[torch.nn.Module], LayerConverter] = {}
+FUNCTION_CONVERTERS: Dict[Callable, LayerConverter] = {}
+METHOD_CONVERTERS: Dict[str, LayerConverter] = {}
 
 
 def register_converter(
@@ -27,6 +30,26 @@ def register_converter(
     def decorator(func: LayerConverter) -> LayerConverter:
         LAYER_CONVERTERS[layer_type] = func
         return func
+
+    return decorator
+
+
+def register_function_converter(func: Callable) -> Callable[[LayerConverter], LayerConverter]:
+    """Decorator to register a converter for a functional op."""
+
+    def decorator(conv: LayerConverter) -> LayerConverter:
+        FUNCTION_CONVERTERS[func] = conv
+        return conv
+
+    return decorator
+
+
+def register_method_converter(name: str) -> Callable[[LayerConverter], LayerConverter]:
+    """Decorator to register a converter for Tensor methods."""
+
+    def decorator(conv: LayerConverter) -> LayerConverter:
+        METHOD_CONVERTERS[name] = conv
+        return conv
 
     return decorator
 
@@ -126,6 +149,26 @@ def _convert_gelu(layer: torch.nn.GELU, core: Core, inputs: List[int]) -> List[i
     return inputs
 
 
+@register_function_converter(F.relu)
+@register_method_converter("relu")
+def _convert_f_relu(func: Callable, core: Core, inputs: List[int]) -> List[int]:
+    return _convert_relu(torch.nn.ReLU(), core, inputs)
+
+
+@register_function_converter(F.sigmoid)
+@register_function_converter(torch.sigmoid)
+@register_method_converter("sigmoid")
+def _convert_f_sigmoid(func: Callable, core: Core, inputs: List[int]) -> List[int]:
+    return _convert_sigmoid(torch.nn.Sigmoid(), core, inputs)
+
+
+@register_function_converter(F.tanh)
+@register_function_converter(torch.tanh)
+@register_method_converter("tanh")
+def _convert_f_tanh(func: Callable, core: Core, inputs: List[int]) -> List[int]:
+    return _convert_tanh(torch.nn.Tanh(), core, inputs)
+
+
 @register_converter(torch.nn.Dropout)
 def _convert_dropout(layer: torch.nn.Dropout, core: Core, inputs: List[int]) -> List[int]:
     for nid in inputs:
@@ -170,6 +213,18 @@ def _get_converter(layer: torch.nn.Module) -> LayerConverter:
     raise UnsupportedLayerError(
         f"{layer.__class__.__name__} is not supported for conversion"
     )
+
+
+def _get_function_converter(func: Callable) -> LayerConverter:
+    if func in FUNCTION_CONVERTERS:
+        return FUNCTION_CONVERTERS[func]
+    raise UnsupportedLayerError(f"{func.__name__} is not supported for conversion")
+
+
+def _get_method_converter(name: str) -> LayerConverter:
+    if name in METHOD_CONVERTERS:
+        return METHOD_CONVERTERS[name]
+    raise UnsupportedLayerError(f"{name} is not supported for conversion")
 
 
 def _print_dry_run_summary(core: Core, node_outputs: Dict[str, List[int]]) -> None:
@@ -225,9 +280,19 @@ def convert_model(
             inp = node_outputs[node.args[0].name]
             out = converter(layer, core, inp)
             node_outputs[node.name] = out
+        elif node.op == "call_function":
+            converter = _get_function_converter(node.target)
+            inp = node_outputs[node.args[0].name]
+            out = converter(node.target, core, inp)
+            node_outputs[node.name] = out
         elif node.op == "get_attr":
             # Attributes such as parameters are accessed directly by subsequent modules.
             pass
+        elif node.op == "call_method":
+            converter = _get_method_converter(node.target)
+            inp = node_outputs[node.args[0].name]
+            out = converter(node.target, core, inp)
+            node_outputs[node.name] = out
         elif node.op == "output":
             pass
         else:

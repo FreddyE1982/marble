@@ -88,6 +88,36 @@ class TanhModel(torch.nn.Module):
         return self.seq(x)
 
 
+class FuncReluModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.fc = torch.nn.Linear(2, 2)
+        self.input_size = 2
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.nn.functional.relu(self.fc(x))
+
+
+class FuncSigmoidModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.fc = torch.nn.Linear(2, 2)
+        self.input_size = 2
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.nn.functional.sigmoid(self.fc(x))
+
+
+class FuncTanhModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.fc = torch.nn.Linear(2, 2)
+        self.input_size = 2
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.nn.functional.tanh(self.fc(x))
+
+
 class FlattenModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -198,6 +228,27 @@ def test_dry_run_summary(capsys):
     out = capsys.readouterr().out
     assert "created" in out
     assert "seq_0" in out
+
+
+def test_functional_relu_conversion():
+    model = FuncReluModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.params.get("activation") == "relu" for n in core.neurons)
+
+
+def test_functional_sigmoid_conversion():
+    model = FuncSigmoidModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "sigmoid" for n in core.neurons)
+
+
+def test_functional_tanh_conversion():
+    model = FuncTanhModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "tanh" for n in core.neurons)
 
 
 
