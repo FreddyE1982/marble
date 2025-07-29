@@ -6,6 +6,12 @@ import torch
 import torch.nn.functional as F
 from torch.fx import GraphModule, Tracer
 from torch.nn.modules.batchnorm import _BatchNorm
+from torch.nn.modules.pooling import (
+    _AdaptiveAvgPoolNd,
+    _AdaptiveMaxPoolNd,
+    _AvgPoolNd,
+    _MaxPoolNd,
+)
 
 from marble_core import Core, Neuron, Synapse
 from marble_utils import core_to_json
@@ -145,7 +151,7 @@ def _add_conv2d_layer(
 def _add_pool2d_layer(
     core: Core,
     input_ids: List[int],
-    layer: torch.nn.modules.pooling._MaxPoolNd | torch.nn.modules.pooling._AvgPoolNd,
+    layer: _MaxPoolNd | _AvgPoolNd,
     pool_type: str,
 ) -> List[int]:
     if len(input_ids) != 1:
@@ -165,6 +171,31 @@ def _add_pool2d_layer(
     neuron.params["kernel_size"] = ks
     neuron.params["stride"] = stride
     neuron.params["padding"] = padding
+    core.neurons.append(neuron)
+    syn = Synapse(inp, nid, weight=1.0)
+    core.neurons[inp].synapses.append(syn)
+    core.synapses.append(syn)
+    return [nid]
+
+
+def _add_adaptive_pool2d_layer(
+    core: Core,
+    input_ids: List[int],
+    layer: _AdaptiveAvgPoolNd | _AdaptiveMaxPoolNd,
+    pool_type: str,
+) -> List[int]:
+    if len(input_ids) != 1:
+        raise UnsupportedLayerError(
+            f"{layer.__class__.__name__} is not supported for conversion"
+        )
+    inp = input_ids[0]
+    nid = len(core.neurons)
+    neuron = Neuron(nid, value=0.0, tier="vram", neuron_type=pool_type)
+    neuron.params["output_size"] = (
+        tuple(layer.output_size)
+        if isinstance(layer.output_size, (list, tuple))
+        else (layer.output_size,)
+    )
     core.neurons.append(neuron)
     syn = Synapse(inp, nid, weight=1.0)
     core.neurons[inp].synapses.append(syn)
@@ -271,6 +302,32 @@ def _convert_avgpool2d(
     layer: torch.nn.AvgPool2d, core: Core, inputs: List[int], *args, **kwargs
 ) -> List[int]:
     return _add_pool2d_layer(core, inputs, layer, "avgpool2d")
+
+
+@register_converter(torch.nn.AdaptiveAvgPool2d)
+def _convert_adaptiveavgpool2d(
+    layer: torch.nn.AdaptiveAvgPool2d, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    return _add_adaptive_pool2d_layer(core, inputs, layer, "avgpool2d")
+
+
+@register_converter(torch.nn.AdaptiveMaxPool2d)
+def _convert_adaptivemaxpool2d(
+    layer: torch.nn.AdaptiveMaxPool2d, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    return _add_adaptive_pool2d_layer(core, inputs, layer, "maxpool2d")
+
+
+class GlobalAvgPool2d(torch.nn.AdaptiveAvgPool2d):
+    def __init__(self) -> None:
+        super().__init__((1, 1))
+
+
+@register_converter(GlobalAvgPool2d)
+def _convert_globalavgpool2d(
+    layer: GlobalAvgPool2d, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    return _add_adaptive_pool2d_layer(core, inputs, layer, "avgpool2d")
 
 
 @register_converter(torch.nn.BatchNorm1d)
