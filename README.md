@@ -262,7 +262,7 @@ codelets through the workspace. Register your own codelets via
 The project ships with a converter that maps PyTorch models into the MARBLE
 format. Run the CLI to transform a saved ``.pt`` file into JSON:
 
-Supported layers currently include ``Linear``, ``Conv2d`` (single-channel),
+Supported layers currently include ``Linear``, ``Conv2d`` (multi-channel),
 ``BatchNorm1d``, ``BatchNorm2d``, ``Dropout``, ``Flatten``, ``MaxPool2d`` and
 ``AvgPool2d`` as well as the element-wise activations ``ReLU``, ``Sigmoid``,
 ``Tanh`` and ``GELU``. Functional reshaping

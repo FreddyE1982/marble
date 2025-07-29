@@ -101,25 +101,34 @@ def _add_fully_connected_layer(
 def _add_conv2d_layer(
     core: Core, input_ids: List[int], layer: torch.nn.Conv2d
 ) -> List[int]:
-    if layer.in_channels != 1 or len(input_ids) != 1 or layer.groups != 1:
+    """Add a Conv2d layer supporting multiple channels."""
+    if layer.groups != 1:
         raise UnsupportedLayerError(
             f"{layer.__class__.__name__} is not supported for conversion"
         )
-    out_ids = []
+    if len(input_ids) != layer.in_channels:
+        raise UnsupportedLayerError(
+            f"{layer.__class__.__name__} is not supported for conversion"
+        )
+
+    out_ids: List[int] = []
     weight = layer.weight.detach().cpu().numpy()
     stride = layer.stride[0] if isinstance(layer.stride, tuple) else layer.stride
     padding = layer.padding[0] if isinstance(layer.padding, tuple) else layer.padding
-    inp = input_ids[0]
+
     for j in range(layer.out_channels):
         nid = len(core.neurons)
         neuron = Neuron(nid, value=0.0, tier="vram", neuron_type="conv2d")
-        neuron.params["kernel"] = weight[j, 0]
+        neuron.params["kernel"] = weight[j]
         neuron.params["stride"] = stride
         neuron.params["padding"] = padding
         core.neurons.append(neuron)
-        syn = Synapse(inp, nid, weight=1.0)
-        core.neurons[inp].synapses.append(syn)
-        core.synapses.append(syn)
+
+        for in_id in input_ids:
+            syn = Synapse(in_id, nid, weight=1.0)
+            core.neurons[in_id].synapses.append(syn)
+            core.synapses.append(syn)
+
         if layer.bias is not None:
             bias_id = len(core.neurons)
             core.neurons.append(Neuron(bias_id, value=1.0, tier="vram"))
@@ -127,7 +136,9 @@ def _add_conv2d_layer(
             bsyn = Synapse(bias_id, nid, weight=b)
             core.neurons[bias_id].synapses.append(bsyn)
             core.synapses.append(bsyn)
+
         out_ids.append(nid)
+
     return out_ids
 
 

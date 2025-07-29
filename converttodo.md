@@ -32,20 +32,25 @@
 
 ### 1. Expand registry with more PyTorch layers
 - [x] BatchNorm and Dropout
-- [ ] Flatten and Reshape operations
+- [x] Flatten and Reshape operations
   - [x] Flatten
   - [x] Reshape (Unflatten)
   - [x] View/reshape functional
 - [x] Additional activations (Sigmoid, Tanh, GELU)
-- [ ] Multi-channel Conv2d
-  - [ ] Support arbitrary input/output channels
-  - [ ] Unit test multi-channel conversion
+- [x] Multi-channel Conv2d
+  - [x] Support arbitrary input/output channels
+  - [x] Unit test multi-channel conversion
   - [x] Error message for unsupported configuration
 - [ ] Pooling layers
   - [x] MaxPool2d and AvgPool2d
-  - [ ] GlobalAvgPool2d and adaptive pooling
+  - [ ] GlobalAvgPool2d converter
+  - [ ] Adaptive pooling layers
+  - [ ] Unit tests for global/adaptive pooling
   - [x] Update docs for pooling support
 - [ ] Sequential and ModuleList containers
+  - [ ] Handle torch.nn.Sequential recursion
+  - [ ] Support ModuleList iteration
+  - [ ] Unit tests for container handling
 - [ ] Embedding layers
 - [ ] Recurrent layers (RNN, LSTM, GRU)
 - [ ] Normalization layers (LayerNorm, GroupNorm)
