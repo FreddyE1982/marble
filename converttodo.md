@@ -73,15 +73,15 @@
   - [ ] Integration tests on a small transformer
 
 ### 2. High-level graph construction API
-- [ ] Helper to add neuron groups with activations
-- [ ] Helper to add synapses with weights and bias
+- [x] Helper to add neuron groups with activations
+- [x] Helper to add synapses with weights and bias
 - [ ] Parameterized wrappers for linear and convolutional layers
 - [ ] Documentation for graph builder utilities
 - [ ] Examples demonstrating dynamic message passing setup
 
 ### 3. Weight and activation handling
-- [ ] Extract weights and biases from PyTorch layers
-- [ ] Store activation type in neuron metadata
+- [x] Extract weights and biases from PyTorch layers
+- [x] Store activation type in neuron metadata
 - [ ] Support GPU and CPU weight formats
 - [ ] Verify bias neurons are created correctly
 
@@ -138,8 +138,8 @@
   - [ ] Enumerate all built-in nn layers and map to converters
   - [ ] Provide template for unsupported layers to raise errors
 - [ ] Graph construction utilities bridging to dynamic message passing
-  - [ ] Helper to spawn neurons for input/output dimensions
-  - [ ] Helper to connect neurons with weighted synapses
+  - [x] Helper to spawn neurons for input/output dimensions
+  - [x] Helper to connect neurons with weighted synapses
   - [ ] Activation flag storage for message passing
 - [ ] torch.fx integration for arbitrary models
   - [ ] Trace custom layers and call registered converters
