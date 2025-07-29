@@ -22,3 +22,8 @@ adding new entries using ``register_converter``.
 Pooling layers like ``MaxPool2d`` and ``AvgPool2d`` are handled by dedicated
 converters that create neurons with ``neuron_type`` set to ``"maxpool2d"`` or
 ``"avgpool2d"`` and store kernel parameters in ``neuron.params``.
+
+Normalization layers ``LayerNorm`` and ``GroupNorm`` mark their input neurons
+with ``neuron_type`` set to ``"layernorm"`` or ``"groupnorm"`` respectively.
+Important parameters such as ``normalized_shape`` or ``num_groups`` as well as
+``eps`` are stored in ``neuron.params`` for use during message passing.

@@ -378,6 +378,37 @@ def _convert_batchnorm(
     return inputs
 
 
+@register_converter(torch.nn.LayerNorm)
+def _convert_layernorm(
+    layer: torch.nn.LayerNorm, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    """Convert a ``LayerNorm`` layer."""
+    normalized_shape = (
+        tuple(layer.normalized_shape)
+        if isinstance(layer.normalized_shape, (list, tuple))
+        else (int(layer.normalized_shape),)
+    )
+    for nid in inputs:
+        n = core.neurons[nid]
+        n.neuron_type = "layernorm"
+        n.params["normalized_shape"] = normalized_shape
+        n.params["eps"] = float(layer.eps)
+    return inputs
+
+
+@register_converter(torch.nn.GroupNorm)
+def _convert_groupnorm(
+    layer: torch.nn.GroupNorm, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    """Convert a ``GroupNorm`` layer."""
+    for nid in inputs:
+        n = core.neurons[nid]
+        n.neuron_type = "groupnorm"
+        n.params["num_groups"] = int(layer.num_groups)
+        n.params["eps"] = float(layer.eps)
+    return inputs
+
+
 @register_converter(torch.nn.Flatten)
 def _convert_flatten(
     layer: torch.nn.Flatten, core: Core, inputs: List[int], *args, **kwargs

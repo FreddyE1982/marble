@@ -58,6 +58,32 @@ class BNModel(torch.nn.Module):
         return self.seq(x)
 
 
+class LayerNormModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.seq = torch.nn.Sequential(
+            torch.nn.Linear(4, 4),
+            torch.nn.LayerNorm(4, eps=1e-3),
+        )
+        self.input_size = 4
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.seq(x)
+
+
+class GroupNormModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.seq = torch.nn.Sequential(
+            torch.nn.Conv2d(4, 4, kernel_size=1),
+            torch.nn.GroupNorm(2, 4, eps=1e-3),
+        )
+        self.input_size = (4, 1, 1)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.seq(x)
+
+
 class DropoutModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -280,6 +306,26 @@ def test_batchnorm_conversion():
     assert any(n.neuron_type == "batchnorm" for n in core.neurons)
     bn_neuron = next(n for n in core.neurons if n.neuron_type == "batchnorm")
     assert bn_neuron.params["momentum"] == 0.2
+
+
+def test_layernorm_conversion():
+    model = LayerNormModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "layernorm" for n in core.neurons)
+    ln_neuron = next(n for n in core.neurons if n.neuron_type == "layernorm")
+    assert tuple(ln_neuron.params["normalized_shape"]) == (4,)
+    assert ln_neuron.params["eps"] == 1e-3
+
+
+def test_groupnorm_conversion():
+    model = GroupNormModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "groupnorm" for n in core.neurons)
+    gn_neuron = next(n for n in core.neurons if n.neuron_type == "groupnorm")
+    assert gn_neuron.params["num_groups"] == 2
+    assert gn_neuron.params["eps"] == 1e-3
 
 
 def test_dropout_conversion():
