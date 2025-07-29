@@ -50,15 +50,11 @@ def test_basic_conversion():
 
 
 def test_unsupported_layer():
-    class Unsupported(torch.nn.Module):
-        def forward(self, x):
-            return torch.sigmoid(x)
-
-    model = torch.nn.Sequential(Unsupported())
+    model = torch.nn.Sequential(torch.nn.MaxPool2d(2))
     params = minimal_params()
     with pytest.raises(UnsupportedLayerError) as exc:
         convert_model(model, core_params=params)
-    assert "not supported" in str(exc.value)
+    assert str(exc.value) == "MaxPool2d is not supported for conversion"
 
 
 def test_conv2d_conversion():

@@ -20,6 +20,8 @@
   - [ ] Additional activations (Sigmoid, Tanh, GELU)
   - [ ] Multi-channel Conv2d
   - [ ] MaxPool2d and AvgPool2d
+  - [ ] GlobalAvgPool2d and Adaptive pooling layers
+  - [ ] Sequential and ModuleList containers
 - [ ] Create high-level graph construction API
   - [ ] Helper to add neuron groups with activations
   - [ ] Helper to add synapses with weights and bias
@@ -27,7 +29,6 @@
 - [ ] Support custom layer converters via decorator registration
   - [ ] Example converter for a user-defined PyTorch layer
   - [ ] Unit tests for custom converter workflow
-  - [ ] Conversion of Sequential and ModuleList containers
 - [ ] Enhance `dry_run` mode to output summary statistics
   - [ ] Number of neurons and synapses created
   - [ ] Per-layer mapping information
