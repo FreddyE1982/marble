@@ -14,6 +14,7 @@ from torch.nn.modules.pooling import (
 )
 
 from marble_core import Core, Neuron, Synapse
+from marble_graph_builder import add_fully_connected_layer as gb_add_fc
 from marble_utils import core_to_json
 
 logger = logging.getLogger(__name__)
@@ -81,27 +82,10 @@ def register_method_converter(name: str) -> Callable[[LayerConverter], LayerConv
 def _add_fully_connected_layer(
     core: Core, input_ids: List[int], layer: torch.nn.Linear
 ) -> List[int]:
-    out_ids = []
-    for _ in range(layer.out_features):
-        nid = len(core.neurons)
-        core.neurons.append(Neuron(nid, value=0.0, tier="vram"))
-        out_ids.append(nid)
-    weight = layer.weight.detach().cpu().numpy()
-    for j, out_id in enumerate(out_ids):
-        for i, in_id in enumerate(input_ids):
-            w = float(weight[j, i])
-            syn = Synapse(in_id, out_id, weight=w)
-            core.neurons[in_id].synapses.append(syn)
-            core.synapses.append(syn)
-    if layer.bias is not None:
-        bias_id = len(core.neurons)
-        core.neurons.append(Neuron(bias_id, value=1.0, tier="vram"))
-        bias = layer.bias.detach().cpu().numpy()
-        for j, out_id in enumerate(out_ids):
-            syn = Synapse(bias_id, out_id, weight=float(bias[j]))
-            core.neurons[bias_id].synapses.append(syn)
-            core.synapses.append(syn)
-    return out_ids
+    """Add a fully connected layer using the graph builder utility."""
+    weights = layer.weight.detach().cpu().numpy()
+    bias = layer.bias.detach().cpu().numpy() if layer.bias is not None else None
+    return gb_add_fc(core, input_ids, layer.out_features, weights=weights, bias=bias)
 
 
 def _add_conv2d_layer(
