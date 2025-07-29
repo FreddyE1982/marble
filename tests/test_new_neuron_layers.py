@@ -16,6 +16,7 @@ def test_neuron_types_list_contains_new_types():
     assert "elu" in NEURON_TYPES
     assert "sigmoid" in NEURON_TYPES
     assert "tanh" in NEURON_TYPES
+    assert "gelu" in NEURON_TYPES
     assert "softmax" in NEURON_TYPES
     assert "maxpool1d" in NEURON_TYPES
     assert "avgpool1d" in NEURON_TYPES
@@ -107,6 +108,16 @@ def test_sigmoid_neuron_operation():
 def test_tanh_neuron_operation():
     n = Neuron(0, neuron_type="tanh")
     assert n.process(0.0) == 0.0
+
+
+def test_gelu_neuron_operation():
+    n = Neuron(0, neuron_type="gelu")
+    x = np.array([-1.0, 0.0, 1.0])
+    out = n.process(x)
+    expected = 0.5 * x * (
+        1.0 + np.tanh(np.sqrt(2.0 / np.pi) * (x + 0.044715 * x**3))
+    )
+    assert np.allclose(out, expected)
 
 
 def test_softmax_neuron_operation():

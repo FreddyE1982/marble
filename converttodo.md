@@ -15,9 +15,11 @@
 
 ## Upcoming Features
 - [ ] Expand registry with more PyTorch layers
-  - [ ] BatchNorm and Dropout
+  - [x] BatchNorm and Dropout
   - [ ] Flatten and Reshape operations
-  - [ ] Additional activations (Sigmoid, Tanh, GELU)
+    - [x] Flatten
+    - [ ] Reshape
+  - [x] Additional activations (Sigmoid, Tanh, GELU)
   - [ ] Multi-channel Conv2d
   - [ ] MaxPool2d and AvgPool2d
   - [ ] GlobalAvgPool2d and Adaptive pooling layers

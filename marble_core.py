@@ -362,6 +362,7 @@ NEURON_TYPES = [
     "elu",
     "sigmoid",
     "tanh",
+    "gelu",
     "softmax",
     "maxpool1d",
     "avgpool1d",
@@ -615,7 +616,7 @@ class Neuron:
             self.params = {"alpha": 1.0}
         elif self.neuron_type == "softmax":
             self.params = {"axis": -1}
-        elif self.neuron_type in {"relu", "sigmoid", "tanh", "flatten"}:
+        elif self.neuron_type in {"relu", "sigmoid", "tanh", "gelu", "flatten"}:
             self.params = {}
         elif self.neuron_type in {"maxpool1d", "avgpool1d"}:
             self.params = {"size": 2, "stride": 2}
@@ -926,6 +927,18 @@ class Neuron:
                 return cp.where(value > 0, value, alpha * (cp.exp(value) - 1))
             else:
                 return value if value > 0 else alpha * (math.exp(value) - 1)
+        elif self.neuron_type == "gelu":
+            if torch.is_tensor(value):
+                return torch.nn.functional.gelu(value)
+            elif isinstance(value, cp.ndarray):
+                return 0.5 * value * (
+                    1.0 + cp.tanh(cp.sqrt(2.0 / cp.pi) * (value + 0.044715 * value**3))
+                )
+            else:
+                return 0.5 * value * (
+                    1.0
+                    + math.tanh(math.sqrt(2.0 / math.pi) * (value + 0.044715 * value**3))
+                )
         elif self.neuron_type == "sigmoid":
             if torch.is_tensor(value):
                 return torch.sigmoid(value)
