@@ -20,6 +20,13 @@
 - [ ] Graceful fallback when `torch.fx` tracing fails
 - [ ] Provide clear error when layer type is not registered
 
+### Functional layer converters
+- [ ] Registry for functional operations
+- [ ] Converter for `F.relu`
+- [ ] Converter for `F.sigmoid`
+- [ ] Converter for `F.tanh`
+- [ ] Unit tests covering functional converters
+
 ### 1. Expand registry with more PyTorch layers
 - [x] BatchNorm and Dropout
 - [ ] Flatten and Reshape operations
@@ -67,3 +74,9 @@
 - [ ] Command line interface for one-step conversion
 - [ ] Programmatic API returning a `Core` object
 - [ ] YAML configuration for converter options
+
+### 8. Model loader interface
+- [ ] CLI supports `--pytorch`, `--output` and `--dry-run`
+- [ ] Programmatic `convert_model` function usable in other scripts
+- [ ] Example usage documented in README
+- [ ] Load checkpoints saved with `torch.save` automatically
