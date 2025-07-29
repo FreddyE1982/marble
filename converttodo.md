@@ -15,6 +15,11 @@
 
 ## Upcoming Features
 
+### 0. Core conversion engine
+- [ ] Ensure `convert_model` handles functional operations from `torch.nn.functional`
+- [ ] Graceful fallback when `torch.fx` tracing fails
+- [ ] Provide clear error when layer type is not registered
+
 ### 1. Expand registry with more PyTorch layers
 - [x] BatchNorm and Dropout
 - [ ] Flatten and Reshape operations
@@ -34,23 +39,31 @@
 - [ ] Parameterized wrappers for linear and convolutional layers
 - [ ] Documentation for graph builder utilities
 
-### 3. Custom layer converter support
+### 3. Weight and activation handling
+- [ ] Extract weights and biases from PyTorch layers
+- [ ] Store activation type in neuron metadata
+- [ ] Support GPU and CPU weight formats
+
+### 4. Custom layer converter support
 - [ ] Decorator-based registration for user-defined layers
 - [ ] Example converter for a custom layer
 - [ ] Unit tests validating custom converter workflow
 - [ ] Document registration mechanism in README
 
-### 4. Dry-run improvements
+### 5. Dry-run improvements
 - [x] Number of neurons and synapses created
 - [x] Per-layer mapping information
 - [ ] Visualize neuron and synapse counts
 
-### 5. Validation utilities
+### 6. Validation utilities
 - [ ] Validate converted models by comparing PyTorch and MARBLE outputs
   - [ ] Unit tests for small networks
   - [ ] Integration test for a custom model
   - [ ] CLI option to run validation automatically
 
-### 6. Additional tooling
+### 7. Additional tooling
 - [ ] Support converting `.pt` files directly into `.marble` snapshots
 - [ ] Provide auto-inference mode summarizing created graph without saving
+- [ ] Command line interface for one-step conversion
+- [ ] Programmatic API returning a `Core` object
+- [ ] YAML configuration for converter options
