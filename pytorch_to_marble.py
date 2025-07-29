@@ -364,6 +364,30 @@ def _convert_unflatten(
     return inputs
 
 
+@register_converter(torch.nn.Sequential)
+def _convert_sequential(
+    layer: torch.nn.Sequential, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    """Recursively convert all submodules of a ``Sequential`` container."""
+    out = inputs
+    for sub in layer:
+        converter = _get_converter(sub)
+        out = converter(sub, core, out)
+    return out
+
+
+@register_converter(torch.nn.ModuleList)
+def _convert_modulelist(
+    layer: torch.nn.ModuleList, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    """Iterate over a ``ModuleList`` converting each module in order."""
+    out = inputs
+    for sub in layer:
+        converter = _get_converter(sub)
+        out = converter(sub, core, out)
+    return out
+
+
 @register_function_converter(torch.reshape)
 def _convert_reshape(
     func: Callable, core: Core, inputs: List[int], *shape, **kwargs

@@ -11,12 +11,12 @@ import torch
 from marble_core import Core
 from pytorch_to_marble import (
     LAYER_CONVERTERS,
+    GlobalAvgPool2d,
     TracingFailedError,
     UnsupportedLayerError,
     _add_fully_connected_layer,
     convert_model,
     register_converter,
-    GlobalAvgPool2d,
 )
 from tests.test_core_functions import minimal_params
 
@@ -363,7 +363,7 @@ def test_dry_run_summary(capsys):
     convert_model(model, core_params=params, dry_run=True)
     out = capsys.readouterr().out
     assert "created" in out
-    assert "seq_0" in out
+    assert "seq" in out
 
 
 def test_functional_relu_conversion():
@@ -474,3 +474,49 @@ def test_logging_messages(caplog):
     with caplog.at_level(logging.INFO):
         convert_model(model, core_params=params)
     assert any("Converting layer" in rec.message for rec in caplog.records)
+
+
+class SequentialContainerModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.seq = torch.nn.Sequential(
+            torch.nn.Linear(2, 2),
+            torch.nn.ReLU(),
+            torch.nn.Linear(2, 1),
+        )
+        self.input_size = 2
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.seq(x)
+
+
+def test_sequential_container_conversion():
+    model = SequentialContainerModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.params.get("activation") == "relu" for n in core.neurons)
+
+
+class ModuleListModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.layers = torch.nn.ModuleList(
+            [
+                torch.nn.Linear(2, 3),
+                torch.nn.Tanh(),
+                torch.nn.Linear(3, 1),
+            ]
+        )
+        self.input_size = 2
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        for layer in self.layers:
+            x = layer(x)
+        return x
+
+
+def test_modulelist_conversion():
+    model = ModuleListModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "tanh" for n in core.neurons)
