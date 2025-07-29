@@ -52,9 +52,11 @@
   - [x] Support ModuleList iteration
   - [x] Unit tests for container handling
 - [ ] Embedding layers
-  - [ ] Basic ``Embedding`` converter
-  - [ ] ``EmbeddingBag`` support
-  - [ ] Unit tests for embeddings
+  - [x] Basic ``Embedding`` converter
+  - [x] ``EmbeddingBag`` support
+  - [x] Unit tests for embeddings
+  - [ ] Support ``padding_idx`` and ``max_norm`` options
+  - [ ] Test embeddings on GPU and CPU
 - [ ] Recurrent layers (RNN, LSTM, GRU)
   - [ ] Converter for ``RNN``
   - [ ] Converter for ``LSTM``
@@ -148,6 +150,7 @@
 - [ ] Conversion CLI and API enhancements
   - [ ] Option to produce .marble snapshot directly
   - [ ] Auto-inference mode printing neuron/synapse counts
+  - [ ] Validation mode comparing outputs with PyTorch
 - [ ] Validation suite comparing PyTorch and MARBLE outputs
   - [ ] Per-layer unit tests
   - [ ] End-to-end comparison for simple models

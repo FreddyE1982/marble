@@ -203,6 +203,27 @@ def _add_adaptive_pool2d_layer(
     return [nid]
 
 
+def _add_embedding_layer(
+    core: Core, input_ids: List[int], layer: torch.nn.Embedding
+) -> List[int]:
+    """Add an Embedding or EmbeddingBag layer."""
+    if len(input_ids) != 1:
+        raise UnsupportedLayerError(
+            f"{layer.__class__.__name__} is not supported for conversion"
+        )
+    inp = input_ids[0]
+    nid = len(core.neurons)
+    neuron = Neuron(nid, value=0.0, tier="vram", neuron_type="embedding")
+    neuron.params["num_embeddings"] = int(layer.num_embeddings)
+    neuron.params["embedding_dim"] = int(layer.embedding_dim)
+    neuron.params["weights"] = layer.weight.detach().cpu().numpy()
+    core.neurons.append(neuron)
+    syn = Synapse(inp, nid, weight=1.0)
+    core.neurons[inp].synapses.append(syn)
+    core.synapses.append(syn)
+    return [nid]
+
+
 @register_converter(torch.nn.Linear)
 def _convert_linear(
     layer: torch.nn.Linear, core: Core, inputs: List[int], *args, **kwargs
@@ -316,6 +337,20 @@ def _convert_adaptivemaxpool2d(
     layer: torch.nn.AdaptiveMaxPool2d, core: Core, inputs: List[int], *args, **kwargs
 ) -> List[int]:
     return _add_adaptive_pool2d_layer(core, inputs, layer, "maxpool2d")
+
+
+@register_converter(torch.nn.Embedding)
+def _convert_embedding(
+    layer: torch.nn.Embedding, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    return _add_embedding_layer(core, inputs, layer)
+
+
+@register_converter(torch.nn.EmbeddingBag)
+def _convert_embeddingbag(
+    layer: torch.nn.EmbeddingBag, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    return _add_embedding_layer(core, inputs, layer)
 
 
 class GlobalAvgPool2d(torch.nn.AdaptiveAvgPool2d):

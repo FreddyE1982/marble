@@ -520,3 +520,43 @@ def test_modulelist_conversion():
     params = minimal_params()
     core = convert_model(model, core_params=params)
     assert any(n.neuron_type == "tanh" for n in core.neurons)
+
+
+class EmbeddingModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.emb = torch.nn.Embedding(10, 3)
+        self.input_size = 1
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.emb(x)
+
+
+class EmbeddingBagModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.emb = torch.nn.EmbeddingBag(10, 3, mode="mean")
+        self.input_size = 1
+
+    def forward(self, x: torch.Tensor, offsets: torch.Tensor | None = None) -> torch.Tensor:
+        if offsets is None:
+            offsets = torch.zeros(1, dtype=torch.long)
+        return self.emb(x, offsets)
+
+
+def test_embedding_conversion():
+    model = EmbeddingModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    emb_neuron = next(n for n in core.neurons if n.neuron_type == "embedding")
+    assert emb_neuron.params["num_embeddings"] == 10
+    assert emb_neuron.params["embedding_dim"] == 3
+
+
+def test_embeddingbag_conversion():
+    model = EmbeddingBagModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    emb_neuron = next(n for n in core.neurons if n.neuron_type == "embedding")
+    assert emb_neuron.params["num_embeddings"] == 10
+    assert emb_neuron.params["embedding_dim"] == 3
