@@ -12,6 +12,10 @@ The agent must take care not to introduce conflicts when editing requirements.tx
 When testing, any failed tests should be logged into
 a FAILEDTESTS.md that is persisted. 
 
+the agent is NOT to run ANY tests if the agent has not made any changes to code yet
+if the user says "relevant tests only", then the agent is to run tests that are relevant to the changed code pieces ONLY even if that contradicts another rule
+
+
 
 1. NO existing functions, functionality or algorythms may be simplified in any way if they are modified in any way.
 2. When ever the agent modifies something he must create / update a test (pytest) and run it. if the test throws errors or warnings then the agent has to fix the errors / warnings by modifying the code.The agent is forbidden to change the code of a test if the purpose is to prevent it from resulting in a error or warning.
