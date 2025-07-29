@@ -227,19 +227,19 @@ def test_conv2d_conversion():
 class MultiChannelConv(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
-        self.conv = torch.nn.Conv2d(3, 1, kernel_size=2)
+        self.conv = torch.nn.Conv2d(3, 2, kernel_size=2)
         self.input_size = (3, 3, 3)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.conv(x)
 
 
-def test_multichannel_conv2d_error():
+def test_multichannel_conv2d_conversion():
     model = MultiChannelConv()
     params = minimal_params()
-    with pytest.raises(UnsupportedLayerError) as exc:
-        convert_model(model, core_params=params)
-    assert str(exc.value) == "Conv2d is not supported for conversion"
+    core = convert_model(model, core_params=params)
+    conv_neurons = [n for n in core.neurons if n.neuron_type == "conv2d"]
+    assert len(conv_neurons) == 2
 
 
 def test_batchnorm_conversion():
