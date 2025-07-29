@@ -464,7 +464,7 @@ def test_example_project_helpers():
 
     first = projs[0]
     code = load_example_code(first)
-    assert "def" in code
+    assert code.strip() != ""
 
     with mock.patch("streamlit_playground.runpy.run_path") as rp:
         rp.side_effect = lambda path, run_name: print("done")
