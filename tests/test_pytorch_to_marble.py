@@ -101,6 +101,18 @@ class FlattenModel(torch.nn.Module):
         return self.seq(x)
 
 
+class UnflattenModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.seq = torch.nn.Sequential(
+            torch.nn.Unflatten(1, (2, 2)),
+        )
+        self.input_size = 4
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.seq(x)
+
+
 def test_basic_conversion():
     model = SimpleModel()
     params = minimal_params()
@@ -167,4 +179,16 @@ def test_flatten_conversion():
     params = minimal_params()
     core = convert_model(model, core_params=params)
     assert any(n.neuron_type == "flatten" for n in core.neurons)
+
+
+def test_unflatten_conversion():
+    model = UnflattenModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "unflatten" for n in core.neurons)
+    n = next(n for n in core.neurons if n.neuron_type == "unflatten")
+    assert n.params["dim"] == 1
+    assert tuple(n.params["unflattened_size"]) == (2, 2)
+
+
 

@@ -153,6 +153,16 @@ def _convert_flatten(layer: torch.nn.Flatten, core: Core, inputs: List[int]) -> 
     return inputs
 
 
+@register_converter(torch.nn.Unflatten)
+def _convert_unflatten(layer: torch.nn.Unflatten, core: Core, inputs: List[int]) -> List[int]:
+    for nid in inputs:
+        n = core.neurons[nid]
+        n.neuron_type = "unflatten"
+        n.params["dim"] = int(layer.dim)
+        n.params["unflattened_size"] = tuple(layer.unflattened_size)
+    return inputs
+
+
 def _get_converter(layer: torch.nn.Module) -> LayerConverter:
     for cls in LAYER_CONVERTERS:
         if isinstance(layer, cls):
@@ -205,6 +215,9 @@ def convert_model(
             inp = node_outputs[node.args[0].name]
             out = converter(layer, core, inp)
             node_outputs[node.name] = out
+        elif node.op == "get_attr":
+            # Attributes such as parameters are accessed directly by subsequent modules.
+            pass
         elif node.op == "output":
             pass
         else:
