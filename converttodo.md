@@ -116,3 +116,24 @@
 - [ ] Handle evolving neuron and synapse creation during inference
 - [ ] Unit tests covering dynamic model conversion paths
 - [ ] Research torch.fx support for control flow constructs
+
+### 12. Universal converter roadmap
+- [ ] Comprehensive layer mapping registry
+  - [ ] Enumerate all built-in nn layers and map to converters
+  - [ ] Provide template for unsupported layers to raise errors
+- [ ] Graph construction utilities bridging to dynamic message passing
+  - [ ] Helper to spawn neurons for input/output dimensions
+  - [ ] Helper to connect neurons with weighted synapses
+  - [ ] Activation flag storage for message passing
+- [ ] torch.fx integration for arbitrary models
+  - [ ] Trace custom layers and call registered converters
+  - [ ] Allow decorators to register new converters
+- [ ] Weight and bias extraction helpers
+  - [ ] Handle GPU tensors transparently
+  - [ ] Inject bias neurons with correct values
+- [ ] Conversion CLI and API enhancements
+  - [ ] Option to produce .marble snapshot directly
+  - [ ] Auto-inference mode printing neuron/synapse counts
+- [ ] Validation suite comparing PyTorch and MARBLE outputs
+  - [ ] Per-layer unit tests
+  - [ ] End-to-end comparison for simple models
