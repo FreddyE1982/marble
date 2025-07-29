@@ -62,10 +62,10 @@
   - [ ] Converter for ``LSTM``
   - [ ] Converter for ``GRU``
   - [ ] Unit tests with tiny sequences
-- [ ] Normalization layers (LayerNorm, GroupNorm)
-  - [ ] ``LayerNorm`` converter
-  - [ ] ``GroupNorm`` converter
-  - [ ] Unit tests for normalization
+- [x] Normalization layers (LayerNorm, GroupNorm)
+  - [x] ``LayerNorm`` converter
+  - [x] ``GroupNorm`` converter
+  - [x] Unit tests for normalization
 - [ ] Transformer blocks
   - [ ] Self-attention conversion
   - [ ] Feed-forward sublayers
