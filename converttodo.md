@@ -98,6 +98,8 @@
 - [x] Per-layer mapping information
 - [ ] Visualize neuron and synapse counts
 
+- [ ] Add `--summary` CLI flag to print dry-run stats
+- [ ] Support saving summary to JSON via `--summary-output`
 ### 6. Validation utilities
 - [ ] Validate converted models by comparing PyTorch and MARBLE outputs
   - [ ] Unit tests for small networks
