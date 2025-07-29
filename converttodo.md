@@ -47,14 +47,28 @@
   - [x] Adaptive pooling layers
   - [x] Unit tests for global/adaptive pooling
   - [x] Update docs for pooling support
-- [ ] Sequential and ModuleList containers
-  - [ ] Handle torch.nn.Sequential recursion
-  - [ ] Support ModuleList iteration
-  - [ ] Unit tests for container handling
+- [x] Sequential and ModuleList containers
+  - [x] Handle torch.nn.Sequential recursion
+  - [x] Support ModuleList iteration
+  - [x] Unit tests for container handling
 - [ ] Embedding layers
+  - [ ] Basic ``Embedding`` converter
+  - [ ] ``EmbeddingBag`` support
+  - [ ] Unit tests for embeddings
 - [ ] Recurrent layers (RNN, LSTM, GRU)
+  - [ ] Converter for ``RNN``
+  - [ ] Converter for ``LSTM``
+  - [ ] Converter for ``GRU``
+  - [ ] Unit tests with tiny sequences
 - [ ] Normalization layers (LayerNorm, GroupNorm)
+  - [ ] ``LayerNorm`` converter
+  - [ ] ``GroupNorm`` converter
+  - [ ] Unit tests for normalization
 - [ ] Transformer blocks
+  - [ ] Self-attention conversion
+  - [ ] Feed-forward sublayers
+  - [ ] Positional encoding handling
+  - [ ] Integration tests on a small transformer
 
 ### 2. High-level graph construction API
 - [ ] Helper to add neuron groups with activations
