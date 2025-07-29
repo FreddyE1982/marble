@@ -29,12 +29,16 @@
   - [ ] Helper to add neuron groups with activations
   - [ ] Helper to add synapses with weights and bias
   - [ ] Parameterized wrappers for linear and convolutional layers
+  - [ ] Documentation for graph builder utilities
 - [ ] Support custom layer converters via decorator registration
   - [ ] Example converter for a user-defined PyTorch layer
   - [ ] Unit tests for custom converter workflow
-- [ ] Enhance `dry_run` mode to output summary statistics
-  - [ ] Number of neurons and synapses created
-  - [ ] Per-layer mapping information
+  - [ ] Document registration mechanism in README
+- [x] Enhance `dry_run` mode to output summary statistics
+  - [x] Number of neurons and synapses created
+  - [x] Per-layer mapping information
+  - [ ] Visualize neuron and synapse counts
 - [ ] Validate converted models by comparing PyTorch and MARBLE outputs
   - [ ] Unit tests for small networks
   - [ ] Integration test for custom model
+  - [ ] CLI option to run validation automatically

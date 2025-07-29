@@ -191,4 +191,13 @@ def test_unflatten_conversion():
     assert tuple(n.params["unflattened_size"]) == (2, 2)
 
 
+def test_dry_run_summary(capsys):
+    model = SimpleModel()
+    params = minimal_params()
+    convert_model(model, core_params=params, dry_run=True)
+    out = capsys.readouterr().out
+    assert "created" in out
+    assert "seq_0" in out
+
+
 
