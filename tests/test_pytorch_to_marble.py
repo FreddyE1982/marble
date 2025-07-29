@@ -3,18 +3,19 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+import logging
+
 import pytest
 import torch
-import logging
 
 from marble_core import Core
 from pytorch_to_marble import (
+    LAYER_CONVERTERS,
     TracingFailedError,
     UnsupportedLayerError,
+    _add_fully_connected_layer,
     convert_model,
     register_converter,
-    LAYER_CONVERTERS,
-    _add_fully_connected_layer,
 )
 from tests.test_core_functions import minimal_params
 
@@ -173,6 +174,26 @@ class UnflattenModel(torch.nn.Module):
         return self.seq(x)
 
 
+class MaxPoolModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.pool = torch.nn.MaxPool2d(2)
+        self.input_size = (1, 4, 4)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.pool(x)
+
+
+class AvgPoolModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.pool = torch.nn.AvgPool2d(2)
+        self.input_size = (1, 4, 4)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.pool(x)
+
+
 def test_basic_conversion():
     model = SimpleModel()
     params = minimal_params()
@@ -188,11 +209,12 @@ def test_basic_conversion():
 
 
 def test_unsupported_layer():
-    model = torch.nn.Sequential(torch.nn.MaxPool2d(2))
+    model = torch.nn.Sequential(torch.nn.MaxPool3d(2))
+    model.input_size = (1, 1, 4, 4, 4)
     params = minimal_params()
     with pytest.raises(UnsupportedLayerError) as exc:
         convert_model(model, core_params=params)
-    assert str(exc.value) == "MaxPool2d is not supported for conversion"
+    assert str(exc.value) == "MaxPool3d is not supported for conversion"
 
 
 def test_conv2d_conversion():
@@ -249,6 +271,20 @@ def test_unflatten_conversion():
     n = next(n for n in core.neurons if n.neuron_type == "unflatten")
     assert n.params["dim"] == 1
     assert tuple(n.params["unflattened_size"]) == (2, 2)
+
+
+def test_maxpool2d_conversion():
+    model = MaxPoolModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "maxpool2d" for n in core.neurons)
+
+
+def test_avgpool2d_conversion():
+    model = AvgPoolModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "avgpool2d" for n in core.neurons)
 
 
 def test_dry_run_summary(capsys):

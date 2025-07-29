@@ -1,11 +1,10 @@
 import argparse
-from typing import Any, Callable, Dict, List, Type
-
 import logging
+from typing import Callable, Dict, List, Type
+
 import torch
 import torch.nn.functional as F
-from torch.fx import symbolic_trace
-from torch.fx import Tracer, GraphModule
+from torch.fx import GraphModule, Tracer
 from torch.nn.modules.batchnorm import _BatchNorm
 
 from marble_core import Core, Neuron, Synapse
@@ -132,18 +131,54 @@ def _add_conv2d_layer(
     return out_ids
 
 
+def _add_pool2d_layer(
+    core: Core,
+    input_ids: List[int],
+    layer: torch.nn.modules.pooling._MaxPoolNd | torch.nn.modules.pooling._AvgPoolNd,
+    pool_type: str,
+) -> List[int]:
+    if len(input_ids) != 1:
+        raise UnsupportedLayerError(
+            f"{layer.__class__.__name__} is not supported for conversion"
+        )
+    inp = input_ids[0]
+    nid = len(core.neurons)
+    neuron = Neuron(nid, value=0.0, tier="vram", neuron_type=pool_type)
+    ks = (
+        layer.kernel_size[0]
+        if isinstance(layer.kernel_size, tuple)
+        else layer.kernel_size
+    )
+    stride = layer.stride[0] if isinstance(layer.stride, tuple) else layer.stride
+    padding = layer.padding[0] if isinstance(layer.padding, tuple) else layer.padding
+    neuron.params["kernel_size"] = ks
+    neuron.params["stride"] = stride
+    neuron.params["padding"] = padding
+    core.neurons.append(neuron)
+    syn = Synapse(inp, nid, weight=1.0)
+    core.neurons[inp].synapses.append(syn)
+    core.synapses.append(syn)
+    return [nid]
+
+
 @register_converter(torch.nn.Linear)
-def _convert_linear(layer: torch.nn.Linear, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
+def _convert_linear(
+    layer: torch.nn.Linear, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
     return _add_fully_connected_layer(core, inputs, layer)
 
 
 @register_converter(torch.nn.Conv2d)
-def _convert_conv2d(layer: torch.nn.Conv2d, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
+def _convert_conv2d(
+    layer: torch.nn.Conv2d, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
     return _add_conv2d_layer(core, inputs, layer)
 
 
 @register_converter(torch.nn.ReLU)
-def _convert_relu(layer: torch.nn.ReLU, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
+def _convert_relu(
+    layer: torch.nn.ReLU, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
     for nid in inputs:
         core.neurons[nid].params["activation"] = "relu"
     return inputs
@@ -159,14 +194,18 @@ def _convert_sigmoid(
 
 
 @register_converter(torch.nn.Tanh)
-def _convert_tanh(layer: torch.nn.Tanh, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
+def _convert_tanh(
+    layer: torch.nn.Tanh, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
     for nid in inputs:
         core.neurons[nid].neuron_type = "tanh"
     return inputs
 
 
 @register_converter(torch.nn.GELU)
-def _convert_gelu(layer: torch.nn.GELU, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
+def _convert_gelu(
+    layer: torch.nn.GELU, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
     for nid in inputs:
         core.neurons[nid].neuron_type = "gelu"
     return inputs
@@ -174,21 +213,27 @@ def _convert_gelu(layer: torch.nn.GELU, core: Core, inputs: List[int], *args, **
 
 @register_function_converter(F.relu)
 @register_method_converter("relu")
-def _convert_f_relu(func: Callable, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
+def _convert_f_relu(
+    func: Callable, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
     return _convert_relu(torch.nn.ReLU(), core, inputs)
 
 
 @register_function_converter(F.sigmoid)
 @register_function_converter(torch.sigmoid)
 @register_method_converter("sigmoid")
-def _convert_f_sigmoid(func: Callable, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
+def _convert_f_sigmoid(
+    func: Callable, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
     return _convert_sigmoid(torch.nn.Sigmoid(), core, inputs)
 
 
 @register_function_converter(F.tanh)
 @register_function_converter(torch.tanh)
 @register_method_converter("tanh")
-def _convert_f_tanh(func: Callable, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
+def _convert_f_tanh(
+    func: Callable, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
     return _convert_tanh(torch.nn.Tanh(), core, inputs)
 
 
@@ -203,9 +248,25 @@ def _convert_dropout(
     return inputs
 
 
+@register_converter(torch.nn.MaxPool2d)
+def _convert_maxpool2d(
+    layer: torch.nn.MaxPool2d, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    return _add_pool2d_layer(core, inputs, layer, "maxpool2d")
+
+
+@register_converter(torch.nn.AvgPool2d)
+def _convert_avgpool2d(
+    layer: torch.nn.AvgPool2d, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    return _add_pool2d_layer(core, inputs, layer, "avgpool2d")
+
+
 @register_converter(torch.nn.BatchNorm1d)
 @register_converter(torch.nn.BatchNorm2d)
-def _convert_batchnorm(layer: _BatchNorm, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
+def _convert_batchnorm(
+    layer: _BatchNorm, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
     for nid in inputs:
         n = core.neurons[nid]
         n.neuron_type = "batchnorm"
@@ -236,7 +297,9 @@ def _convert_unflatten(
 
 
 @register_function_converter(torch.reshape)
-def _convert_reshape(func: Callable, core: Core, inputs: List[int], *shape, **kwargs) -> List[int]:
+def _convert_reshape(
+    func: Callable, core: Core, inputs: List[int], *shape, **kwargs
+) -> List[int]:
     for nid in inputs:
         n = core.neurons[nid]
         n.neuron_type = "reshape"
@@ -249,7 +312,9 @@ def _convert_reshape(func: Callable, core: Core, inputs: List[int], *shape, **kw
 
 
 @register_method_converter("view")
-def _convert_view(name: str, core: Core, inputs: List[int], *shape, **kwargs) -> List[int]:
+def _convert_view(
+    name: str, core: Core, inputs: List[int], *shape, **kwargs
+) -> List[int]:
     return _convert_reshape(torch.reshape, core, inputs, *shape, **kwargs)
 
 
@@ -338,7 +403,10 @@ def convert_model(
             out = converter(layer, core, inp)
             node_outputs[node.name] = out
         elif node.op == "call_function":
-            logger.info("Converting function %s", getattr(node.target, "__name__", str(node.target)))
+            logger.info(
+                "Converting function %s",
+                getattr(node.target, "__name__", str(node.target)),
+            )
             converter = _get_function_converter(node.target)
             inp = node_outputs[node.args[0].name]
             extra_args = [a for a in node.args[1:]]
