@@ -251,6 +251,23 @@ def test_functional_tanh_conversion():
     assert any(n.neuron_type == "tanh" for n in core.neurons)
 
 
+class FuncUnsupportedModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.input_size = (1, 3, 3)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.nn.functional.max_pool2d(x, kernel_size=2)
+
+
+def test_functional_unsupported_error():
+    model = FuncUnsupportedModel()
+    params = minimal_params()
+    with pytest.raises(UnsupportedLayerError) as exc:
+        convert_model(model, core_params=params)
+    assert str(exc.value) == "max_pool2d is not supported for conversion"
+
+
 class FailingModel(torch.nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if x.sum() > 0:
