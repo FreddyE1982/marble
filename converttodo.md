@@ -16,18 +16,18 @@
 ## Upcoming Features
 
 ### 0. Core conversion engine
-- [ ] Ensure `convert_model` handles functional operations from `torch.nn.functional`
+- [x] Ensure `convert_model` handles functional operations from `torch.nn.functional`
 - [ ] Document layer mapping registry in developer docs
 - [x] Graceful fallback when `torch.fx` tracing fails
 - [x] Provide clear error when layer type is not registered
 - [x] Raise error for unsupported functional operations
 
 ### Functional layer converters
-- [ ] Registry for functional operations
-- [ ] Converter for `F.relu`
-- [ ] Converter for `F.sigmoid`
-- [ ] Converter for `F.tanh`
-- [ ] Unit tests covering functional converters
+- [x] Registry for functional operations
+- [x] Converter for `F.relu`
+- [x] Converter for `F.sigmoid`
+- [x] Converter for `F.tanh`
+- [x] Unit tests covering functional converters
   - [x] Unsupported functional op error test
 
 ### 1. Expand registry with more PyTorch layers
@@ -35,7 +35,7 @@
 - [ ] Flatten and Reshape operations
   - [x] Flatten
   - [x] Reshape (Unflatten)
-  - [ ] View/reshape functional
+  - [x] View/reshape functional
 - [x] Additional activations (Sigmoid, Tanh, GELU)
 - [ ] Multi-channel Conv2d
 - [ ] Pooling layers
@@ -86,11 +86,11 @@
 - [ ] YAML configuration for converter options
 
 ### 8. Model loader interface
-- [ ] CLI supports `--pytorch`, `--output` and `--dry-run`
-- [ ] Programmatic `convert_model` function usable in other scripts
-- [ ] Example usage documented in README
-- [ ] Load checkpoints saved with `torch.save` automatically
-- [ ] Support `.json` or `.marble` output based on extension
+- [x] CLI supports `--pytorch`, `--output` and `--dry-run`
+- [x] Programmatic `convert_model` function usable in other scripts
+- [x] Example usage documented in README
+- [x] Load checkpoints saved with `torch.save` automatically
+- [x] Support `.json` or `.marble` output based on extension
 
 ### 9. Graph visualization and inspection
 - [ ] Visualize generated MARBLE graph structure

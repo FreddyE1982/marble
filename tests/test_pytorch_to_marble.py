@@ -126,6 +126,28 @@ class FuncTanhModel(torch.nn.Module):
         return torch.nn.functional.tanh(self.fc(x))
 
 
+class FuncReshapeModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.fc = torch.nn.Linear(4, 4)
+        self.input_size = 4
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.fc(x)
+        return torch.reshape(x, (2, 2))
+
+
+class ViewModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.fc = torch.nn.Linear(4, 4)
+        self.input_size = 4
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.fc(x)
+        return x.view(2, 2)
+
+
 class FlattenModel(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -257,6 +279,21 @@ def test_functional_tanh_conversion():
     params = minimal_params()
     core = convert_model(model, core_params=params)
     assert any(n.neuron_type == "tanh" for n in core.neurons)
+
+
+def test_functional_reshape_conversion():
+    model = FuncReshapeModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    reshape_neuron = next(n for n in core.neurons if n.neuron_type == "reshape")
+    assert tuple(reshape_neuron.params["shape"]) == (2, 2)
+
+
+def test_view_method_conversion():
+    model = ViewModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "reshape" for n in core.neurons)
 
 
 class FuncUnsupportedModel(torch.nn.Module):

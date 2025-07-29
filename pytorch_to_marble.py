@@ -22,7 +22,7 @@ class TracingFailedError(Exception):
     """Raised when ``torch.fx`` fails to trace a model."""
 
 
-LayerConverter = Callable[[Any, Core, List[int]], List[int]]
+LayerConverter = Callable[..., List[int]]
 
 
 LAYER_CONVERTERS: Dict[Type[torch.nn.Module], LayerConverter] = {}
@@ -133,17 +133,17 @@ def _add_conv2d_layer(
 
 
 @register_converter(torch.nn.Linear)
-def _convert_linear(layer: torch.nn.Linear, core: Core, inputs: List[int]) -> List[int]:
+def _convert_linear(layer: torch.nn.Linear, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
     return _add_fully_connected_layer(core, inputs, layer)
 
 
 @register_converter(torch.nn.Conv2d)
-def _convert_conv2d(layer: torch.nn.Conv2d, core: Core, inputs: List[int]) -> List[int]:
+def _convert_conv2d(layer: torch.nn.Conv2d, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
     return _add_conv2d_layer(core, inputs, layer)
 
 
 @register_converter(torch.nn.ReLU)
-def _convert_relu(layer: torch.nn.ReLU, core: Core, inputs: List[int]) -> List[int]:
+def _convert_relu(layer: torch.nn.ReLU, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
     for nid in inputs:
         core.neurons[nid].params["activation"] = "relu"
     return inputs
@@ -151,7 +151,7 @@ def _convert_relu(layer: torch.nn.ReLU, core: Core, inputs: List[int]) -> List[i
 
 @register_converter(torch.nn.Sigmoid)
 def _convert_sigmoid(
-    layer: torch.nn.Sigmoid, core: Core, inputs: List[int]
+    layer: torch.nn.Sigmoid, core: Core, inputs: List[int], *args, **kwargs
 ) -> List[int]:
     for nid in inputs:
         core.neurons[nid].neuron_type = "sigmoid"
@@ -159,14 +159,14 @@ def _convert_sigmoid(
 
 
 @register_converter(torch.nn.Tanh)
-def _convert_tanh(layer: torch.nn.Tanh, core: Core, inputs: List[int]) -> List[int]:
+def _convert_tanh(layer: torch.nn.Tanh, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
     for nid in inputs:
         core.neurons[nid].neuron_type = "tanh"
     return inputs
 
 
 @register_converter(torch.nn.GELU)
-def _convert_gelu(layer: torch.nn.GELU, core: Core, inputs: List[int]) -> List[int]:
+def _convert_gelu(layer: torch.nn.GELU, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
     for nid in inputs:
         core.neurons[nid].neuron_type = "gelu"
     return inputs
@@ -174,27 +174,27 @@ def _convert_gelu(layer: torch.nn.GELU, core: Core, inputs: List[int]) -> List[i
 
 @register_function_converter(F.relu)
 @register_method_converter("relu")
-def _convert_f_relu(func: Callable, core: Core, inputs: List[int]) -> List[int]:
+def _convert_f_relu(func: Callable, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
     return _convert_relu(torch.nn.ReLU(), core, inputs)
 
 
 @register_function_converter(F.sigmoid)
 @register_function_converter(torch.sigmoid)
 @register_method_converter("sigmoid")
-def _convert_f_sigmoid(func: Callable, core: Core, inputs: List[int]) -> List[int]:
+def _convert_f_sigmoid(func: Callable, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
     return _convert_sigmoid(torch.nn.Sigmoid(), core, inputs)
 
 
 @register_function_converter(F.tanh)
 @register_function_converter(torch.tanh)
 @register_method_converter("tanh")
-def _convert_f_tanh(func: Callable, core: Core, inputs: List[int]) -> List[int]:
+def _convert_f_tanh(func: Callable, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
     return _convert_tanh(torch.nn.Tanh(), core, inputs)
 
 
 @register_converter(torch.nn.Dropout)
 def _convert_dropout(
-    layer: torch.nn.Dropout, core: Core, inputs: List[int]
+    layer: torch.nn.Dropout, core: Core, inputs: List[int], *args, **kwargs
 ) -> List[int]:
     for nid in inputs:
         n = core.neurons[nid]
@@ -205,7 +205,7 @@ def _convert_dropout(
 
 @register_converter(torch.nn.BatchNorm1d)
 @register_converter(torch.nn.BatchNorm2d)
-def _convert_batchnorm(layer: _BatchNorm, core: Core, inputs: List[int]) -> List[int]:
+def _convert_batchnorm(layer: _BatchNorm, core: Core, inputs: List[int], *args, **kwargs) -> List[int]:
     for nid in inputs:
         n = core.neurons[nid]
         n.neuron_type = "batchnorm"
@@ -216,7 +216,7 @@ def _convert_batchnorm(layer: _BatchNorm, core: Core, inputs: List[int]) -> List
 
 @register_converter(torch.nn.Flatten)
 def _convert_flatten(
-    layer: torch.nn.Flatten, core: Core, inputs: List[int]
+    layer: torch.nn.Flatten, core: Core, inputs: List[int], *args, **kwargs
 ) -> List[int]:
     for nid in inputs:
         core.neurons[nid].neuron_type = "flatten"
@@ -225,7 +225,7 @@ def _convert_flatten(
 
 @register_converter(torch.nn.Unflatten)
 def _convert_unflatten(
-    layer: torch.nn.Unflatten, core: Core, inputs: List[int]
+    layer: torch.nn.Unflatten, core: Core, inputs: List[int], *args, **kwargs
 ) -> List[int]:
     for nid in inputs:
         n = core.neurons[nid]
@@ -233,6 +233,24 @@ def _convert_unflatten(
         n.params["dim"] = int(layer.dim)
         n.params["unflattened_size"] = tuple(layer.unflattened_size)
     return inputs
+
+
+@register_function_converter(torch.reshape)
+def _convert_reshape(func: Callable, core: Core, inputs: List[int], *shape, **kwargs) -> List[int]:
+    for nid in inputs:
+        n = core.neurons[nid]
+        n.neuron_type = "reshape"
+        if shape:
+            if len(shape) == 1 and isinstance(shape[0], (list, tuple)):
+                n.params["shape"] = tuple(shape[0])
+            else:
+                n.params["shape"] = tuple(shape)
+    return inputs
+
+
+@register_method_converter("view")
+def _convert_view(name: str, core: Core, inputs: List[int], *shape, **kwargs) -> List[int]:
+    return _convert_reshape(torch.reshape, core, inputs, *shape, **kwargs)
 
 
 def _get_converter(layer: torch.nn.Module) -> LayerConverter:
@@ -323,7 +341,8 @@ def convert_model(
             logger.info("Converting function %s", getattr(node.target, "__name__", str(node.target)))
             converter = _get_function_converter(node.target)
             inp = node_outputs[node.args[0].name]
-            out = converter(node.target, core, inp)
+            extra_args = [a for a in node.args[1:]]
+            out = converter(node.target, core, inp, *extra_args, **node.kwargs)
             node_outputs[node.name] = out
         elif node.op == "get_attr":
             # Attributes such as parameters are accessed directly by subsequent modules.
@@ -332,7 +351,8 @@ def convert_model(
             logger.info("Converting method %s", node.target)
             converter = _get_method_converter(node.target)
             inp = node_outputs[node.args[0].name]
-            out = converter(node.target, core, inp)
+            extra_args = [a for a in node.args[1:]]
+            out = converter(node.target, core, inp, *extra_args, **node.kwargs)
             node_outputs[node.name] = out
         elif node.op == "output":
             pass
