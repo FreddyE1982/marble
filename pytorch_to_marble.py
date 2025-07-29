@@ -139,7 +139,11 @@ def convert_model(
             if input_tensor is not None:
                 in_dim = input_tensor.shape[1]
             else:
-                in_dim = model.input_size if hasattr(model, "input_size") else 1
+                if hasattr(model, "input_size"):
+                    size = model.input_size
+                    in_dim = size[0] if isinstance(size, tuple) else size
+                else:
+                    in_dim = 1
             ids = []
             for _ in range(in_dim):
                 nid = len(core.neurons)
