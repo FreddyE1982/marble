@@ -584,7 +584,9 @@ class EmbeddingBagModel(torch.nn.Module):
         self.emb = torch.nn.EmbeddingBag(10, 3, mode="mean")
         self.input_size = 1
 
-    def forward(self, x: torch.Tensor, offsets: torch.Tensor | None = None) -> torch.Tensor:
+    def forward(
+        self, x: torch.Tensor, offsets: torch.Tensor | None = None
+    ) -> torch.Tensor:
         if offsets is None:
             offsets = torch.zeros(1, dtype=torch.long)
         return self.emb(x, offsets)
@@ -657,3 +659,25 @@ def test_embeddingbag_conversion():
     emb_neuron = next(n for n in core.neurons if n.neuron_type == "embedding")
     assert emb_neuron.params["num_embeddings"] == 10
     assert emb_neuron.params["embedding_dim"] == 3
+
+
+def test_bias_synapses_values():
+    model = SimpleModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    # find bias neurons (value 1.0) created by add_fully_connected_layer
+    bias_neuron_indices = [i for i, n in enumerate(core.neurons) if n.value == 1.0]
+    assert len(bias_neuron_indices) == 2
+    # check weights from bias neurons match layer biases
+    first_bias_weight = model.seq[0].bias.detach().cpu().numpy()[0]
+    syn = next(s for s in core.synapses if s.source == bias_neuron_indices[0])
+    assert syn.weight == float(first_bias_weight)
+
+
+def test_conversion_gpu_weights():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    model = SimpleModel().cuda()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert len(core.neurons) > 0
