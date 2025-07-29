@@ -98,8 +98,8 @@
 - [x] Per-layer mapping information
 - [ ] Visualize neuron and synapse counts
 
-- [ ] Add `--summary` CLI flag to print dry-run stats
-- [ ] Support saving summary to JSON via `--summary-output`
+- [x] Add `--summary` CLI flag to print dry-run stats
+- [x] Support saving summary to JSON via `--summary-output`
 ### 6. Validation utilities
 - [ ] Validate converted models by comparing PyTorch and MARBLE outputs
   - [ ] Unit tests for small networks
@@ -109,7 +109,7 @@
 
 ### 7. Additional tooling
 - [x] Support converting `.pt` files directly into `.marble` snapshots
-- [ ] Provide auto-inference mode summarizing created graph without saving
+- [x] Provide auto-inference mode summarizing created graph without saving
 - [ ] Command line interface for one-step conversion
 - [ ] Programmatic API returning a `Core` object
 - [ ] YAML configuration for converter options

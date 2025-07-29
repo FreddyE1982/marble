@@ -286,6 +286,10 @@ python convert_model.py --pytorch my_model.pt --output marble_model.marble
 Specify ``--dry-run`` to see the resulting graph statistics without writing a
 file. You can also call ``convert_model`` directly:
 
+For a quick overview without producing an output file you can use ``--summary``
+to print the neuron and synapse counts. ``--summary-output`` writes the same
+information to a JSON file.
+
 ```python
 from pytorch_to_marble import convert_model
 marble_brain = convert_model(torch_model)

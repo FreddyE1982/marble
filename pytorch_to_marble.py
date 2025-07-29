@@ -572,8 +572,11 @@ def _print_dry_run_summary(core: Core, node_outputs: Dict[str, List[int]]) -> No
 
 
 def convert_model(
-    model: torch.nn.Module, core_params: Dict | None = None, dry_run: bool = False
-) -> Core:
+    model: torch.nn.Module,
+    core_params: Dict | None = None,
+    dry_run: bool = False,
+    return_summary: bool = False,
+) -> Core | tuple[Core, Dict[str, Dict]]:
     """Convert ``model`` into a MARBLE ``Core``."""
     if core_params is None:
         core_params = {
@@ -650,9 +653,15 @@ def convert_model(
             raise UnsupportedLayerError(
                 f"Operation {node.op} is not supported for conversion"
             )
-    if dry_run:
+    summary = {
+        "neurons": len(core.neurons),
+        "synapses": len(core.synapses),
+        "layers": {name: len(ids) for name, ids in node_outputs.items() if name != "output"},
+    }
+    if dry_run or return_summary:
         _print_dry_run_summary(core, node_outputs)
-        return core
+    if return_summary:
+        return core, summary
     return core
 
 
