@@ -17,7 +17,7 @@
 
 ### 0. Core conversion engine
 - [x] Ensure `convert_model` handles functional operations from `torch.nn.functional`
-- [ ] Document layer mapping registry in developer docs
+- [x] Document layer mapping registry in developer docs
 - [x] Graceful fallback when `torch.fx` tracing fails
 - [x] Provide clear error when layer type is not registered
 - [x] Raise error for unsupported functional operations
@@ -39,8 +39,9 @@
 - [x] Additional activations (Sigmoid, Tanh, GELU)
 - [ ] Multi-channel Conv2d
 - [ ] Pooling layers
-  - [ ] MaxPool2d and AvgPool2d
+  - [x] MaxPool2d and AvgPool2d
   - [ ] GlobalAvgPool2d and adaptive pooling
+  - [x] Update docs for pooling support
 - [ ] Sequential and ModuleList containers
 - [ ] Embedding layers
 - [ ] Recurrent layers (RNN, LSTM, GRU)

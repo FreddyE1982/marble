@@ -13,3 +13,8 @@ Compatibility
 -------------
 
 .. include:: python_compatibility.md
+
+PyTorch Conversion
+------------------
+
+.. include:: pytorch_conversion.md
