@@ -103,7 +103,7 @@ def _add_conv2d_layer(
 ) -> List[int]:
     if layer.in_channels != 1 or len(input_ids) != 1 or layer.groups != 1:
         raise UnsupportedLayerError(
-            "Conv2d with in_channels!=1 is not supported for conversion"
+            f"{layer.__class__.__name__} is not supported for conversion"
         )
     out_ids = []
     weight = layer.weight.detach().cpu().numpy()
