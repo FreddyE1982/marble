@@ -18,7 +18,8 @@
 ### 0. Core conversion engine
 - [ ] Ensure `convert_model` handles functional operations from `torch.nn.functional`
 - [x] Graceful fallback when `torch.fx` tracing fails
-- [ ] Provide clear error when layer type is not registered
+- [x] Provide clear error when layer type is not registered
+- [x] Raise error for unsupported functional operations
 
 ### Functional layer converters
 - [ ] Registry for functional operations
@@ -26,6 +27,7 @@
 - [ ] Converter for `F.sigmoid`
 - [ ] Converter for `F.tanh`
 - [ ] Unit tests covering functional converters
+  - [x] Unsupported functional op error test
 
 ### 1. Expand registry with more PyTorch layers
 - [x] BatchNorm and Dropout
