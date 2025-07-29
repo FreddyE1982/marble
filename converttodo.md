@@ -38,6 +38,9 @@
   - [x] View/reshape functional
 - [x] Additional activations (Sigmoid, Tanh, GELU)
 - [ ] Multi-channel Conv2d
+  - [ ] Support arbitrary input/output channels
+  - [ ] Unit test multi-channel conversion
+  - [x] Error message for unsupported configuration
 - [ ] Pooling layers
   - [x] MaxPool2d and AvgPool2d
   - [ ] GlobalAvgPool2d and adaptive pooling
@@ -101,6 +104,7 @@
 ### 10. Error handling and logging
 - [x] Unsupported layers raise `"[layer type name] is not supported for conversion"`
 - [x] Logging statements for each conversion step
+  - [x] Consistent error message for invalid Conv2d parameters
 
 ### 11. Dynamic graph support
 - [ ] Map PyTorch control flow to MARBLE dynamic topology
