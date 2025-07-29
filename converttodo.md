@@ -61,10 +61,10 @@
 - [ ] Verify bias neurons are created correctly
 
 ### 4. Custom layer converter support
-- [ ] Decorator-based registration for user-defined layers
-- [ ] Example converter for a custom layer
-- [ ] Unit tests validating custom converter workflow
-- [ ] Document registration mechanism in README
+- [x] Decorator-based registration for user-defined layers
+- [x] Example converter for a custom layer
+- [x] Unit tests validating custom converter workflow
+- [x] Document registration mechanism in README
 
 ### 5. Dry-run improvements
 - [x] Number of neurons and synapses created
@@ -99,7 +99,7 @@
 
 ### 10. Error handling and logging
 - [x] Unsupported layers raise `"[layer type name] is not supported for conversion"`
-- [ ] Logging statements for each conversion step
+- [x] Logging statements for each conversion step
 
 ### 11. Dynamic graph support
 - [ ] Map PyTorch control flow to MARBLE dynamic topology

@@ -285,6 +285,33 @@ from pytorch_to_marble import convert_model
 marble_brain = convert_model(torch_model)
 ```
 
+### Registering Custom Layer Converters
+The converter can handle user-defined layers by registering a conversion
+function. Decorate your converter with `@register_converter` and provide the
+layer class:
+
+```python
+from pytorch_to_marble import register_converter
+
+class MyCustomLayer(torch.nn.Module):
+    def __init__(self, size):
+        super().__init__()
+        self.linear = torch.nn.Linear(size, size)
+
+    def forward(self, x):
+        return self.linear(x) * 2
+
+@register_converter(MyCustomLayer)
+def convert_my_layer(layer, core, inputs):
+    out = _add_fully_connected_layer(core, inputs, layer.linear)
+    for nid in out:
+        core.neurons[nid].params["scale"] = 2.0
+    return out
+```
+
+Any occurrence of `MyCustomLayer` in the PyTorch model will be converted using
+the provided function.
+
 ## Release Process
 To publish a new release to PyPI:
 1. Update the version number in `pyproject.toml` and `setup.py`.

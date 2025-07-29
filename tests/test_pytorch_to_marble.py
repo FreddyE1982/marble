@@ -5,9 +5,17 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 import pytest
 import torch
+import logging
 
 from marble_core import Core
-from pytorch_to_marble import TracingFailedError, UnsupportedLayerError, convert_model
+from pytorch_to_marble import (
+    TracingFailedError,
+    UnsupportedLayerError,
+    convert_model,
+    register_converter,
+    LAYER_CONVERTERS,
+    _add_fully_connected_layer,
+)
 from tests.test_core_functions import minimal_params
 
 
@@ -280,3 +288,46 @@ def test_tracing_failed_error():
     params = minimal_params()
     with pytest.raises(TracingFailedError):
         convert_model(model, core_params=params)
+
+
+class DoubleLinear(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.linear = torch.nn.Linear(2, 2)
+        self.input_size = 2
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.linear(x)
+
+
+@register_converter(DoubleLinear)
+def _convert_doublelinear(layer: DoubleLinear, core: Core, inputs):
+    out = _add_fully_connected_layer(core, inputs, layer.linear)
+    for nid in out:
+        core.neurons[nid].params["scale"] = 2.0
+    return out
+
+
+def test_custom_layer_converter():
+    class Wrapper(torch.nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.custom = DoubleLinear()
+            self.input_size = 2
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            return self.custom(x)
+
+    model = Wrapper()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.params.get("scale") == 2.0 for n in core.neurons)
+    LAYER_CONVERTERS.pop(DoubleLinear)
+
+
+def test_logging_messages(caplog):
+    model = SimpleModel()
+    params = minimal_params()
+    with caplog.at_level(logging.INFO):
+        convert_model(model, core_params=params)
+    assert any("Converting layer" in rec.message for rec in caplog.records)

@@ -1,13 +1,17 @@
 import argparse
 from typing import Any, Callable, Dict, List, Type
 
+import logging
 import torch
 import torch.nn.functional as F
 from torch.fx import symbolic_trace
+from torch.fx import Tracer, GraphModule
 from torch.nn.modules.batchnorm import _BatchNorm
 
 from marble_core import Core, Neuron, Synapse
 from marble_utils import core_to_json
+
+logger = logging.getLogger(__name__)
 
 
 class UnsupportedLayerError(Exception):
@@ -24,6 +28,15 @@ LayerConverter = Callable[[Any, Core, List[int]], List[int]]
 LAYER_CONVERTERS: Dict[Type[torch.nn.Module], LayerConverter] = {}
 FUNCTION_CONVERTERS: Dict[Callable, LayerConverter] = {}
 METHOD_CONVERTERS: Dict[str, LayerConverter] = {}
+
+
+class ConverterTracer(Tracer):
+    """Tracer that treats registered converters as leaf modules."""
+
+    def is_leaf_module(self, m: torch.nn.Module, module_qualified_name: str) -> bool:
+        if type(m) in LAYER_CONVERTERS:
+            return True
+        return super().is_leaf_module(m, module_qualified_name)
 
 
 def register_converter(
@@ -271,9 +284,12 @@ def convert_model(
             "disk_limit_mb": 0.1,
         }
     try:
-        traced = symbolic_trace(model)
+        tracer = ConverterTracer()
+        graph = tracer.trace(model)
+        traced = GraphModule(model, graph)
     except Exception as exc:
         raise TracingFailedError(f"FX tracing failed: {exc}") from exc
+    logger.info("Tracing succeeded with %d nodes", len(traced.graph.nodes))
     core = Core(core_params, formula="0", formula_num_neurons=0)
     node_outputs: Dict[str, List[int]] = {}
     for node in traced.graph.nodes:
@@ -288,6 +304,7 @@ def convert_model(
                 else:
                     in_dim = 1
             ids = []
+            logger.info("Creating %d input neurons for %s", in_dim, node.name)
             for _ in range(in_dim):
                 nid = len(core.neurons)
                 core.neurons.append(Neuron(nid, value=0.0, tier="vram"))
@@ -295,11 +312,15 @@ def convert_model(
             node_outputs[node.name] = ids
         elif node.op == "call_module":
             layer = dict(model.named_modules())[node.target]
+            logger.info(
+                "Converting layer %s (%s)", node.target, layer.__class__.__name__
+            )
             converter = _get_converter(layer)
             inp = node_outputs[node.args[0].name]
             out = converter(layer, core, inp)
             node_outputs[node.name] = out
         elif node.op == "call_function":
+            logger.info("Converting function %s", getattr(node.target, "__name__", str(node.target)))
             converter = _get_function_converter(node.target)
             inp = node_outputs[node.args[0].name]
             out = converter(node.target, core, inp)
@@ -308,6 +329,7 @@ def convert_model(
             # Attributes such as parameters are accessed directly by subsequent modules.
             pass
         elif node.op == "call_method":
+            logger.info("Converting method %s", node.target)
             converter = _get_method_converter(node.target)
             inp = node_outputs[node.args[0].name]
             out = converter(node.target, core, inp)
