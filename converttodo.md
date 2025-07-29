@@ -18,7 +18,8 @@
   - [x] BatchNorm and Dropout
   - [ ] Flatten and Reshape operations
     - [x] Flatten
-    - [ ] Reshape
+    - [x] Reshape (Unflatten)
+    - [ ] View/reshape functional
   - [x] Additional activations (Sigmoid, Tanh, GELU)
   - [ ] Multi-channel Conv2d
   - [ ] MaxPool2d and AvgPool2d
