@@ -75,6 +75,7 @@ core:
   noise_start: 1.0
   noise_end: 0.1
   noise_schedule: "linear"
+  workspace_broadcast: false
 # Neuronenblitz learning system parameters
 
   synapse_echo_length: 5

@@ -178,6 +178,9 @@ core:
     to ``0.0`` for crisp outputs.
   noise_schedule: Schedule controlling how the noise decreases across
     ``diffusion_steps``. Valid options are ``"linear"`` or ``"cosine"``.
+  workspace_broadcast: Set to ``true`` to publish each diffusion result to the
+    Global Workspace. Components subscribed to the workspace can then react to
+    new samples in real time.
   cross_tier_migration: When ``true`` neurons may move between tiers even if
     their age thresholds have not been reached.
   synapse_echo_length: Number of past activations each synapse stores in its

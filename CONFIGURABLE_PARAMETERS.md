@@ -61,6 +61,7 @@ Each entry is listed under its section heading.
 - noise_start
 - noise_end
 - noise_schedule
+- workspace_broadcast
 - cross_tier_migration
 - synapse_echo_length
 - synapse_echo_decay
