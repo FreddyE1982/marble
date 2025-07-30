@@ -62,6 +62,11 @@ Each entry is listed under its section heading.
 - noise_end
 - noise_schedule
 - workspace_broadcast
+- activation_output_dir
+- memory_system
+- cwfl
+- harmonic
+- fractal
 - cross_tier_migration
 - synapse_echo_length
 - synapse_echo_decay

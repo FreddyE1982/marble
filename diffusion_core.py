@@ -2,18 +2,28 @@ from __future__ import annotations
 
 from collections import deque
 from typing import Any
+import os
 
 import global_workspace
 from neuromodulatory_system import NeuromodulatorySystem
 
 from marble_imports import cp, random, math
 from marble_imports import *  # noqa: F401,F403
-from marble_core import Core, DataLoader, perform_message_passing
+from marble_core import (
+    Core,
+    DataLoader,
+    perform_message_passing,
+    MemorySystem,
+)
 from marble_base import MetricsVisualizer
 from marble_neuronenblitz import Neuronenblitz
 from hybrid_memory import HybridMemory
 from plugin_system import load_plugins
 from neural_schema_induction import NeuralSchemaInductionLearner
+from continuous_weight_field_learning import ContinuousWeightFieldLearner
+from harmonic_resonance_learning import HarmonicResonanceLearner
+from fractal_dimension_learning import FractalDimensionLearner
+from activation_visualization import plot_activation_heatmap
 import predictive_coding
 import torch
 
@@ -35,6 +45,11 @@ class DiffusionCore(Core):
         metrics_visualizer: "MetricsVisualizer | None" = None,
         predictive_coding_params: dict | None = None,
         schema_induction_params: dict | None = None,
+        memory_system: MemorySystem | None = None,
+        cwfl_params: dict | None = None,
+        harmonic_params: dict | None = None,
+        fractal_params: dict | None = None,
+        activation_output_dir: str | None = None,
         plugin_dirs: list[str] | None = None,
     ) -> None:
         params = params.copy() if params is not None else {}
@@ -87,6 +102,33 @@ class DiffusionCore(Core):
                 latent_dim=predictive_coding_params.get("latent_dim", self.rep_size),
                 learning_rate=predictive_coding_params.get("learning_rate", 0.001),
             )
+        self.memory_system = memory_system
+        self.cwfl: ContinuousWeightFieldLearner | None = None
+        if cwfl_params is not None:
+            self.cwfl = ContinuousWeightFieldLearner(
+                self,
+                self.neuronenblitz,
+                num_basis=cwfl_params.get("num_basis", 10),
+                bandwidth=cwfl_params.get("bandwidth", 1.0),
+                reg_lambda=cwfl_params.get("reg_lambda", 0.01),
+                learning_rate=cwfl_params.get("learning_rate", 0.01),
+            )
+        self.harmonic: HarmonicResonanceLearner | None = None
+        if harmonic_params is not None:
+            self.harmonic = HarmonicResonanceLearner(
+                self,
+                self.neuronenblitz,
+                base_frequency=harmonic_params.get("base_frequency", 1.0),
+                decay=harmonic_params.get("decay", 0.99),
+            )
+        self.fractal: FractalDimensionLearner | None = None
+        if fractal_params is not None:
+            self.fractal = FractalDimensionLearner(
+                self,
+                self.neuronenblitz,
+                target_dimension=fractal_params.get("target_dimension", 4.0),
+            )
+        self.activation_output_dir = activation_output_dir
         if plugin_dirs:
             load_plugins(plugin_dirs)
 
@@ -120,6 +162,12 @@ class DiffusionCore(Core):
                 _ = self.predictive_coding.step(
                     torch.tensor([current + noise], dtype=torch.float32)
                 )
+            if self.cwfl is not None:
+                self.cwfl.train_step(current + noise, current)
+            if self.harmonic is not None:
+                self.harmonic.train_step(current + noise, current)
+            if self.fractal is not None:
+                self.fractal.train_step(current + noise, current)
             out, path = self.neuronenblitz.dynamic_wander(current + noise)
             if self.schema_learner is not None:
                 self.schema_learner._record_sequence(path)
@@ -128,6 +176,14 @@ class DiffusionCore(Core):
             perform_message_passing(self)
             if self.hybrid_memory is not None:
                 self.hybrid_memory.store(f"step_{step}", out)
+            if self.memory_system is not None:
+                self.memory_system.store(
+                    f"step_{step}",
+                    out,
+                    context=(self.neuromodulatory_system.get_context()
+                             if self.neuromodulatory_system is not None
+                             else {}),
+                )
             if self.metrics_visualizer is not None:
                 rep_matrix = cp.stack([n.representation for n in self.neurons])
                 variance = float(cp.var(rep_matrix))
@@ -141,6 +197,19 @@ class DiffusionCore(Core):
         self.history.append(current)
         if self.metrics_visualizer is not None:
             self.metrics_visualizer.update({"diffusion_output": current})
+        if self.memory_system is not None:
+            self.memory_system.store(
+                "diffusion_output",
+                current,
+                context=(self.neuromodulatory_system.get_context()
+                         if self.neuromodulatory_system is not None
+                         else {}),
+            )
+            self.memory_system.consolidate()
+        if self.activation_output_dir is not None:
+            path = os.path.join(self.activation_output_dir, f"diffusion_{len(self.history)}.png")
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            plot_activation_heatmap(self, path)
         if (
             self.remote_client is not None
             and self.get_usage_by_tier("vram")

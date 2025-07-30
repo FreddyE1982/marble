@@ -185,6 +185,33 @@ core:
   workspace_broadcast: Set to ``true`` to publish each diffusion result to the
     Global Workspace. Components subscribed to the workspace can then react to
     new samples in real time.
+  activation_output_dir: Directory where a heatmap of neuron activations is
+    written after every diffusion run. Useful for visualising internal state
+    evolution. The directory is created automatically if it does not exist.
+  memory_system:
+    long_term_path: File used for persistent storage of diffusion outputs. Both
+      short- and long-term layers are utilised so recent results can be cached
+      in RAM while important entries are kept on disk.
+    threshold: Neuromodulatory value above which entries bypass short-term
+      storage. Typical values fall between ``0.3`` and ``0.7``.
+    consolidation_interval: Number of stored items between automatic disk
+      consolidation.
+  cwfl:
+    num_basis: Number of radial basis functions forming the smooth weight
+      field. More bases allow finer detail but require additional computation.
+    bandwidth: Spread of each basis function controlling the locality of weight
+      influence.
+    reg_lambda: L2 penalty applied to basis weights to prevent divergence.
+    learning_rate: Step size used when updating the weight field each step.
+  harmonic:
+    base_frequency: Starting frequency for the harmonic encoder that converts
+      scalar inputs into oscillatory representations.
+    decay: Multiplicative factor applied after each update so the active
+      frequency gradually decreases and stabilises.
+  fractal:
+    target_dimension: Desired fractal dimension of the representation space.
+      When the measured dimension exceeds this threshold the core expands its
+      representation size to capture additional structure.
   cross_tier_migration: When ``true`` neurons may move between tiers even if
     their age thresholds have not been reached.
   synapse_echo_length: Number of past activations each synapse stores in its
