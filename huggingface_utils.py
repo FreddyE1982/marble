@@ -1,6 +1,8 @@
 import os
 from typing import Any, Iterable
 
+from marble import DataLoader
+
 from datasets import load_dataset
 from huggingface_hub import HfApi, login
 from transformers import AutoModel
@@ -40,13 +42,19 @@ def hf_load_dataset(
     target_key: str = "target",
     limit: int | None = None,
     streaming: bool = False,
+    dataloader: "DataLoader | None" = None,
 ) -> list[tuple[Any, Any]]:
     """Return ``(input, target)`` pairs from a Hugging Face dataset."""
     token = hf_login()
     ds = load_dataset(dataset_name, split=split, token=token, streaming=streaming)
     examples: list[tuple[Any, Any]] = []
     for record in ds:
-        examples.append((record[input_key], record[target_key]))
+        inp = record[input_key]
+        tgt = record[target_key]
+        if dataloader is not None:
+            inp = dataloader.encode(inp)
+            tgt = dataloader.encode(tgt)
+        examples.append((inp, tgt))
         if limit is not None and len(examples) >= limit:
             break
     return examples

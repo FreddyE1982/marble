@@ -13,6 +13,7 @@ import marble_interface
 from marble_base import MetricsVisualizer
 from tqdm import tqdm as std_tqdm
 from tests.test_core_functions import minimal_params
+from marble import DataLoader
 
 from marble_interface import (
     new_marble_system,
@@ -83,17 +84,22 @@ def test_load_dataset_and_dataframe_training(tmp_path):
     marble_main.MetricsVisualizer = MetricsVisualizer
 
     dummy = [{"input": 0.1, "target": 0.2}, {"input": 0.2, "target": 0.4}]
+    dl = DataLoader()
     with patch(
         "marble_interface.hf_login", return_value=None
     ) as login_mock, patch(
         "marble_interface.load_dataset", return_value=dummy
-    ) as ld:
-        pairs = load_hf_dataset("dummy", "train", streaming=True)
+    ) as ld, patch.object(
+        dl, "encode", wraps=dl.encode
+    ) as enc:
+        pairs = load_hf_dataset("dummy", "train", streaming=True, dataloader=dl)
     login_mock.assert_called_once()
     ld.assert_called_once_with(
         "dummy", split="train", token=None, streaming=True
     )
-    assert pairs == [(0.1, 0.2), (0.2, 0.4)]
+    decoded_pairs = [(dl.decode(i), dl.decode(t)) for i, t in pairs]
+    assert decoded_pairs == [(0.1, 0.2), (0.2, 0.4)]
+    assert enc.call_count == 4
 
     cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
     cfg_path = tmp_path / "cfg.yaml"
@@ -103,7 +109,7 @@ def test_load_dataset_and_dataframe_training(tmp_path):
     m = new_marble_system(str(cfg_path))
     df = pd.DataFrame(dummy)
     train_from_dataframe(m, df, epochs=1)
-    mse = evaluate_marble_system(m, pairs)
+    mse = evaluate_marble_system(m, decoded_pairs)
     assert isinstance(mse, float)
 
 
