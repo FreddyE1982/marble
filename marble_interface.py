@@ -13,7 +13,7 @@ from autoencoder_learning import AutoencoderLearner
 from config_loader import create_marble_from_config, load_config
 from curriculum_learning import curriculum_train
 from distillation_trainer import DistillationTrainer
-from marble_autograd import MarbleAutogradLayer
+from marble_autograd import MarbleAutogradLayer, TransparentMarbleLayer
 from marble_main import MARBLE
 from marble_utils import core_from_json, core_to_json
 
@@ -463,3 +463,64 @@ def train_autoencoder(
     )
     learner.train(list(map(float, values)), epochs=int(epochs))
     return float(learner.history[-1]["loss"]) if learner.history else 0.0
+
+
+def attach_marble_layer(
+    model_or_path: str | torch.nn.Module,
+    marble: MARBLE | Brain,
+    after: int | str | None = None,
+    train_in_graph: bool = True,
+) -> torch.nn.Module:
+    """Return ``model`` with an attached transparent Marble layer."""
+
+    if isinstance(model_or_path, str):
+        from torch.serialization import add_safe_globals
+
+        add_safe_globals([torch.nn.modules.container.Sequential])
+        model = torch.load(model_or_path, weights_only=False)
+    else:
+        model = model_or_path
+
+    brain = marble.get_brain() if isinstance(marble, MARBLE) else marble
+    hook = TransparentMarbleLayer(brain, train_in_graph=train_in_graph)
+
+    if isinstance(model, torch.nn.Sequential):
+        modules = list(model.children())
+        idx = len(modules)
+        if isinstance(after, int):
+            idx = min(len(modules), after + 1)
+        modules.insert(idx, hook)
+        return torch.nn.Sequential(*modules)
+
+    gm = torch.fx.symbolic_trace(model)
+    name = f"marble_hook_{len(gm.graph.nodes)}"
+    gm.add_submodule(name, hook)
+
+    target = None
+    if isinstance(after, str):
+        for n in gm.graph.nodes:
+            if n.op == "call_module" and n.target == after:
+                target = n
+                break
+    elif isinstance(after, int):
+        nodes = [n for n in gm.graph.nodes if n.op == "call_module"]
+        if 0 <= after < len(nodes):
+            target = nodes[after]
+    if target is None:
+        for n in reversed(gm.graph.nodes):
+            if n.op == "call_module":
+                target = n
+                break
+
+    with gm.graph.inserting_after(target):
+        new_node = gm.graph.call_module(name, args=(target,))
+    target.replace_all_uses_with(new_node)
+    new_node.args = (target,)
+    gm.graph.lint()
+    gm.recompile()
+    return gm
+
+
+def save_attached_model(model: torch.nn.Module, path: str) -> None:
+    """Persist ``model`` with attached MARBLE to ``path``."""
+    torch.save(model, path)
