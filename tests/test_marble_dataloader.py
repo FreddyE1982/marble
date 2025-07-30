@@ -78,6 +78,30 @@ def test_marble_dataloader_various_types_roundtrip():
             assert restored == item
 
 
+def test_marble_dataloader_image_roundtrip():
+    dl = DataLoader()
+    img = np.random.randint(0, 255, (8, 8, 3), dtype=np.uint8)
+    tensor = dl.encode(img)
+    restored = dl.decode(tensor)
+    assert np.array_equal(restored, img)
+
+
+def test_marble_dataloader_audio_roundtrip(tmp_path):
+    import wave
+    audio_path = tmp_path / "audio.wav"
+    with wave.open(str(audio_path), "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(8000)
+        data = np.random.randint(-32768, 32767, 800, dtype=np.int16)
+        wf.writeframes(data.tobytes())
+    audio_bytes = audio_path.read_bytes()
+    dl = DataLoader()
+    encoded = dl.encode(audio_bytes)
+    decoded = dl.decode(encoded)
+    assert decoded == audio_bytes
+
+
 class _NeverEqual:
     def __eq__(self, other):
         return False
