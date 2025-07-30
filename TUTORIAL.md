@@ -1355,6 +1355,8 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
        "mnist", "train[:100]", input_key="image", target_key="label"
    )
    ```
+   If the dataset requires authentication place your Hugging Face token in
+   `~/.cache/marble/hf_token`. The helper will log in automatically.
 2. **Load a CSV dataset from a URL** using the `dataset_loader` utility:
    ```python
    from dataset_loader import load_dataset

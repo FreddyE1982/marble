@@ -9,6 +9,8 @@ import pandas as pd
 import torch
 from datasets import load_dataset
 
+from huggingface_utils import hf_login
+
 from autoencoder_learning import AutoencoderLearner
 from config_loader import create_marble_from_config, load_config
 from curriculum_learning import curriculum_train
@@ -224,9 +226,11 @@ def load_hf_dataset(
     input_key: str = "input",
     target_key: str = "target",
     limit: int | None = None,
+    streaming: bool = False,
 ) -> list[tuple[Any, Any]]:
     """Load a Hugging Face dataset and return ``(input, target)`` pairs."""
-    ds = load_dataset(dataset_name, split=split)
+    token = hf_login()
+    ds = load_dataset(dataset_name, split=split, token=token, streaming=streaming)
     examples: list[tuple[Any, Any]] = []
     for record in ds:
         examples.append((record[input_key], record[target_key]))

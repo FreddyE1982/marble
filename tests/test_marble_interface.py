@@ -81,8 +81,16 @@ def test_load_dataset_and_dataframe_training(tmp_path):
     marble_main.MetricsVisualizer = MetricsVisualizer
 
     dummy = [{"input": 0.1, "target": 0.2}, {"input": 0.2, "target": 0.4}]
-    with patch("marble_interface.load_dataset", return_value=dummy):
-        pairs = load_hf_dataset("dummy", "train")
+    with patch(
+        "marble_interface.hf_login", return_value=None
+    ) as login_mock, patch(
+        "marble_interface.load_dataset", return_value=dummy
+    ) as ld:
+        pairs = load_hf_dataset("dummy", "train", streaming=True)
+    login_mock.assert_called_once()
+    ld.assert_called_once_with(
+        "dummy", split="train", token=None, streaming=True
+    )
     assert pairs == [(0.1, 0.2), (0.2, 0.4)]
 
     cfg = {"core": minimal_params(), "brain": {"save_dir": str(tmp_path)}}
