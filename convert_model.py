@@ -1,7 +1,6 @@
 import argparse
 from pathlib import Path
 
-import torch
 from pytorch_to_marble import convert_model
 from marble_interface import MARBLE, save_marble_system
 from marble_utils import core_to_json
@@ -37,7 +36,8 @@ def main() -> None:
     ):
         parser.error("--output is required unless running in dry-run or summary mode")
 
-    model = torch.load(args.pytorch, map_location="cpu", weights_only=False)
+    from torch_model_io import load_model_auto
+    model = load_model_auto(args.pytorch)
 
     if args.summary or args.summary_output:
         core, summary = convert_model(

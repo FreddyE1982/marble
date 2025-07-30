@@ -1,20 +1,14 @@
 import os
-import sys
 import torch
-from typing import Iterable, Any
 import numpy as np
-import json
 import tarfile
-import tempfile
 import requests
 import time
 from pathlib import Path
 from tqdm.notebook import tqdm  # For Jupyter-optimized progress bars
 from PIL import Image
-from io import BytesIO
 import matplotlib.pyplot as plt
 import pickle
-import zlib
 from data_compressor import DataCompressor
 import random
 import math
@@ -96,7 +90,7 @@ def download_and_process_tar(url: str, temp_dir: str | os.PathLike[str]) -> list
         print("Detected LFS pointer file. Downloading actual tar file...")
         lfs_info = content.decode("utf-8").strip().splitlines()
         oid_line = next(line for line in lfs_info if line.startswith("oid sha256:"))
-        oid = oid_line.split(":")[1].strip()
+        _ = oid_line.split(":")[1].strip()
         lfs_url = f"https://huggingface.co/datasets/jackyhate/text-to-image-2M/resolve/main/data_512_2M/data_{url.split('data_')[-1]}"
         response = requests.get(lfs_url, stream=True, headers=headers, allow_redirects=True)
         response.raise_for_status()
@@ -189,7 +183,7 @@ class MetricsVisualizer:
 # -----------------------------------------------------
 
 # 4.1 Neuron and Synapse
-class Neuron:
+class Neuron:  # noqa: F811
     def __init__(self, nid, value=0.0, tier='vram'):
         self.id = nid
         self.value = value
@@ -197,7 +191,7 @@ class Neuron:
         self.synapses = []
         self.formula = None
 
-class Synapse:
+class Synapse:  # noqa: F811
     def __init__(self, source, target, weight=1.0):
         self.source = source
         self.target = target
@@ -237,7 +231,7 @@ def compute_mandelbrot(
     return mandelbrot
 
 # 4.3 Core  Build the neural core (supports multiple worlds: VRAM, RAM, disk)
-class Core:
+class Core:  # noqa: F811
     def __init__(self, params, formula=None, formula_num_neurons=100):
         print("Initializing MARBLE Core...")
         self.params = params
@@ -792,8 +786,9 @@ class MarbleConverter:
                 'max_iter': 50
             }
         if isinstance(model, str):
+            from torch_model_io import load_model_auto
             try:
-                model = torch.load(model, map_location='cpu')
+                model = load_model_auto(model)
             except Exception as e:
                 raise ValueError(f"Error loading model: {e}")
         if init_from_weights:
