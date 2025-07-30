@@ -8,6 +8,7 @@ from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain
 from marble_imports import cp
 from marble_core import DataLoader
+from tokenizers import Tokenizer
 
 
 class DiffusionPairsPipeline:
@@ -20,9 +21,25 @@ class DiffusionPairsPipeline:
     inference.
     """
 
-    def __init__(self, core: DiffusionCore, save_path: str = "trained_marble.pkl") -> None:
+    def __init__(
+        self,
+        core: DiffusionCore,
+        save_path: str = "trained_marble.pkl",
+        *,
+        dataloader: DataLoader | None = None,
+        tokenizer: Tokenizer | None = None,
+    ) -> None:
         self.core = core
-        self.loader = core.loader if hasattr(core, "loader") else DataLoader()
+        if dataloader is not None:
+            self.loader = dataloader
+            if tokenizer is not None:
+                self.loader.tokenizer = tokenizer
+        elif hasattr(core, "loader"):
+            if tokenizer is not None:
+                core.loader.tokenizer = tokenizer
+            self.loader = core.loader
+        else:
+            self.loader = DataLoader(tokenizer=tokenizer)
         self.save_path = save_path
         self.nb = Neuronenblitz(self.core)
         self.brain = Brain(self.core, self.nb, self.loader)

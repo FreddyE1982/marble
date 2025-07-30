@@ -9,7 +9,7 @@ from tests.test_core_functions import minimal_params
 
 def test_pipeline_run(tmp_path):
     params = minimal_params()
-    marble = MARBLE(params)
+    marble = MARBLE(params, dataloader_params={})
     pipe = Pipeline([{"func": "count_marble_synapses"}])
     results = pipe.execute(marble)
     assert len(results) == 1
