@@ -120,14 +120,14 @@ import urllib.request
 from sklearn.model_selection import train_test_split
 from marble_main import MARBLE
 from config_loader import load_config
+from marble import DataLoader
+from marble import DataLoader
 from dataset_loader import load_dataset
 from marble import DataLoader
-from tokenizer_utils import built_in_tokenizer
 
-url = "https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
-urllib.request.urlretrieve(url, "winequality-red.csv")
-tokenizer = built_in_tokenizer("bert_wordpiece")
-dataloader = DataLoader(tokenizer=tokenizer)
+pairs_url = "https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
+urllib.request.urlretrieve(pairs_url, "winequality-red.csv")
+dataloader = DataLoader()
 pairs = load_dataset("winequality-red.csv", dataloader=dataloader)
 train_examples, val_examples = train_test_split(pairs, test_size=0.1, random_state=42)
 
@@ -201,8 +201,10 @@ def load_cifar_batches(path):
     data = np.vstack(data).reshape(-1, 3, 32, 32) / 255.0
     return list(zip(data, labels))
 
-train_examples = load_cifar_batches('cifar-10-batches-py')
+raw_pairs = load_cifar_batches('cifar-10-batches-py')
 cfg = load_config()
+dataloader = DataLoader()
+train_examples = [(dataloader.encode(x), dataloader.encode(y)) for x, y in raw_pairs]
 marble = MARBLE(cfg['core'])
 marble.brain.start_training(train_examples, epochs=20)
 marble.brain.wait_for_training()
@@ -247,6 +249,7 @@ This project makes use of **asynchronous training**, **dreaming**, and the **evo
 from remote_offload import RemoteBrainServer, RemoteBrainClient
 from marble_main import MARBLE
 from config_loader import load_config
+from marble import DataLoader
 
 # Run this on the remote machine
 server = RemoteBrainServer(port=8000)
@@ -258,7 +261,8 @@ client = RemoteBrainClient('http://remote_host:8000')
 marble = MARBLE(cfg['core'], remote_client=client)
 from sklearn.datasets import load_digits
 digits = load_digits()
-train_pairs = [(x, y) for x, y in zip(digits.data, digits.target)]
+dataloader = DataLoader()
+train_pairs = [(dataloader.encode(x), dataloader.encode(y)) for x, y in zip(digits.data, digits.target)]
 marble.brain.offload_enabled = True
 marble.brain.offload_high_attention(threshold=0.5)
 ```
@@ -320,13 +324,19 @@ from sklearn.datasets import load_digits
 from config_loader import load_config
 from marble_main import MARBLE
 from marble_autograd import MarbleAutogradLayer
+from marble import DataLoader
 import pytorch_challenge
 
 digits = load_digits(return_X_y=True)
 cfg = load_config()
+dataloader = DataLoader()
+train_pairs = [
+    (dataloader.encode(x), dataloader.encode(t))
+    for x, t in zip(*digits)
+]
 marble = MARBLE(cfg['core'])
 pretrained = pytorch_challenge.load_pretrained_model()
-pytorch_challenge.run_challenge(digits, pretrained_model=pretrained, cfg=cfg)
+pytorch_challenge.run_challenge(train_pairs, pretrained_model=pretrained, cfg=cfg)
 
 layer = MarbleAutogradLayer(marble.brain)
 out = layer(torch.tensor(1.0, requires_grad=True))
@@ -362,10 +372,14 @@ This project covers **autograd integration** and the **PyTorch challenge** mecha
 # project5_gpt_training.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
+from tokenizer_utils import built_in_tokenizer
 import advanced_gpt
 import os, urllib.request
 
 cfg = load_config()
+tokenizer = built_in_tokenizer("byte_level_bpe")
+dataloader = DataLoader(tokenizer=tokenizer)
 marble = MARBLE(cfg['core'])
 os.makedirs('data', exist_ok=True)
 url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'
@@ -396,9 +410,13 @@ This final project introduces the **GPT components**, **distillation**, and the 
 # project05b_rnn_sequence_modeling.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
+from tokenizer_utils import built_in_tokenizer
 import requests
 
 cfg = load_config()
+tokenizer = built_in_tokenizer("char_bpe")
+dataloader = DataLoader(tokenizer=tokenizer)
 marble = MARBLE(cfg['core'])
 url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'
 text = requests.get(url, timeout=10).text[:1000]
@@ -439,9 +457,11 @@ trains ``MarblePolicyGradientAgent`` using a policy network wrapped with
 # project6_reinforcement_learning.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from reinforcement_learning import train_gridworld
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 from datasets import load_dataset
 expert = load_dataset("deep-rl-datasets", "cartpole-expert-v1")
@@ -473,9 +493,11 @@ Execute `python project6_reinforcement_learning.py` to run the built-in GridWorl
 # project7_contrastive_learning.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from marble_utils import augment_image
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 from torchvision.datasets import STL10
 import numpy as np
@@ -514,9 +536,11 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
 # project8_hebbian_learning.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from hebbian_learning import HebbianLearner
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 learner = HebbianLearner(marble.core, marble.neuronenblitz)
 from datasets import load_dataset
@@ -560,9 +584,11 @@ Execute this file to observe Hebbian updates on your data.
 # project9_adversarial_learning.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from adversarial_learning import AdversarialLearner
 
 cfg = load_config()
+dataloader = DataLoader()
 generator = MARBLE(cfg['core']).neuronenblitz
 discriminator = MARBLE(cfg['core']).neuronenblitz
 learner = AdversarialLearner(generator, discriminator)
@@ -598,9 +624,11 @@ Run this script to see generator and discriminator training in action.
 # project10_autoencoder.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from autoencoder_learning import AutoencoderLearner
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 auto = AutoencoderLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
@@ -638,9 +666,11 @@ Launch with `python project10_autoencoder.py` after enabling the module.
 # project11_semi_supervised.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from semi_supervised_learning import SemiSupervisedLearner
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 learner = SemiSupervisedLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
@@ -677,8 +707,10 @@ Execute `python project11_semi_supervised.py` once the module is enabled.
 from config_loader import load_config
 from federated_learning import FederatedAveragingTrainer
 from marble_main import MARBLE
+from marble import DataLoader
 
 cfg = load_config()
+dataloader = DataLoader()
 clients = [MARBLE(cfg['core']) for _ in range(3)]
 trainer = FederatedAveragingTrainer([c.neuronenblitz for c in clients])
 from datasets import load_dataset
@@ -717,9 +749,11 @@ This script launches a simple three‑client federated session.
 # project13_curriculum.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from curriculum_learning import CurriculumLearner
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 learner = CurriculumLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
@@ -760,9 +794,11 @@ Run `python project13_curriculum.py` to try curriculum learning.
 # project14_meta_learning.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from meta_learning import MetaLearner
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 learner = MetaLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
@@ -798,9 +834,11 @@ Launch the script to practice Reptile-style meta learning.
 # project15_transfer.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from transfer_learning import TransferLearner
 
 cfg = load_config()
+dataloader = DataLoader()
 base = MARBLE(cfg['core'])
 learner = TransferLearner(base.core, base.neuronenblitz)
 from datasets import load_dataset
@@ -837,9 +875,11 @@ Run `python project15_transfer.py` after enabling transfer learning.
 # project16_continual.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from continual_learning import ReplayContinualLearner
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 learner = ReplayContinualLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits, load_iris, load_wine
@@ -889,9 +929,11 @@ Execute the file to reproduce continual learning across tasks.
 # project17_imitation.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from imitation_learning import ImitationLearner
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 imitator = ImitationLearner(marble.core, marble.neuronenblitz)
 from datasets import load_dataset
@@ -940,10 +982,12 @@ Run `python project17_imitation.py` to train from demonstrations.
 # project18_harmonic.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from harmonic_resonance_learning import HarmonicResonanceLearner
 import urllib.request, zipfile, io, pandas as pd
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 learner = HarmonicResonanceLearner(marble.core, marble.neuronenblitz)
 url = "https://github.com/philipperemy/keras-tutorials/raw/master/resources/jena_climate_2009_2016.csv.zip"
@@ -981,9 +1025,11 @@ Run `python project18_harmonic.py` to explore harmonic resonance learning.
 # project19_synaptic_echo.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from synaptic_echo_learning import SynapticEchoLearner
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 learner = SynapticEchoLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
@@ -1018,9 +1064,11 @@ Run `python project19_synaptic_echo.py` with echo modulation enabled.
 # project20_fractal.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from fractal_dimension_learning import FractalDimensionLearner
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 learner = FractalDimensionLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
@@ -1054,9 +1102,11 @@ Run `python project20_fractal.py` to see representations grow over time.
 # project21_quantum_flux.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from quantum_flux_learning import QuantumFluxLearner
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 learner = QuantumFluxLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
@@ -1103,9 +1153,11 @@ Run `python project21_quantum_flux.py` to experiment with quantum flux updates.
 # project22_dream_reinforcement.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from dream_reinforcement_learning import DreamReinforcementLearner
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 learner = DreamReinforcementLearner(marble.core, marble.neuronenblitz)
 from datasets import load_dataset
@@ -1146,10 +1198,12 @@ Execute `python project22_dream_reinforcement.py` to see the synergy in action.
 # project23_omni.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from core_interconnect import interconnect_cores
 from omni_learning import OmniLearner
 
 cfg = load_config()
+dataloader = DataLoader()
 cores = [MARBLE(cfg['core']).core for _ in range(3)]
 combined = interconnect_cores(cores)
 neuronenblitz = MARBLE(cfg['core']).neuronenblitz
@@ -1210,10 +1264,12 @@ Run `python project23_omni.py` to test all paradigms together.
 # project24_cwfl.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from continuous_weight_field_learning import ContinuousWeightFieldLearner
 from sklearn.datasets import load_diabetes
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 learner = ContinuousWeightFieldLearner(marble.core, marble.neuronenblitz)
 ds = load_diabetes()
@@ -1295,10 +1351,12 @@ Run `python project24d_chaotic_gating.py` to test the effect on learning.
 # project25_nsi.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from neural_schema_induction import NeuralSchemaInductionLearner
 from sklearn.datasets import load_digits
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 learner = NeuralSchemaInductionLearner(marble.core, marble.neuronenblitz)
 digits = load_digits()
@@ -1334,10 +1392,12 @@ Run `python project25_nsi.py` to see schema neurons emerge.
 # project26_cip.py
 from config_loader import load_config
 from marble_main import MARBLE
+from marble import DataLoader
 from conceptual_integration import ConceptualIntegrationLearner
 from sklearn.datasets import load_boston
 
 cfg = load_config()
+dataloader = DataLoader()
 marble = MARBLE(cfg['core'])
 learner = ConceptualIntegrationLearner(marble.core, marble.neuronenblitz,
                                        blend_probability=0.5,
@@ -1637,9 +1697,11 @@ plugins and components.
 2. **Create the DiffusionCore** directly:
    ```python
    from config_loader import load_config
+   from marble import DataLoader
    from diffusion_core import DiffusionCore
 
    cfg = load_config()
+   dataloader = DataLoader()
    dcore = DiffusionCore(cfg["core"])
    output = dcore.diffuse(0.0)
    print("Final value", output)
