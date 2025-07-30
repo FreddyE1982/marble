@@ -60,6 +60,15 @@ CONFIG_SCHEMA = {
                 "compression_algorithm": {"type": "string", "enum": ["zlib", "lzma"]},
             },
         },
+        "dataloader": {
+            "type": "object",
+            "properties": {
+                "tensor_dtype": {"type": "string"},
+                "tokenizer_type": {"type": ["string", "null"]},
+                "tokenizer_json": {"type": ["string", "null"]},
+                "tokenizer_vocab_size": {"type": "integer", "minimum": 1},
+            },
+        },
         "plugins": {
             "type": ["array", "string"],
             "items": {"type": "string"},

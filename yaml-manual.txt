@@ -769,6 +769,15 @@ dataloader:
   # valid dtype name like ``"uint8"`` or ``"int16"``. Wider dtypes can prevent
   # overflow with exceptionally large payloads but increase memory usage.
   tensor_dtype: String specifying the dtype of encoded tensors.
+  tokenizer_type: Name of a built-in tokenizer from the ``tokenizers`` library
+    such as ``bert_wordpiece`` or ``byte_level_bpe``. When set, the DataLoader
+    converts all string inputs to token IDs using this tokenizer.
+  tokenizer_json: Path to a tokenizer JSON file to load instead of using a
+    built-in tokenizer. This allows custom vocabularies trained on your own
+    dataset.
+  tokenizer_vocab_size: Vocabulary size to use when training a tokenizer via
+    YAML configuration. The parameter is ignored when ``tokenizer_json`` is
+    provided.
 
 experiment_tracker:
   # Optional integration with external experiment tracking services such as

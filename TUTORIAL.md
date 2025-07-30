@@ -1650,3 +1650,13 @@ python main.py
 ```
 
 to train using the default settings.
+
+## Tokenizing Text Input
+
+MARBLE's ``DataLoader`` can transparently tokenize strings using the
+``tokenizers`` library. Set ``tokenizer_type`` in the ``dataloader`` section of
+``config.yaml`` (for example ``bert_wordpiece``) or provide a path via
+``tokenizer_json`` to load a custom tokenizer. When enabled, all text data is
+converted to token IDs before being fed into the network and decoded back after
+inference. The ``tokenizer_vocab_size`` parameter controls the vocabulary size
+when training a tokenizer from scratch using the YAML configuration.

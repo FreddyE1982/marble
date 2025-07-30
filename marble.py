@@ -8,6 +8,7 @@ from pathlib import Path
 from tqdm.notebook import tqdm  # For Jupyter-optimized progress bars
 from PIL import Image
 import matplotlib.pyplot as plt
+from tokenizers import Tokenizer
 import pickle
 from data_compressor import DataCompressor
 import random
@@ -339,6 +340,7 @@ class DataLoader:
         metrics_visualizer: "MetricsVisualizer | None" = None,
         tensor_dtype: str = "uint8",
         *,
+        tokenizer: "Tokenizer | None" = None,
         track_metadata: bool = True,
         round_trip_penalty: float = 0.0,
         enable_round_trip_check: bool = False,
@@ -350,6 +352,7 @@ class DataLoader:
         )
         self.metrics_visualizer = metrics_visualizer
         self.tensor_dtype = cp.dtype(tensor_dtype)
+        self.tokenizer = tokenizer
         self.track_metadata = track_metadata
         self.round_trip_penalty = round_trip_penalty
         self.enable_round_trip_check = enable_round_trip_check
@@ -364,8 +367,16 @@ class DataLoader:
         return a == b
 
     def encode(self, data):
+        tokenized = False
+        original_type = data.__class__
+        if self.tokenizer is not None and isinstance(data, str):
+            ids = self.tokenizer.encode(data).ids
+            data = np.asarray(ids, dtype=np.int32)
+            tokenized = True
         if self.track_metadata:
-            meta = {"module": data.__class__.__module__, "type": data.__class__.__name__}
+            meta = {"module": original_type.__module__, "type": original_type.__name__}
+            if tokenized:
+                meta["tokenized"] = True
             payload = {"__marble_meta__": meta, "payload": data}
             serialized = pickle.dumps(payload)
         else:
@@ -391,7 +402,16 @@ class DataLoader:
             self.metrics_visualizer.update({"compression_ratio": ratio})
         data = pickle.loads(serialized)
         if isinstance(data, dict) and "__marble_meta__" in data and "payload" in data:
-            data = data["payload"]
+            meta = data["__marble_meta__"]
+            payload = data["payload"]
+            if meta.get("tokenized") and self.tokenizer is not None:
+                if isinstance(payload, np.ndarray):
+                    tokens = payload.tolist()
+                else:
+                    tokens = list(payload)
+                data = self.tokenizer.decode(tokens)
+            else:
+                data = payload
         return data
 
     def round_trip_penalty_for(self, value):
