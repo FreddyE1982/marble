@@ -275,6 +275,7 @@ class MARBLE:
     def __getstate__(self):
         state = self.__dict__.copy()
         state["metrics_dashboard"] = None
+        state["metrics_visualizer"] = None
         return state
 
     def __setstate__(self, state):

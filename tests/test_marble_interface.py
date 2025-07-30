@@ -52,6 +52,8 @@ def test_save_and_load_marble(tmp_path):
     assert loaded.get_neuronenblitz().global_activation_count == acts
     out = infer_marble_system(loaded, 0.1)
     assert isinstance(out, float)
+    tensor_out = infer_marble_system(loaded, 0.1, tensor=True)
+    assert not isinstance(tensor_out, float)
 
 
 def test_toggle_features(tmp_path):

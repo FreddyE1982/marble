@@ -113,3 +113,5 @@ def test_train_with_pytorch_dataloader_and_infer(tmp_path):
     new_brain.load_model(path)
     out = new_brain.infer(0.1)
     assert isinstance(out, float)
+    tensor_out = new_brain.infer(0.1, tensor=True)
+    assert not isinstance(tensor_out, float)

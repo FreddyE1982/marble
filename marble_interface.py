@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import pickle
+import dill
 import warnings
 from typing import Any, Hashable, Iterable
 
@@ -60,19 +61,58 @@ def configure_marble_system(marble: MARBLE, config: str | dict) -> None:
 
 def save_marble_system(marble: MARBLE, path: str) -> None:
     """Persist ``marble`` to ``path`` using pickle."""
+    viz = getattr(marble, "metrics_visualizer", None)
+    brain_viz = None
+    if hasattr(marble, "brain"):
+        brain_viz = getattr(marble.brain, "metrics_visualizer", None)
+    fig = ax = ax_twin = csv_writer = json_writer = scheduler = None
+    if viz is not None:
+        fig = getattr(viz, "fig", None)
+        ax = getattr(viz, "ax", None)
+        viz.close()
+        writer = None
+        csv_writer = getattr(viz, "_csv_writer", None)
+        json_writer = getattr(viz, "_json_writer", None)
+        scheduler = getattr(viz, "backup_scheduler", None)
+        ax_twin = getattr(viz, "ax_twin", None)
+        viz.fig = None
+        viz.ax = None
+        if hasattr(viz, "ax_twin"):
+            viz.ax_twin = None
+        viz.writer = None
+        viz._csv_writer = None
+        viz._json_writer = None
+        viz.backup_scheduler = None
+    if brain_viz is not None:
+        brain_viz.close()
     with open(path, "wb") as f:
-        pickle.dump(marble, f)
+        dill.dump(marble, f)
+    if viz is not None:
+        viz.fig = fig
+        viz.ax = ax
+        if hasattr(viz, "ax_twin"):
+            viz.ax_twin = ax_twin
+        viz.writer = writer
+        viz._csv_writer = csv_writer
+        viz._json_writer = json_writer
+        viz.backup_scheduler = scheduler
 
 
 def load_marble_system(path: str) -> MARBLE:
     """Load a MARBLE system previously saved with :func:`save_marble_system`."""
     with open(path, "rb") as f:
-        return pickle.load(f)
+        return dill.load(f)
 
 
-def infer_marble_system(marble: MARBLE, input_value: float) -> float:
-    """Return model output for ``input_value`` using ``marble``."""
-    return marble.get_brain().infer(input_value)
+def infer_marble_system(
+    marble: MARBLE, input_value: float, *, tensor: bool = False
+) -> Any:
+    """Return model output for ``input_value`` using ``marble``.
+
+    If ``tensor`` is ``True`` the raw encoded tensor is returned without
+    decoding through the :class:`DataLoader` tokenizer.
+    """
+    return marble.get_brain().infer(input_value, tensor=tensor)
 
 
 def train_marble_system(
