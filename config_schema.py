@@ -64,6 +64,9 @@ CONFIG_SCHEMA = {
             "type": "object",
             "properties": {
                 "tensor_dtype": {"type": "string"},
+                "track_metadata": {"type": "boolean"},
+                "enable_round_trip_check": {"type": "boolean"},
+                "round_trip_penalty": {"type": "number", "minimum": 0},
                 "tokenizer_type": {"type": ["string", "null"]},
                 "tokenizer_json": {"type": ["string", "null"]},
                 "tokenizer_vocab_size": {"type": "integer", "minimum": 1},

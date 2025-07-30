@@ -769,6 +769,16 @@ dataloader:
   # valid dtype name like ``"uint8"`` or ``"int16"``. Wider dtypes can prevent
   # overflow with exceptionally large payloads but increase memory usage.
   tensor_dtype: String specifying the dtype of encoded tensors.
+  track_metadata: When ``true`` each encoded object is stored with metadata
+    describing its original Python module and type. This ensures decoding
+    faithfully recreates the value even when tokenization or compression is
+    applied.
+  enable_round_trip_check: Set to ``true`` to verify that decoding an encoded
+    value returns an object equal to the original during training. If the
+    objects differ the ``round_trip_penalty`` is added to the loss.
+  round_trip_penalty: Floating point penalty applied when the round-trip check
+    fails. Typical values range from ``0.1`` to ``1.0`` depending on how strongly
+    you want to discourage irreversible transformations.
   tokenizer_type: Name of a built-in tokenizer from the ``tokenizers`` library
     such as ``bert_wordpiece`` or ``byte_level_bpe``. When set, the DataLoader
     converts all string inputs to token IDs using this tokenizer.

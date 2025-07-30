@@ -305,6 +305,9 @@ Each entry is listed under its section heading.
 
 ## dataloader
 - tensor_dtype
+- track_metadata
+- enable_round_trip_check
+- round_trip_penalty
 - tokenizer_type
 - tokenizer_json
 - tokenizer_vocab_size
