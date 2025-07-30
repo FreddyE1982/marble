@@ -13,7 +13,7 @@ This tutorial demonstrates every major component of MARBLE through a series of p
 3. **Open the interactive notebook** found in ``notebooks/tutorial.ipynb`` if
    you prefer running the tutorial step by step inside Jupyter.
 
-3. **Use the command line interface**. The `cli.py` script allows training from
+4. **Use the command line interface**. The `cli.py` script allows training from
    the terminal without writing custom code. Scheduler and early-stopping
    parameters can be specified on the command line:
    ```bash
@@ -23,6 +23,28 @@ This tutorial demonstrates every major component of MARBLE through a series of p
    ```
    Replace the dataset path with your own CSV or JSON file. The optional
    `--validate` flag specifies a validation dataset.
+
+### Data Loading and Tokenization
+
+All examples below rely on the unified :class:`DataLoader` and
+``dataset_loader.load_dataset`` utility. Text can be tokenized automatically
+using any Hugging Face tokenizer. The snippet shows how to create a
+``DataLoader`` with a built-in WordPiece tokenizer and load a CSV file:
+
+```python
+from tokenizer_utils import built_in_tokenizer
+from dataset_loader import load_dataset
+from marble import DataLoader
+
+tokenizer = built_in_tokenizer("bert_wordpiece")
+dataloader = DataLoader(tokenizer=tokenizer)
+pairs = load_dataset("path/to/data.csv", dataloader=dataloader)
+```
+
+Set ``dataloader.tokenizer_type: bert_wordpiece`` or ``tokenizer_json`` in
+``config.yaml`` to use the same tokenizer when constructing ``MARBLE``. Each
+project example assumes a ``dataloader`` prepared this way and passes it to
+``load_dataset``.
 
 ## Project 1 – Numeric Regression (Easy)
 
@@ -43,16 +65,17 @@ This tutorial demonstrates every major component of MARBLE through a series of p
    train_examples = generate_sine_wave_dataset(200, noise_std=0.05, seed=0)
    ```
    This produces `(input, target)` pairs following a noisy sine wave.
-3. **Prepare the dataset** by loading the CSV with `pandas` and converting each row into `(input, target)` pairs. `input` contains the feature columns and `target` is the quality score:
+3. **Prepare the dataset** using the unified loader so objects are encoded
+   consistently:
    ```python
-   import pandas as pd
-   df = pd.read_csv('winequality-red.csv', sep=';')
-   train_examples = [(row[:-1].to_numpy(), row[-1]) for row in df.to_numpy()]
+   from dataset_loader import load_dataset
+
+   pairs = load_dataset('winequality-red.csv', dataloader=dataloader)
    ```
-4. **Split the data** into training and validation sets so the training loop can monitor validation loss:
+   `pairs` is a list of `(input, target)` tuples ready for training.
    ```python
    from sklearn.model_selection import train_test_split
-   train_examples, val_examples = train_test_split(train_examples, test_size=0.1, random_state=42)
+   train_examples, val_examples = train_test_split(pairs, test_size=0.1, random_state=42)
    ```
 4. **Edit configuration**. Open `config.yaml` and modify the values under `core` to adjust the representation size and other parameters. Save the file after your edits.
    To experiment with sparser communication set `attention_dropout` to a value between `0.0` and `1.0`. Higher values randomly ignore more incoming messages during attention-based updates.
@@ -94,16 +117,19 @@ This tutorial demonstrates every major component of MARBLE through a series of p
 ```python
 # project1_numeric_regression.py
 import urllib.request
-import pandas as pd
 from sklearn.model_selection import train_test_split
 from marble_main import MARBLE
 from config_loader import load_config
+from dataset_loader import load_dataset
+from marble import DataLoader
+from tokenizer_utils import built_in_tokenizer
 
 url = "https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
 urllib.request.urlretrieve(url, "winequality-red.csv")
-df = pd.read_csv('winequality-red.csv', sep=';')
-examples = [(row[:-1].to_numpy(), row[-1]) for row in df.to_numpy()]
-train_examples, val_examples = train_test_split(examples, test_size=0.1, random_state=42)
+tokenizer = built_in_tokenizer("bert_wordpiece")
+dataloader = DataLoader(tokenizer=tokenizer)
+pairs = load_dataset("winequality-red.csv", dataloader=dataloader)
+train_examples, val_examples = train_test_split(pairs, test_size=0.1, random_state=42)
 
 cfg = load_config()
 marble = MARBLE(cfg['core'])
@@ -112,6 +138,10 @@ marble.brain.train(train_examples, epochs=10, validation_examples=val_examples)
 Run this script with `python project1_numeric_regression.py` to reproduce the first project end-to-end.
 
 This project introduces the **Core**, **Neuronenblitz** and **Brain** objects along with the data compression pipeline.
+
+All following project scripts assume a ``dataloader`` created as in
+Project&nbsp;1 so that text input is tokenized consistently. Only the dataset
+URL or loading routine changes.
 
 ## Project 2 – Image Classification (Medium)
 
