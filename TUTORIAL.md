@@ -277,6 +277,8 @@ a minimal web API.
    # before applying them, enabling larger effective batch sizes.
    out = layer(torch.tensor(1.0, requires_grad=True))
    ```
+5. **Inject MARBLE into any PyTorch model** with `attach_marble_layer` to run
+   MARBLE side by side without altering the model output.
 
 **Complete Example**
 ```python

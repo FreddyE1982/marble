@@ -57,3 +57,25 @@ class MarbleAutogradLayer(nn.Module):
         if not isinstance(x, torch.Tensor):
             x = torch.tensor(x, dtype=torch.float32)
         return MarbleAutogradFunction.apply(self, x)
+
+class TransparentMarbleLayer(nn.Module):
+    """Insert MARBLE into a PyTorch model without altering activations."""
+
+    def __init__(self, brain: Brain, train_in_graph: bool = True) -> None:
+        super().__init__()
+        self.marble_layer = MarbleAutogradLayer(brain)
+        self.train_in_graph = train_in_graph
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if self.train_in_graph:
+            marble_out = self.marble_layer(x)
+            return x + marble_out * 0
+        with torch.no_grad():
+            self.marble_layer(x)
+        return x
+
+    def train_marble(self, examples, epochs: int = 1) -> None:
+        self.marble_layer.brain.train(examples, epochs=epochs)
+
+    def infer_marble(self, inp: float) -> float:
+        return self.marble_layer.brain.infer(inp)

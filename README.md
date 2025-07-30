@@ -151,7 +151,9 @@ You can now download the currently active configuration or save it to a custom
 path directly from the sidebar. Advanced mode also features search boxes for
 quickly locating functions by name within ``marble_interface`` or any module.
 The Model Conversion tab now supports searching the Hub for pretrained models so
-they can be converted with a single click.
+they can be converted with a single click. You can also inject MARBLE as a
+transparent layer inside any loaded PyTorch model to monitor or train it in
+parallel without affecting the network's predictions.
 An additional **Visualization** tab renders an interactive graph of the core so
 you can inspect neuron connectivity in real time. You may select a *spring* or
 *circular* layout for this graph. The new **Weight Heatmap** tab displays
