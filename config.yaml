@@ -71,6 +71,10 @@ core:
   early_cleanup_enabled: false
   pretraining_epochs: 0
   min_cluster_k: 2
+  diffusion_steps: 10
+  noise_start: 1.0
+  noise_end: 0.1
+  noise_schedule: "linear"
 # Neuronenblitz learning system parameters
 
   synapse_echo_length: 5

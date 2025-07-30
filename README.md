@@ -33,6 +33,8 @@ abstract ideas not present in the training data.
 The Hybrid Memory Architecture augments MARBLE with a vector store and symbolic
 database so long conversations can be recalled accurately and hallucinations are
 reduced.
+DiffusionCore leverages Neuronenblitz wandering for iterative denoising so
+diffusion models can be trained and sampled entirely within MARBLE.
 
 MARBLE can train on datasets provided as lists of ``(input, target)`` pairs or using PyTorch-style ``Dataset``/``DataLoader`` objects. Each sample must expose an ``input`` and ``target`` field. After training and saving a model, ``Brain.infer`` generates outputs when given only an input value.
 For quick experiments without external files you can generate synthetic regression pairs using ``synthetic_dataset.generate_sine_wave_dataset``.

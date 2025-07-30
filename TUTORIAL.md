@@ -1587,9 +1587,37 @@ plugins and components.
    import episodic_simulation
 
    mem = episodic_memory.EpisodicMemory()
-   rewards = episodic_simulation.simulate(nb, mem, length=5)
+  rewards = episodic_simulation.simulate(nb, mem, length=5)
+  ```
+  The list ``rewards`` contains predicted outcomes for the top episodes.
+
+## Project 31 – Diffusion Core (Advanced)
+
+**Goal:** Generate samples using MARBLE's dedicated diffusion engine.
+
+1. **Enable diffusion settings** by adding the parameters ``diffusion_steps``,
+   ``noise_start``, ``noise_end`` and ``noise_schedule`` under ``core`` in
+   ``config.yaml``. The defaults perform ten linear denoising steps.
+2. **Create the DiffusionCore** directly:
+   ```python
+   from config_loader import load_config
+   from diffusion_core import DiffusionCore
+
+   cfg = load_config()
+   dcore = DiffusionCore(cfg["core"])
+   output = dcore.diffuse(0.0)
+   print("Final value", output)
    ```
-   The list ``rewards`` contains predicted outcomes for the top episodes.
+3. **Store intermediate results** by enabling the ``hybrid_memory`` section in
+   the configuration. Each diffusion step is embedded and saved so similar
+   samples can be retrieved later.
+4. **Offload** the core automatically when VRAM usage exceeds
+   ``offload_threshold`` by passing a ``RemoteBrainClient`` to
+   ``DiffusionCore``.
+
+Running this project demonstrates the new ``DiffusionCore`` which integrates
+Neuronenblitz wandering, hybrid memory and remote offloading to support
+diffusion-based models in a fully data type agnostic way.
 
 
 ## Organising Multiple Experiments
