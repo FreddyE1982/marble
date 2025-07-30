@@ -57,6 +57,10 @@ Each entry is listed under its section heading.
 - early_cleanup_enabled
 - pretraining_epochs
 - min_cluster_k
+- diffusion_steps
+- noise_start
+- noise_end
+- noise_schedule
 - cross_tier_migration
 - synapse_echo_length
 - synapse_echo_decay

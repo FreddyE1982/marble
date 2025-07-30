@@ -169,6 +169,15 @@ core:
     training begins.
   min_cluster_k: Smallest number of clusters allowed when ``cluster_neurons``
     is invoked automatically.
+  diffusion_steps: Number of denoising iterations performed during diffusion
+    sampling. Values above ``1`` produce smoother results but increase
+    computation time.
+  noise_start: Standard deviation of the Gaussian noise applied at the first
+    diffusion step. Higher values start the process from a noisier state.
+  noise_end: Noise level used for the final diffusion step. Typically set close
+    to ``0.0`` for crisp outputs.
+  noise_schedule: Schedule controlling how the noise decreases across
+    ``diffusion_steps``. Valid options are ``"linear"`` or ``"cosine"``.
   cross_tier_migration: When ``true`` neurons may move between tiers even if
     their age thresholds have not been reached.
   synapse_echo_length: Number of past activations each synapse stores in its
