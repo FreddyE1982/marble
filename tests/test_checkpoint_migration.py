@@ -5,6 +5,7 @@ import numpy as np
 from marble_core import Core
 from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain
+from marble import DataLoader
 from tests.test_core_functions import minimal_params
 
 
@@ -34,3 +35,19 @@ def test_checkpoint_migration(tmp_path):
     assert epoch == 1
     assert "markers" in ctx and "goals" in ctx and "tom" in ctx
     assert len(brain.neuronenblitz.replay_buffer[0]) == 5
+
+
+def test_checkpoint_migration_no_tokenizer(tmp_path):
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    dl = DataLoader()
+    brain = Brain(core, nb, dl, save_dir=str(tmp_path))
+    ckpt = tmp_path / "old_no_tok.pkl"
+    brain.save_checkpoint(str(ckpt), epoch=1)
+
+    new_dl = DataLoader()
+    new_brain = Brain(core, nb, new_dl, save_dir=str(tmp_path))
+    epoch = new_brain.load_checkpoint(str(ckpt))
+    assert epoch == 1
+    assert new_brain.dataloader.tokenizer is None

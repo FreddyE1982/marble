@@ -5,6 +5,7 @@ import io
 import requests
 import pandas as pd
 from typing import Any
+from marble import DataLoader
 from tqdm import tqdm
 
 
@@ -34,6 +35,7 @@ def load_dataset(
     offline: bool = False,
     num_shards: int | None = None,
     shard_index: int = 0,
+    dataloader: "DataLoader | None" = None,
 ) -> list[tuple[Any, Any]]:
     """Load a dataset from ``source``.
 
@@ -47,7 +49,8 @@ def load_dataset(
     specifying ``num_shards`` and ``shard_index``. When ``num_shards`` is
     greater than one, only every ``num_shards``-th sample starting at
     ``shard_index`` is returned. This is useful for distributed training where
-    each worker processes a different shard.
+    each worker processes a different shard. When ``dataloader`` is provided,
+    inputs and targets are encoded using :class:`~marble.DataLoader`.
     """
     if source.startswith("http://") or source.startswith("https://"):
         name = os.path.basename(source)
@@ -87,7 +90,12 @@ def load_dataset(
         raise ValueError("Unsupported dataset format")
     pairs: list[tuple[Any, Any]] = []
     for _, row in df.iterrows():
-        pairs.append((row[input_col], row[target_col]))
+        inp = row[input_col]
+        tgt = row[target_col]
+        if dataloader is not None:
+            inp = dataloader.encode(inp)
+            tgt = dataloader.encode(tgt)
+        pairs.append((inp, tgt))
         if limit is not None and len(pairs) >= limit:
             break
 
