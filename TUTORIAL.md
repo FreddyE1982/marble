@@ -235,8 +235,13 @@ This project makes use of **asynchronous training**, **dreaming**, and the **evo
 3. **Download a dataset** such as digits using `sklearn.datasets.load_digits()` for offloaded training:
    ```python
    from sklearn.datasets import load_digits
+   from marble import DataLoader
+   dataloader = DataLoader()
    digits = load_digits()
-   train_pairs = [(x, y) for x, y in zip(digits.data, digits.target)]
+   train_pairs = [
+       (dataloader.encode(x), dataloader.encode(y))
+       for x, y in zip(digits.data, digits.target)
+   ]
    ```
 4. **Enable offloading** by setting `marble.brain.offload_enabled = True` and then call:
    ```python
@@ -658,8 +663,12 @@ Launch with `python project10_autoencoder.py` after enabling the module.
    digits = load_digits()
    X_train, X_unlabeled, y_train, _ = train_test_split(
        digits.data, digits.target, test_size=0.8, random_state=42)
-   labeled = list(zip(X_train, y_train))
-   unlabeled = list(X_unlabeled)
+   dataloader = DataLoader()
+   labeled = [
+       (dataloader.encode(x), dataloader.encode(t))
+       for x, t in zip(X_train, y_train)
+   ]
+   unlabeled = [dataloader.encode(x) for x in X_unlabeled]
    ```
 4. **Train** using these lists with `learner.train(labeled, unlabeled)` and inspect `learner.history` to gauge progress.
 
@@ -680,8 +689,11 @@ from sklearn.model_selection import train_test_split
 digits = load_digits()
 X_train, X_unlabeled, y_train, _ = train_test_split(
     digits.data, digits.target, test_size=0.8, random_state=42)
-labeled = list(zip(X_train, y_train))
-unlabeled = list(X_unlabeled)
+labeled = [
+    (dataloader.encode(x), dataloader.encode(t))
+    for x, t in zip(X_train, y_train)
+]
+unlabeled = [dataloader.encode(x) for x in X_unlabeled]
 learner.train(labeled, unlabeled)
 print(learner.history[-1])
 ```
@@ -777,10 +789,14 @@ Run `python project13_curriculum.py` to try curriculum learning.
    ```python
    from sklearn.datasets import load_digits
    digits = load_digits()
+   dataloader = DataLoader()
    tasks = []
    for digit in range(10):
        mask = digits.target == digit
-       pairs = list(zip(digits.data[mask], digits.target[mask]))
+       pairs = [
+           (dataloader.encode(x), dataloader.encode(int(digit)))
+           for x in digits.data[mask]
+       ]
        tasks.append(pairs)
    ```
 3. **Create the meta learner**:
@@ -808,7 +824,10 @@ digits = load_digits()
 tasks = []
 for digit in range(10):
     mask = digits.target == digit
-    pairs = list(zip(digits.data[mask], digits.target[mask]))
+    pairs = [
+        (dataloader.encode(x), dataloader.encode(int(digit)))
+        for x in digits.data[mask]
+    ]
     tasks.append(pairs)
 for _ in range(cfg['meta_learning']['epochs']):
     learner.train_step(tasks)
@@ -826,7 +845,11 @@ Launch the script to practice Reptile-style meta learning.
    ```python
    from datasets import load_dataset
    ds = load_dataset('fashion_mnist', split='train')
-   new_pairs = [(x['image'].reshape(-1).numpy() / 255.0, x['label']) for x in ds]
+   dl = DataLoader()
+   new_pairs = [
+       (dl.encode(x['image'].reshape(-1).numpy() / 255.0), dl.encode(x['label']))
+       for x in ds
+   ]
    ```
 4. **Fine-tune** on these pairs by calling `learner.train(new_pairs)`.
 5. **Tune `freeze_fraction`** to control how many synapses stay fixed during fine‑tuning and monitor `learner.history` to check performance on the new task.
@@ -845,7 +868,11 @@ base = MARBLE(cfg['core'])
 learner = TransferLearner(base.core, base.neuronenblitz)
 from datasets import load_dataset
 ds = load_dataset('fashion_mnist', split='train')
-new_pairs = [(x['image'].reshape(-1).numpy() / 255.0, x['label']) for x in ds]
+new_pairs = [
+    (dataloader.encode(x['image'].reshape(-1).numpy() / 255.0),
+     dataloader.encode(x['label']))
+    for x in ds
+]
 learner.train(new_pairs)
 print(learner.history[-1])
 ```
@@ -864,10 +891,20 @@ Run `python project15_transfer.py` after enabling transfer learning.
 3. **Download a sequence of datasets** such as Digits, Iris and Wine from `sklearn.datasets`:
    ```python
    from sklearn.datasets import load_digits, load_iris, load_wine
+   dl = DataLoader()
    datasets = [
-       list(zip(load_digits().data, load_digits().target)),
-       list(zip(load_iris().data, load_iris().target)),
-       list(zip(load_wine().data, load_wine().target))
+       [
+           (dl.encode(x), dl.encode(t))
+           for x, t in zip(load_digits().data, load_digits().target)
+       ],
+       [
+           (dl.encode(x), dl.encode(t))
+           for x, t in zip(load_iris().data, load_iris().target)
+       ],
+       [
+           (dl.encode(x), dl.encode(t))
+           for x, t in zip(load_wine().data, load_wine().target)
+       ],
    ]
    ```
 4. **Train sequentially** by calling `learner.train(data)` for each dataset and monitor reconstruction loss via `learner.history` to see how well the model retains previous knowledge.
@@ -886,9 +923,18 @@ marble = MARBLE(cfg['core'])
 learner = ReplayContinualLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits, load_iris, load_wine
 datasets = [
-    list(zip(load_digits().data, load_digits().target)),
-    list(zip(load_iris().data, load_iris().target)),
-    list(zip(load_wine().data, load_wine().target))
+    [
+        (dataloader.encode(x), dataloader.encode(t))
+        for x, t in zip(load_digits().data, load_digits().target)
+    ],
+    [
+        (dataloader.encode(x), dataloader.encode(t))
+        for x, t in zip(load_iris().data, load_iris().target)
+    ],
+    [
+        (dataloader.encode(x), dataloader.encode(t))
+        for x, t in zip(load_wine().data, load_wine().target)
+    ],
 ]
 for data in datasets:
     learner.train(data)
@@ -975,7 +1021,11 @@ Run `python project17_imitation.py` to train from demonstrations.
        with zipfile.ZipFile(io.BytesIO(resp.read())) as zf:
            zf.extractall()
    data = pd.read_csv('jena_climate_2009_2016.csv')
-   values = list(zip(data['T (degC)'].values, data['p (mbar)'].values))
+   dl = DataLoader()
+   values = [
+       (dl.encode(t), dl.encode(p))
+       for t, p in zip(data['T (degC)'].values, data['p (mbar)'].values)
+   ]
    ```
 4. **Train** by repeatedly calling `learner.train_step(value, target)` for the specified number of epochs and observe frequency error in `learner.history` to understand how phase alignment evolves.
 
@@ -997,7 +1047,10 @@ with urllib.request.urlopen(url) as resp:
     with zipfile.ZipFile(io.BytesIO(resp.read())) as zf:
         zf.extractall()
 data = pd.read_csv('jena_climate_2009_2016.csv')
-values = list(zip(data['T (degC)'].values, data['p (mbar)'].values))
+values = [
+    (dataloader.encode(t), dataloader.encode(p))
+    for t, p in zip(data['T (degC)'].values, data['p (mbar)'].values)
+]
 for value, target in values[:1000]:
     learner.train_step(value, target)
 print(learner.history[-1])
@@ -1018,7 +1071,11 @@ Run `python project18_harmonic.py` to explore harmonic resonance learning.
    ```python
    from sklearn.datasets import load_digits
    digits = load_digits()
-   values = list(zip(digits.data, digits.target))
+   dl = DataLoader()
+   values = [
+       (dl.encode(x), dl.encode(t))
+       for x, t in zip(digits.data, digits.target)
+   ]
    ```
 4. **Train** by iterating over `values` and calling `learner.train_step(v, t)` while monitoring `learner.history` and the synapse echo buffers to see how past activations influence current learning.
 
@@ -1036,7 +1093,10 @@ marble = MARBLE(cfg['core'])
 learner = SynapticEchoLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
 digits = load_digits()
-values = list(zip(digits.data, digits.target))
+values = [
+    (dataloader.encode(x), dataloader.encode(t))
+    for x, t in zip(digits.data, digits.target)
+]
 for value, target in values:
     learner.train_step(value, target)
 print(learner.history[-1])
@@ -1057,7 +1117,11 @@ Run `python project19_synaptic_echo.py` with echo modulation enabled.
    ```python
    from sklearn.datasets import load_digits
    digits = load_digits()
-   pairs = list(zip(digits.data, digits.target))
+   dl = DataLoader()
+   pairs = [
+       (dl.encode(x), dl.encode(t))
+       for x, t in zip(digits.data, digits.target)
+   ]
    ```
 4. **Train** with `learner.train(pairs)` and watch representation size via `core.rep_size` or `learner.history` to see when new dimensions are added.
 
@@ -1075,7 +1139,10 @@ marble = MARBLE(cfg['core'])
 learner = FractalDimensionLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
 digits = load_digits()
-pairs = list(zip(digits.data, digits.target))
+pairs = [
+    (dataloader.encode(x), dataloader.encode(t))
+    for x, t in zip(digits.data, digits.target)
+]
 learner.train(pairs)
 print(marble.core.rep_size)
 ```
@@ -1095,7 +1162,11 @@ Run `python project20_fractal.py` to see representations grow over time.
    ```python
    from sklearn.datasets import load_digits
    digits = load_digits()
-   examples = list(zip(digits.data, digits.target))
+   dl = DataLoader()
+   examples = [
+       (dl.encode(x), dl.encode(t))
+       for x, t in zip(digits.data, digits.target)
+   ]
    ```
 4. **Train** by repeatedly calling `learner.train_step(inp, tgt)` for each pair and track phases in `learner.phases` to understand how the system evolves over time.
 
@@ -1113,7 +1184,10 @@ marble = MARBLE(cfg['core'])
 learner = QuantumFluxLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
 digits = load_digits()
-examples = list(zip(digits.data, digits.target))
+examples = [
+    (dataloader.encode(x), dataloader.encode(t))
+    for x, t in zip(digits.data, digits.target)
+]
 for inp, tgt in examples:
     learner.train_step(inp, tgt)
 print(learner.phases[-1])
@@ -1191,7 +1265,11 @@ Execute `python project22_dream_reinforcement.py` to see the synergy in action.
    ```python
    from datasets import load_dataset
    ds = load_dataset('mnist', split='train')
-   examples = [(x['image'].reshape(-1).numpy() / 255.0, x['label']) for x in ds]
+   dl = DataLoader()
+   examples = [
+       (dl.encode(x['image'].reshape(-1).numpy() / 255.0), dl.encode(x['label']))
+       for x in ds
+   ]
    ```
 5. **Train** by providing these examples to `learner.train(examples, epochs=5)`. All paradigms run sequentially, leveraging interconnection synapses so multiple cores behave as one integrated system.
 
@@ -1212,7 +1290,11 @@ neuronenblitz = MARBLE(cfg['core']).neuronenblitz
 learner = OmniLearner(combined, neuronenblitz)
 from datasets import load_dataset
 ds = load_dataset('mnist', split='train')
-examples = [(x['image'].reshape(-1).numpy() / 255.0, x['label']) for x in ds]
+examples = [
+    (dataloader.encode(x['image'].reshape(-1).numpy() / 255.0),
+     dataloader.encode(x['label']))
+    for x in ds
+]
 learner.train(examples, epochs=5)
 ```
 Run `python project23_omni.py` to test all paradigms together.
@@ -1257,7 +1339,11 @@ Run `python project23_omni.py` to test all paradigms together.
    ```python
    from sklearn.datasets import load_diabetes
    ds = load_diabetes()
-   samples = list(zip(ds.data[:, 0], ds.target))
+   dl = DataLoader()
+   samples = [
+       (dl.encode(x), dl.encode(y))
+       for x, y in zip(ds.data[:, 0], ds.target)
+   ]
    ```
 4. **Train** using `learner.train(samples, epochs=2)` and monitor `learner.history` for the squared error over time.
 
@@ -1275,7 +1361,10 @@ dataloader = DataLoader()  # diabetes regression
 marble = MARBLE(cfg['core'])
 learner = ContinuousWeightFieldLearner(marble.core, marble.neuronenblitz)
 ds = load_diabetes()
-samples = list(zip(ds.data[:, 0], ds.target))
+samples = [
+    (dataloader.encode(x), dataloader.encode(y))
+    for x, y in zip(ds.data[:, 0], ds.target)
+]
 learner.train(samples, epochs=2)
 ```
 Run `python project24_cwfl.py` to see the field adapt across the dataset.
@@ -1348,7 +1437,8 @@ Run `python project24d_chaotic_gating.py` to test the effect on learning.
    ```python
    from sklearn.datasets import load_digits
    digits = load_digits()
-   inputs = [x.reshape(-1).astype(float) for x in digits.data]
+   dl = DataLoader()
+   inputs = [dl.encode(x.reshape(-1).astype(float)) for x in digits.data]
    ```
 4. **Train** using `learner.train(inputs, epochs=2)` and inspect
    `learner.schemas` to see the discovered patterns.
@@ -1367,7 +1457,7 @@ dataloader = DataLoader()  # digit images flattened
 marble = MARBLE(cfg['core'])
 learner = NeuralSchemaInductionLearner(marble.core, marble.neuronenblitz)
 digits = load_digits()
-inputs = [x.reshape(-1).astype(float) for x in digits.data]
+inputs = [dataloader.encode(x.reshape(-1).astype(float)) for x in digits.data]
 learner.train(inputs, epochs=2)
 print(len(learner.schemas))
 ```
@@ -1389,7 +1479,8 @@ Run `python project25_nsi.py` to see schema neurons emerge.
    ```python
    from sklearn.datasets import load_boston
    ds = load_boston()
-   samples = list(ds.data[:, 0])
+   dl = DataLoader()
+   samples = [dl.encode(v) for v in ds.data[:, 0]]
    ```
 4. **Train** with `learner.train(samples, epochs=2)` and observe
    that `len(core.neurons)` grows as new concept nodes are inserted.
@@ -1410,7 +1501,7 @@ learner = ConceptualIntegrationLearner(marble.core, marble.neuronenblitz,
                                        blend_probability=0.5,
                                        similarity_threshold=0.2)
 ds = load_boston()
-samples = list(ds.data[:, 0])
+samples = [dataloader.encode(v) for v in ds.data[:, 0]]
 learner.train(samples, epochs=2)
 print(len(marble.core.neurons))
 ```
