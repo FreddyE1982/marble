@@ -1660,3 +1660,16 @@ MARBLE's ``DataLoader`` can transparently tokenize strings using the
 converted to token IDs before being fed into the network and decoded back after
 inference. The ``tokenizer_vocab_size`` parameter controls the vocabulary size
 when training a tokenizer from scratch using the YAML configuration.
+
+To train a tokenizer yourself use ``tokenizer_utils.train_tokenizer`` and save
+the resulting object to JSON:
+
+```python
+from tokenizer_utils import train_tokenizer, tokenizer_to_json
+tok = train_tokenizer(["data/train.txt"], model="wordpiece", vocab_size=8000)
+with open("my_tokenizer.json", "w") as f:
+    f.write(tokenizer_to_json(tok))
+```
+
+Set ``tokenizer_json: my_tokenizer.json`` in ``config.yaml`` to use this
+tokenizer for both training and inference.

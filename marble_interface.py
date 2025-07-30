@@ -85,8 +85,13 @@ def save_marble_system(marble: MARBLE, path: str) -> None:
         viz.backup_scheduler = None
     if brain_viz is not None:
         brain_viz.close()
+        marble.brain.metrics_visualizer = None
+    marble.metrics_visualizer = None
     with open(path, "wb") as f:
         dill.dump(marble, f)
+    marble.metrics_visualizer = viz
+    if brain_viz is not None:
+        marble.brain.metrics_visualizer = brain_viz
     if viz is not None:
         viz.fig = fig
         viz.ax = ax

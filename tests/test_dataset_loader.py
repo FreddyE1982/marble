@@ -8,6 +8,7 @@ import pytest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from dataset_loader import load_dataset
+from marble import DataLoader
 
 
 def _serve_directory(directory, port):
@@ -115,4 +116,14 @@ def test_offline_mode(tmp_path):
     assert pairs == [(9, 10)]
     with pytest.raises(FileNotFoundError):
         load_dataset(url, cache_dir=tmp_path / "missing", offline=True)
+
+
+def test_load_dataset_with_dataloader(tmp_path):
+    csv_path = tmp_path / "dl.csv"
+    csv_path.write_text("input,target\nhello,world\n")
+    dl = DataLoader()
+    pairs = load_dataset(str(csv_path), dataloader=dl)
+    inp, tgt = pairs[0]
+    assert dl.decode(inp) == "hello"
+    assert dl.decode(tgt) == "world"
 
