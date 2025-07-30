@@ -218,15 +218,20 @@ def convert_pytorch_model(
     )
 
 
+from huggingface_utils import auto_hf_login
+
+
 def load_hf_dataset(
     dataset_name: str,
     split: str,
     input_key: str = "input",
     target_key: str = "target",
     limit: int | None = None,
+    streaming: bool = False,
 ) -> list[tuple[Any, Any]]:
     """Load a Hugging Face dataset and return ``(input, target)`` pairs."""
-    ds = load_dataset(dataset_name, split=split)
+    auto_hf_login()
+    ds = load_dataset(dataset_name, split=split, streaming=streaming)
     examples: list[tuple[Any, Any]] = []
     for record in ds:
         examples.append((record[input_key], record[target_key]))

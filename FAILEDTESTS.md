@@ -18,3 +18,5 @@ Failed tests during last run of `pytest`:
 - test_wandering_anomaly.py
 - test_web_api.py
 (plus additional failures leading to 126 errors during collection)
+- test_marble_interface.py (missing yaml dependency)
+- test_huggingface_utils.py (missing dependencies)
