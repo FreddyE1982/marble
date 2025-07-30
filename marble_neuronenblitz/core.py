@@ -287,6 +287,7 @@ class Neuronenblitz:
         self.torrent_client = torrent_client
         self.torrent_map = torrent_map if torrent_map is not None else {}
         self.metrics_visualizer = metrics_visualizer
+        self.dataloader = None
         self.last_message_passing_change = 0.0
         self.lock = threading.RLock()
         self.error_history = deque(maxlen=100)
@@ -1384,6 +1385,8 @@ class Neuronenblitz:
                 else:
                     output_value, path = self.dynamic_wander(input_value)
                     error = self._compute_loss(target_value, output_value)
+                    if self.dataloader is not None:
+                        error += self.dataloader.round_trip_penalty_for(input_value)
                 path_length = self.apply_weight_updates_and_attention(path, error)
             else:
                 if self.use_mixed_precision and torch.cuda.is_available():
@@ -1394,6 +1397,8 @@ class Neuronenblitz:
                 else:
                     output_value, path = self.dynamic_wander(input_value)
                     error = self._compute_loss(target_value, output_value)
+                    if self.dataloader is not None:
+                        error += self.dataloader.round_trip_penalty_for(input_value)
                 path_length = self.apply_weight_updates_and_attention(path, error)
             self.add_to_replay(input_value, target_value, error)
             self.error_history.append(abs(error))

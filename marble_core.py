@@ -1368,6 +1368,10 @@ class DataLoader:
         compression_enabled: bool = True,
         metrics_visualizer: "MetricsVisualizer | None" = None,
         tensor_dtype: str = "uint8",
+        *,
+        track_metadata: bool = True,
+        round_trip_penalty: float = 0.0,
+        enable_round_trip_check: bool = False,
     ) -> None:
         self.compressor = (
             compressor
@@ -1379,9 +1383,26 @@ class DataLoader:
         )
         self.metrics_visualizer = metrics_visualizer
         self.tensor_dtype = cp.dtype(tensor_dtype)
+        self.track_metadata = track_metadata
+        self.round_trip_penalty = round_trip_penalty
+        self.enable_round_trip_check = enable_round_trip_check
+
+    def _objects_equal(self, a: Any, b: Any) -> bool:
+        if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
+            return np.array_equal(a, b)
+        if isinstance(a, cp.ndarray) and isinstance(b, cp.ndarray):
+            return bool(cp.all(a == b))
+        if isinstance(a, torch.Tensor) and isinstance(b, torch.Tensor):
+            return torch.equal(a, b)
+        return a == b
 
     def encode(self, data: Any) -> np.ndarray:
-        serialized = pickle.dumps(data)
+        if self.track_metadata:
+            meta = {"module": data.__class__.__module__, "type": data.__class__.__name__}
+            payload = {"__marble_meta__": meta, "payload": data}
+            serialized = pickle.dumps(payload)
+        else:
+            serialized = pickle.dumps(data)
         compressed = self.compressor.compress(serialized)
         if self.metrics_visualizer is not None:
             ratio = len(compressed) / max(len(serialized), 1)
@@ -1402,7 +1423,17 @@ class DataLoader:
             ratio = len(compressed) / max(len(serialized), 1)
             self.metrics_visualizer.update({"compression_ratio": ratio})
         data = pickle.loads(serialized)
+        if isinstance(data, dict) and "__marble_meta__" in data and "payload" in data:
+            data = data["payload"]
         return data
+
+    def round_trip_penalty_for(self, value: Any) -> float:
+        if not self.enable_round_trip_check:
+            return 0.0
+        restored = self.decode(self.encode(value))
+        if self._objects_equal(restored, value):
+            return 0.0
+        return self.round_trip_penalty
 
     def encode_array(self, array: np.ndarray) -> np.ndarray:
         """Encode a NumPy array (or PyTorch tensor) into a uint8 tensor using compression."""
