@@ -160,3 +160,18 @@
 - [ ] Validation suite comparing PyTorch and MARBLE outputs
   - [ ] Per-layer unit tests
   - [ ] End-to-end comparison for simple models
+
+### 13. Dynamic message passing integration
+- [ ] Store activation behavior metadata in neurons for runtime evaluation
+- [ ] Plugin or extension to handle activations during message passing
+- [ ] Example script demonstrating dynamic message passing with converted networks
+
+### 14. Control flow and topology adaptation
+- [ ] Convert if/else branches to dynamic neuron creation
+- [ ] Support loops by reusing neuron groups per iteration
+- [ ] Unit test a model with simple control flow
+
+### 15. Visualization enhancements
+- [ ] Provide CLI flag to visualize generated MARBLE graph
+- [ ] Save neuron and synapse counts per layer to .csv
+- [ ] Interactive viewer to inspect weights
