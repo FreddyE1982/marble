@@ -39,7 +39,13 @@ import streamlit.components.v1 as components
 import torch
 import yaml
 from PIL import Image
-from transformers import AutoModel
+
+from huggingface_utils import (
+    hf_load_dataset,
+    hf_load_model,
+    search_hf_datasets as hf_search_datasets_fn,
+    search_hf_models as hf_search_models_fn,
+)
 
 import marble_interface
 from marble_interface import (
@@ -52,7 +58,6 @@ from marble_interface import (
     import_core_from_json,
     increase_marble_representation,
     infer_marble_system,
-    load_hf_dataset,
     load_marble_system,
     new_marble_system,
     randomize_core_representations,
@@ -232,25 +237,19 @@ def load_hf_examples(
     limit: int | None = None,
 ) -> list[tuple]:
     """Load ``(input, target)`` pairs from a Hugging Face dataset."""
-    return load_hf_dataset(dataset_name, split, input_key, target_key, limit)
+    return hf_load_dataset(
+        dataset_name, split, input_key, target_key, limit, streaming=False
+    )
 
 
 def search_hf_datasets(query: str, limit: int = 20) -> list[str]:
     """Return dataset IDs from the Hugging Face Hub matching ``query``."""
-    from huggingface_hub import HfApi
-
-    api = HfApi()
-    datasets = api.list_datasets(search=query, limit=limit)
-    return [d.id for d in datasets]
+    return hf_search_datasets_fn(query, limit)
 
 
 def search_hf_models(query: str, limit: int = 20) -> list[str]:
     """Return model IDs from the Hugging Face Hub matching ``query``."""
-    from huggingface_hub import HfApi
-
-    api = HfApi()
-    models = api.list_models(search=query, limit=limit)
-    return [m.id for m in models]
+    return hf_search_models_fn(query, limit)
 
 
 def lobe_info(marble) -> list[dict]:
@@ -298,7 +297,7 @@ def select_high_attention_neurons(marble, threshold: float = 1.0) -> list[int]:
 
 def load_hf_model(model_name: str):
     """Return a pretrained model from the Hugging Face Hub."""
-    return AutoModel.from_pretrained(model_name, trust_remote_code=True)
+    return hf_load_model(model_name)
 
 
 def model_summary(model: torch.nn.Module) -> str:
