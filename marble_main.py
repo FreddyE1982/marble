@@ -275,6 +275,43 @@ class MARBLE:
             self.metrics_visualizer = MetricsVisualizer()
 
 
+def insert_into_torch_model(
+    model: torch.nn.Module,
+    marble: MARBLE | None = None,
+    *,
+    position: int | str | None = None,
+    config: dict | None = None,
+    mode: str = "intermediate",
+) -> tuple[torch.nn.Module, MARBLE]:
+    """Insert a transparent MARBLE layer into ``model`` and return it.
+
+    Parameters
+    ----------
+    model:
+        PyTorch model to modify.
+    marble:
+        Existing MARBLE instance to attach. If ``None`` a new instance is
+        created from ``config``.
+    position:
+        Index or name after which the layer should be inserted. ``None``
+        appends the layer at the end of the network.
+    config:
+        Configuration dict used when ``marble`` is ``None``.
+    mode:
+        When ``"transparent"`` the inserted layer does not train inside the
+        graph. Any other value enables in-graph training.
+    """
+
+    if marble is None:
+        if config is None:
+            raise ValueError("Provide either marble or config")
+        marble = MARBLE(config["core"])
+
+    train_in_graph = mode != "transparent"
+    hooked = attach_marble_layer(model, marble, after=position, train_in_graph=train_in_graph)
+    return hooked, marble
+
+
 if __name__ == "__main__":
     # Core parameters
     params = {

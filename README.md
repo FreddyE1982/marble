@@ -144,6 +144,9 @@ Pipelines can be imported or exported as JSON and a **Custom Code** tab lets you
 run arbitrary Python snippets with the active MARBLE instance.
 Pipeline steps may also be reordered or removed directly from the UI so complex
 workflows can be iterated on quickly.
+You can run the same JSON pipelines from the command line using ``--pipeline``
+with ``cli.py`` or execute them programmatically through the ``Pipeline``
+class for full automation.
 Multiple MARBLE systems can be created in one session. Use the *Active Instance*
 selector in the sidebar to switch between them, duplicate a system for
 comparison or delete instances you no longer need.
