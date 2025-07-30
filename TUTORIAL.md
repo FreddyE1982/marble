@@ -57,6 +57,9 @@ This tutorial demonstrates every major component of MARBLE through a series of p
 4. **Edit configuration**. Open `config.yaml` and modify the values under `core` to adjust the representation size and other parameters. Save the file after your edits.
    To experiment with sparser communication set `attention_dropout` to a value between `0.0` and `1.0`. Higher values randomly ignore more incoming messages during attention-based updates.
    You can also introduce oscillatory gating of synaptic weights by setting `global_phase_rate` to a value above `0.0`. Each call to `run_message_passing` then advances the internal `global_phase`, modulating every synapse via a cosine of its individual `phase`.
+   You may also provide a *partial* YAML file containing only the settings you
+   wish to override. `load_config` merges it with the defaults from
+   `config.yaml` automatically.
 5. **Create a MARBLE instance** from the configuration:
    ```python
    from marble_main import MARBLE

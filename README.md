@@ -57,6 +57,10 @@ python cli.py --config config.yaml --train data.csv --epochs 5 \
 
 See ``python cli.py --help`` for the full list of options.
 
+Configuration files passed via ``--config`` may contain only the parameters you
+want to override.  Any missing options fall back to the defaults defined in
+``config.yaml``.
+
 Any Python object can serve as an ``input`` or ``target`` because the built-in
 ``DataLoader`` serializes data through ``DataCompressor``. This makes it
 possible to train on multimodal pairs such as text-to-image, image-to-text or
