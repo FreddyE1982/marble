@@ -592,6 +592,16 @@ class EmbeddingBagModel(torch.nn.Module):
         return self.emb(x, offsets)
 
 
+class EmbeddingOptionsModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.emb = torch.nn.Embedding(8, 4, padding_idx=0, max_norm=1.0)
+        self.input_size = 1
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.emb(x)
+
+
 def test_embedding_conversion():
     model = EmbeddingModel()
     params = minimal_params()
@@ -659,6 +669,26 @@ def test_embeddingbag_conversion():
     emb_neuron = next(n for n in core.neurons if n.neuron_type == "embedding")
     assert emb_neuron.params["num_embeddings"] == 10
     assert emb_neuron.params["embedding_dim"] == 3
+
+
+def test_embedding_options_conversion():
+    model = EmbeddingOptionsModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    emb_neuron = next(n for n in core.neurons if n.neuron_type == "embedding")
+    assert emb_neuron.params["padding_idx"] == 0
+    assert emb_neuron.params["max_norm"] == 1.0
+
+
+def test_embedding_options_conversion_gpu():
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA not available")
+    model = EmbeddingOptionsModel().cuda()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    emb_neuron = next(n for n in core.neurons if n.neuron_type == "embedding")
+    assert emb_neuron.params["padding_idx"] == 0
+    assert emb_neuron.params["max_norm"] == 1.0
 
 
 def test_bias_synapses_values():

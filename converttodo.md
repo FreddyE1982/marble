@@ -55,8 +55,8 @@
   - [x] Basic ``Embedding`` converter
   - [x] ``EmbeddingBag`` support
   - [x] Unit tests for embeddings
-  - [ ] Support ``padding_idx`` and ``max_norm`` options
-  - [ ] Test embeddings on GPU and CPU
+  - [x] Support ``padding_idx`` and ``max_norm`` options
+  - [x] Test embeddings on GPU and CPU
 - [x] Recurrent layers (RNN, LSTM, GRU)
   - [x] Converter for ``RNN``
   - [x] Converter for ``LSTM``

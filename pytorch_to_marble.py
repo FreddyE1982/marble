@@ -209,6 +209,10 @@ def _add_embedding_layer(
     neuron.params["num_embeddings"] = int(layer.num_embeddings)
     neuron.params["embedding_dim"] = int(layer.embedding_dim)
     neuron.params["weights"] = layer.weight.detach().cpu().numpy()
+    if layer.padding_idx is not None:
+        neuron.params["padding_idx"] = int(layer.padding_idx)
+    if layer.max_norm is not None:
+        neuron.params["max_norm"] = float(layer.max_norm)
     core.neurons.append(neuron)
     syn = Synapse(inp, nid, weight=1.0)
     core.neurons[inp].synapses.append(syn)
