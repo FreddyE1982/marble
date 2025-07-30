@@ -15,6 +15,7 @@ from curriculum_learning import curriculum_train
 from distillation_trainer import DistillationTrainer
 from marble_autograd import MarbleAutogradLayer, TransparentMarbleLayer
 from marble_main import MARBLE
+from marble_brain import Brain
 from marble_utils import core_from_json, core_to_json
 
 warnings.filterwarnings(
@@ -474,10 +475,8 @@ def attach_marble_layer(
     """Return ``model`` with an attached transparent Marble layer."""
 
     if isinstance(model_or_path, str):
-        from torch.serialization import add_safe_globals
-
-        add_safe_globals([torch.nn.modules.container.Sequential])
-        model = torch.load(model_or_path, weights_only=False)
+        from torch_model_io import load_model_auto
+        model = load_model_auto(model_or_path)
     else:
         model = model_or_path
 
@@ -523,4 +522,5 @@ def attach_marble_layer(
 
 def save_attached_model(model: torch.nn.Module, path: str) -> None:
     """Persist ``model`` with attached MARBLE to ``path``."""
-    torch.save(model, path)
+    from torch_model_io import save_entire_model
+    save_entire_model(model, path)

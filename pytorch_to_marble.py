@@ -675,7 +675,8 @@ def main() -> None:
     parser.add_argument("--output", required=True, help="Output JSON path")
     args = parser.parse_args()
 
-    model = torch.load(args.pytorch, map_location="cpu")
+    from torch_model_io import load_model_auto
+    model = load_model_auto(args.pytorch)
     core = convert_model(model)
     js = core_to_json(core)
     with open(args.output, "w", encoding="utf-8") as f:
