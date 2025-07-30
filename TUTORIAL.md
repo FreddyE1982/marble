@@ -36,6 +36,7 @@ from tokenizer_utils import built_in_tokenizer
 from dataset_loader import load_dataset
 from marble import DataLoader
 
+# Use a built-in tokenizer when working with text
 tokenizer = built_in_tokenizer("bert_wordpiece")
 dataloader = DataLoader(tokenizer=tokenizer)
 pairs = load_dataset("path/to/data.csv", dataloader=dataloader)
@@ -1288,10 +1289,15 @@ Run `python project24_cwfl.py` to see the field adapt across the dataset.
    ```python
    from config_loader import load_config
    from marble_main import MARBLE
+   from marble import DataLoader
 
    cfg = load_config()
+   dataloader = DataLoader()
    marble = MARBLE(cfg['core'])
-   examples = [(0.1, 0.2), (0.3, 0.5)]
+   examples = [
+       (dataloader.encode(0.1), dataloader.encode(0.2)),
+       (dataloader.encode(0.3), dataloader.encode(0.5)),
+   ]
    marble.neuronenblitz.train(examples, epochs=3)
    ```
 3. **Inspect phases** via `syn.phase` on any synapse to see how they
@@ -1443,9 +1449,12 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
 1. **Load a small dataset** directly from Hugging Face:
    ```python
    from marble_interface import load_hf_dataset
+   from marble import DataLoader
 
+   dataloader = DataLoader()
    train_pairs = load_hf_dataset(
-       "mnist", "train[:100]", input_key="image", target_key="label"
+       "mnist", "train[:100]", input_key="image", target_key="label",
+       dataloader=dataloader,
    )
    ```
    If the dataset requires authentication place your Hugging Face token in
@@ -1453,15 +1462,18 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
 2. **Load a CSV dataset from a URL** using the `dataset_loader` utility:
    ```python
    from dataset_loader import load_dataset
+   from marble import DataLoader
 
+   dataloader = DataLoader()
    pairs = load_dataset(
        "https://example.com/data.csv",
        cache_dir="cached_datasets",
+       dataloader=dataloader,
    )
    ```
 3. **Load a zipped dataset**:
    ```python
-   pairs = load_dataset("data.zip")
+   pairs = load_dataset("data.zip", dataloader=dataloader)
    ```
 4. **Load a specific shard of a dataset** for distributed training:
    ```python
@@ -1469,6 +1481,7 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
        "https://example.com/big.csv",
        num_shards=4,
        shard_index=1,
+       dataloader=dataloader,
    )
    ```
 4. **Create and train a MARBLE system** using a pandas dataframe:
