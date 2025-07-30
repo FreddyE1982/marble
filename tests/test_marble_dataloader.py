@@ -111,3 +111,20 @@ def test_round_trip_penalty():
     dl = DataLoader(enable_round_trip_check=True, round_trip_penalty=0.5)
     obj = _NeverEqual()
     assert dl.round_trip_penalty_for(obj) == 0.5
+
+
+class _Custom:
+    def __init__(self, value):
+        self.value = value
+
+    def __eq__(self, other):
+        return isinstance(other, _Custom) and self.value == other.value
+
+
+def test_metadata_preserves_type():
+    dl = DataLoader()
+    obj = _Custom(42)
+    encoded = dl.encode(obj)
+    restored = dl.decode(encoded)
+    assert isinstance(restored, _Custom)
+    assert restored == obj
