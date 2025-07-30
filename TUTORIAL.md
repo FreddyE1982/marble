@@ -26,10 +26,11 @@ This tutorial demonstrates every major component of MARBLE through a series of p
 
 ### Data Loading and Tokenization
 
-All examples below rely on the unified :class:`DataLoader` and
-``dataset_loader.load_dataset`` utility. Text can be tokenized automatically
-using any Hugging Face tokenizer. The snippet shows how to create a
-``DataLoader`` with a built-in WordPiece tokenizer and load a CSV file:
+All examples below rely on the **new** :class:`DataLoader` and the
+``dataset_loader.load_dataset`` utility. The loader transparently compresses
+and serialises values and, when supplied with a tokenizer, converts text into
+token IDs. The snippet shows how to create a ``DataLoader`` with a built in
+WordPiece tokenizer and load a CSV file:
 
 ```python
 from tokenizer_utils import built_in_tokenizer
