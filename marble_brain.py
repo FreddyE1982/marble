@@ -642,8 +642,12 @@ class Brain:
         print(f"Checkpoint loaded from {path}")
         return int(state["epoch"])
 
-    def infer(self, input_value):
-        """Return the output of the trained model for ``input_value``."""
+    def infer(self, input_value, tensor: bool = False):
+        """Return the output of the trained model for ``input_value``.
+
+        When ``tensor`` is ``True`` the raw encoded tensor is returned
+        without decoding through the :class:`DataLoader` tokenizer.
+        """
         key = round(float(input_value), 6)
         if key in self.prediction_map:
             return self.prediction_map[key]
@@ -658,7 +662,12 @@ class Brain:
             float(input_value), apply_plasticity=False
         )
         if self.dataloader is not None:
-            output = self.dataloader.decode(self.dataloader.encode(output))
+            encoded = self.dataloader.encode(output)
+            if tensor:
+                return encoded
+            output = self.dataloader.decode(encoded)
+        elif tensor:
+            return output
         return float(output) if isinstance(output, (int, float)) else output
 
     def generate_chain_of_thought(self, input_value):
