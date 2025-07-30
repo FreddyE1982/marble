@@ -37,10 +37,12 @@ from dataset_loader import load_dataset
 from marble import DataLoader
 
 # Use a built-in tokenizer when working with text
-tokenizer = built_in_tokenizer("bert_wordpiece")
-dataloader = DataLoader(tokenizer=tokenizer)
+dataloader = DataLoader(tokenizer=built_in_tokenizer("bert_wordpiece"))
 pairs = load_dataset("path/to/data.csv", dataloader=dataloader)
 ```
+
+For purely numeric or image datasets simply use ``DataLoader()`` without a
+tokenizer.
 
 Set ``dataloader.tokenizer_type: bert_wordpiece`` or ``tokenizer_json`` in
 ``config.yaml`` to use the same tokenizer when constructing ``MARBLE``. Each
@@ -122,13 +124,11 @@ from sklearn.model_selection import train_test_split
 from marble_main import MARBLE
 from config_loader import load_config
 from marble import DataLoader
-from marble import DataLoader
 from dataset_loader import load_dataset
-from marble import DataLoader
 
 pairs_url = "https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
 urllib.request.urlretrieve(pairs_url, "winequality-red.csv")
-dataloader = DataLoader()
+dataloader = DataLoader()  # numeric dataset, tokenizer not required
 pairs = load_dataset("winequality-red.csv", dataloader=dataloader)
 train_examples, val_examples = train_test_split(pairs, test_size=0.1, random_state=42)
 
@@ -204,7 +204,7 @@ def load_cifar_batches(path):
 
 raw_pairs = load_cifar_batches('cifar-10-batches-py')
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # image data does not need tokenization
 train_examples = [(dataloader.encode(x), dataloader.encode(y)) for x, y in raw_pairs]
 marble = MARBLE(cfg['core'])
 marble.brain.start_training(train_examples, epochs=20)
@@ -262,7 +262,7 @@ client = RemoteBrainClient('http://remote_host:8000')
 marble = MARBLE(cfg['core'], remote_client=client)
 from sklearn.datasets import load_digits
 digits = load_digits()
-dataloader = DataLoader()
+dataloader = DataLoader()  # digits are numeric, no tokenizer
 train_pairs = [(dataloader.encode(x), dataloader.encode(y)) for x, y in zip(digits.data, digits.target)]
 marble.brain.offload_enabled = True
 marble.brain.offload_high_attention(threshold=0.5)
@@ -285,7 +285,7 @@ Remote offloading demonstrates **RemoteBrainServer**, **RemoteBrainClient** and 
 
    core = Core(minimal_params())
    nb = Neuronenblitz(core)
-   brain = Brain(core, nb, DataLoader())
+    brain = Brain(core, nb, DataLoader())  # numeric inference values
    server = InferenceServer(brain)
    server.start()
    ```
@@ -330,7 +330,7 @@ import pytorch_challenge
 
 digits = load_digits(return_X_y=True)
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # digits are numeric, tokenizer not required
 train_pairs = [
     (dataloader.encode(x), dataloader.encode(t))
     for x, t in zip(*digits)
@@ -379,7 +379,7 @@ import advanced_gpt
 import os, urllib.request
 
 cfg = load_config()
-tokenizer = built_in_tokenizer("byte_level_bpe")
+tokenizer = built_in_tokenizer("byte_level_bpe")  # suitable for plain text
 dataloader = DataLoader(tokenizer=tokenizer)
 marble = MARBLE(cfg['core'])
 os.makedirs('data', exist_ok=True)
@@ -416,7 +416,7 @@ from tokenizer_utils import built_in_tokenizer
 import requests
 
 cfg = load_config()
-tokenizer = built_in_tokenizer("char_bpe")
+tokenizer = built_in_tokenizer("char_bpe")  # character-level BPE for tiny corpus
 dataloader = DataLoader(tokenizer=tokenizer)
 marble = MARBLE(cfg['core'])
 url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'
@@ -462,7 +462,7 @@ from marble import DataLoader
 from reinforcement_learning import train_gridworld
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # reinforcement learning uses numeric states
 marble = MARBLE(cfg['core'])
 from datasets import load_dataset
 expert = load_dataset("deep-rl-datasets", "cartpole-expert-v1")
@@ -498,7 +498,7 @@ from marble import DataLoader
 from marble_utils import augment_image
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # image dataset, tokenizer unnecessary
 marble = MARBLE(cfg['core'])
 from torchvision.datasets import STL10
 import numpy as np
@@ -541,7 +541,7 @@ from marble import DataLoader
 from hebbian_learning import HebbianLearner
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # images require no tokenizer
 marble = MARBLE(cfg['core'])
 learner = HebbianLearner(marble.core, marble.neuronenblitz)
 from datasets import load_dataset
@@ -589,7 +589,7 @@ from marble import DataLoader
 from adversarial_learning import AdversarialLearner
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # MNIST images do not need tokenization
 generator = MARBLE(cfg['core']).neuronenblitz
 discriminator = MARBLE(cfg['core']).neuronenblitz
 learner = AdversarialLearner(generator, discriminator)
@@ -629,7 +629,7 @@ from marble import DataLoader
 from autoencoder_learning import AutoencoderLearner
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # autoencoder uses numeric image data
 marble = MARBLE(cfg['core'])
 auto = AutoencoderLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
@@ -671,7 +671,7 @@ from marble import DataLoader
 from semi_supervised_learning import SemiSupervisedLearner
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # digits are numeric
 marble = MARBLE(cfg['core'])
 learner = SemiSupervisedLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
@@ -711,7 +711,7 @@ from marble_main import MARBLE
 from marble import DataLoader
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # federated learning on images
 clients = [MARBLE(cfg['core']) for _ in range(3)]
 trainer = FederatedAveragingTrainer([c.neuronenblitz for c in clients])
 from datasets import load_dataset
@@ -754,7 +754,7 @@ from marble import DataLoader
 from curriculum_learning import CurriculumLearner
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # numeric digits again
 marble = MARBLE(cfg['core'])
 learner = CurriculumLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
@@ -799,7 +799,7 @@ from marble import DataLoader
 from meta_learning import MetaLearner
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # digits are not textual
 marble = MARBLE(cfg['core'])
 learner = MetaLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
@@ -839,7 +839,7 @@ from marble import DataLoader
 from transfer_learning import TransferLearner
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # working with image tensors
 base = MARBLE(cfg['core'])
 learner = TransferLearner(base.core, base.neuronenblitz)
 from datasets import load_dataset
@@ -880,7 +880,7 @@ from marble import DataLoader
 from continual_learning import ReplayContinualLearner
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # pure numeric features
 marble = MARBLE(cfg['core'])
 learner = ReplayContinualLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits, load_iris, load_wine
@@ -934,7 +934,7 @@ from marble import DataLoader
 from imitation_learning import ImitationLearner
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # RL observations are numeric
 marble = MARBLE(cfg['core'])
 imitator = ImitationLearner(marble.core, marble.neuronenblitz)
 from datasets import load_dataset
@@ -988,7 +988,7 @@ from harmonic_resonance_learning import HarmonicResonanceLearner
 import urllib.request, zipfile, io, pandas as pd
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # time-series numeric data
 marble = MARBLE(cfg['core'])
 learner = HarmonicResonanceLearner(marble.core, marble.neuronenblitz)
 url = "https://github.com/philipperemy/keras-tutorials/raw/master/resources/jena_climate_2009_2016.csv.zip"
@@ -1030,7 +1030,7 @@ from marble import DataLoader
 from synaptic_echo_learning import SynapticEchoLearner
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # digits dataset
 marble = MARBLE(cfg['core'])
 learner = SynapticEchoLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
@@ -1069,7 +1069,7 @@ from marble import DataLoader
 from fractal_dimension_learning import FractalDimensionLearner
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # digits dataset
 marble = MARBLE(cfg['core'])
 learner = FractalDimensionLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
@@ -1107,7 +1107,7 @@ from marble import DataLoader
 from quantum_flux_learning import QuantumFluxLearner
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # digits dataset
 marble = MARBLE(cfg['core'])
 learner = QuantumFluxLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
@@ -1158,7 +1158,7 @@ from marble import DataLoader
 from dream_reinforcement_learning import DreamReinforcementLearner
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # numeric RL data
 marble = MARBLE(cfg['core'])
 learner = DreamReinforcementLearner(marble.core, marble.neuronenblitz)
 from datasets import load_dataset
@@ -1204,7 +1204,7 @@ from core_interconnect import interconnect_cores
 from omni_learning import OmniLearner
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # omni-learning uses image dataset
 cores = [MARBLE(cfg['core']).core for _ in range(3)]
 combined = interconnect_cores(cores)
 neuronenblitz = MARBLE(cfg['core']).neuronenblitz
@@ -1270,7 +1270,7 @@ from continuous_weight_field_learning import ContinuousWeightFieldLearner
 from sklearn.datasets import load_diabetes
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # diabetes regression
 marble = MARBLE(cfg['core'])
 learner = ContinuousWeightFieldLearner(marble.core, marble.neuronenblitz)
 ds = load_diabetes()
@@ -1292,7 +1292,7 @@ Run `python project24_cwfl.py` to see the field adapt across the dataset.
    from marble import DataLoader
 
    cfg = load_config()
-   dataloader = DataLoader()
+    dataloader = DataLoader()  # simple numeric demo
    marble = MARBLE(cfg['core'])
    examples = [
        (dataloader.encode(0.1), dataloader.encode(0.2)),
@@ -1362,7 +1362,7 @@ from neural_schema_induction import NeuralSchemaInductionLearner
 from sklearn.datasets import load_digits
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # digit images flattened
 marble = MARBLE(cfg['core'])
 learner = NeuralSchemaInductionLearner(marble.core, marble.neuronenblitz)
 digits = load_digits()
@@ -1403,7 +1403,7 @@ from conceptual_integration import ConceptualIntegrationLearner
 from sklearn.datasets import load_boston
 
 cfg = load_config()
-dataloader = DataLoader()
+dataloader = DataLoader()  # numerical regression features
 marble = MARBLE(cfg['core'])
 learner = ConceptualIntegrationLearner(marble.core, marble.neuronenblitz,
                                        blend_probability=0.5,
@@ -1451,7 +1451,7 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    from marble_interface import load_hf_dataset
    from marble import DataLoader
 
-   dataloader = DataLoader()
+    dataloader = DataLoader()  # images as input
    train_pairs = load_hf_dataset(
        "mnist", "train[:100]", input_key="image", target_key="label",
        dataloader=dataloader,
@@ -1464,7 +1464,7 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    from dataset_loader import load_dataset
    from marble import DataLoader
 
-   dataloader = DataLoader()
+    dataloader = DataLoader()  # simple CSV data
    pairs = load_dataset(
        "https://example.com/data.csv",
        cache_dir="cached_datasets",
@@ -1714,7 +1714,7 @@ plugins and components.
    from diffusion_core import DiffusionCore
 
    cfg = load_config()
-   dataloader = DataLoader()
+   dataloader = DataLoader()  # diffusion uses numeric inputs
    dcore = DiffusionCore(cfg["core"])
    output = dcore.diffuse(0.0)
    print("Final value", output)
