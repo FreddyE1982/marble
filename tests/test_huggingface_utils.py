@@ -2,6 +2,7 @@ import os
 from unittest import mock
 
 from huggingface_utils import hf_login, hf_load_dataset, hf_load_model
+from marble import DataLoader
 
 
 def test_hf_login_reads_and_writes(tmp_path):
@@ -21,15 +22,19 @@ def test_hf_login_reads_and_writes(tmp_path):
 
 def test_hf_load_dataset_streaming():
     dummy = [{"input": 1, "target": 2}, {"input": 3, "target": 4}]
+    dl = DataLoader()
     with mock.patch(
         "huggingface_utils.hf_login", return_value=None
     ) as login_mock, mock.patch(
         "huggingface_utils.load_dataset", return_value=dummy
-    ) as ld:
-        pairs = hf_load_dataset("dummy", "train", streaming=True)
+    ) as ld, mock.patch.object(
+        dl, "encode", side_effect=lambda x: f"e-{x}"
+    ) as enc:
+        pairs = hf_load_dataset("dummy", "train", streaming=True, dataloader=dl)
     login_mock.assert_called_once()
     ld.assert_called_once_with("dummy", split="train", token=None, streaming=True)
-    assert pairs == [(1, 2), (3, 4)]
+    assert pairs == [("e-1", "e-2"), ("e-3", "e-4")]
+    assert enc.call_count == 4
 
 
 def test_hf_load_model():

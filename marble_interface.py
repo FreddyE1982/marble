@@ -11,6 +11,7 @@ import torch
 from datasets import load_dataset
 
 from huggingface_utils import hf_login
+from marble import DataLoader
 
 from autoencoder_learning import AutoencoderLearner
 from config_loader import create_marble_from_config, load_config
@@ -272,13 +273,23 @@ def load_hf_dataset(
     target_key: str = "target",
     limit: int | None = None,
     streaming: bool = False,
+    dataloader: "DataLoader | None" = None,
 ) -> list[tuple[Any, Any]]:
-    """Load a Hugging Face dataset and return ``(input, target)`` pairs."""
+    """Load a Hugging Face dataset and return ``(input, target)`` pairs.
+
+    When ``dataloader`` is provided, both inputs and targets are encoded
+    using :class:`DataLoader.encode` to match Marble's training format.
+    """
     token = hf_login()
     ds = load_dataset(dataset_name, split=split, token=token, streaming=streaming)
     examples: list[tuple[Any, Any]] = []
     for record in ds:
-        examples.append((record[input_key], record[target_key]))
+        inp = record[input_key]
+        tgt = record[target_key]
+        if dataloader is not None:
+            inp = dataloader.encode(inp)
+            tgt = dataloader.encode(tgt)
+        examples.append((inp, tgt))
         if limit is not None and len(examples) >= limit:
             break
     return examples
