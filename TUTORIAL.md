@@ -1673,3 +1673,13 @@ with open("my_tokenizer.json", "w") as f:
 
 Set ``tokenizer_json: my_tokenizer.json`` in ``config.yaml`` to use this
 tokenizer for both training and inference.
+
+### Enabling Round-Trip Integrity Checks
+
+The ``dataloader`` section also exposes ``enable_round_trip_check`` and
+``round_trip_penalty``. When enabled, each training example is encoded and then
+decoded again. If the decoded value differs from the original, the specified
+penalty is added to the training loss. This helps detect issues with
+tokenization or custom serialization. ``track_metadata`` should remain ``true``
+unless you have strict storage constraints because it ensures objects are
+reconstructed with the correct Python type during decoding.

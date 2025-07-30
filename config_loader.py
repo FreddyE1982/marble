@@ -110,6 +110,9 @@ def create_marble_from_config(
         "compression_level": compression_level,
         "compression_enabled": compression_enabled,
         "tensor_dtype": tensor_dtype,
+        "track_metadata": dataloader_cfg.get("track_metadata", True),
+        "enable_round_trip_check": dataloader_cfg.get("enable_round_trip_check", False),
+        "round_trip_penalty": dataloader_cfg.get("round_trip_penalty", 0.0),
     }
     for key in ["tokenizer_type", "tokenizer_json", "tokenizer_vocab_size"]:
         if key in dataloader_cfg:

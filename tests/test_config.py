@@ -236,3 +236,18 @@ def test_partial_config_merges_defaults(tmp_path):
     default = load_config()
     assert cfg["core"]["width"] == 5
     assert cfg["core"]["height"] == default["core"]["height"]
+
+
+def test_dataloader_round_trip_config(tmp_path):
+    cfg = load_config()
+    dl_cfg = cfg.setdefault("dataloader", {})
+    dl_cfg["enable_round_trip_check"] = True
+    dl_cfg["round_trip_penalty"] = 0.7
+    dl_cfg["track_metadata"] = False
+    cfg_path = tmp_path / "rt.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(cfg, f)
+    marble = create_marble_from_config(str(cfg_path))
+    assert marble.dataloader.enable_round_trip_check is True
+    assert marble.dataloader.round_trip_penalty == 0.7
+    assert marble.dataloader.track_metadata is False

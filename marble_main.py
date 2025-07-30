@@ -87,6 +87,9 @@ class MARBLE:
             dl_level = dataloader_params.get("compression_level", dl_level)
             dl_enabled = dataloader_params.get("compression_enabled", True)
             dl_dtype = dataloader_params.get("tensor_dtype", dl_dtype)
+            track_meta = dataloader_params.get("track_metadata", True)
+            enable_rtc = dataloader_params.get("enable_round_trip_check", False)
+            rt_penalty = dataloader_params.get("round_trip_penalty", 0.0)
             tok_type = dataloader_params.get("tokenizer_type")
             tok_json = dataloader_params.get("tokenizer_json")
             tok_vocab = dataloader_params.get("tokenizer_vocab_size", 30000)
@@ -104,6 +107,9 @@ class MARBLE:
             metrics_visualizer=self.metrics_visualizer,
             tensor_dtype=dl_dtype,
             tokenizer=tokenizer,
+            track_metadata=track_meta,
+            enable_round_trip_check=enable_rtc,
+            round_trip_penalty=rt_penalty,
         )
 
         nb_defaults = {
