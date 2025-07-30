@@ -1614,6 +1614,9 @@ plugins and components.
 4. **Offload** the core automatically when VRAM usage exceeds
    ``offload_threshold`` by passing a ``RemoteBrainClient`` to
    ``DiffusionCore``.
+5. **Broadcast results** by setting ``workspace_broadcast: true`` under
+   ``core``. Each call to ``diffuse`` then publishes the final sample through the
+   Global Workspace so plugins can react.
 
 Running this project demonstrates the new ``DiffusionCore`` which integrates
 Neuronenblitz wandering, hybrid memory and remote offloading to support
