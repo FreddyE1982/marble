@@ -40,6 +40,7 @@ import torch
 import yaml
 from PIL import Image
 from transformers import AutoModel
+from huggingface_utils import auto_hf_login, download_hf_model
 
 import marble_interface
 from marble_interface import (
@@ -239,6 +240,7 @@ def search_hf_datasets(query: str, limit: int = 20) -> list[str]:
     """Return dataset IDs from the Hugging Face Hub matching ``query``."""
     from huggingface_hub import HfApi
 
+    auto_hf_login()
     api = HfApi()
     datasets = api.list_datasets(search=query, limit=limit)
     return [d.id for d in datasets]
@@ -248,6 +250,7 @@ def search_hf_models(query: str, limit: int = 20) -> list[str]:
     """Return model IDs from the Hugging Face Hub matching ``query``."""
     from huggingface_hub import HfApi
 
+    auto_hf_login()
     api = HfApi()
     models = api.list_models(search=query, limit=limit)
     return [m.id for m in models]
@@ -298,6 +301,7 @@ def select_high_attention_neurons(marble, threshold: float = 1.0) -> list[int]:
 
 def load_hf_model(model_name: str):
     """Return a pretrained model from the Hugging Face Hub."""
+    auto_hf_login()
     return AutoModel.from_pretrained(model_name, trust_remote_code=True)
 
 
