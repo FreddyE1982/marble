@@ -76,6 +76,21 @@ core:
   noise_end: 0.1
   noise_schedule: "linear"
   workspace_broadcast: false
+  activation_output_dir: "activations"
+  memory_system:
+    long_term_path: "diffusion_memory.pkl"
+    threshold: 0.5
+    consolidation_interval: 10
+  cwfl:
+    num_basis: 10
+    bandwidth: 1.0
+    reg_lambda: 0.01
+    learning_rate: 0.01
+  harmonic:
+    base_frequency: 1.0
+    decay: 0.99
+  fractal:
+    target_dimension: 4.0
 # Neuronenblitz learning system parameters
 
   synapse_echo_length: 5

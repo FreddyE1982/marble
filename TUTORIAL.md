@@ -1620,6 +1620,12 @@ plugins and components.
 5. **Broadcast results** by setting ``workspace_broadcast: true`` under
    ``core``. Each call to ``diffuse`` then publishes the final sample through the
    Global Workspace so plugins can react.
+6. **Enable advanced features** by adding ``activation_output_dir``, ``memory_system``,
+   ``cwfl``, ``harmonic`` and ``fractal`` sections under ``core``. With these set
+   the diffusion engine stores each step in hierarchical memory, trains the
+   continuous weight field, adapts representations via harmonic resonance and
+   fractal learning and finally writes an activation heatmap to the configured
+   directory.
 
 Running this project demonstrates the new ``DiffusionCore`` which integrates
 Neuronenblitz wandering, hybrid memory and remote offloading to support
