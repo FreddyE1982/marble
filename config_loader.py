@@ -111,6 +111,9 @@ def create_marble_from_config(
         "compression_enabled": compression_enabled,
         "tensor_dtype": tensor_dtype,
     }
+    for key in ["tokenizer_type", "tokenizer_json", "tokenizer_vocab_size"]:
+        if key in dataloader_cfg:
+            dataloader_params[key] = dataloader_cfg[key]
 
     autograd_params = cfg.get("autograd", {})
     gw_cfg = cfg.get("global_workspace", {})

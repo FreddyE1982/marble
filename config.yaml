@@ -320,6 +320,9 @@ data_compressor:
   compression_algorithm: "zlib"
 dataloader:
   tensor_dtype: "uint8"
+  tokenizer_type: null
+  tokenizer_json: null
+  tokenizer_vocab_size: 30000
 experiment_tracker:
   enabled: false
   project: "marble"

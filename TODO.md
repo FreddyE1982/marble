@@ -241,4 +241,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Update yaml-manual with plugin parameters.
    - [x] Add troubleshooting section.
    - [x] Provide example configuration files.
+116. [ ] Complete remaining items from ``dataupgradetodo.md``
+   - [ ] Extend dataset loading utilities to leverage the enhanced ``DataLoader``.
+   - [ ] Add migration tests for old checkpoints without embedded tokenizers.
+   - [ ] Document tokenizer training workflow in more detail.
 

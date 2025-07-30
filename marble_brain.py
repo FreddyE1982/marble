@@ -594,6 +594,13 @@ class Brain:
             "random_state": random.getstate(),
             "numpy_state": np.random.get_state(),
         }
+        if (
+            self.dataloader is not None
+            and getattr(self.dataloader, "tokenizer", None) is not None
+        ):
+            from tokenizer_utils import tokenizer_to_json
+
+            state["tokenizer_json"] = tokenizer_to_json(self.dataloader.tokenizer)
         import gzip
         import tempfile
 
@@ -628,6 +635,10 @@ class Brain:
         self.lobe_manager = state["lobe_manager"]
         random.setstate(state["random_state"])
         np.random.set_state(state["numpy_state"])
+        if "tokenizer_json" in state and self.dataloader is not None:
+            from tokenizer_utils import tokenizer_from_json
+
+            self.dataloader.tokenizer = tokenizer_from_json(state["tokenizer_json"])
         print(f"Checkpoint loaded from {path}")
         return int(state["epoch"])
 

@@ -82,15 +82,28 @@ class MARBLE:
         dl_level = 6
         dl_enabled = True
         dl_dtype = "uint8"
+        tokenizer = None
         if dataloader_params is not None:
             dl_level = dataloader_params.get("compression_level", dl_level)
             dl_enabled = dataloader_params.get("compression_enabled", True)
             dl_dtype = dataloader_params.get("tensor_dtype", dl_dtype)
+            tok_type = dataloader_params.get("tokenizer_type")
+            tok_json = dataloader_params.get("tokenizer_json")
+            tok_vocab = dataloader_params.get("tokenizer_vocab_size", 30000)
+            if tok_json:
+                from tokenizer_utils import load_tokenizer
+
+                tokenizer = load_tokenizer(tok_json)
+            elif tok_type:
+                from tokenizer_utils import built_in_tokenizer
+
+                tokenizer = built_in_tokenizer(tok_type, vocab_size=tok_vocab)
         self.dataloader = DataLoader(
             compression_level=dl_level,
             compression_enabled=dl_enabled,
             metrics_visualizer=self.metrics_visualizer,
             tensor_dtype=dl_dtype,
+            tokenizer=tokenizer,
         )
 
         nb_defaults = {

@@ -305,6 +305,9 @@ Each entry is listed under its section heading.
 
 ## dataloader
 - tensor_dtype
+- tokenizer_type
+- tokenizer_json
+- tokenizer_vocab_size
 
 ## experiment_tracker
 - enabled
