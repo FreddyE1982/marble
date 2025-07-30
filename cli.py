@@ -36,6 +36,10 @@ def main() -> None:
     parser.add_argument("--min-lr", type=float, help="Minimum learning rate")
     parser.add_argument("--max-lr", type=float, help="Maximum learning rate")
     parser.add_argument(
+        "--pipeline",
+        help="Path to a pipeline JSON file to execute after initialization",
+    )
+    parser.add_argument(
         "--early-stopping-patience",
         type=int,
         help="Patience for early stopping",
@@ -115,6 +119,13 @@ def main() -> None:
         eval_data = load_dataset(args.evaluate)
         mse = evaluate_marble_system(marble, eval_data)
         print(f"Evaluation MSE: {mse:.6f}")
+    if args.pipeline:
+        from pipeline import Pipeline
+
+        with open(args.pipeline, "r", encoding="utf-8") as f:
+            pipe = Pipeline.load_json(f)
+        results = pipe.execute(marble)
+        print(results)
     if args.save:
         save_marble_system(marble, args.save)
     if args.export_core:

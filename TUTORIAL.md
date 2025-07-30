@@ -1448,6 +1448,9 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    ``marble_interface`` or any repository module, then press **Run Pipeline** to
    execute them sequentially. This lets you combine training, evaluation and
    analysis commands without leaving the UI.
+    The same pipelines can be saved as JSON and executed from the command line
+    using ``python cli.py --pipeline mypipe.json`` or through the ``Pipeline``
+    class in your own scripts.
 12. **View the core graph** on the *Visualization* tab. Press **Generate Graph**
    to see an interactive display of neurons and synapses.
 13. **Inspect synaptic weights** on the *Weight Heatmap* tab. Set a maximum
