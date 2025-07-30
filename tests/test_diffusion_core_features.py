@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import global_workspace
 from neuromodulatory_system import NeuromodulatorySystem
 from diffusion_core import DiffusionCore
+from marble_base import MetricsVisualizer
 from tests.test_core_functions import minimal_params
 
 
@@ -19,4 +20,14 @@ def test_diffusion_core_workspace_broadcast():
     out = core.diffuse(0.0)
     assert isinstance(out, float)
     assert gw.queue and gw.queue[-1].content == out
+
+
+def test_diffusion_core_metrics_logged():
+    params = minimal_params()
+    params["diffusion_steps"] = 1
+    mv = MetricsVisualizer()
+    core = DiffusionCore(params, metrics_visualizer=mv)
+    out = core.diffuse(0.0)
+    assert mv.metrics["diffusion_output"][-1] == out
+    assert mv.metrics["representation_variance"], "variance metric missing"
 

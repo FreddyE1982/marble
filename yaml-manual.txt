@@ -5,6 +5,10 @@ internal JSON schema to catch missing sections or invalid values early.
 A sample configuration with inline comments can be generated using the
 `config_generator.py` script. Run `python config_generator.py` to create `sample_config_with_comments.yaml` which mirrors `config.yaml` but includes descriptions for each parameter.
 
+Any configuration file may specify only a subset of parameters. Missing values
+are automatically filled with the defaults from `config.yaml`, allowing small
+YAML snippets to override just the options you need.
+
 dataset:
   num_shards: Number of shards the training dataset is split into. When greater
     than ``1`` each training worker should set ``shard_index`` to a unique value

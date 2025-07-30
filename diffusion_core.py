@@ -93,9 +93,18 @@ class DiffusionCore(Core):
             if self.hybrid_memory is not None:
                 self.hybrid_memory.store(f"step_{step}", out)
             if self.metrics_visualizer is not None:
-                self.metrics_visualizer.update({"diffusion_noise": abs(noise)})
+                rep_matrix = cp.stack([n.representation for n in self.neurons])
+                variance = float(cp.var(rep_matrix))
+                self.metrics_visualizer.update(
+                    {
+                        "diffusion_noise": abs(noise),
+                        "representation_variance": variance,
+                    }
+                )
             current = out
         self.history.append(current)
+        if self.metrics_visualizer is not None:
+            self.metrics_visualizer.update({"diffusion_output": current})
         if (
             self.remote_client is not None
             and self.get_usage_by_tier("vram")

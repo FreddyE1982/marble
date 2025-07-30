@@ -225,3 +225,14 @@ def test_invalid_config_raises(tmp_path):
         yaml.safe_dump(cfg, f)
     with pytest.raises(jsonschema.ValidationError):
         load_config(str(cfg_path))
+
+
+def test_partial_config_merges_defaults(tmp_path):
+    partial = {"core": {"width": 5}}
+    cfg_path = tmp_path / "partial.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(partial, f)
+    cfg = load_config(str(cfg_path))
+    default = load_config()
+    assert cfg["core"]["width"] == 5
+    assert cfg["core"]["height"] == default["core"]["height"]
