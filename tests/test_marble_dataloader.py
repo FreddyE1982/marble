@@ -61,3 +61,29 @@ def test_marble_dataloader_array_custom_dtype():
     assert str(tensor.dtype) == "int16"
     decoded = dl.decode_array(tensor)
     assert np.allclose(decoded, arr)
+
+
+def test_marble_dataloader_various_types_roundtrip():
+    dl = DataLoader()
+    samples = [
+        "text",
+        np.ones((2, 2), dtype=np.uint8),
+        b"\x00\x01\x02",
+    ]
+    for item in samples:
+        restored = dl.decode(dl.encode(item))
+        if isinstance(item, np.ndarray):
+            assert np.array_equal(restored, item)
+        else:
+            assert restored == item
+
+
+class _NeverEqual:
+    def __eq__(self, other):
+        return False
+
+
+def test_round_trip_penalty():
+    dl = DataLoader(enable_round_trip_check=True, round_trip_penalty=0.5)
+    obj = _NeverEqual()
+    assert dl.round_trip_penalty_for(obj) == 0.5

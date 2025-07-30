@@ -159,6 +159,7 @@ class Brain:
         self.neuronenblitz = neuronenblitz
         self.nb = neuronenblitz
         self.dataloader = dataloader
+        self.neuronenblitz.dataloader = dataloader
         self.save_threshold = save_threshold
         self.max_saved_models = max_saved_models
         self.save_dir = save_dir
@@ -645,7 +646,9 @@ class Brain:
         output, _ = self.neuronenblitz.dynamic_wander(
             float(input_value), apply_plasticity=False
         )
-        return float(output)
+        if self.dataloader is not None:
+            output = self.dataloader.decode(self.dataloader.encode(output))
+        return float(output) if isinstance(output, (int, float)) else output
 
     def generate_chain_of_thought(self, input_value):
         """Return output and a chain of reasoning steps for the given input."""

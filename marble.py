@@ -338,6 +338,10 @@ class DataLoader:
         compression_enabled: bool = True,
         metrics_visualizer: "MetricsVisualizer | None" = None,
         tensor_dtype: str = "uint8",
+        *,
+        track_metadata: bool = True,
+        round_trip_penalty: float = 0.0,
+        enable_round_trip_check: bool = False,
     ) -> None:
         self.compressor = (
             compressor
@@ -346,9 +350,26 @@ class DataLoader:
         )
         self.metrics_visualizer = metrics_visualizer
         self.tensor_dtype = cp.dtype(tensor_dtype)
+        self.track_metadata = track_metadata
+        self.round_trip_penalty = round_trip_penalty
+        self.enable_round_trip_check = enable_round_trip_check
+
+    def _objects_equal(self, a, b):
+        if isinstance(a, np.ndarray) and isinstance(b, np.ndarray):
+            return np.array_equal(a, b)
+        if isinstance(a, cp.ndarray) and isinstance(b, cp.ndarray):
+            return bool(cp.all(a == b))
+        if isinstance(a, torch.Tensor) and isinstance(b, torch.Tensor):
+            return torch.equal(a, b)
+        return a == b
 
     def encode(self, data):
-        serialized = pickle.dumps(data)
+        if self.track_metadata:
+            meta = {"module": data.__class__.__module__, "type": data.__class__.__name__}
+            payload = {"__marble_meta__": meta, "payload": data}
+            serialized = pickle.dumps(payload)
+        else:
+            serialized = pickle.dumps(data)
         compressed = self.compressor.compress(serialized)
         if self.metrics_visualizer is not None:
             ratio = len(compressed) / max(len(serialized), 1)
@@ -368,7 +389,18 @@ class DataLoader:
         if self.metrics_visualizer is not None:
             ratio = len(compressed) / max(len(serialized), 1)
             self.metrics_visualizer.update({"compression_ratio": ratio})
-        return pickle.loads(serialized)
+        data = pickle.loads(serialized)
+        if isinstance(data, dict) and "__marble_meta__" in data and "payload" in data:
+            data = data["payload"]
+        return data
+
+    def round_trip_penalty_for(self, value):
+        if not self.enable_round_trip_check:
+            return 0.0
+        restored = self.decode(self.encode(value))
+        if self._objects_equal(restored, value):
+            return 0.0
+        return self.round_trip_penalty
 
     def encode_array(self, array: np.ndarray) -> np.ndarray:
         if isinstance(array, torch.Tensor):
@@ -450,6 +482,7 @@ class Neuronenblitz:
         
         self.training_history = []
         self.global_activation_count = 0
+        self.dataloader = None
 
     def reset_neuron_values(self):
         for neuron in self.core.neurons:
@@ -567,6 +600,8 @@ class Neuronenblitz:
     def train_example(self, input_value, target_value):
         output_value, path = self.dynamic_wander(input_value)
         error = self._compute_loss(target_value, output_value)
+        if self.dataloader is not None:
+            error += self.dataloader.round_trip_penalty_for(input_value)
         path_length = len(path)
         for syn in path:
             source_value = self.core.neurons[syn.source].value
@@ -604,6 +639,7 @@ class Brain:
         self.core = core
         self.neuronenblitz = neuronenblitz
         self.dataloader = dataloader
+        self.neuronenblitz.dataloader = dataloader
         self.save_threshold = save_threshold
         self.max_saved_models = max_saved_models
         self.save_dir = save_dir
