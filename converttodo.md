@@ -77,7 +77,9 @@
 ### 2. High-level graph construction API
 - [x] Helper to add neuron groups with activations
 - [x] Helper to add synapses with weights and bias
-- [ ] Parameterized wrappers for linear and convolutional layers
+- [x] Parameterized wrappers for linear and convolutional layers
+  - [x] ``linear_layer`` wrapper
+  - [x] ``conv2d_layer`` wrapper
 - [ ] Documentation for graph builder utilities
 - [ ] Examples demonstrating dynamic message passing setup
 
