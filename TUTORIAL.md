@@ -1988,3 +1988,38 @@ reconstructed with the correct Python type during decoding.
    examples = [("up", "down"), ("left", "right")]
    pipe.train(examples, epochs=1)
    ```
+
+## Project 35 – Curriculum and Harmonic Pipelines
+
+**Goal:** Explore additional pipelines that work on bit-level data.**
+
+1. **Train a curriculum learning pipeline:**
+   ```python
+   from curriculum_pairs_pipeline import CurriculumPairsPipeline
+   from marble_core import Core
+   from tests.test_core_functions import minimal_params
+
+   core = Core(minimal_params())
+   pipe = CurriculumPairsPipeline(core, use_vocab=True)
+   pairs = [("easy", "task"), ("hard", "task")]
+   pipe.train(pairs, epochs=1)
+   ```
+2. **Use harmonic resonance learning on pairs:**
+   ```python
+   from harmonic_resonance_pairs_pipeline import HarmonicResonancePairsPipeline
+
+   core = Core(minimal_params())
+   pipe = HarmonicResonancePairsPipeline(core, use_vocab=True)
+   pairs = [("tone", "A"), ("tone", "B")]
+   pipe.train(pairs, epochs=1)
+   ```
+3. **Integrate concepts from arbitrary objects:**
+   ```python
+   from conceptual_integration_pipeline import ConceptualIntegrationPipeline
+
+   core = Core(minimal_params())
+   pipe = ConceptualIntegrationPipeline(core, use_vocab=True)
+   data = ["alpha", "beta", "gamma"]
+   pipe.train(data, epochs=1)
+   ```
+

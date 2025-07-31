@@ -73,8 +73,9 @@ Several helper pipelines leverage ``BitTensorDataset`` to train various
 learning paradigms on arbitrary Python objects, including ``AutoencoderPipeline``,
 ``ContrastivePipeline``, ``DiffusionPairsPipeline``, ``UnifiedPairsPipeline``,
 ``SemiSupervisedPairsPipeline`` and the new ``ImitationPairsPipeline``,
-``FractalDimensionPairsPipeline``, ``HebbianPipeline``, ``TransferPairsPipeline``
-and ``QuantumFluxPairsPipeline``.
+``FractalDimensionPairsPipeline``, ``HebbianPipeline``, ``TransferPairsPipeline``,
+``QuantumFluxPairsPipeline``, ``CurriculumPairsPipeline``,
+``HarmonicResonancePairsPipeline`` and ``ConceptualIntegrationPipeline``.
 
 ### Command Line Usage
 
