@@ -186,3 +186,22 @@ def test_highlevel_pipeline_duplicate_and_describe():
     assert clone.steps == hp.steps
     desc = hp.describe()
     assert "0:" in desc
+
+
+def test_highlevel_pipeline_run_step_and_execute_until(tmp_path):
+    marble_imports.tqdm = std_tqdm
+    marble_brain.tqdm = std_tqdm
+    marble_main.MetricsVisualizer = MetricsVisualizer
+
+    cfg = _config_path(tmp_path)
+    hp = HighLevelPipeline()
+    hp.new_marble_system(config_path=str(cfg))
+    hp.train_marble_system(train_examples=[(0, 0)], epochs=1)
+
+    marble, first = hp.run_step(0)
+    assert isinstance(marble, marble_interface.MARBLE)
+    assert first is marble
+
+    marble2, results = hp.execute_until(1)
+    assert isinstance(marble2, marble_interface.MARBLE)
+    assert len(results) == 2

@@ -81,3 +81,14 @@ def test_bit_tensor_dataset_compression():
     encoded, _ = ds[0]
     decoded = ds.tensor_to_object(encoded)
     assert decoded == data[0][0]
+
+
+def test_bit_tensor_dataset_iteration_and_save_load(tmp_path):
+    pairs = [(1, 2), (3, 4)]
+    ds = BitTensorDataset(pairs)
+    assert list(ds) == [ds[0], ds[1]]
+    save_path = tmp_path / "ds.pt"
+    ds.save(save_path)
+    loaded = BitTensorDataset.load(save_path)
+    assert len(loaded) == 2
+    assert loaded.tensor_to_object(loaded[0][0]) == 1

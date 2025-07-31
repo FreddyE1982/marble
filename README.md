@@ -164,6 +164,9 @@ functionality is exposed programmatically via ``HighLevelPipeline.move_step``
 and ``HighLevelPipeline.remove_step`` so complex workflows can be iterated on
 quickly. Pipelines can be duplicated with ``HighLevelPipeline.duplicate`` and
 summarised using ``HighLevelPipeline.describe`` for easy logging.
+Individual steps can be executed in isolation with ``HighLevelPipeline.run_step``
+or partial pipelines run via ``HighLevelPipeline.execute_until`` which helps
+debug complex workflows.
 You can run the same JSON pipelines from the command line using ``--pipeline``
 with ``cli.py`` or execute them programmatically through the ``Pipeline``
 class for full automation. A ``HighLevelPipeline`` helper offers a fluent
