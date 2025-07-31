@@ -8,19 +8,48 @@ from typing import Any, Callable
 import marble_interface
 
 
+class _ModuleWrapper:
+    """Helper that exposes module functions as pipeline steps."""
+
+    def __init__(self, pipeline: "HighLevelPipeline", module: Any) -> None:
+        self._pipeline = pipeline
+        self._module = module
+
+    def __getattr__(self, func_name: str) -> Callable:
+        if not hasattr(self._module, func_name):
+            raise AttributeError(func_name)
+
+        def wrapper(**params: Any) -> "HighLevelPipeline":
+            self._pipeline.add_step(
+                func_name,
+                module=self._module.__name__,
+                params=params,
+            )
+            return self._pipeline
+
+        return wrapper
+
+
 class HighLevelPipeline:
     """Build and execute sequential MARBLE operations."""
 
     def __init__(self, steps: list[dict] | None = None) -> None:
         self.steps: list[dict] = steps or []
 
-    def __getattr__(self, name: str) -> Callable:
+    def __getattr__(self, name: str) -> Callable | _ModuleWrapper:
         if hasattr(marble_interface, name):
-            def wrapper(**params):
+            def wrapper(**params: Any) -> "HighLevelPipeline":
                 self.add_step(name, module="marble_interface", params=params)
                 return self
+
             return wrapper
-        raise AttributeError(name)
+
+        try:
+            module = importlib.import_module(name)
+        except ModuleNotFoundError as exc:
+            raise AttributeError(name) from exc
+
+        return _ModuleWrapper(self, module)
 
     def add_step(
         self,

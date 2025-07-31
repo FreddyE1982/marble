@@ -45,3 +45,17 @@ def test_highlevel_pipeline_save_load(tmp_path):
     with open(json_path, "r", encoding="utf-8") as f:
         loaded = HighLevelPipeline.load_json(f)
     assert loaded.steps == hp.steps
+
+
+def test_highlevel_pipeline_cross_module(tmp_path):
+    marble_imports.tqdm = std_tqdm
+    marble_brain.tqdm = std_tqdm
+    marble_main.MetricsVisualizer = MetricsVisualizer
+
+    cfg = _config_path(tmp_path)
+    hp = HighLevelPipeline()
+    hp.plugin_system.load_plugins(dirs=[])
+    hp.new_marble_system(config_path=str(cfg))
+    marble, results = hp.execute()
+    assert isinstance(marble, marble_interface.MARBLE)
+    assert results[0] is None
