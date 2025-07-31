@@ -298,6 +298,26 @@ class BitTensorDataset(Dataset):
         """Yield each ``(input, target)`` pair in sequence."""
         return iter(self.data)
 
+    def summary(self) -> dict[str, Any]:
+        """Return basic statistics about the dataset.
+
+        The summary includes the number of stored pairs, the current
+        vocabulary size and whether compression is enabled. The device the
+        tensors reside on is also reported. This helper simplifies logging and
+        debugging by providing a quick overview of key attributes.
+        """
+
+        total_elements = sum(
+            a.numel() + b.numel() for a, b in self.data
+        )
+        return {
+            "num_pairs": len(self.data),
+            "vocab_size": self.vocab_size(),
+            "device": str(self.device),
+            "compressed": self.compress,
+            "total_elements": int(total_elements),
+        }
+
     def save(self, path: str) -> None:
         """Persist dataset tensors and metadata to ``path``."""
         payload = {

@@ -57,6 +57,7 @@ receives inputs in a consistent format. The pipeline keeps track of the active
    ```python
    marble, result = hp.run_step(0)
    marble, intermediate = hp.execute_until(1)
+   marble, tail = hp.execute_from(1)
    ```
 7. **Custom callables** can be inserted when more control is required.
    ```python

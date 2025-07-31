@@ -74,6 +74,8 @@ storage. A ``compress`` option uses ``zlib`` to shrink the byte representation
 before conversion, reducing dataset size when storing large objects.
 You can also pass an existing ``vocab`` dictionary to reuse the same mapping
 across multiple datasets for consistent encoding.
+``BitTensorDataset.summary`` provides quick statistics about the stored pairs,
+vocabulary size and device placement for convenient logging.
 
 Several helper pipelines leverage ``BitTensorDataset`` to train various
 learning paradigms on arbitrary Python objects, including ``AutoencoderPipeline``,
@@ -165,8 +167,10 @@ and ``HighLevelPipeline.remove_step`` so complex workflows can be iterated on
 quickly. Pipelines can be duplicated with ``HighLevelPipeline.duplicate`` and
 summarised using ``HighLevelPipeline.describe`` for easy logging.
 Individual steps can be executed in isolation with ``HighLevelPipeline.run_step``
-or partial pipelines run via ``HighLevelPipeline.execute_until`` which helps
-debug complex workflows.
+or partial pipelines run via ``HighLevelPipeline.execute_until``. A complementary
+``HighLevelPipeline.execute_from`` starts execution from an intermediate step.
+Steps can be inserted at arbitrary positions with ``HighLevelPipeline.insert_step``
+which helps debug complex workflows and restructure pipelines quickly.
 You can run the same JSON pipelines from the command line using ``--pipeline``
 with ``cli.py`` or execute them programmatically through the ``Pipeline``
 class for full automation. A ``HighLevelPipeline`` helper offers a fluent

@@ -154,6 +154,28 @@ class HighLevelPipeline:
         step = self.steps.pop(old_index)
         self.steps.insert(new_index, step)
 
+    def insert_step(
+        self,
+        index: int,
+        func: str | Callable,
+        *,
+        module: str | None = None,
+        params: dict | None = None,
+    ) -> None:
+        """Insert ``func`` as a step at ``index``.
+
+        The same rules as :meth:`add_step` apply for callables versus named
+        functions. ``index`` may point to the end of the list to append.
+        """
+
+        if index < 0 or index > len(self.steps):
+            raise IndexError("index out of range")
+        if callable(func):
+            step = {"callable": func, "params": params or {}}
+        else:
+            step = {"func": func, "module": module, "params": params or {}}
+        self.steps.insert(index, step)
+
     def duplicate(self) -> "HighLevelPipeline":
         """Return a deep copy of this pipeline."""
         return HighLevelPipeline(
@@ -289,6 +311,12 @@ class HighLevelPipeline:
         if index < 0 or index >= len(self.steps):
             raise IndexError("index out of range")
         return self._execute_steps(self.steps[: index + 1], marble)
+
+    def execute_from(self, index: int, marble: Any | None = None) -> tuple[Any | None, list[Any]]:
+        """Execute pipeline steps starting at ``index`` until the end."""
+        if index < 0 or index >= len(self.steps):
+            raise IndexError("index out of range")
+        return self._execute_steps(self.steps[index:], marble)
 
     def save_json(self, path: str) -> None:
         for step in self.steps:
