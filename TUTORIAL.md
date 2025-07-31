@@ -366,10 +366,17 @@ This project covers **autograd integration** and the **PyTorch challenge** mecha
    ```
    The text file will be located at `data/tinyshakespeare.txt`.
 2. **Enable the GPT components** by editing `config.yaml` and setting `gpt.enabled: true`. Also provide `dataset_path: data/tinyshakespeare.txt` in that section.
-3. **Tokenize and train** using the helper functions:
+3. **Tokenize and train** using the helper functions. The dataset is first
+   processed with the dataloader so tokens are encoded consistently:
    ```python
-   dataset = advanced_gpt.load_text_dataset(cfg['gpt']['dataset_path'])
-   advanced_gpt.train_advanced_gpt(marble.brain, dataset, epochs=5)
+   dataset, vocab = advanced_gpt.load_text_dataset(cfg['gpt']['dataset_path'])
+   token_seqs = [dataloader.encode_array(seq) for seq in dataset]
+   advanced_gpt.train_advanced_gpt(
+       [dataloader.decode_array(s) for s in token_seqs],
+       vocab_size=len(vocab),
+       block_size=cfg["gpt"]["block_size"],
+       epochs=5,
+   )
    ```
 4. **Generate text** once training completes by calling `advanced_gpt.generate_text(marble.brain, 'Once upon a time')`.
 5. **Optionally distill** the knowledge to a smaller network with `DistillationTrainer` by loading a saved model and training a student brain against it.
@@ -420,6 +427,7 @@ from marble_main import MARBLE
 from marble import DataLoader
 from tokenizer_utils import built_in_tokenizer
 import requests
+import numpy as np
 
 cfg = load_config()
 tokenizer = built_in_tokenizer("char_bpe")  # character-level BPE for tiny corpus
@@ -427,11 +435,13 @@ dataloader = DataLoader(tokenizer=tokenizer)
 marble = MARBLE(cfg['core'])
 url = 'https://raw.githubusercontent.com/karpathy/char-rnn/master/data/tinyshakespeare/input.txt'
 text = requests.get(url, timeout=10).text[:1000]
-chars = sorted(set(text))
-char_to_idx = {c: i for i, c in enumerate(chars)}
+ids = dataloader.tokenizer.encode(text).ids
 examples = [
-    ([char_to_idx[c] for c in text[i : i + 10]], char_to_idx[text[i + 10]])
-    for i in range(len(text) - 10)
+    (
+        dataloader.encode_array(np.array(ids[i : i + 10], dtype=np.int32)),
+        dataloader.encode(ids[i + 10]),
+    )
+    for i in range(len(ids) - 10)
 ]
 marble.brain.train(examples[:500], epochs=1)
 ```
