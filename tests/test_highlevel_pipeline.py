@@ -245,3 +245,11 @@ def test_highlevel_pipeline_replace_and_update():
     hp.replace_step(0, lambda: "c")
     _, result = hp.run_step(0)
     assert result == "c"
+
+
+def test_highlevel_pipeline_json_methods():
+    hp = HighLevelPipeline()
+    hp.add_step("new_marble_system", module="marble_interface", params={})
+    json_str = hp.to_json()
+    clone = HighLevelPipeline.from_json(json_str)
+    assert clone.steps == hp.steps

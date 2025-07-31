@@ -350,7 +350,20 @@ class HighLevelPipeline:
         with open(path, "w", encoding="utf-8") as f:
             json.dump(self.steps, f, indent=2)
 
+    def to_json(self) -> str:
+        """Return a JSON string representing this pipeline."""
+        for step in self.steps:
+            if "callable" in step:
+                raise ValueError("Cannot serialise pipelines containing callables")
+        return json.dumps(self.steps, indent=2)
+
     @classmethod
     def load_json(cls, file_obj) -> "HighLevelPipeline":
         steps = json.load(file_obj)
+        return cls(steps=steps)
+
+    @classmethod
+    def from_json(cls, json_str: str) -> "HighLevelPipeline":
+        """Construct a pipeline from a JSON string."""
+        steps = json.loads(json_str)
         return cls(steps=steps)
