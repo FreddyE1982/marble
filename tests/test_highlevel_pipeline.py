@@ -224,3 +224,17 @@ def test_highlevel_pipeline_insert_and_execute_from(tmp_path):
 
     marble2, rest = hp.execute_from(1, marble)
     assert rest[0] == "x"
+
+
+def test_highlevel_pipeline_replace_and_update():
+    hp = HighLevelPipeline()
+
+    def step_a(x=None):
+        return x
+
+    hp.add_step(step_a, params={"x": "a"})
+    hp.update_step_params(0, x="b")
+    assert hp.steps[0]["params"]["x"] == "b"
+    hp.replace_step(0, lambda: "c")
+    _, result = hp.run_step(0)
+    assert result == "c"

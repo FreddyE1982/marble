@@ -76,6 +76,9 @@ You can also pass an existing ``vocab`` dictionary to reuse the same mapping
 across multiple datasets for consistent encoding.
 ``BitTensorDataset.summary`` provides quick statistics about the stored pairs,
 vocabulary size and device placement for convenient logging.
+``BitTensorDataset.add_pair`` and ``BitTensorDataset.extend`` allow dynamically
+appending new training samples using the current vocabulary and device
+configuration.
 
 Several helper pipelines leverage ``BitTensorDataset`` to train various
 learning paradigms on arbitrary Python objects, including ``AutoencoderPipeline``,
@@ -170,7 +173,9 @@ Individual steps can be executed in isolation with ``HighLevelPipeline.run_step`
 or partial pipelines run via ``HighLevelPipeline.execute_until``. A complementary
 ``HighLevelPipeline.execute_from`` starts execution from an intermediate step.
 Steps can be inserted at arbitrary positions with ``HighLevelPipeline.insert_step``
-which helps debug complex workflows and restructure pipelines quickly.
+and existing steps replaced or tweaked with ``HighLevelPipeline.replace_step``
+and ``HighLevelPipeline.update_step_params`` which helps debug complex
+workflows and restructure pipelines quickly.
 You can run the same JSON pipelines from the command line using ``--pipeline``
 with ``cli.py`` or execute them programmatically through the ``Pipeline``
 class for full automation. A ``HighLevelPipeline`` helper offers a fluent

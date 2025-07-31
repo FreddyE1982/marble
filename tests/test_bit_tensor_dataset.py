@@ -102,3 +102,12 @@ def test_bit_tensor_dataset_summary():
     assert info["vocab_size"] == ds.vocab_size()
     assert info["device"] == str(ds.device)
     assert info["compressed"] is False
+
+
+def test_bit_tensor_dataset_add_extend():
+    ds = BitTensorDataset([(0, 1)])
+    ds.add_pair(2, 3)
+    assert len(ds) == 2
+    ds.extend([(4, 5), (6, 7)])
+    assert len(ds) == 4
+    assert ds.tensor_to_object(ds[2][0]) == 4

@@ -59,7 +59,12 @@ receives inputs in a consistent format. The pipeline keeps track of the active
    marble, intermediate = hp.execute_until(1)
    marble, tail = hp.execute_from(1)
    ```
-7. **Custom callables** can be inserted when more control is required.
+7. **Modify steps** by replacing functions or updating parameters.
+   ```python
+   hp.replace_step(0, some_other_func)
+   hp.update_step_params(1, epochs=5)
+   ```
+8. **Custom callables** can be inserted when more control is required.
    ```python
    def print_summary(marble=None):
        print(marble.summary())

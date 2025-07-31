@@ -176,6 +176,29 @@ class HighLevelPipeline:
             step = {"func": func, "module": module, "params": params or {}}
         self.steps.insert(index, step)
 
+    def replace_step(
+        self,
+        index: int,
+        func: str | Callable,
+        *,
+        module: str | None = None,
+        params: dict | None = None,
+    ) -> None:
+        """Replace the step at ``index`` with ``func``."""
+        if index < 0 or index >= len(self.steps):
+            raise IndexError("index out of range")
+        if callable(func):
+            step = {"callable": func, "params": params or {}}
+        else:
+            step = {"func": func, "module": module, "params": params or {}}
+        self.steps[index] = step
+
+    def update_step_params(self, index: int, **params: Any) -> None:
+        """Update stored parameters for the step at ``index``."""
+        if index < 0 or index >= len(self.steps):
+            raise IndexError("index out of range")
+        self.steps[index].setdefault("params", {}).update(params)
+
     def duplicate(self) -> "HighLevelPipeline":
         """Return a deep copy of this pipeline."""
         return HighLevelPipeline(
