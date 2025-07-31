@@ -71,6 +71,8 @@ even audio and arbitrary byte blobs without additional conversion steps. When
 operating directly on the bit level, ``BitTensorDataset`` can convert objects
 into binary tensors and optionally build a shared vocabulary for compact
 storage.
+You can also pass an existing ``vocab`` dictionary to reuse the same mapping
+across multiple datasets for consistent encoding.
 
 Several helper pipelines leverage ``BitTensorDataset`` to train various
 learning paradigms on arbitrary Python objects, including ``AutoencoderPipeline``,
@@ -156,8 +158,10 @@ pretrained model from the Hugging Face Hub and converting it into a MARBLE
 system with one click.
 Pipelines can be imported or exported as JSON and a **Custom Code** tab lets you
 run arbitrary Python snippets with the active MARBLE instance.
-Pipeline steps may also be reordered or removed directly from the UI so complex
-workflows can be iterated on quickly.
+Pipeline steps may also be reordered or removed directly from the UI. The same
+functionality is exposed programmatically via ``HighLevelPipeline.move_step``
+and ``HighLevelPipeline.remove_step`` so complex workflows can be iterated on
+quickly.
 You can run the same JSON pipelines from the command line using ``--pipeline``
 with ``cli.py`` or execute them programmatically through the ``Pipeline``
 class for full automation. A ``HighLevelPipeline`` helper offers a fluent
@@ -172,7 +176,9 @@ dicts.
 Dataset arguments are converted to :class:`BitTensorDataset` automatically with
 mixed mode enabled, no vocabulary size limit and a minimum word length and
 occurrence of ``4``.  All feature inputs are wrapped by default so every
-operation receives data in a consistent form. Additional argument names can be
+operation receives data in a consistent form. A pre-built vocabulary can be
+supplied via ``bit_dataset_params`` so multiple steps encode data identically.
+Additional argument names can be
 registered with ``HighLevelPipeline.register_data_args`` to support custom
 features. Arbitrary steps from any module may be chained without limitation,
 allowing any number or combination of MARBLE features and options to be expressed

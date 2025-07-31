@@ -132,3 +132,31 @@ def test_highlevel_pipeline_multi_step_chain(tmp_path):
     marble, results = hp.execute()
     assert isinstance(marble, marble_interface.MARBLE)
     assert len(results) == 5
+
+
+def test_highlevel_pipeline_step_manipulation():
+    hp = HighLevelPipeline()
+
+    def a():
+        return "a"
+
+    def b():
+        return "b"
+
+    def c():
+        return "c"
+
+    hp.add_step(a)
+    hp.add_step(b)
+    hp.add_step(c)
+    hp.move_step(2, 0)
+    assert hp.steps[0]["callable"] == c
+    hp.remove_step(1)
+    assert len(hp.steps) == 2
+
+
+def test_highlevel_pipeline_shared_vocab_param():
+    vocab = {(1, 1): 300}
+    hp = HighLevelPipeline(bit_dataset_params={"vocab": vocab})
+    ds = hp._maybe_bit_dataset([0, 1])
+    assert ds.get_vocab() == vocab
