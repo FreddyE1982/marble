@@ -158,6 +158,7 @@ class BitTensorDataset(Dataset):
         data: Iterable[tuple[Any, Any]],
         use_vocab: bool = False,
         *,
+        vocab: dict[tuple[int, ...], int] | None = None,
         mixed: bool = True,
         max_vocab_size: int | None = None,
         min_word_length: int = 4,
@@ -184,14 +185,14 @@ class BitTensorDataset(Dataset):
         """
 
         self.raw_data = list(data)
-        self.use_vocab = use_vocab
+        self.use_vocab = use_vocab or vocab is not None
         self.mixed = mixed
         self.max_vocab_size = max_vocab_size
         self.min_word_length = min_word_length
         self.min_occurrence = min_occurrence
-        self.vocab: dict[tuple[int, ...], int] | None = None
+        self.vocab: dict[tuple[int, ...], int] | None = vocab
 
-        if self.use_vocab:
+        if self.use_vocab and self.vocab is None:
             bitstream: list[int] = []
             for inp, out in self.raw_data:
                 bitstream += flatten_tensor_to_bitstream(
@@ -241,5 +242,17 @@ class BitTensorDataset(Dataset):
         byte_data = tensors_to_bytes(bit_tensor)
         return bytes_to_object(byte_data)
 
+    def encode_object(self, obj: Any) -> torch.Tensor:
+        """Return tensor representation of ``obj`` using the dataset vocabulary."""
+        return self._obj_to_tensor(obj)
+
+    def decode_tensor(self, tensor: torch.Tensor) -> Any:
+        """Inverse of :meth:`encode_object`."""
+        return self.tensor_to_object(tensor)
+
     def get_vocab(self):
         return self.vocab
+
+    def vocab_size(self) -> int:
+        return len(self.vocab) if self.vocab is not None else 0
+

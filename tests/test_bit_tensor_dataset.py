@@ -47,3 +47,13 @@ def test_vocab_only_mode_changes_output():
     with pytest.raises(Exception):
         ds.tensor_to_object(t_in)
 
+
+def test_custom_vocab_reuse():
+    data = [("x", "y")]
+    ds1 = BitTensorDataset(data, use_vocab=True)
+    vocab = ds1.get_vocab()
+    ds2 = BitTensorDataset(data, vocab=vocab)
+    assert ds2.get_vocab() == vocab
+    obj = ds2.tensor_to_object(ds2[0][0])
+    assert obj == "x"
+
