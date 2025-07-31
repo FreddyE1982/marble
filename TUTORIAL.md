@@ -534,7 +534,7 @@ This project demonstrates the new **ContrastiveLearner** and how it integrates w
    ```python
    from datasets import load_dataset
    ds = load_dataset('fashion_mnist', split='train')
-   inputs = [x['image'].reshape(-1).numpy() / 255.0 for x in ds]
+   inputs = [dataloader.encode(x['image'].reshape(-1).numpy() / 255.0) for x in ds]
    ```
 4. **Train** on these vectors with `learner.train(inputs)` and review `learner.history` to see how correlations strengthen or weaken connections.
 
@@ -552,7 +552,7 @@ marble = MARBLE(cfg['core'])
 learner = HebbianLearner(marble.core, marble.neuronenblitz)
 from datasets import load_dataset
 ds = load_dataset('fashion_mnist', split='train')
-inputs = [x['image'].reshape(-1).numpy() / 255.0 for x in ds]
+inputs = [dataloader.encode(x['image'].reshape(-1).numpy() / 255.0) for x in ds]
 learner.train(inputs)
 print(learner.history[-1])
 ```
@@ -574,7 +574,7 @@ Execute this file to observe Hebbian updates on your data.
    from adversarial_dataset import FGSMDataset
    model = ToyModel()
    adv_ds = FGSMDataset(ds, model, epsilon=0.05)
-   real_values = [x[0] for x in adv_ds]
+   real_values = [dataloader.encode(x[0]) for x in adv_ds]
    ```
 5. **Construct an `AdversarialLearner`** and call `learner.train(real_values)` to alternate generator and discriminator updates.
 6. **Optionally perform adversarial fine-tuning** of a standard PyTorch model using
@@ -601,7 +601,7 @@ discriminator = MARBLE(cfg['core']).neuronenblitz
 learner = AdversarialLearner(generator, discriminator)
 from datasets import load_dataset
 ds = load_dataset('mnist', split='train')
-real_values = [x['image'].reshape(-1).numpy() / 255.0 for x in ds]
+real_values = [dataloader.encode(x['image'].reshape(-1).numpy() / 255.0) for x in ds]
 learner.train(real_values)
 noise = sample_noise(len(real_values[0][0]))
 print(generator.dynamic_wander(noise))
@@ -622,7 +622,7 @@ Run this script to see generator and discriminator training in action.
    ```python
    from sklearn.datasets import load_digits
    digits = load_digits()
-   values = [img / 16.0 for img in digits.data]
+   values = [dataloader.encode(img / 16.0) for img in digits.data]
    ```
 4. **Train** using `auto.train(values)` and inspect `auto.history` to see reconstruction losses decreasing over epochs.
 
@@ -640,7 +640,7 @@ marble = MARBLE(cfg['core'])
 auto = AutoencoderLearner(marble.core, marble.neuronenblitz)
 from sklearn.datasets import load_digits
 digits = load_digits()
-values = [img / 16.0 for img in digits.data]
+values = [dataloader.encode(img / 16.0) for img in digits.data]
 auto.train(values)
 print(auto.history[-1])
 ```
@@ -754,7 +754,10 @@ This script launches a simple three‑client federated session.
    digits = load_digits()
    difficulty = digits.data.sum(axis=1)
    sorted_idx = difficulty.argsort()
-   sorted_samples = [(digits.data[i], digits.target[i]) for i in sorted_idx]
+   sorted_samples = [
+       (dataloader.encode(digits.data[i]), dataloader.encode(digits.target[i]))
+       for i in sorted_idx
+   ]
    ```
 4. **Call** `learner.train(sorted_samples)` to progressively feed in harder examples and track progress via `learner.history`.
 
@@ -774,7 +777,10 @@ from sklearn.datasets import load_digits
 digits = load_digits()
 difficulty = digits.data.sum(axis=1)
 sorted_idx = difficulty.argsort()
-sorted_samples = [(digits.data[i], digits.target[i]) for i in sorted_idx]
+sorted_samples = [
+    (dataloader.encode(digits.data[i]), dataloader.encode(digits.target[i]))
+    for i in sorted_idx
+]
 learner.train(sorted_samples)
 print(learner.history[-1])
 ```
