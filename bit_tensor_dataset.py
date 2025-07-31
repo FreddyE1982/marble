@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import pickle
+import zlib
 from collections import Counter
 from typing import Any, Iterable
 
@@ -165,6 +166,7 @@ class BitTensorDataset(Dataset):
         max_word_length: int = 8,
         min_occurrence: int = 4,
         device: str | torch.device | None = None,
+        compress: bool = False,
     ) -> None:
         """Prepare ``(input, target)`` pairs for training.
 
@@ -189,6 +191,11 @@ class BitTensorDataset(Dataset):
         device:
             Target device for stored tensors. ``None`` selects ``"cuda"`` when
             available, otherwise ``"cpu"``.
+        compress:
+            When ``True`` all objects are compressed using ``zlib`` before
+            converting them to bit tensors. This can substantially reduce
+            dataset size when storing large pickled objects at the cost of
+            slightly longer encode/decode times.
         """
 
         self.raw_data = list(data)
@@ -203,16 +210,22 @@ class BitTensorDataset(Dataset):
             if device is None and torch.cuda.is_available()
             else torch.device(device or "cpu")
         )
+        self.compress = compress
         self.vocab: dict[tuple[int, ...], int] | None = vocab
 
         if self.use_vocab and self.vocab is None:
             bitstream: list[int] = []
             for inp, out in self.raw_data:
+                in_bytes = object_to_bytes(inp)
+                out_bytes = object_to_bytes(out)
+                if self.compress:
+                    in_bytes = zlib.compress(in_bytes)
+                    out_bytes = zlib.compress(out_bytes)
                 bitstream += flatten_tensor_to_bitstream(
-                    bytes_to_tensors(object_to_bytes(inp))
+                    bytes_to_tensors(in_bytes)
                 )
                 bitstream += flatten_tensor_to_bitstream(
-                    bytes_to_tensors(object_to_bytes(out))
+                    bytes_to_tensors(out_bytes)
                 )
             self.vocab = build_vocab(
                 bitstream,
@@ -230,6 +243,8 @@ class BitTensorDataset(Dataset):
 
     def _obj_to_tensor(self, obj: Any) -> torch.Tensor:
         byte_data = object_to_bytes(obj)
+        if self.compress:
+            byte_data = zlib.compress(byte_data)
         bit_tensor = bytes_to_tensors(byte_data).to(self.device)
         if self.vocab is None:
             return bit_tensor
@@ -255,6 +270,8 @@ class BitTensorDataset(Dataset):
             decoded = decode_with_vocab(cpu_tensor.squeeze(1).tolist(), self.vocab)
             bit_tensor = unflatten_bitstream_to_tensor(decoded)
         byte_data = tensors_to_bytes(bit_tensor)
+        if self.compress:
+            byte_data = zlib.decompress(byte_data)
         return bytes_to_object(byte_data)
 
     def encode_object(self, obj: Any) -> torch.Tensor:

@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib
 import inspect
 import json
+import copy
 from typing import Any, Callable, Iterable
 
 from torch.utils.data import Dataset
@@ -66,6 +67,7 @@ class HighLevelPipeline:
         "min_occurrence": 4,
         "vocab": None,
         "device": None,
+        "compress": False,
     }
 
     DEFAULT_DATA_ARGS = {
@@ -152,6 +154,30 @@ class HighLevelPipeline:
         step = self.steps.pop(old_index)
         self.steps.insert(new_index, step)
 
+    def duplicate(self) -> "HighLevelPipeline":
+        """Return a deep copy of this pipeline."""
+        return HighLevelPipeline(
+            steps=copy.deepcopy(self.steps),
+            use_bit_dataset=self.use_bit_dataset,
+            bit_dataset_params=self.bit_dataset_params.copy(),
+            data_args=self.data_args.copy(),
+        )
+
+    def describe(self) -> str:
+        """Return a human readable string describing all steps."""
+        lines: list[str] = []
+        for i, step in enumerate(self.steps):
+            if "callable" in step:
+                name = step["callable"].__name__
+            else:
+                module = step.get("module", "marble_interface")
+                name = f"{module}.{step['func']}"
+            lines.append(f"{i}: {name} params={step.get('params', {})}")
+        return "\n".join(lines)
+
+    def __str__(self) -> str:  # pragma: no cover - formatting only
+        return self.describe()
+
     def _maybe_bit_dataset(self, obj: Any) -> Any:
         if not self.use_bit_dataset:
             return obj
@@ -182,6 +208,7 @@ class HighLevelPipeline:
             min_occurrence=self.bit_dataset_params["min_occurrence"],
             vocab=self.bit_dataset_params.get("vocab"),
             device=self.bit_dataset_params["device"],
+            compress=self.bit_dataset_params.get("compress", False),
         )
 
     def _extract_marble(self, obj: Any) -> marble_interface.MARBLE | None:

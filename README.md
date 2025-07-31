@@ -70,7 +70,8 @@ possible to train on multimodal pairs such as text-to-image, image-to-text or
 even audio and arbitrary byte blobs without additional conversion steps. When
 operating directly on the bit level, ``BitTensorDataset`` can convert objects
 into binary tensors and optionally build a shared vocabulary for compact
-storage.
+storage. A ``compress`` option uses ``zlib`` to shrink the byte representation
+before conversion, reducing dataset size when storing large objects.
 You can also pass an existing ``vocab`` dictionary to reuse the same mapping
 across multiple datasets for consistent encoding.
 
@@ -161,7 +162,8 @@ run arbitrary Python snippets with the active MARBLE instance.
 Pipeline steps may also be reordered or removed directly from the UI. The same
 functionality is exposed programmatically via ``HighLevelPipeline.move_step``
 and ``HighLevelPipeline.remove_step`` so complex workflows can be iterated on
-quickly.
+quickly. Pipelines can be duplicated with ``HighLevelPipeline.duplicate`` and
+summarised using ``HighLevelPipeline.describe`` for easy logging.
 You can run the same JSON pipelines from the command line using ``--pipeline``
 with ``cli.py`` or execute them programmatically through the ``Pipeline``
 class for full automation. A ``HighLevelPipeline`` helper offers a fluent
