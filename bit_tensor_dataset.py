@@ -293,3 +293,41 @@ class BitTensorDataset(Dataset):
         self.device = torch.device(device)
         self.data = [(a.to(self.device), b.to(self.device)) for a, b in self.data]
         return self
+
+    def __iter__(self):
+        """Yield each ``(input, target)`` pair in sequence."""
+        return iter(self.data)
+
+    def save(self, path: str) -> None:
+        """Persist dataset tensors and metadata to ``path``."""
+        payload = {
+            "data": [(a.cpu(), b.cpu()) for a, b in self.data],
+            "vocab": self.vocab,
+            "mixed": self.mixed,
+            "max_vocab_size": self.max_vocab_size,
+            "min_word_length": self.min_word_length,
+            "max_word_length": self.max_word_length,
+            "min_occurrence": self.min_occurrence,
+            "device": str(self.device),
+            "compress": self.compress,
+        }
+        torch.save(payload, path)
+
+    @classmethod
+    def load(cls, path: str, *, device: str | torch.device | None = None) -> "BitTensorDataset":
+        """Load a dataset previously saved with :meth:`save`."""
+        obj = torch.load(path, map_location="cpu")
+        ds = cls(
+            [],
+            use_vocab=obj["vocab"] is not None,
+            vocab=obj["vocab"],
+            mixed=obj["mixed"],
+            max_vocab_size=obj["max_vocab_size"],
+            min_word_length=obj["min_word_length"],
+            max_word_length=obj["max_word_length"],
+            min_occurrence=obj["min_occurrence"],
+            device=device or obj["device"],
+            compress=obj["compress"],
+        )
+        ds.data = [(a.to(ds.device), b.to(ds.device)) for a, b in obj["data"]]
+        return ds

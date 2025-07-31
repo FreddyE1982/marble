@@ -163,6 +163,53 @@ class HighLevelPipeline:
             data_args=self.data_args.copy(),
         )
 
+    def _execute_steps(
+        self, steps: list[dict], marble: Any | None
+    ) -> tuple[Any | None, list[Any]]:
+        """Internal helper executing ``steps`` sequentially."""
+        current_marble = marble
+        results: list[Any] = []
+        for step in steps:
+            if "callable" in step:
+                func = step["callable"]
+                params = step.get("params", {})
+            else:
+                module_name = step.get("module")
+                func_name = step["func"]
+                params = step.get("params", {})
+                module = (
+                    importlib.import_module(module_name)
+                    if module_name
+                    else marble_interface
+                )
+                if not hasattr(module, func_name):
+                    raise ValueError(f"Unknown function: {func_name}")
+                func = getattr(module, func_name)
+            new_params = {}
+            for k, v in params.items():
+                if k in self.data_args:
+                    new_params[k] = self._maybe_bit_dataset(v)
+                else:
+                    new_params[k] = v
+            params = new_params
+            sig = inspect.signature(func)
+            kwargs = {}
+            for name, p in sig.parameters.items():
+                if name == "marble":
+                    kwargs[name] = current_marble
+                elif name in params:
+                    kwargs[name] = params[name]
+                elif p.default is not inspect.Parameter.empty:
+                    kwargs[name] = p.default
+                else:
+                    raise ValueError(f"Missing parameter: {name}")
+            result = func(**kwargs)
+            found = self._extract_marble(result)
+            if found is not None:
+                current_marble = found
+            results.append(result)
+        return current_marble, results
+
     def describe(self) -> str:
         """Return a human readable string describing all steps."""
         lines: list[str] = []
@@ -228,49 +275,20 @@ class HighLevelPipeline:
         return None
 
     def execute(self, marble: Any | None = None) -> tuple[Any | None, list[Any]]:
-        current_marble = marble
-        results: list[Any] = []
-        for step in self.steps:
-            if "callable" in step:
-                func = step["callable"]
-                params = step.get("params", {})
-            else:
-                module_name = step.get("module")
-                func_name = step["func"]
-                params = step.get("params", {})
-                module = (
-                    importlib.import_module(module_name)
-                    if module_name
-                    else marble_interface
-                )
-                if not hasattr(module, func_name):
-                    raise ValueError(f"Unknown function: {func_name}")
-                func = getattr(module, func_name)
-            # convert dataset arguments if requested
-            new_params = {}
-            for k, v in params.items():
-                if k in self.data_args:
-                    new_params[k] = self._maybe_bit_dataset(v)
-                else:
-                    new_params[k] = v
-            params = new_params
-            sig = inspect.signature(func)
-            kwargs = {}
-            for name, p in sig.parameters.items():
-                if name == "marble":
-                    kwargs[name] = current_marble
-                elif name in params:
-                    kwargs[name] = params[name]
-                elif p.default is not inspect.Parameter.empty:
-                    kwargs[name] = p.default
-                else:
-                    raise ValueError(f"Missing parameter: {name}")
-            result = func(**kwargs)
-            found = self._extract_marble(result)
-            if found is not None:
-                current_marble = found
-            results.append(result)
-        return current_marble, results
+        return self._execute_steps(self.steps, marble)
+
+    def run_step(self, index: int, marble: Any | None = None) -> tuple[Any | None, Any]:
+        """Execute a single step at ``index`` and return the result."""
+        if index < 0 or index >= len(self.steps):
+            raise IndexError("index out of range")
+        marble, results = self._execute_steps([self.steps[index]], marble)
+        return marble, results[0]
+
+    def execute_until(self, index: int, marble: Any | None = None) -> tuple[Any | None, list[Any]]:
+        """Execute pipeline steps up to ``index`` (inclusive)."""
+        if index < 0 or index >= len(self.steps):
+            raise IndexError("index out of range")
+        return self._execute_steps(self.steps[: index + 1], marble)
 
     def save_json(self, path: str) -> None:
         for step in self.steps:

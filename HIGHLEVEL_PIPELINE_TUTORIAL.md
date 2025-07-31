@@ -46,14 +46,19 @@ receives inputs in a consistent format. The pipeline keeps track of the active
    clone = hp.duplicate()
    print(hp.describe())
    ```
-4. **Save or load** pipelines using JSON for reproducibility.
+5. **Save or load** pipelines using JSON for reproducibility.
    ```python
    hp.save_json("workflow.json")
    # later
    with open("workflow.json", "r", encoding="utf-8") as f:
        restored = HighLevelPipeline.load_json(f)
    ```
-5. **Custom callables** can be inserted when more control is required.
+6. **Execute specific steps** to debug a workflow.
+   ```python
+   marble, result = hp.run_step(0)
+   marble, intermediate = hp.execute_until(1)
+   ```
+7. **Custom callables** can be inserted when more control is required.
    ```python
    def print_summary(marble=None):
        print(marble.summary())
