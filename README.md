@@ -68,6 +68,7 @@ even audio and arbitrary byte blobs without additional conversion steps. When
 operating directly on the bit level, ``BitTensorDataset`` can convert objects
 into binary tensors and optionally build a shared vocabulary for compact
 storage.
+Custom pipelines such as ``AutoencoderPairsPipeline`` and ``ContinualPairsPipeline`` leverage this dataset to streamline training workflows.
 
 ### Command Line Usage
 
