@@ -13,6 +13,7 @@ from tests.test_core_functions import minimal_params
 
 import marble_interface
 from highlevel_pipeline import HighLevelPipeline
+from bit_tensor_dataset import BitTensorDataset
 
 
 def _config_path(tmp_path):
@@ -90,3 +91,25 @@ def test_highlevel_pipeline_nested_module(tmp_path):
     hp.new_marble_system(config_path=str(cfg))
     hp.marble_neuronenblitz.learning.disable_rl(nb=None)
     assert hp.steps[-1]["module"] == "marble_neuronenblitz.learning"
+
+
+def test_highlevel_pipeline_default_bit_params():
+    hp = HighLevelPipeline()
+    ds = hp._maybe_bit_dataset([1, 2])
+    assert isinstance(ds, BitTensorDataset)
+    assert ds.mixed is True
+    assert ds.max_vocab_size is None
+    assert ds.min_word_length == 4
+    assert ds.min_occurrence == 4
+
+
+def test_highlevel_pipeline_register_data_args():
+    hp = HighLevelPipeline()
+
+    def grab(custom=None):
+        return custom
+
+    hp.register_data_args("custom")
+    hp.add_step(grab, params={"custom": [10, 11]})
+    _, results = hp.execute()
+    assert isinstance(results[0], BitTensorDataset)
