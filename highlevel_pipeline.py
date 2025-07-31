@@ -3,9 +3,12 @@ from __future__ import annotations
 import importlib
 import inspect
 import json
-from typing import Any, Callable
+from typing import Any, Callable, Iterable
+
+from torch.utils.data import Dataset
 
 import marble_interface
+from bit_tensor_dataset import BitTensorDataset
 
 
 class _ModuleWrapper:
@@ -42,11 +45,43 @@ class _ModuleWrapper:
 class HighLevelPipeline:
     """Build and execute sequential MARBLE operations."""
 
-    def __init__(self, steps: list[dict] | None = None) -> None:
+    DEFAULT_BIT_PARAMS = {
+        "mixed": True,
+        "max_vocab_size": None,
+        "min_word_length": 4,
+        "min_occurrence": 4,
+    }
+
+    DATA_ARGS = {
+        "data",
+        "pairs",
+        "train_examples",
+        "validation_examples",
+        "examples",
+        "labeled_pairs",
+        "unlabeled_inputs",
+    }
+
+    def __init__(
+        self,
+        steps: list[dict] | None = None,
+        *,
+        use_bit_dataset: bool = True,
+        bit_dataset_params: dict | None = None,
+    ) -> None:
         self.steps: list[dict] = steps or []
+        self.use_bit_dataset = use_bit_dataset
+        self.bit_dataset_params = self.DEFAULT_BIT_PARAMS.copy()
+        if bit_dataset_params:
+            self.bit_dataset_params.update(bit_dataset_params)
+
+    def set_bit_dataset_params(self, **params: Any) -> None:
+        """Update default parameters for :class:`BitTensorDataset`."""
+        self.bit_dataset_params.update(params)
 
     def __getattr__(self, name: str) -> Callable | _ModuleWrapper:
         if hasattr(marble_interface, name):
+
             def wrapper(**params: Any) -> "HighLevelPipeline":
                 self.add_step(name, module="marble_interface", params=params)
                 return self
@@ -66,7 +101,7 @@ class HighLevelPipeline:
         *,
         module: str | None = None,
         params: dict | None = None,
-    ) -> 'HighLevelPipeline':
+    ) -> "HighLevelPipeline":
         """Append ``func`` as a pipeline step.
 
         ``func`` may be a callable or the name of a function. When a callable is
@@ -78,6 +113,35 @@ class HighLevelPipeline:
         else:
             self.steps.append({"func": func, "module": module, "params": params or {}})
         return self
+
+    def _maybe_bit_dataset(self, obj: Any) -> Any:
+        if not self.use_bit_dataset:
+            return obj
+        if isinstance(obj, BitTensorDataset):
+            return obj
+        if isinstance(obj, Dataset):
+            try:
+                items = [obj[i] for i in range(len(obj))]
+            except Exception:  # pragma: no cover - handle iterables
+                items = list(obj)
+        elif isinstance(obj, Iterable) and not isinstance(obj, (str, bytes, bytearray)):
+            items = list(obj)
+        else:
+            return obj
+        if not items:
+            return obj
+        if isinstance(items[0], tuple) and len(items[0]) == 2:
+            pairs = items
+        else:
+            pairs = [(x, x) for x in items]
+        return BitTensorDataset(
+            pairs,
+            use_vocab=True,
+            mixed=self.bit_dataset_params["mixed"],
+            max_vocab_size=self.bit_dataset_params["max_vocab_size"],
+            min_word_length=self.bit_dataset_params["min_word_length"],
+            min_occurrence=self.bit_dataset_params["min_occurrence"],
+        )
 
     def _extract_marble(self, obj: Any) -> marble_interface.MARBLE | None:
         """Return the first :class:`MARBLE` instance found in ``obj``."""
@@ -106,10 +170,22 @@ class HighLevelPipeline:
                 module_name = step.get("module")
                 func_name = step["func"]
                 params = step.get("params", {})
-                module = importlib.import_module(module_name) if module_name else marble_interface
+                module = (
+                    importlib.import_module(module_name)
+                    if module_name
+                    else marble_interface
+                )
                 if not hasattr(module, func_name):
                     raise ValueError(f"Unknown function: {func_name}")
                 func = getattr(module, func_name)
+            # convert dataset arguments if requested
+            new_params = {}
+            for k, v in params.items():
+                if k in self.DATA_ARGS:
+                    new_params[k] = self._maybe_bit_dataset(v)
+                else:
+                    new_params[k] = v
+            params = new_params
             sig = inspect.signature(func)
             kwargs = {}
             for name, p in sig.parameters.items():

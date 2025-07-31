@@ -33,18 +33,16 @@ def bytes_to_object(b: bytes) -> Any:
 
 def bytes_to_tensors(bytes_obj: bytes) -> torch.Tensor:
     """Convert bytes to a ``(n, 8)`` uint8 tensor representing bits."""
-    return torch.tensor([
-        [int(bit) for bit in f"{byte:08b}"]
-        for byte in bytes_obj
-    ], dtype=torch.uint8)
+    return torch.tensor(
+        [[int(bit) for bit in f"{byte:08b}"] for byte in bytes_obj], dtype=torch.uint8
+    )
 
 
 def tensors_to_bytes(tensor: torch.Tensor) -> bytes:
     """Convert a ``(n, 8)`` bit tensor back to bytes."""
     assert tensor.ndim == 2 and tensor.shape[1] == 8, "Tensor must have shape (n, 8)"
     byte_list = [
-        int("".join(str(bit.item()) for bit in byte_bits), 2)
-        for byte_bits in tensor
+        int("".join(str(bit.item()) for bit in byte_bits), 2) for byte_bits in tensor
     ]
     return bytes(byte_list)
 
@@ -138,7 +136,9 @@ def encode_with_vocab(
     return result
 
 
-def decode_with_vocab(encoded: list[int], vocab: dict[tuple[int, ...], int]) -> list[int]:
+def decode_with_vocab(
+    encoded: list[int], vocab: dict[tuple[int, ...], int]
+) -> list[int]:
     """Expand vocabulary tokens back into bit patterns."""
     inverse = {v: list(k) for k, v in vocab.items()}
     result: list[int] = []
@@ -160,7 +160,7 @@ class BitTensorDataset(Dataset):
         *,
         mixed: bool = True,
         max_vocab_size: int | None = None,
-        min_word_length: int = 3,
+        min_word_length: int = 4,
         min_occurrence: int = 4,
     ) -> None:
         """Prepare ``(input, target)`` pairs for training.
@@ -194,8 +194,12 @@ class BitTensorDataset(Dataset):
         if self.use_vocab:
             bitstream: list[int] = []
             for inp, out in self.raw_data:
-                bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(object_to_bytes(inp)))
-                bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(object_to_bytes(out)))
+                bitstream += flatten_tensor_to_bitstream(
+                    bytes_to_tensors(object_to_bytes(inp))
+                )
+                bitstream += flatten_tensor_to_bitstream(
+                    bytes_to_tensors(object_to_bytes(out))
+                )
             self.vocab = build_vocab(
                 bitstream,
                 min_len=self.min_word_length,
