@@ -64,7 +64,10 @@ want to override.  Any missing options fall back to the defaults defined in
 Any Python object can serve as an ``input`` or ``target`` because the built-in
 ``DataLoader`` serializes data through ``DataCompressor``. This makes it
 possible to train on multimodal pairs such as text-to-image, image-to-text or
-even audio and arbitrary byte blobs without additional conversion steps.
+even audio and arbitrary byte blobs without additional conversion steps. When
+operating directly on the bit level, ``BitTensorDataset`` can convert objects
+into binary tensors and optionally build a shared vocabulary for compact
+storage.
 
 ### Command Line Usage
 
