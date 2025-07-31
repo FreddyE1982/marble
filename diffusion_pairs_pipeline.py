@@ -1,14 +1,17 @@
 from __future__ import annotations
 
-from typing import Any, Iterable, Tuple
 import pickle
+from typing import Any, Iterable, Tuple
 
-from diffusion_core import DiffusionCore
-from marble_neuronenblitz import Neuronenblitz
-from marble_brain import Brain
-from marble_imports import cp
-from marble_core import DataLoader
 from tokenizers import Tokenizer
+from torch.utils.data import Dataset
+
+from bit_tensor_dataset import BitTensorDataset
+from diffusion_core import DiffusionCore
+from marble_brain import Brain
+from marble_core import DataLoader
+from marble_imports import cp
+from marble_neuronenblitz import Neuronenblitz
 
 
 class DiffusionPairsPipeline:
@@ -50,8 +53,19 @@ class DiffusionPairsPipeline:
             return float(cp.asnumpy(tensor).astype(float).mean())
         return float(tensor)
 
-    def train(self, pairs: Iterable[Tuple[Any, Any]], epochs: int = 1) -> str:
-        examples = [(self._to_float(i), self._to_float(t)) for i, t in pairs]
+    def train(self, pairs: Iterable[Tuple[Any, Any]] | Dataset, epochs: int = 1) -> str:
+        if isinstance(pairs, Dataset):
+            if isinstance(pairs, BitTensorDataset):
+                iter_pairs = (
+                    (pairs.tensor_to_object(inp), pairs.tensor_to_object(tgt))
+                    for inp, tgt in pairs
+                )
+            else:
+                iter_pairs = ((inp, tgt) for inp, tgt in pairs)
+        else:
+            iter_pairs = pairs
+
+        examples = [(self._to_float(i), self._to_float(t)) for i, t in iter_pairs]
         self.nb.train(examples, epochs=epochs)
         with open(self.save_path, "wb") as f:
             pickle.dump({"core": self.core, "neuronenblitz": self.nb}, f)
