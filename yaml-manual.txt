@@ -188,6 +188,11 @@ core:
   activation_output_dir: Directory where a heatmap of neuron activations is
     written after every diffusion run. Useful for visualising internal state
     evolution. The directory is created automatically if it does not exist.
+  activation_colormap: Name of the Matplotlib colour map used for activation
+    heatmaps. Popular options are ``"viridis"``, ``"plasma"`` and
+    ``"cividis"``. Choose a map that provides good contrast when visualising
+    neuron activations. Custom names accepted by
+    :func:`matplotlib.pyplot.colormaps` may also be used.
   memory_system:
     long_term_path: File used for persistent storage of diffusion outputs. Both
       short- and long-term layers are utilised so recent results can be cached

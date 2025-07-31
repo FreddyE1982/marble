@@ -1850,7 +1850,8 @@ plugins and components.
    the diffusion engine stores each step in hierarchical memory, trains the
    continuous weight field, adapts representations via harmonic resonance and
    fractal learning and finally writes an activation heatmap to the configured
-   directory.
+   directory. The colour map used for this heatmap can be selected with
+   ``activation_colormap``.
 
 Running this project demonstrates the new ``DiffusionCore`` which integrates
 Neuronenblitz wandering, hybrid memory and remote offloading to support
