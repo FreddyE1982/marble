@@ -1665,6 +1665,8 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    sequence. The same pipelines can be saved as JSON and executed from the
    command line using ``python cli.py --pipeline mypipe.json`` or through the
    ``Pipeline``/``HighLevelPipeline`` classes in your own scripts.
+   Nested modules are supported as well, so ``pipeline.marble_neuronenblitz.learning.enable_rl``
+   appends a call to ``marble_neuronenblitz.learning.enable_rl``.
    Custom callables may be added as steps and any MARBLE instance returned
    (even inside tuples or dictionaries) becomes the active system for the
    following operations.

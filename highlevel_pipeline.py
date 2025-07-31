@@ -16,18 +16,27 @@ class _ModuleWrapper:
         self._module = module
 
     def __getattr__(self, func_name: str) -> Callable:
-        if not hasattr(self._module, func_name):
-            raise AttributeError(func_name)
+        if hasattr(self._module, func_name):
+            attr = getattr(self._module, func_name)
+            if inspect.ismodule(attr):
+                return _ModuleWrapper(self._pipeline, attr)
 
-        def wrapper(**params: Any) -> "HighLevelPipeline":
-            self._pipeline.add_step(
-                func_name,
-                module=self._module.__name__,
-                params=params,
-            )
-            return self._pipeline
+            def wrapper(**params: Any) -> "HighLevelPipeline":
+                self._pipeline.add_step(
+                    func_name,
+                    module=self._module.__name__,
+                    params=params,
+                )
+                return self._pipeline
 
-        return wrapper
+            return wrapper
+
+        try:
+            submodule = importlib.import_module(f"{self._module.__name__}.{func_name}")
+        except ModuleNotFoundError as exc:  # pragma: no cover - handled in tests
+            raise AttributeError(func_name) from exc
+
+        return _ModuleWrapper(self._pipeline, submodule)
 
 
 class HighLevelPipeline:
