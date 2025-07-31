@@ -65,21 +65,59 @@ def build_vocab(
     bitstream: list[int],
     min_len: int = 3,
     max_len: int = 8,
-    top_k: int = 256,
+    max_size: int | None = None,
     start_id: int = 256,
+    min_occurrence: int = 4,
 ) -> dict[tuple[int, ...], int]:
-    """Create a vocabulary mapping frequent bit patterns to tokens."""
+    """Create a vocabulary mapping frequent bit patterns to tokens.
+
+    Parameters
+    ----------
+    bitstream:
+        Full bitstream collected from all objects.
+    min_len:
+        Minimum length of bit patterns considered a ``word``.
+    max_len:
+        Maximum length of patterns to evaluate.
+    max_size:
+        Limit on the vocabulary size or ``None`` for no limit.
+    start_id:
+        First token value used when assigning IDs.
+    min_occurrence:
+        Minimum number of times a pattern must occur to be included.
+    """
     counter: Counter[tuple[int, ...]] = Counter()
     for length in range(min_len, max_len + 1):
         for i in range(len(bitstream) - length + 1):
             seq = tuple(bitstream[i : i + length])
             counter[seq] += 1
-    best = counter.most_common(top_k)
+
+    if min_occurrence > 1:
+        counter = Counter({k: v for k, v in counter.items() if v >= min_occurrence})
+
+    limit = max_size if max_size is not None else len(counter)
+    best = counter.most_common(limit)
     return {pattern: i for i, (pattern, _) in enumerate(best, start=start_id)}
 
 
-def encode_with_vocab(bitstream: list[int], vocab: dict[tuple[int, ...], int]) -> list[int]:
-    """Replace known bit patterns in ``bitstream`` with vocabulary tokens."""
+def encode_with_vocab(
+    bitstream: list[int],
+    vocab: dict[tuple[int, ...], int],
+    *,
+    vocab_only: bool = False,
+) -> list[int]:
+    """Replace known bit patterns in ``bitstream`` with vocabulary tokens.
+
+    Parameters
+    ----------
+    bitstream:
+        Sequence of bits to encode.
+    vocab:
+        Mapping of bit patterns to integer tokens.
+    vocab_only:
+        When ``True`` bits that are not part of any pattern are dropped.
+        Otherwise the raw bit value is kept (mixed mode).
+    """
     i = 0
     result: list[int] = []
     max_len = max(len(k) for k in vocab.keys()) if vocab else 0
@@ -94,7 +132,8 @@ def encode_with_vocab(bitstream: list[int], vocab: dict[tuple[int, ...], int]) -
                     match = True
                     break
         if not match:
-            result.append(bitstream[i])
+            if not vocab_only:
+                result.append(bitstream[i])
             i += 1
     return result
 
@@ -114,15 +153,42 @@ def decode_with_vocab(encoded: list[int], vocab: dict[tuple[int, ...], int]) -> 
 class BitTensorDataset(Dataset):
     """Dataset storing pairs as bit tensors with optional vocabulary encoding."""
 
-    def __init__(self, data: Iterable[tuple[Any, Any]], use_vocab: bool = False) -> None:
+    def __init__(
+        self,
+        data: Iterable[tuple[Any, Any]],
+        use_vocab: bool = False,
+        *,
+        mixed: bool = True,
+        max_vocab_size: int | None = None,
+        min_word_length: int = 3,
+        min_occurrence: int = 4,
+    ) -> None:
         """Prepare ``(input, target)`` pairs for training.
 
         When ``use_vocab`` is ``True`` a shared bit-level vocabulary is built
         from all inputs and targets to reduce tensor sizes.
+
+        Parameters
+        ----------
+        mixed:
+            When ``True`` the encoded bitstream keeps bits that are not part of
+            the vocabulary. When ``False`` only vocabulary "words" are kept.
+        max_vocab_size:
+            Maximum number of words stored in the vocabulary. ``None`` disables
+            the limit.
+        min_word_length:
+            Shortest bit pattern considered when building the vocabulary.
+        min_occurrence:
+            Minimum frequency a pattern must reach to become part of the
+            vocabulary.
         """
 
         self.raw_data = list(data)
         self.use_vocab = use_vocab
+        self.mixed = mixed
+        self.max_vocab_size = max_vocab_size
+        self.min_word_length = min_word_length
+        self.min_occurrence = min_occurrence
         self.vocab: dict[tuple[int, ...], int] | None = None
 
         if self.use_vocab:
@@ -130,7 +196,12 @@ class BitTensorDataset(Dataset):
             for inp, out in self.raw_data:
                 bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(object_to_bytes(inp)))
                 bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(object_to_bytes(out)))
-            self.vocab = build_vocab(bitstream)
+            self.vocab = build_vocab(
+                bitstream,
+                min_len=self.min_word_length,
+                max_size=self.max_vocab_size,
+                min_occurrence=self.min_occurrence,
+            )
 
         self.data: list[tuple[torch.Tensor, torch.Tensor]] = []
         for inp, out in self.raw_data:
@@ -144,7 +215,11 @@ class BitTensorDataset(Dataset):
         if self.vocab is None:
             return bit_tensor
         bitstream = flatten_tensor_to_bitstream(bit_tensor)
-        encoded = encode_with_vocab(bitstream, self.vocab)
+        encoded = encode_with_vocab(
+            bitstream,
+            self.vocab,
+            vocab_only=not self.mixed,
+        )
         return torch.tensor(encoded, dtype=torch.int32).unsqueeze(1)
 
     def __len__(self) -> int:  # pragma: no cover - simple

@@ -1,5 +1,6 @@
 import os
 import sys
+import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -26,4 +27,23 @@ def test_roundtrip_with_vocab():
     assert obj_in == data[1][0]
     assert obj_out == data[1][1]
     assert ds.get_vocab() is not None
+
+
+def test_vocab_options_max_size_and_occurrence():
+    data = [("foo", "bar"), ("foo", "bar")]
+    ds = BitTensorDataset(
+        data,
+        use_vocab=True,
+        max_vocab_size=1,
+        min_occurrence=1000,
+    )
+    assert ds.get_vocab() == {}
+
+
+def test_vocab_only_mode_changes_output():
+    data = [("a", "b"), ("c", "d"), ("e", "f")]
+    ds = BitTensorDataset(data, use_vocab=True, mixed=False, max_vocab_size=1)
+    t_in, _ = ds[0]
+    with pytest.raises(Exception):
+        ds.tensor_to_object(t_in)
 
