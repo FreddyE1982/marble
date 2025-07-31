@@ -168,8 +168,12 @@ The pipeline accepts custom callables and automatically tracks the active
 dicts.
 Dataset arguments are converted to :class:`BitTensorDataset` automatically with
 mixed mode enabled, no vocabulary size limit and a minimum word length and
-occurrence of ``4``. Additional argument names can be registered with
-``HighLevelPipeline.register_data_args`` to support custom features.
+occurrence of ``4``.  All feature inputs are wrapped by default so every
+operation receives data in a consistent form. Additional argument names can be
+registered with ``HighLevelPipeline.register_data_args`` to support custom
+features. Arbitrary steps from any module can be chained together, allowing any
+combination of MARBLE functionality to be expressed through a single
+``HighLevelPipeline`` instance.
 Multiple MARBLE systems can be created in one session. Use the *Active Instance*
 selector in the sidebar to switch between them, duplicate a system for
 comparison or delete instances you no longer need.

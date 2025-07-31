@@ -43,7 +43,15 @@ class _ModuleWrapper:
 
 
 class HighLevelPipeline:
-    """Build and execute sequential MARBLE operations."""
+    """Build and execute sequential MARBLE operations.
+
+    The pipeline automatically wraps dataset-like arguments in
+    :class:`BitTensorDataset` using ``mixed`` mode, no vocabulary size limit and
+    a minimum word length and occurrence of ``4``.  Functions from
+    :mod:`marble_interface` as well as any other module within the repository
+    can be appended dynamically via attribute access, enabling arbitrary
+    combinations of MARBLE features to be executed in sequence.
+    """
 
     DEFAULT_BIT_PARAMS = {
         "mixed": True,
@@ -60,6 +68,7 @@ class HighLevelPipeline:
         "examples",
         "labeled_pairs",
         "unlabeled_inputs",
+        "features",
     }
 
     def __init__(
