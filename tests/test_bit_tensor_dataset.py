@@ -1,6 +1,8 @@
 import os
 import sys
+
 import pytest
+import torch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -57,3 +59,17 @@ def test_custom_vocab_reuse():
     obj = ds2.tensor_to_object(ds2[0][0])
     assert obj == "x"
 
+
+def test_max_word_length_respected():
+    data = [("abcd", "efgh"), ("ijkl", "mnop")]
+    ds = BitTensorDataset(data, use_vocab=True, max_word_length=3)
+    vocab = ds.get_vocab()
+    assert all(len(pattern) <= 3 for pattern in vocab)
+
+
+def test_dataset_device_setting():
+    data = [(1, 2)]
+    ds = BitTensorDataset(data, device="cpu")
+    assert ds[0][0].device == torch.device("cpu")
+    obj = ds.tensor_to_object(ds[0][0])
+    assert obj == 1

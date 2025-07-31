@@ -162,7 +162,9 @@ class BitTensorDataset(Dataset):
         mixed: bool = True,
         max_vocab_size: int | None = None,
         min_word_length: int = 4,
+        max_word_length: int = 8,
         min_occurrence: int = 4,
+        device: str | torch.device | None = None,
     ) -> None:
         """Prepare ``(input, target)`` pairs for training.
 
@@ -179,9 +181,14 @@ class BitTensorDataset(Dataset):
             the limit.
         min_word_length:
             Shortest bit pattern considered when building the vocabulary.
+        max_word_length:
+            Longest bit pattern examined when creating vocabulary entries.
         min_occurrence:
             Minimum frequency a pattern must reach to become part of the
             vocabulary.
+        device:
+            Target device for stored tensors. ``None`` selects ``"cuda"`` when
+            available, otherwise ``"cpu"``.
         """
 
         self.raw_data = list(data)
@@ -189,7 +196,13 @@ class BitTensorDataset(Dataset):
         self.mixed = mixed
         self.max_vocab_size = max_vocab_size
         self.min_word_length = min_word_length
+        self.max_word_length = max_word_length
         self.min_occurrence = min_occurrence
+        self.device = (
+            torch.device("cuda")
+            if device is None and torch.cuda.is_available()
+            else torch.device(device or "cpu")
+        )
         self.vocab: dict[tuple[int, ...], int] | None = vocab
 
         if self.use_vocab and self.vocab is None:
@@ -204,6 +217,7 @@ class BitTensorDataset(Dataset):
             self.vocab = build_vocab(
                 bitstream,
                 min_len=self.min_word_length,
+                max_len=self.max_word_length,
                 max_size=self.max_vocab_size,
                 min_occurrence=self.min_occurrence,
             )
@@ -216,7 +230,7 @@ class BitTensorDataset(Dataset):
 
     def _obj_to_tensor(self, obj: Any) -> torch.Tensor:
         byte_data = object_to_bytes(obj)
-        bit_tensor = bytes_to_tensors(byte_data)
+        bit_tensor = bytes_to_tensors(byte_data).to(self.device)
         if self.vocab is None:
             return bit_tensor
         bitstream = flatten_tensor_to_bitstream(bit_tensor)
@@ -225,7 +239,7 @@ class BitTensorDataset(Dataset):
             self.vocab,
             vocab_only=not self.mixed,
         )
-        return torch.tensor(encoded, dtype=torch.int32).unsqueeze(1)
+        return torch.tensor(encoded, dtype=torch.int32, device=self.device).unsqueeze(1)
 
     def __len__(self) -> int:  # pragma: no cover - simple
         return len(self.data)
@@ -234,10 +248,11 @@ class BitTensorDataset(Dataset):
         return self.data[idx]
 
     def tensor_to_object(self, tensor: torch.Tensor) -> Any:
+        cpu_tensor = tensor.to("cpu")
         if self.vocab is None:
-            bit_tensor = tensor
+            bit_tensor = cpu_tensor
         else:
-            decoded = decode_with_vocab(tensor.squeeze(1).tolist(), self.vocab)
+            decoded = decode_with_vocab(cpu_tensor.squeeze(1).tolist(), self.vocab)
             bit_tensor = unflatten_bitstream_to_tensor(decoded)
         byte_data = tensors_to_bytes(bit_tensor)
         return bytes_to_object(byte_data)
@@ -256,3 +271,8 @@ class BitTensorDataset(Dataset):
     def vocab_size(self) -> int:
         return len(self.vocab) if self.vocab is not None else 0
 
+    def to(self, device: str | torch.device) -> "BitTensorDataset":
+        """Move all stored tensors to ``device`` and return ``self``."""
+        self.device = torch.device(device)
+        self.data = [(a.to(self.device), b.to(self.device)) for a, b in self.data]
+        return self
