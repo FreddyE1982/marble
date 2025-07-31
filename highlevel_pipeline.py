@@ -52,7 +52,7 @@ class HighLevelPipeline:
         "min_occurrence": 4,
     }
 
-    DATA_ARGS = {
+    DEFAULT_DATA_ARGS = {
         "data",
         "pairs",
         "train_examples",
@@ -68,16 +68,22 @@ class HighLevelPipeline:
         *,
         use_bit_dataset: bool = True,
         bit_dataset_params: dict | None = None,
+        data_args: Iterable[str] | None = None,
     ) -> None:
         self.steps: list[dict] = steps or []
         self.use_bit_dataset = use_bit_dataset
         self.bit_dataset_params = self.DEFAULT_BIT_PARAMS.copy()
+        self.data_args = set(data_args or self.DEFAULT_DATA_ARGS)
         if bit_dataset_params:
             self.bit_dataset_params.update(bit_dataset_params)
 
     def set_bit_dataset_params(self, **params: Any) -> None:
         """Update default parameters for :class:`BitTensorDataset`."""
         self.bit_dataset_params.update(params)
+
+    def register_data_args(self, *names: str) -> None:
+        """Treat ``names`` as dataset parameters for automatic conversion."""
+        self.data_args.update(names)
 
     def __getattr__(self, name: str) -> Callable | _ModuleWrapper:
         if hasattr(marble_interface, name):
@@ -181,7 +187,7 @@ class HighLevelPipeline:
             # convert dataset arguments if requested
             new_params = {}
             for k, v in params.items():
-                if k in self.DATA_ARGS:
+                if k in self.data_args:
                     new_params[k] = self._maybe_bit_dataset(v)
                 else:
                     new_params[k] = v
