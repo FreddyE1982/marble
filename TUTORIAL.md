@@ -1899,3 +1899,37 @@ penalty is added to the training loss. This helps detect issues with
 tokenization or custom serialization. ``track_metadata`` should remain ``true``
 unless you have strict storage constraints because it ensures objects are
 reconstructed with the correct Python type during decoding.
+
+## Project 32 – BitTensorDataset Pipelines
+
+**Goal:** Demonstrate training using the new `ContrastivePipeline` and `SemiSupervisedPairsPipeline` which rely on `BitTensorDataset` for arbitrary inputs.
+
+1. **Create some example data**. For text inputs a simple file is enough:
+   ```bash
+   echo "hello" > data.txt
+   echo "world" >> data.txt
+   ```
+2. **Train the contrastive pipeline** on this data:
+   ```python
+   from tokenizer_utils import built_in_tokenizer
+   from marble_core import Core, DataLoader
+   from contrastive_pipeline import ContrastivePipeline
+   from tests.test_core_functions import minimal_params
+
+   tok = built_in_tokenizer("bert_wordpiece", lowercase=True)
+   tok.train(["data.txt"], vocab_size=20)
+   core = Core(minimal_params())
+   dl = DataLoader(tokenizer=tok)
+   pipe = ContrastivePipeline(core, dataloader=dl, use_vocab=True)
+   pipe.train(["hello", "world"], epochs=1)
+   ```
+3. **Use semi-supervised learning** with labeled and unlabeled pairs:
+   ```python
+   from semi_supervised_pairs_pipeline import SemiSupervisedPairsPipeline
+
+   labeled = [("hello", "greeting"), ("world", "noun")]
+   unlabeled = ["foo", "bar"]
+   pipe = SemiSupervisedPairsPipeline(core, dataloader=dl, use_vocab=True)
+   pipe.train(labeled, unlabeled, epochs=1)
+   ```
+   Both pipelines automatically convert objects to bit-level tensors so you can train on any Python data structure.
