@@ -157,7 +157,11 @@ Pipeline steps may also be reordered or removed directly from the UI so complex
 workflows can be iterated on quickly.
 You can run the same JSON pipelines from the command line using ``--pipeline``
 with ``cli.py`` or execute them programmatically through the ``Pipeline``
-class for full automation.
+class for full automation. A ``HighLevelPipeline`` helper offers a fluent
+Python API for building these workflows. Functions from ``marble_interface``
+can be added directly as methods while any repository module can be accessed via
+attribute notation, for example ``HighLevelPipeline().plugin_system.load_plugins``
+which appends a call to ``plugin_system.load_plugins``.
 Multiple MARBLE systems can be created in one session. Use the *Active Instance*
 selector in the sidebar to switch between them, duplicate a system for
 comparison or delete instances you no longer need.

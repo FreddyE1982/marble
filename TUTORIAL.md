@@ -1658,13 +1658,13 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    generates widgets for all parameters so you can call any operation directly.
 10. **Search functions** using the filter boxes provided in Advanced mode to
     quickly locate operations by name.
-11. **Build pipelines** on the *Pipeline* tab. Add steps from
-   ``marble_interface`` or any repository module, then press **Run Pipeline** to
-   execute them sequentially. This lets you combine training, evaluation and
-   analysis commands without leaving the UI.
-    The same pipelines can be saved as JSON and executed from the command line
-    using ``python cli.py --pipeline mypipe.json`` or through the ``Pipeline``
-    class in your own scripts.
+11. **Build pipelines** on the *Pipeline* tab or with
+   ``HighLevelPipeline``. Add steps from ``marble_interface`` directly as
+   methods and access other modules using attribute notation like
+   ``pipeline.plugin_system.load_plugins``. Press **Run Pipeline** to execute the
+   sequence. The same pipelines can be saved as JSON and executed from the
+   command line using ``python cli.py --pipeline mypipe.json`` or through the
+   ``Pipeline``/``HighLevelPipeline`` classes in your own scripts.
 12. **View the core graph** on the *Visualization* tab. Press **Generate Graph**
    to see an interactive display of neurons and synapses.
 13. **Inspect synaptic weights** on the *Weight Heatmap* tab. Set a maximum
