@@ -1,6 +1,7 @@
 import os
 import sys
 
+import torch
 import yaml
 from tqdm import tqdm as std_tqdm
 
@@ -102,7 +103,10 @@ def test_highlevel_pipeline_default_bit_params():
     assert ds.mixed is True
     assert ds.max_vocab_size is None
     assert ds.min_word_length == 4
+    assert ds.max_word_length == 8
     assert ds.min_occurrence == 4
+    expected_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    assert ds.device == expected_device
 
 
 def test_highlevel_pipeline_register_data_args():
@@ -160,3 +164,9 @@ def test_highlevel_pipeline_shared_vocab_param():
     hp = HighLevelPipeline(bit_dataset_params={"vocab": vocab})
     ds = hp._maybe_bit_dataset([0, 1])
     assert ds.get_vocab() == vocab
+
+
+def test_highlevel_pipeline_custom_device():
+    hp = HighLevelPipeline(bit_dataset_params={"device": "cpu"})
+    ds = hp._maybe_bit_dataset([5, 6])
+    assert ds.device == torch.device("cpu")

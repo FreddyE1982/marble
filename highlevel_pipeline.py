@@ -47,7 +47,8 @@ class HighLevelPipeline:
 
     The pipeline automatically wraps dataset-like arguments in
     :class:`BitTensorDataset` using ``mixed`` mode, no vocabulary size limit and
-    a minimum word length and occurrence of ``4``.  A custom vocabulary may be
+    a minimum and maximum word length of ``4`` and ``8`` with automatic device
+    placement. A custom vocabulary may be
     supplied so multiple datasets share the same token mapping. Functions from
     :mod:`marble_interface` as well as any other module within the repository
     can be appended dynamically via attribute access. There is no imposed limit
@@ -61,8 +62,10 @@ class HighLevelPipeline:
         "mixed": True,
         "max_vocab_size": None,
         "min_word_length": 4,
+        "max_word_length": 8,
         "min_occurrence": 4,
         "vocab": None,
+        "device": None,
     }
 
     DEFAULT_DATA_ARGS = {
@@ -175,8 +178,10 @@ class HighLevelPipeline:
             mixed=self.bit_dataset_params["mixed"],
             max_vocab_size=self.bit_dataset_params["max_vocab_size"],
             min_word_length=self.bit_dataset_params["min_word_length"],
+            max_word_length=self.bit_dataset_params["max_word_length"],
             min_occurrence=self.bit_dataset_params["min_occurrence"],
             vocab=self.bit_dataset_params.get("vocab"),
+            device=self.bit_dataset_params["device"],
         )
 
     def _extract_marble(self, obj: Any) -> marble_interface.MARBLE | None:

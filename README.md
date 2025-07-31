@@ -174,8 +174,8 @@ The pipeline accepts custom callables and automatically tracks the active
 ``MARBLE`` instance whenever a step returns one, even if nested inside tuples or
 dicts.
 Dataset arguments are converted to :class:`BitTensorDataset` automatically with
-mixed mode enabled, no vocabulary size limit and a minimum word length and
-occurrence of ``4``.  All feature inputs are wrapped by default so every
+mixed mode enabled, no vocabulary size limit and a minimum word length of ``4``
+and maximum length of ``8``. Tensors are stored on GPU when available. All feature inputs are wrapped by default so every
 operation receives data in a consistent form. A pre-built vocabulary can be
 supplied via ``bit_dataset_params`` so multiple steps encode data identically.
 Additional argument names can be
