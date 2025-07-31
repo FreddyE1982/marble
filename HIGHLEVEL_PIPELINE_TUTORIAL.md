@@ -41,6 +41,11 @@ receives inputs in a consistent format. The pipeline keeps track of the active
    ```python
    marble, results = hp.execute()
    ```
+4. **Duplicate or inspect** pipelines as needed.
+   ```python
+   clone = hp.duplicate()
+   print(hp.describe())
+   ```
 4. **Save or load** pipelines using JSON for reproducibility.
    ```python
    hp.save_json("workflow.json")

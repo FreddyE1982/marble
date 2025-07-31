@@ -73,3 +73,11 @@ def test_dataset_device_setting():
     assert ds[0][0].device == torch.device("cpu")
     obj = ds.tensor_to_object(ds[0][0])
     assert obj == 1
+
+
+def test_bit_tensor_dataset_compression():
+    data = [("long string" * 10, 123)]
+    ds = BitTensorDataset(data, compress=True)
+    encoded, _ = ds[0]
+    decoded = ds.tensor_to_object(encoded)
+    assert decoded == data[0][0]
