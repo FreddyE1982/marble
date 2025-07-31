@@ -108,6 +108,7 @@ def test_highlevel_pipeline_default_bit_params():
     expected_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     assert ds.device == expected_device
     assert ds.compress is False
+    assert ds.start_id == 256
 
 
 def test_highlevel_pipeline_register_data_args():
@@ -177,6 +178,12 @@ def test_highlevel_pipeline_compress_param():
     hp = HighLevelPipeline(bit_dataset_params={"compress": True})
     ds = hp._maybe_bit_dataset(["x", "y"])
     assert ds.compress is True
+
+
+def test_highlevel_pipeline_custom_start_id():
+    hp = HighLevelPipeline(bit_dataset_params={"start_id": 600})
+    ds = hp._maybe_bit_dataset(["a", "b"])
+    assert ds.start_id == 600
 
 
 def test_highlevel_pipeline_duplicate_and_describe():
