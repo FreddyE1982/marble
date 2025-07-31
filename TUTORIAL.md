@@ -1665,6 +1665,9 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    sequence. The same pipelines can be saved as JSON and executed from the
    command line using ``python cli.py --pipeline mypipe.json`` or through the
    ``Pipeline``/``HighLevelPipeline`` classes in your own scripts.
+   Custom callables may be added as steps and any MARBLE instance returned
+   (even inside tuples or dictionaries) becomes the active system for the
+   following operations.
 12. **View the core graph** on the *Visualization* tab. Press **Generate Graph**
    to see an interactive display of neurons and synapses.
 13. **Inspect synaptic weights** on the *Weight Heatmap* tab. Set a maximum

@@ -162,6 +162,9 @@ Python API for building these workflows. Functions from ``marble_interface``
 can be added directly as methods while any repository module can be accessed via
 attribute notation, for example ``HighLevelPipeline().plugin_system.load_plugins``
 which appends a call to ``plugin_system.load_plugins``.
+The pipeline accepts custom callables and automatically tracks the active
+``MARBLE`` instance whenever a step returns one, even if nested inside tuples or
+dicts.
 Multiple MARBLE systems can be created in one session. Use the *Active Instance*
 selector in the sidebar to switch between them, duplicate a system for
 comparison or delete instances you no longer need.
