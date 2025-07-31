@@ -1951,8 +1951,40 @@ reconstructed with the correct Python type during decoding.
    ```python
    from fractal_dimension_pairs_pipeline import FractalDimensionPairsPipeline
 
+  core = Core(minimal_params())
+  pipe = FractalDimensionPairsPipeline(core, use_vocab=True)
+  pairs = [("conceptA", "conceptB"), ("conceptC", "conceptD")]
+  pipe.train(pairs, epochs=1)
+  ```
+
+## Project 34 – Additional BitTensor Pipelines
+
+**Goal:** Try the latest pipelines that operate on bit-level representations.**
+
+1. **Hebbian learning on arbitrary objects:**
+   ```python
+   from hebbian_pipeline import HebbianPipeline
+
    core = Core(minimal_params())
-   pipe = FractalDimensionPairsPipeline(core, use_vocab=True)
-   pairs = [("conceptA", "conceptB"), ("conceptC", "conceptD")]
-   pipe.train(pairs, epochs=1)
+   pipe = HebbianPipeline(core, use_vocab=True)
+   data = ["alpha", "beta", "gamma"]
+   pipe.train(data, epochs=1)
+   ```
+2. **Fine-tune with transfer learning:**
+   ```python
+   from transfer_pairs_pipeline import TransferPairsPipeline
+
+   core = Core(minimal_params())
+   pipe = TransferPairsPipeline(core, freeze_fraction=0.3, use_vocab=True)
+   examples = [("old", "new"), ("stale", "fresh")]
+   pipe.train(examples, epochs=1)
+   ```
+3. **Experiment with quantum flux learning:**
+   ```python
+   from quantum_flux_pairs_pipeline import QuantumFluxPairsPipeline
+
+   core = Core(minimal_params())
+   pipe = QuantumFluxPairsPipeline(core, phase_rate=0.2, use_vocab=True)
+   examples = [("up", "down"), ("left", "right")]
+   pipe.train(examples, epochs=1)
    ```
