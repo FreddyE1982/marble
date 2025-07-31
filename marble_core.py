@@ -1241,6 +1241,8 @@ def compute_mandelbrot(
     max_iter: int = 256,
     escape_radius: float = 2.0,
     power: int = 2,
+    *,
+    as_numpy: bool = False,
 ):
     """Return a Mandelbrot set fragment as a 2D array.
 
@@ -1259,6 +1261,9 @@ def compute_mandelbrot(
         Absolute value beyond which points are marked as diverging.
     power : int, optional
         Exponent applied during iteration, allowing fractal variations.
+    as_numpy : bool, optional
+        When ``True`` the result is returned as a NumPy array even if GPU
+        acceleration is available. ``False`` by default.
     """
 
     x = cp.linspace(xmin, xmax, width)
@@ -1274,6 +1279,8 @@ def compute_mandelbrot(
             break
         Z[mask] = Z[mask] ** power + C[mask]
         mandelbrot[mask] = i
+    if as_numpy and hasattr(cp, "asnumpy"):
+        return cp.asnumpy(mandelbrot)
     return mandelbrot
 
 
