@@ -253,3 +253,18 @@ def test_highlevel_pipeline_json_methods():
     json_str = hp.to_json()
     clone = HighLevelPipeline.from_json(json_str)
     assert clone.steps == hp.steps
+
+
+def test_highlevel_pipeline_execute_stream(tmp_path):
+    marble_imports.tqdm = std_tqdm
+    marble_brain.tqdm = std_tqdm
+    marble_main.MetricsVisualizer = MetricsVisualizer
+
+    cfg = _config_path(tmp_path)
+    hp = HighLevelPipeline()
+    hp.new_marble_system(config_path=str(cfg))
+    hp.train_marble_system(train_examples=[(0.0, 0.0)], epochs=1)
+
+    results = list(hp.execute_stream())
+    assert isinstance(results[-1][0], marble_interface.MARBLE)
+    assert len(results) == 2

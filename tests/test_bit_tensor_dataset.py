@@ -132,3 +132,15 @@ def test_bit_tensor_dataset_iter_decoded_and_summary():
     total = sum(a.numel() + b.numel() for a, b in ds)
     expected_avg = float(total) / len(ds)
     assert info["avg_pair_length"] == expected_avg
+
+
+def test_bit_tensor_dataset_json_roundtrip():
+    data = [("x", "y"), ("a", "b")]
+    ds = BitTensorDataset(data, use_vocab=True, compress=True, start_id=300)
+    json_str = ds.to_json()
+    clone = BitTensorDataset.from_json(json_str)
+    assert list(clone.iter_decoded()) == data
+    assert clone.start_id == 300
+    assert clone.get_vocab() == ds.get_vocab()
+    info = clone.summary()
+    assert "total_bytes" in info and info["total_bytes"] > 0

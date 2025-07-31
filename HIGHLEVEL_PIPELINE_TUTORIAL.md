@@ -55,10 +55,12 @@ receives inputs in a consistent format. The pipeline keeps track of the active
    ```
 6. **Execute specific steps** to debug a workflow.
    ```python
-   marble, result = hp.run_step(0)
-   marble, intermediate = hp.execute_until(1)
-   marble, tail = hp.execute_from(1)
-   ```
+  marble, result = hp.run_step(0)
+  marble, intermediate = hp.execute_until(1)
+  marble, tail = hp.execute_from(1)
+  for m, res in hp.execute_stream():
+      print("step result", res)
+  ```
 7. **Modify steps** by replacing functions or updating parameters.
    ```python
    hp.replace_step(0, some_other_func)

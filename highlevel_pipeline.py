@@ -324,6 +324,13 @@ class HighLevelPipeline:
     def execute(self, marble: Any | None = None) -> tuple[Any | None, list[Any]]:
         return self._execute_steps(self.steps, marble)
 
+    def execute_stream(self, marble: Any | None = None):
+        """Yield ``(marble, result)`` tuples after each step executes."""
+        current_marble = marble
+        for step in self.steps:
+            current_marble, result = self._execute_steps([step], current_marble)
+            yield current_marble, result[0]
+
     def run_step(self, index: int, marble: Any | None = None) -> tuple[Any | None, Any]:
         """Execute a single step at ``index`` and return the result."""
         if index < 0 or index >= len(self.steps):

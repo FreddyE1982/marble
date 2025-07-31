@@ -75,7 +75,9 @@ before conversion, reducing dataset size when storing large objects.
 You can also pass an existing ``vocab`` dictionary to reuse the same mapping
 across multiple datasets for consistent encoding.
 ``BitTensorDataset.summary`` provides quick statistics about the stored pairs,
-vocabulary size and device placement for convenient logging.
+vocabulary size, device placement and now also the total and average byte
+footprint for convenient logging. Datasets can be serialised to JSON with
+``BitTensorDataset.to_json`` and reconstructed using ``BitTensorDataset.from_json``.
 ``BitTensorDataset.add_pair`` and ``BitTensorDataset.extend`` allow dynamically
 appending new training samples using the current vocabulary and device
 configuration.
@@ -172,6 +174,8 @@ summarised using ``HighLevelPipeline.describe`` for easy logging.
 Individual steps can be executed in isolation with ``HighLevelPipeline.run_step``
 or partial pipelines run via ``HighLevelPipeline.execute_until``. A complementary
 ``HighLevelPipeline.execute_from`` starts execution from an intermediate step.
+``HighLevelPipeline.execute_stream`` yields results after each step, allowing
+progressive inspection of pipeline execution.
 Steps can be inserted at arbitrary positions with ``HighLevelPipeline.insert_step``
 and existing steps replaced or tweaked with ``HighLevelPipeline.replace_step``
 and ``HighLevelPipeline.update_step_params`` which helps debug complex
