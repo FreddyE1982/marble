@@ -49,8 +49,10 @@ class HighLevelPipeline:
     :class:`BitTensorDataset` using ``mixed`` mode, no vocabulary size limit and
     a minimum word length and occurrence of ``4``.  Functions from
     :mod:`marble_interface` as well as any other module within the repository
-    can be appended dynamically via attribute access, enabling arbitrary
-    combinations of MARBLE features to be executed in sequence.
+    can be appended dynamically via attribute access. There is no imposed limit
+    on pipeline length so users may chain together an unlimited number of
+    operations.  This makes it possible to combine any MARBLE feature or option
+    in a single workflow simply by adding steps in the desired order.
     """
 
     DEFAULT_BIT_PARAMS = {

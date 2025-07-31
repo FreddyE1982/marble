@@ -1666,8 +1666,9 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    command line using ``python cli.py --pipeline mypipe.json`` or through the
    ``Pipeline``/``HighLevelPipeline`` classes in your own scripts.
    Nested modules are supported as well, so ``pipeline.marble_neuronenblitz.learning.enable_rl``
-   appends a call to ``marble_neuronenblitz.learning.enable_rl``.
-   Custom callables may be added as steps and any MARBLE instance returned
+   appends a call to ``marble_neuronenblitz.learning.enable_rl``.  There is no
+   hard limit on pipeline length, so you can chain together hundreds of steps if
+   needed. Custom callables may be added as steps and any MARBLE instance returned
    (even inside tuples or dictionaries) becomes the active system for the
    following operations.
 12. **View the core graph** on the *Visualization* tab. Press **Generate Graph**
