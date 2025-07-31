@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import pickle
 import zlib
+import json
+import base64
 from collections import Counter
 from typing import Any, Iterable
 
@@ -338,8 +340,15 @@ class BitTensorDataset(Dataset):
         total_elements = sum(
             a.numel() + b.numel() for a, b in self.data
         )
+        total_bytes = sum(
+            a.element_size() * a.numel() + b.element_size() * b.numel()
+            for a, b in self.data
+        )
         avg_len = (
             float(total_elements) / len(self.data) if self.data else 0.0
+        )
+        avg_bytes = (
+            float(total_bytes) / len(self.data) if self.data else 0.0
         )
         return {
             "num_pairs": len(self.data),
@@ -349,6 +358,8 @@ class BitTensorDataset(Dataset):
             "start_id": self.start_id,
             "total_elements": int(total_elements),
             "avg_pair_length": avg_len,
+            "total_bytes": int(total_bytes),
+            "avg_pair_bytes": avg_bytes,
         }
 
     def save(self, path: str) -> None:
@@ -386,3 +397,75 @@ class BitTensorDataset(Dataset):
         )
         ds.data = [(a.to(ds.device), b.to(ds.device)) for a, b in obj["data"]]
         return ds
+
+    def to_dict(self) -> dict[str, Any]:
+        """Return a serialisable dictionary representing this dataset."""
+        encoded = []
+        for inp, out in self.iter_decoded():
+            in_bytes = object_to_bytes(inp)
+            out_bytes = object_to_bytes(out)
+            if self.compress:
+                in_bytes = zlib.compress(in_bytes)
+                out_bytes = zlib.compress(out_bytes)
+            encoded.append(
+                [base64.b64encode(in_bytes).decode("ascii"), base64.b64encode(out_bytes).decode("ascii")]
+            )
+        if self.vocab is not None:
+            vocab = {" ".join(map(str, k)): v for k, v in self.vocab.items()}
+        else:
+            vocab = None
+        return {
+            "data": encoded,
+            "vocab": vocab,
+            "mixed": self.mixed,
+            "max_vocab_size": self.max_vocab_size,
+            "min_word_length": self.min_word_length,
+            "max_word_length": self.max_word_length,
+            "min_occurrence": self.min_occurrence,
+            "start_id": self.start_id,
+            "device": str(self.device),
+            "compress": self.compress,
+        }
+
+    @classmethod
+    def from_dict(cls, obj: dict[str, Any], *, device: str | torch.device | None = None) -> "BitTensorDataset":
+        """Reconstruct a dataset from :meth:`to_dict` output."""
+        data = []
+        for enc_in, enc_out in obj["data"]:
+            in_bytes = base64.b64decode(enc_in)
+            out_bytes = base64.b64decode(enc_out)
+            if obj.get("compress"):
+                in_bytes = zlib.decompress(in_bytes)
+                out_bytes = zlib.decompress(out_bytes)
+            inp = bytes_to_object(in_bytes)
+            out = bytes_to_object(out_bytes)
+            data.append((inp, out))
+        if obj.get("vocab") is not None:
+            vocab = {
+                tuple(map(int, k.split())): v for k, v in obj["vocab"].items()
+            }
+        else:
+            vocab = None
+        return cls(
+            data,
+            use_vocab=obj.get("vocab") is not None,
+            vocab=vocab,
+            mixed=obj.get("mixed", True),
+            max_vocab_size=obj.get("max_vocab_size"),
+            min_word_length=obj.get("min_word_length", 4),
+            max_word_length=obj.get("max_word_length", 8),
+            min_occurrence=obj.get("min_occurrence", 4),
+            start_id=obj.get("start_id", 256),
+            device=device or obj.get("device"),
+            compress=obj.get("compress", False),
+        )
+
+    def to_json(self) -> str:
+        """Serialise the dataset to a JSON string."""
+        return json.dumps(self.to_dict())
+
+    @classmethod
+    def from_json(cls, json_str: str, *, device: str | torch.device | None = None) -> "BitTensorDataset":
+        """Load a dataset from a JSON string produced by :meth:`to_json`."""
+        obj = json.loads(json_str)
+        return cls.from_dict(obj, device=device)
