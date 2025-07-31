@@ -31,6 +31,7 @@ class DiffusionPairsPipeline:
         *,
         dataloader: DataLoader | None = None,
         tokenizer: Tokenizer | None = None,
+        use_vocab: bool = False,
     ) -> None:
         self.core = core
         if dataloader is not None:
@@ -44,6 +45,8 @@ class DiffusionPairsPipeline:
         else:
             self.loader = DataLoader(tokenizer=tokenizer)
         self.save_path = save_path
+        self.use_vocab = use_vocab
+        self.last_dataset: BitTensorDataset | None = None
         self.nb = Neuronenblitz(self.core)
         self.brain = Brain(self.core, self.nb, self.loader)
 
@@ -56,14 +59,18 @@ class DiffusionPairsPipeline:
     def train(self, pairs: Iterable[Tuple[Any, Any]] | Dataset, epochs: int = 1) -> str:
         if isinstance(pairs, Dataset):
             if isinstance(pairs, BitTensorDataset):
-                iter_pairs = (
-                    (pairs.tensor_to_object(inp), pairs.tensor_to_object(tgt))
-                    for inp, tgt in pairs
-                )
+                bit_ds = pairs
             else:
-                iter_pairs = ((inp, tgt) for inp, tgt in pairs)
+                bit_ds = BitTensorDataset([(i, t) for i, t in pairs], use_vocab=self.use_vocab)
         else:
-            iter_pairs = pairs
+            bit_ds = BitTensorDataset(list(pairs), use_vocab=self.use_vocab)
+
+        iter_pairs = (
+            (bit_ds.tensor_to_object(inp), bit_ds.tensor_to_object(tgt))
+            for inp, tgt in bit_ds
+        )
+
+        self.last_dataset = bit_ds
 
         examples = [(self._to_float(i), self._to_float(t)) for i, t in iter_pairs]
         self.nb.train(examples, epochs=epochs)

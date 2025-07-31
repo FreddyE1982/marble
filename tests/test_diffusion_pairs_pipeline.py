@@ -60,3 +60,16 @@ def test_diffusion_pairs_pipeline_bit_dataset(tmp_path):
     ds = BitTensorDataset(pairs)
     pipeline.train(ds, epochs=1)
     assert save_path.is_file()
+
+
+def test_diffusion_pairs_pipeline_auto_bit_dataset(tmp_path):
+    params = minimal_params()
+    params["diffusion_steps"] = 1
+    core = DiffusionCore(params)
+    save_path = tmp_path / "auto.pkl"
+    pipeline = DiffusionPairsPipeline(core, save_path=str(save_path), use_vocab=True)
+    pairs = [("a", "b"), ("c", "d")]
+    pipeline.train(pairs, epochs=1)
+    assert save_path.is_file()
+    assert isinstance(pipeline.last_dataset, BitTensorDataset)
+    assert pipeline.last_dataset.get_vocab() is not None
