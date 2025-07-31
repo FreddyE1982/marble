@@ -43,7 +43,10 @@ pairs = load_dataset("path/to/data.csv", dataloader=dataloader)
 ```
 
 For purely numeric or image datasets simply use ``DataLoader()`` without a
-tokenizer.
+tokenizer. When you need full control over the binary representation you can
+wrap your ``(input, target)`` pairs in :class:`BitTensorDataset`. This converts
+each object into a tensor of bits and optionally compresses repeated patterns
+through a shared vocabulary.
 
 Set ``dataloader.tokenizer_type: bert_wordpiece`` or ``tokenizer_json`` in
 ``config.yaml`` to use the same tokenizer when constructing ``MARBLE``. Each
