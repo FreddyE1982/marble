@@ -205,3 +205,22 @@ def test_highlevel_pipeline_run_step_and_execute_until(tmp_path):
     marble2, results = hp.execute_until(1)
     assert isinstance(marble2, marble_interface.MARBLE)
     assert len(results) == 2
+
+
+def test_highlevel_pipeline_insert_and_execute_from(tmp_path):
+    marble_imports.tqdm = std_tqdm
+    marble_brain.tqdm = std_tqdm
+    marble_main.MetricsVisualizer = MetricsVisualizer
+
+    cfg = _config_path(tmp_path)
+    hp = HighLevelPipeline()
+    hp.new_marble_system(config_path=str(cfg))
+    hp.train_marble_system(train_examples=[(0, 0)], epochs=1)
+
+    hp.insert_step(1, lambda marble=None: "x")
+
+    marble, results = hp.execute()
+    assert len(results) == 3
+
+    marble2, rest = hp.execute_from(1, marble)
+    assert rest[0] == "x"

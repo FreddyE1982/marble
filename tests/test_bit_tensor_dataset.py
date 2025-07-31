@@ -92,3 +92,13 @@ def test_bit_tensor_dataset_iteration_and_save_load(tmp_path):
     loaded = BitTensorDataset.load(save_path)
     assert len(loaded) == 2
     assert loaded.tensor_to_object(loaded[0][0]) == 1
+
+
+def test_bit_tensor_dataset_summary():
+    pairs = [(1, 2), (3, 4)]
+    ds = BitTensorDataset(pairs, use_vocab=True)
+    info = ds.summary()
+    assert info["num_pairs"] == 2
+    assert info["vocab_size"] == ds.vocab_size()
+    assert info["device"] == str(ds.device)
+    assert info["compressed"] is False
