@@ -121,3 +121,14 @@ def test_bit_tensor_dataset_custom_start_id():
     vocab_vals = list(ds.get_vocab().values())
     assert vocab_vals and min(vocab_vals) >= 700
     assert ds.start_id == 700
+
+
+def test_bit_tensor_dataset_iter_decoded_and_summary():
+    data = [(1, 2), (3, 4)]
+    ds = BitTensorDataset(data)
+    decoded = list(ds.iter_decoded())
+    assert decoded == data
+    info = ds.summary()
+    total = sum(a.numel() + b.numel() for a, b in ds)
+    expected_avg = float(total) / len(ds)
+    assert info["avg_pair_length"] == expected_avg

@@ -315,6 +315,17 @@ class BitTensorDataset(Dataset):
         """Yield each ``(input, target)`` pair in sequence."""
         return iter(self.data)
 
+    def iter_decoded(self) -> Iterable[tuple[Any, Any]]:
+        """Yield decoded ``(input, target)`` pairs one at a time.
+
+        This convenience iterator simplifies inspecting the stored data
+        without manually converting each tensor back to its original
+        Python object. It avoids allocating intermediate lists so even
+        large datasets can be streamed efficiently.
+        """
+        for inp, out in self.data:
+            yield self.tensor_to_object(inp), self.tensor_to_object(out)
+
     def summary(self) -> dict[str, Any]:
         """Return basic statistics about the dataset.
 
@@ -327,6 +338,9 @@ class BitTensorDataset(Dataset):
         total_elements = sum(
             a.numel() + b.numel() for a, b in self.data
         )
+        avg_len = (
+            float(total_elements) / len(self.data) if self.data else 0.0
+        )
         return {
             "num_pairs": len(self.data),
             "vocab_size": self.vocab_size(),
@@ -334,6 +348,7 @@ class BitTensorDataset(Dataset):
             "compressed": self.compress,
             "start_id": self.start_id,
             "total_elements": int(total_elements),
+            "avg_pair_length": avg_len,
         }
 
     def save(self, path: str) -> None:
