@@ -1,19 +1,19 @@
 import os
 import sys
+
 import yaml
 from tqdm import tqdm as std_tqdm
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-import marble_imports
 import marble_brain
+import marble_imports
+import marble_interface
 import marble_main
+from bit_tensor_dataset import BitTensorDataset
+from highlevel_pipeline import HighLevelPipeline
 from marble_base import MetricsVisualizer
 from tests.test_core_functions import minimal_params
-
-import marble_interface
-from highlevel_pipeline import HighLevelPipeline
-from bit_tensor_dataset import BitTensorDataset
 
 
 def _config_path(tmp_path):
@@ -70,7 +70,9 @@ def test_highlevel_pipeline_detect_marble_in_nested(tmp_path):
     cfg = _config_path(tmp_path)
 
     def make_marble(marble=None):
-        return {"hooked": True}, marble_interface.new_marble_system(config_path=str(cfg))
+        return {"hooked": True}, marble_interface.new_marble_system(
+            config_path=str(cfg)
+        )
 
     hp = HighLevelPipeline()
     hp.add_step(make_marble)
@@ -113,3 +115,20 @@ def test_highlevel_pipeline_register_data_args():
     hp.add_step(grab, params={"custom": [10, 11]})
     _, results = hp.execute()
     assert isinstance(results[0], BitTensorDataset)
+
+
+def test_highlevel_pipeline_multi_step_chain(tmp_path):
+    marble_imports.tqdm = std_tqdm
+    marble_brain.tqdm = std_tqdm
+    marble_main.MetricsVisualizer = MetricsVisualizer
+
+    cfg = _config_path(tmp_path)
+    hp = HighLevelPipeline()
+    hp.plugin_system.load_plugins(dirs=[])
+    hp.new_marble_system(config_path=str(cfg))
+    hp.disable_marble_rl()
+    hp.train_marble_system(train_examples=[(0, 0)], epochs=1)
+    hp.enable_marble_rl()
+    marble, results = hp.execute()
+    assert isinstance(marble, marble_interface.MARBLE)
+    assert len(results) == 5
