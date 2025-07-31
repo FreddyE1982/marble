@@ -59,3 +59,22 @@ def test_highlevel_pipeline_cross_module(tmp_path):
     marble, results = hp.execute()
     assert isinstance(marble, marble_interface.MARBLE)
     assert results[0] is None
+
+
+def test_highlevel_pipeline_detect_marble_in_nested(tmp_path):
+    marble_imports.tqdm = std_tqdm
+    marble_brain.tqdm = std_tqdm
+    marble_main.MetricsVisualizer = MetricsVisualizer
+
+    cfg = _config_path(tmp_path)
+
+    def make_marble(marble=None):
+        return {"hooked": True}, marble_interface.new_marble_system(config_path=str(cfg))
+
+    hp = HighLevelPipeline()
+    hp.add_step(make_marble)
+    hp.train_marble_system(train_examples=[(0.0, 0.0)], epochs=1)
+    marble, results = hp.execute()
+    assert isinstance(marble, marble_interface.MARBLE)
+    assert isinstance(results[0], tuple)
+    assert results[0][0] == {"hooked": True}

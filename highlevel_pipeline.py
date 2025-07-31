@@ -58,23 +58,49 @@ class HighLevelPipeline:
         module: str | None = None,
         params: dict | None = None,
     ) -> 'HighLevelPipeline':
+        """Append ``func`` as a pipeline step.
+
+        ``func`` may be a callable or the name of a function. When a callable is
+        supplied it is stored directly and executed without an import. Such steps
+        cannot be serialised with :meth:`save_json`.
+        """
         if callable(func):
-            module = module or func.__module__
-            func = func.__name__
-        self.steps.append({"func": func, "module": module, "params": params or {}})
+            self.steps.append({"callable": func, "params": params or {}})
+        else:
+            self.steps.append({"func": func, "module": module, "params": params or {}})
         return self
+
+    def _extract_marble(self, obj: Any) -> marble_interface.MARBLE | None:
+        """Return the first :class:`MARBLE` instance found in ``obj``."""
+        if isinstance(obj, marble_interface.MARBLE):
+            return obj
+        if isinstance(obj, (list, tuple, set)):
+            for item in obj:
+                m = self._extract_marble(item)
+                if m is not None:
+                    return m
+        if isinstance(obj, dict):
+            for val in obj.values():
+                m = self._extract_marble(val)
+                if m is not None:
+                    return m
+        return None
 
     def execute(self, marble: Any | None = None) -> tuple[Any | None, list[Any]]:
         current_marble = marble
         results: list[Any] = []
         for step in self.steps:
-            module_name = step.get("module")
-            func_name = step["func"]
-            params = step.get("params", {})
-            module = importlib.import_module(module_name) if module_name else marble_interface
-            if not hasattr(module, func_name):
-                raise ValueError(f"Unknown function: {func_name}")
-            func = getattr(module, func_name)
+            if "callable" in step:
+                func = step["callable"]
+                params = step.get("params", {})
+            else:
+                module_name = step.get("module")
+                func_name = step["func"]
+                params = step.get("params", {})
+                module = importlib.import_module(module_name) if module_name else marble_interface
+                if not hasattr(module, func_name):
+                    raise ValueError(f"Unknown function: {func_name}")
+                func = getattr(module, func_name)
             sig = inspect.signature(func)
             kwargs = {}
             for name, p in sig.parameters.items():
@@ -87,12 +113,16 @@ class HighLevelPipeline:
                 else:
                     raise ValueError(f"Missing parameter: {name}")
             result = func(**kwargs)
-            if isinstance(result, marble_interface.MARBLE):
-                current_marble = result
+            found = self._extract_marble(result)
+            if found is not None:
+                current_marble = found
             results.append(result)
         return current_marble, results
 
     def save_json(self, path: str) -> None:
+        for step in self.steps:
+            if "callable" in step:
+                raise ValueError("Cannot serialise pipelines containing callables")
         with open(path, "w", encoding="utf-8") as f:
             json.dump(self.steps, f, indent=2)
 
