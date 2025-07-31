@@ -85,13 +85,14 @@ def test_bit_tensor_dataset_compression():
 
 def test_bit_tensor_dataset_iteration_and_save_load(tmp_path):
     pairs = [(1, 2), (3, 4)]
-    ds = BitTensorDataset(pairs)
+    ds = BitTensorDataset(pairs, start_id=500)
     assert list(ds) == [ds[0], ds[1]]
     save_path = tmp_path / "ds.pt"
     ds.save(save_path)
     loaded = BitTensorDataset.load(save_path)
     assert len(loaded) == 2
     assert loaded.tensor_to_object(loaded[0][0]) == 1
+    assert loaded.start_id == 500
 
 
 def test_bit_tensor_dataset_summary():
@@ -102,6 +103,7 @@ def test_bit_tensor_dataset_summary():
     assert info["vocab_size"] == ds.vocab_size()
     assert info["device"] == str(ds.device)
     assert info["compressed"] is False
+    assert info["start_id"] == ds.start_id
 
 
 def test_bit_tensor_dataset_add_extend():
@@ -111,3 +113,11 @@ def test_bit_tensor_dataset_add_extend():
     ds.extend([(4, 5), (6, 7)])
     assert len(ds) == 4
     assert ds.tensor_to_object(ds[2][0]) == 4
+
+
+def test_bit_tensor_dataset_custom_start_id():
+    data = [("aa", "bb"), ("cc", "dd")]
+    ds = BitTensorDataset(data, use_vocab=True, start_id=700)
+    vocab_vals = list(ds.get_vocab().values())
+    assert vocab_vals and min(vocab_vals) >= 700
+    assert ds.start_id == 700

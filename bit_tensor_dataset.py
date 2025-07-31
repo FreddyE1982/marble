@@ -165,6 +165,7 @@ class BitTensorDataset(Dataset):
         min_word_length: int = 4,
         max_word_length: int = 8,
         min_occurrence: int = 4,
+        start_id: int = 256,
         device: str | torch.device | None = None,
         compress: bool = False,
     ) -> None:
@@ -191,6 +192,8 @@ class BitTensorDataset(Dataset):
         device:
             Target device for stored tensors. ``None`` selects ``"cuda"`` when
             available, otherwise ``"cpu"``.
+        start_id:
+            First vocabulary token index when ``use_vocab`` is ``True``.
         compress:
             When ``True`` all objects are compressed using ``zlib`` before
             converting them to bit tensors. This can substantially reduce
@@ -212,6 +215,7 @@ class BitTensorDataset(Dataset):
         )
         self.compress = compress
         self.vocab: dict[tuple[int, ...], int] | None = vocab
+        self.start_id = start_id
 
         if self.use_vocab and self.vocab is None:
             bitstream: list[int] = []
@@ -233,6 +237,7 @@ class BitTensorDataset(Dataset):
                 max_len=self.max_word_length,
                 max_size=self.max_vocab_size,
                 min_occurrence=self.min_occurrence,
+                start_id=self.start_id,
             )
 
         self.data: list[tuple[torch.Tensor, torch.Tensor]] = []
@@ -327,6 +332,7 @@ class BitTensorDataset(Dataset):
             "vocab_size": self.vocab_size(),
             "device": str(self.device),
             "compressed": self.compress,
+            "start_id": self.start_id,
             "total_elements": int(total_elements),
         }
 
@@ -340,6 +346,7 @@ class BitTensorDataset(Dataset):
             "min_word_length": self.min_word_length,
             "max_word_length": self.max_word_length,
             "min_occurrence": self.min_occurrence,
+            "start_id": self.start_id,
             "device": str(self.device),
             "compress": self.compress,
         }
@@ -358,6 +365,7 @@ class BitTensorDataset(Dataset):
             min_word_length=obj["min_word_length"],
             max_word_length=obj["max_word_length"],
             min_occurrence=obj["min_occurrence"],
+            start_id=obj.get("start_id", 256),
             device=device or obj["device"],
             compress=obj["compress"],
         )
