@@ -282,6 +282,18 @@ class BitTensorDataset(Dataset):
         """Inverse of :meth:`encode_object`."""
         return self.tensor_to_object(tensor)
 
+    def add_pair(self, inp: Any, target: Any) -> None:
+        """Append a single ``(input, target)`` pair to the dataset."""
+        self.raw_data.append((inp, target))
+        in_tensor = self._obj_to_tensor(inp)
+        out_tensor = self._obj_to_tensor(target)
+        self.data.append((in_tensor, out_tensor))
+
+    def extend(self, pairs: Iterable[tuple[Any, Any]]) -> None:
+        """Add multiple pairs to the dataset."""
+        for inp, target in pairs:
+            self.add_pair(inp, target)
+
     def get_vocab(self):
         return self.vocab
 
