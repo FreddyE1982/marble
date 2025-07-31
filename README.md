@@ -69,6 +69,12 @@ operating directly on the bit level, ``BitTensorDataset`` can convert objects
 into binary tensors and optionally build a shared vocabulary for compact
 storage.
 
+Several helper pipelines leverage ``BitTensorDataset`` to train various
+learning paradigms on arbitrary Python objects, including ``AutoencoderPipeline``,
+``ContrastivePipeline``, ``DiffusionPairsPipeline``, ``UnifiedPairsPipeline``,
+``SemiSupervisedPairsPipeline`` and the new ``ImitationPairsPipeline`` and
+``FractalDimensionPairsPipeline``.
+
 ### Command Line Usage
 
 Common tasks can be performed via ``cli.py``. Train a model, evaluate it and

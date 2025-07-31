@@ -1933,3 +1933,26 @@ reconstructed with the correct Python type during decoding.
    pipe.train(labeled, unlabeled, epochs=1)
    ```
    Both pipelines automatically convert objects to bit-level tensors so you can train on any Python data structure.
+
+## Project 33 – Advanced BitTensor Pipelines
+
+**Goal:** Explore imitation and fractal-dimension learning with arbitrary inputs.
+
+1. **Train the imitation pipeline** on example demonstrations:
+   ```python
+   from imitation_pairs_pipeline import ImitationPairsPipeline
+
+   core = Core(minimal_params())
+   pipe = ImitationPairsPipeline(core, use_vocab=True)
+   demos = [("left", "move"), ("right", "move")]
+   pipe.train(demos, epochs=1)
+   ```
+2. **Model fractal dimension adjustments** using another dataset:
+   ```python
+   from fractal_dimension_pairs_pipeline import FractalDimensionPairsPipeline
+
+   core = Core(minimal_params())
+   pipe = FractalDimensionPairsPipeline(core, use_vocab=True)
+   pairs = [("conceptA", "conceptB"), ("conceptC", "conceptD")]
+   pipe.train(pairs, epochs=1)
+   ```
