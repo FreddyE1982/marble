@@ -78,3 +78,15 @@ def test_highlevel_pipeline_detect_marble_in_nested(tmp_path):
     assert isinstance(marble, marble_interface.MARBLE)
     assert isinstance(results[0], tuple)
     assert results[0][0] == {"hooked": True}
+
+
+def test_highlevel_pipeline_nested_module(tmp_path):
+    marble_imports.tqdm = std_tqdm
+    marble_brain.tqdm = std_tqdm
+    marble_main.MetricsVisualizer = MetricsVisualizer
+
+    cfg = _config_path(tmp_path)
+    hp = HighLevelPipeline()
+    hp.new_marble_system(config_path=str(cfg))
+    hp.marble_neuronenblitz.learning.disable_rl(nb=None)
+    assert hp.steps[-1]["module"] == "marble_neuronenblitz.learning"

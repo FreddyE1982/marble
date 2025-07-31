@@ -162,6 +162,7 @@ Python API for building these workflows. Functions from ``marble_interface``
 can be added directly as methods while any repository module can be accessed via
 attribute notation, for example ``HighLevelPipeline().plugin_system.load_plugins``
 which appends a call to ``plugin_system.load_plugins``.
+Nested modules are automatically resolved so ``HighLevelPipeline().marble_neuronenblitz.learning.enable_rl`` works as expected.
 The pipeline accepts custom callables and automatically tracks the active
 ``MARBLE`` instance whenever a step returns one, even if nested inside tuples or
 dicts.
