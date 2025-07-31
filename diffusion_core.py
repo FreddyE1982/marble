@@ -50,6 +50,7 @@ class DiffusionCore(Core):
         harmonic_params: dict | None = None,
         fractal_params: dict | None = None,
         activation_output_dir: str | None = None,
+        activation_colormap: str | None = None,
         plugin_dirs: list[str] | None = None,
     ) -> None:
         params = params.copy() if params is not None else {}
@@ -63,6 +64,8 @@ class DiffusionCore(Core):
             params.setdefault("noise_schedule", noise_schedule)
         if workspace_broadcast is not None:
             params.setdefault("workspace_broadcast", workspace_broadcast)
+        if activation_colormap is not None:
+            params.setdefault("activation_colormap", activation_colormap)
         super().__init__(params, metrics_visualizer=metrics_visualizer)
         self.diffusion_steps = int(self.params.get("diffusion_steps", 10))
         self.noise_start = float(self.params.get("noise_start", 1.0))
@@ -129,6 +132,7 @@ class DiffusionCore(Core):
                 target_dimension=fractal_params.get("target_dimension", 4.0),
             )
         self.activation_output_dir = activation_output_dir
+        self.activation_colormap = self.params.get("activation_colormap", "viridis")
         if plugin_dirs:
             load_plugins(plugin_dirs)
 
@@ -209,7 +213,7 @@ class DiffusionCore(Core):
         if self.activation_output_dir is not None:
             path = os.path.join(self.activation_output_dir, f"diffusion_{len(self.history)}.png")
             os.makedirs(os.path.dirname(path), exist_ok=True)
-            plot_activation_heatmap(self, path)
+            plot_activation_heatmap(self, path, cmap=self.activation_colormap)
         if (
             self.remote_client is not None
             and self.get_usage_by_tier("vram")

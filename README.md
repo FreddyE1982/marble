@@ -38,6 +38,9 @@ diffusion models can be trained and sampled entirely within MARBLE.
 When ``workspace_broadcast`` is enabled the final sample of each diffusion run
 is published through the Global Workspace so other modules can react in real
 time.
+Activation heatmaps for each run can be written by setting
+``activation_output_dir`` and selecting a colour map with
+``activation_colormap`` (e.g. ``"plasma"``) in the configuration.
 
 MARBLE can train on datasets provided as lists of ``(input, target)`` pairs or using PyTorch-style ``Dataset``/``DataLoader`` objects. Each sample must expose an ``input`` and ``target`` field. After training and saving a model, ``Brain.infer`` generates outputs when given only an input value.
 For quick experiments without external files you can generate synthetic regression pairs using ``synthetic_dataset.generate_sine_wave_dataset``.

@@ -63,6 +63,7 @@ Each entry is listed under its section heading.
 - noise_schedule
 - workspace_broadcast
 - activation_output_dir
+- activation_colormap
 - memory_system
 - cwfl
 - harmonic

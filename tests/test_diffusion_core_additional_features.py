@@ -11,6 +11,7 @@ def test_diffusion_core_additional_features(tmp_path):
     params = minimal_params()
     params["diffusion_steps"] = 1
     params["activation_output_dir"] = str(tmp_path)
+    params["activation_colormap"] = "plasma"
     params["memory_system"] = {
         "long_term_path": str(tmp_path / "lt.pkl"),
         "threshold": 0.5,
@@ -30,6 +31,7 @@ def test_diffusion_core_additional_features(tmp_path):
         harmonic_params=params["harmonic"],
         fractal_params=params["fractal"],
         activation_output_dir=params["activation_output_dir"],
+        activation_colormap=params["activation_colormap"],
     )
     out = core.diffuse(0.1)
     assert isinstance(out, float)

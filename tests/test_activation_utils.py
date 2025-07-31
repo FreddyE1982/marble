@@ -10,5 +10,5 @@ def test_activation_heatmap(tmp_path):
     core = Core(params)
     perform_message_passing(core)
     out_file = tmp_path / "heat.png"
-    plot_activation_heatmap(core, out_file)
+    plot_activation_heatmap(core, out_file, cmap="plasma")
     assert out_file.exists() and out_file.stat().st_size > 0
