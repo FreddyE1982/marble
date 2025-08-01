@@ -91,6 +91,31 @@ def test_load_zipped_json(tmp_path):
     assert pairs == [(1, 2)]
 
 
+def test_corrupted_zip_recovery(tmp_path):
+    csv_path = tmp_path / "good.csv"
+    csv_path.write_text("input,target\n1,2\n")
+    good_zip = tmp_path / "good.zip"
+    import zipfile
+    with zipfile.ZipFile(good_zip, "w") as zf:
+        zf.write(csv_path, arcname="good.csv")
+    cache_dir = tmp_path / "cache"
+    os.makedirs(cache_dir, exist_ok=True)
+    corrupt_path = cache_dir / good_zip.name
+    corrupt_path.write_bytes(b"corrupt")
+    import http.server, threading
+    handler = partial(SimpleHTTPRequestHandler, directory=tmp_path)
+    httpd = HTTPServer(("localhost", 9090), handler)
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+    try:
+        url = f"http://localhost:9090/{good_zip.name}"
+        pairs = load_dataset(url, cache_dir=cache_dir)
+        assert pairs == [(1, 2)]
+    finally:
+        httpd.shutdown()
+        thread.join()
+
+
 def test_dataset_sharding(tmp_path):
     csv_path = tmp_path / "shard.csv"
     csv_path.write_text("input,target\n1,2\n3,4\n5,6\n7,8\n")

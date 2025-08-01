@@ -155,19 +155,27 @@ def load_dataset(
         path = source
     ext = os.path.splitext(path)[1].lower()
     if ext == ".zip":
-        with zipfile.ZipFile(path) as zf:
-            members = [n for n in zf.namelist() if not n.endswith("/")]
-            if not members:
-                raise ValueError("Zip archive is empty")
-            inner = members[0]
-            with zf.open(inner) as f:
-                inner_ext = os.path.splitext(inner)[1].lower()
-                if inner_ext in {".csv", ""}:
-                    df = pd.read_csv(f)
-                elif inner_ext in {".json", ".jsonl"}:
-                    df = pd.read_json(f, lines=inner_ext == ".jsonl")
+        for attempt in range(2):
+            try:
+                with zipfile.ZipFile(path) as zf:
+                    members = [n for n in zf.namelist() if not n.endswith("/")]
+                    if not members:
+                        raise ValueError("Zip archive is empty")
+                    inner = members[0]
+                    with zf.open(inner) as f:
+                        inner_ext = os.path.splitext(inner)[1].lower()
+                        if inner_ext in {".csv", ""}:
+                            df = pd.read_csv(f)
+                        elif inner_ext in {".json", ".jsonl"}:
+                            df = pd.read_json(f, lines=inner_ext == ".jsonl")
+                        else:
+                            raise ValueError("Unsupported dataset format inside zip")
+                break
+            except zipfile.BadZipFile:
+                if attempt == 0 and (source.startswith("http://") or source.startswith("https://")) and not offline:
+                    _download_file(source, path)
                 else:
-                    raise ValueError("Unsupported dataset format inside zip")
+                    raise
     elif ext in {".csv", ""}:
         df = pd.read_csv(path)
     elif ext in {".json", ".jsonl"}:
