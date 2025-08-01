@@ -3,17 +3,20 @@ import hashlib
 import zipfile
 import io
 import requests
+import requests_cache
 import pandas as pd
 import threading
 from typing import Any, List
 from marble import DataLoader
+
+_SESSION = requests_cache.CachedSession("http_cache", expire_after=86400)
 from tqdm import tqdm
 
 
 def _download_file(url: str, path: str) -> None:
     """Download ``url`` to ``path`` creating parent directories if needed."""
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with requests.get(url, stream=True, timeout=30) as r:
+    with _SESSION.get(url, stream=True, timeout=30) as r:
         r.raise_for_status()
         total = int(r.headers.get("content-length", 0))
         desc = f"Downloading {os.path.basename(path)}"

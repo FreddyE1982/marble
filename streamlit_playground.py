@@ -1740,6 +1740,7 @@ def run_playground() -> None:
             tab_proj,
             tab_tests,
             tab_docs,
+            tab_browser,
             tab_src,
         ) = st.tabs(
             [
@@ -1769,6 +1770,7 @@ def run_playground() -> None:
                 "Projects",
                 "Tests",
                 "Documentation",
+                "Dataset Browser",
                 "Source Browser",
             ]
         )
@@ -2704,6 +2706,15 @@ def run_playground() -> None:
             text = load_documentation(doc_choice)
             lang = "markdown" if doc_choice.endswith(".md") else "yaml"
             st.code(text, language=lang)
+
+        with tab_browser:
+            st.write("Browse dataset files and inspect samples.")
+            file = st.file_uploader(
+                "Dataset", type=["csv", "json", "jsonl", "zip"], key="ds_browser_file"
+            )
+            if file is not None:
+                df = preview_file_dataset(file)
+                st.dataframe(df.head(), use_container_width=True)
 
         with tab_src:
             st.write("Browse repository source code.")

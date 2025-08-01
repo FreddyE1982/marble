@@ -258,15 +258,17 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Integrate the prefetch queue with pipeline execution so steps can await availability.
 125. [x] Implement dataset merging with conflict resolution logic.
 126. [x] Support deterministic splitting into train, validation and test sets via hashing.
-127. [ ] Offer dataset versioning with reversible diffs to update existing sets.
-128. [ ] Provide an interactive dataset browser in the Streamlit GUI for manual review.
+127. [x] Offer dataset versioning with reversible diffs to update existing sets.
+128. [x] Provide an interactive dataset browser in the Streamlit GUI for manual review.
 129. [x] Stream data directly from compressed archives without extraction.
 130. [x] Add a bit-level augmentation pipeline for flipping and noisy bits.
 131. [x] Verify data integrity with checksums relying on marble core utilities.
 132. [x] Automatically prune invalid or corrupted entries with callback hooks.
 133. [x] Cache encoded bitstreams on disk for fast reload between runs.
 134. [ ] Coordinate dataset memory usage with Marble Core's `MemoryPool`.
-135. [ ] Execute transformations asynchronously during idle GPU cycles.
+    - 134a. [ ] Allocate dataset pair objects from a shared MemoryPool.
+    - 134b. [ ] Implement helper to release datasets back into the pool.
+135. [x] Execute transformations asynchronously during idle GPU cycles.
 136. [ ] Shard datasets for distributed training using core distributed helpers.
 137. [ ] Allow in-place patching of datasets while training is running.
 138. [ ] Manage encryption keys through pipeline configuration files.
@@ -278,12 +280,12 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 144. [ ] Offer undo and redo commands for interactive dataset editing.
 145. [x] Fetch missing remote files automatically when constructing datasets.
 146. [ ] Enable sample-level transformations such as image rotations or text cleanup.
-147. [ ] Lazily decode objects so they are materialised only when accessed.
+147. [x] Lazily decode objects so they are materialised only when accessed.
 148. [ ] Select compression algorithms through a pluggable interface.
 149. [ ] Write datasets asynchronously so saves never block the main loop.
 150. [ ] Track dependencies between dataset entries and their original sources.
 151. [ ] Map every object to a hashed identifier for cross-dataset linking.
-152. [ ] Cache downloads on the network layer to avoid repeated transfers.
+152. [x] Cache downloads on the network layer to avoid repeated transfers.
 153. [ ] Visualise bit patterns interactively via the Streamlit GUI.
 154. [ ] Filter samples with user-defined expressions evaluated on load.
 155. [ ] Detect corrupted compression files and attempt automatic recovery.

@@ -980,3 +980,11 @@ def test_persist_ui_state_inserts_script(monkeypatch):
     importlib.reload(streamlit_playground)
     streamlit_playground._persist_ui_state()
     assert "scrollPos" in captured.get("data", "")
+
+
+def test_dataset_browser_load(tmp_path):
+    csv = tmp_path / "sample.csv"
+    csv.write_text("input,target\n1,2\n3,4\n")
+    at = _setup_advanced_playground()
+    tab = next(t for t in at.tabs if t.label == "Dataset Browser")
+    assert tab.label == "Dataset Browser"
