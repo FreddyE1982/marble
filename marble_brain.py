@@ -441,6 +441,8 @@ class Brain:
         best_loss = float("inf")
         patience_counter = 0
         for epoch in pbar:
+            if self.metrics_visualizer is not None:
+                self.metrics_visualizer.log_event("epoch_start", {"epoch": epoch})
             if self.profiler and epoch % self.profile_interval == 0:
                 self.profiler.start_epoch()
             start_time = time.time()
@@ -541,6 +543,10 @@ class Brain:
                 self.benchmark_step(example)
             if self.profiler and epoch % self.profile_interval == 0:
                 self.profiler.log_epoch(epoch)
+            if self.metrics_visualizer is not None:
+                self.metrics_visualizer.log_event(
+                    "epoch_end", {"epoch": epoch, "loss": val_loss}
+                )
 
         pbar.close()
 

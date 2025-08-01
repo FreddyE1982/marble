@@ -294,7 +294,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 158. [x] Summarise datasets in pipeline descriptions for easier debugging.
 159. [ ] Notify the memory manager about upcoming dataset allocations.
 160. [x] Add an API to append data incrementally with vocabulary updates.
-161. [ ] Register debugging hooks for inspecting individual samples in the pipeline.
+161. [x] Register debugging hooks for inspecting individual samples in the pipeline.
 162. [ ] Provide approximate nearest neighbour search over bit tensors for retrieval.
 163. [ ] Attach hierarchical tags or labels alongside each stored pair.
 164. [ ] Ensure cross-platform serialisation for dataset portability.
@@ -392,10 +392,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 256. [ ] Use the memory pool for gradient buffer management.
 257. [ ] Route decisions based on hierarchical dataset tags.
 258. [ ] Cache activations for repeated passes over dataset shards.
-259. [ ] Send training events to the metrics visualiser.
-    - [ ] Add log_event method to MetricsVisualizer.
-    - [ ] Emit epoch_start and epoch_end in Brain.train.
-    - [ ] Display events in GUI console.
+259. [x] Send training events to the metrics visualiser.
+    - [x] Add log_event method to MetricsVisualizer.
+    - [x] Emit epoch_start and epoch_end in Brain.train.
+    - [x] Display events in GUI console.
 260. [ ] Ensure encrypted datasets remain private throughout training.
 261. [ ] Replicate networks across nodes using remote hardware plugins.
 262. [ ] Quickly evaluate models via pipeline checkpoint restore.
@@ -423,9 +423,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 284. [ ] Support asynchronous I/O for continuous dataset streaming.
 285. [ ] Emit resource events to notify components of memory pressure.
 286. [ ] Replicate memory pools across machines for distributed workloads.
-287. [ ] Validate configurations globally before starting a pipeline.
-    - [ ] Implement validate_global_config function.
-    - [ ] Add schema checks for all sections.
+287. [x] Validate configurations globally before starting a pipeline.
+    - [x] Implement validate_global_config function.
+    - [x] Add schema checks for all sections.
 288. [ ] Provide thread-safe APIs for parallel dataset transformations.
 289. [ ] Deduplicate repeated bit tensors across different datasets.
 290. [ ] Aggregate event logs from all modules into a unified stream.
@@ -437,18 +437,18 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 296. [ ] Prune unused neurons according to dataset prune events.
 297. [ ] Propagate context from pipeline events into core behaviours.
 298. [ ] Visualise core operations in a built-in GUI server.
-299. [ ] Cache downloaded datasets at the network level.
-    - [ ] Implement DatasetCacheServer to share downloads.
-    - [ ] Modify load_dataset to query remote cache.
+299. [x] Cache downloaded datasets at the network level.
+    - [x] Implement DatasetCacheServer to share downloads.
+    - [x] Modify load_dataset to query remote cache.
 300. [ ] Orchestrate cross-validation using core utilities and dataset splits.
 301. [ ] Spawn remote workers to handle dataset transformations.
 302. [ ] Serialise pipeline definitions through a portable format.
 303. [ ] Aggregate events and feed them to the metrics visualiser.
 304. [ ] Protect remote memory operations with encryption utilities.
 305. [ ] Balance CPU and GPU resources for dataset handling.
-306. [ ] Provide a dedicated test harness for bit tensor functions.
-    - [ ] Create helper class for generating datasets.
-    - [ ] Integrate harness with existing tests.
+306. [x] Provide a dedicated test harness for bit tensor functions.
+    - [x] Create helper class for generating datasets.
+    - [x] Integrate harness with existing tests.
 307. [ ] Enforce memory quotas per pipeline step.
 308. [ ] Precompile compute graphs to accelerate training.
 309. [ ] Offer multi-step undo for dataset modifications via core services.

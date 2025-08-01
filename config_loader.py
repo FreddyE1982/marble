@@ -38,6 +38,21 @@ def load_config(path: str | None = None) -> dict:
     return data
 
 
+def validate_global_config(cfg: dict) -> None:
+    """Perform basic sanity checks on the full configuration."""
+
+    required_sections = [
+        "core",
+        "neuronenblitz",
+        "brain",
+        "dataloader",
+        "memory_system",
+    ]
+    for sec in required_sections:
+        if sec not in cfg:
+            raise ValueError(f"Missing required config section: {sec}")
+
+
 def create_marble_from_config(
     path: str | None = None, *, overrides: dict | None = None
 ) -> MARBLE:
@@ -55,6 +70,7 @@ def create_marble_from_config(
     cfg = load_config(path)
     if overrides:
         _deep_update(cfg, overrides)
+    validate_global_config(cfg)
 
     plugin_dirs = cfg.get("plugins", [])
     if plugin_dirs:

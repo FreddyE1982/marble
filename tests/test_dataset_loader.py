@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 
 from dataset_loader import load_dataset, prefetch_dataset, export_dataset
 from marble import DataLoader
+from tests.dataset_harness import BitTensorDatasetHarness
 
 
 def _serve_directory(directory, port):
@@ -166,6 +167,15 @@ def test_load_dataset_with_dataloader(tmp_path):
     inp, tgt = pairs[0]
     assert dl.decode(inp) == "hello"
     assert dl.decode(tgt) == "world"
+
+
+def test_dataset_harness_roundtrip(tmp_path):
+    harness = BitTensorDatasetHarness(num_samples=2)
+    pairs = harness.make_pairs()
+    path = tmp_path / "tensor.csv"
+    export_dataset([(int(p[0].sum()), int(p[1].sum())) for p in pairs], str(path))
+    loaded = load_dataset(str(path))
+    assert loaded
 
 
 def test_load_dataset_dependencies_and_filter(tmp_path):
