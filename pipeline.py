@@ -5,6 +5,8 @@ import inspect
 import json
 from typing import Any
 
+from dataset_loader import wait_for_prefetch
+
 import marble_interface
 
 
@@ -33,6 +35,7 @@ class Pipeline:
     def execute(self, marble: Any | None = None) -> list[Any]:
         results: list[Any] = []
         for step in self.steps:
+            wait_for_prefetch()
             module_name = step.get("module")
             func_name = step["func"]
             params = step.get("params", {})

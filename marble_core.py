@@ -10,7 +10,7 @@ import functools
 from collections import deque
 from memory_pool import MemoryPool
 from datetime import datetime
-from typing import Any, Hashable
+from typing import Any, Hashable, Callable
 import contextlib
 
 import numpy as np
@@ -1369,6 +1369,22 @@ class MemorySystem:
 
 
 class DataLoader:
+    """Encode and decode arbitrary Python objects with optional plugins."""
+
+    _encoders: dict[type, Callable[[Any], bytes]] = {}
+    _decoders: dict[str, Callable[[bytes], Any]] = {}
+
+    @classmethod
+    def register_plugin(
+        cls,
+        typ: type,
+        encoder: Callable[[Any], bytes],
+        decoder: Callable[[bytes], Any],
+    ) -> None:
+        """Register custom encoder/decoder pair for ``typ``."""
+        cls._encoders[typ] = encoder
+        cls._decoders[typ.__name__] = decoder
+
     def __init__(
         self,
         compressor: DataCompressor | None = None,
@@ -1407,20 +1423,29 @@ class DataLoader:
         return a == b
 
     def encode(self, data: Any) -> np.ndarray:
-        tokenized = False
-        original_type = data.__class__
-        if self.tokenizer is not None and isinstance(data, str):
-            ids = self.tokenizer.encode(data).ids
-            data = np.asarray(ids, dtype=np.int32)
-            tokenized = True
-        if self.track_metadata:
-            meta = {"module": original_type.__module__, "type": original_type.__name__}
-            if tokenized:
-                meta["tokenized"] = True
-            payload = {"__marble_meta__": meta, "payload": data}
-            serialized = pickle.dumps(payload)
+        plugin_type = None
+        for typ, enc in self._encoders.items():
+            if isinstance(data, typ):
+                plugin_type = typ.__name__
+                data_bytes = enc(data)
+                payload = {"__marble_plugin__": {"type": plugin_type}, "payload": data_bytes}
+                serialized = pickle.dumps(payload)
+                break
         else:
-            serialized = pickle.dumps(data)
+            tokenized = False
+            original_type = data.__class__
+            if self.tokenizer is not None and isinstance(data, str):
+                ids = self.tokenizer.encode(data).ids
+                data = np.asarray(ids, dtype=np.int32)
+                tokenized = True
+            if self.track_metadata:
+                meta = {"module": original_type.__module__, "type": original_type.__name__}
+                if tokenized:
+                    meta["tokenized"] = True
+                payload = {"__marble_meta__": meta, "payload": data}
+                serialized = pickle.dumps(payload)
+            else:
+                serialized = pickle.dumps(data)
         compressed = self.compressor.compress(serialized)
         if self.metrics_visualizer is not None:
             ratio = len(compressed) / max(len(serialized), 1)
@@ -1441,17 +1466,24 @@ class DataLoader:
             ratio = len(compressed) / max(len(serialized), 1)
             self.metrics_visualizer.update({"compression_ratio": ratio})
         data = pickle.loads(serialized)
-        if isinstance(data, dict) and "__marble_meta__" in data and "payload" in data:
-            meta = data["__marble_meta__"]
-            payload = data["payload"]
-            if meta.get("tokenized") and self.tokenizer is not None:
-                if isinstance(payload, np.ndarray):
-                    tokens = payload.tolist()
+        if isinstance(data, dict):
+            if "__marble_plugin__" in data and "payload" in data:
+                plugin_meta = data["__marble_plugin__"]
+                dtype = plugin_meta.get("type")
+                decoder = self._decoders.get(dtype)
+                if decoder is not None:
+                    return decoder(data["payload"])
+            if "__marble_meta__" in data and "payload" in data:
+                meta = data["__marble_meta__"]
+                payload = data["payload"]
+                if meta.get("tokenized") and self.tokenizer is not None:
+                    if isinstance(payload, np.ndarray):
+                        tokens = payload.tolist()
+                    else:
+                        tokens = list(payload)
+                    data = self.tokenizer.decode(tokens)
                 else:
-                    tokens = list(payload)
-                data = self.tokenizer.decode(tokens)
-            else:
-                data = payload
+                    data = payload
         return data
 
     def round_trip_penalty_for(self, value: Any) -> float:

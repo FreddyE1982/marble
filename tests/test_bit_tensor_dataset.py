@@ -95,6 +95,14 @@ def test_bit_tensor_dataset_iteration_and_save_load(tmp_path):
     assert loaded.start_id == 500
 
 
+def test_load_memory_mapped(tmp_path):
+    ds = BitTensorDataset([(1, 2)])
+    path = tmp_path / "ds.pt"
+    ds.save(path)
+    loaded = BitTensorDataset.load(path, memory_mapped=True)
+    assert loaded.tensor_to_object(loaded[0][0]) == 1
+
+
 def test_bit_tensor_dataset_summary():
     pairs = [(1, 2), (3, 4)]
     ds = BitTensorDataset(pairs, use_vocab=True)
@@ -338,3 +346,18 @@ def test_dataset_encryption_missing_key(tmp_path):
     ds.save(path)
     with pytest.raises(ValueError):
         BitTensorDataset.load(path)
+
+def test_bit_augmentation():
+    ds = BitTensorDataset([(0, 1)])
+    before = ds[0][0].clone()
+    ds.augment_bits(flip_probability=1.0)
+    after = ds[0][0]
+    assert not torch.equal(before, after)
+
+def test_append_pairs_rebuild_vocab():
+    data = [("a", "b")]
+    ds = BitTensorDataset(data, use_vocab=True)
+    before_vocab = ds.vocab_size()
+    ds.append_pairs([("c", "d")], rebuild_vocab=True)
+    assert ds.vocab_size() >= before_vocab
+    assert len(ds) == 2

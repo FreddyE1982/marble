@@ -255,13 +255,13 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 123. [x] Integrate GPU-accelerated encoding and decoding using core operations.
 124. [x] Enable background prefetching and caching to support asynchronous pipelines.
     - [x] Add `prefetch_dataset` helper running downloads in a background thread.
-    - [ ] Integrate the prefetch queue with pipeline execution so steps can await availability.
+    - [x] Integrate the prefetch queue with pipeline execution so steps can await availability.
 125. [x] Implement dataset merging with conflict resolution logic.
 126. [x] Support deterministic splitting into train, validation and test sets via hashing.
 127. [ ] Offer dataset versioning with reversible diffs to update existing sets.
 128. [ ] Provide an interactive dataset browser in the Streamlit GUI for manual review.
 129. [x] Stream data directly from compressed archives without extraction.
-130. [ ] Add a bit-level augmentation pipeline for flipping and noisy bits.
+130. [x] Add a bit-level augmentation pipeline for flipping and noisy bits.
 131. [x] Verify data integrity with checksums relying on marble core utilities.
 132. [x] Automatically prune invalid or corrupted entries with callback hooks.
 133. [x] Cache encoded bitstreams on disk for fast reload between runs.
@@ -272,11 +272,11 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 138. [ ] Manage encryption keys through pipeline configuration files.
 139. [ ] Adapt vocabulary dynamically when new words appear during training.
 140. [x] Audit data integrity through checksums and object hashes.
-141. [ ] Provide a plugin system for custom object encoders and decoders.
-142. [ ] Support memory-mapped files so huge datasets fit into RAM.
+141. [x] Provide a plugin system for custom object encoders and decoders.
+142. [x] Support memory-mapped files so huge datasets fit into RAM.
 143. [ ] Track modification history with the ability to revert changes.
 144. [ ] Offer undo and redo commands for interactive dataset editing.
-145. [ ] Fetch missing remote files automatically when constructing datasets.
+145. [x] Fetch missing remote files automatically when constructing datasets.
 146. [ ] Enable sample-level transformations such as image rotations or text cleanup.
 147. [ ] Lazily decode objects so they are materialised only when accessed.
 148. [ ] Select compression algorithms through a pluggable interface.
@@ -291,7 +291,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 157. [ ] Replicate datasets across nodes with progress notifications.
 158. [ ] Summarise datasets in pipeline descriptions for easier debugging.
 159. [ ] Notify the memory manager about upcoming dataset allocations.
-160. [ ] Add an API to append data incrementally with vocabulary updates.
+160. [x] Add an API to append data incrementally with vocabulary updates.
 161. [ ] Register debugging hooks for inspecting individual samples in the pipeline.
 162. [ ] Provide approximate nearest neighbour search over bit tensors for retrieval.
 163. [ ] Attach hierarchical tags or labels alongside each stored pair.

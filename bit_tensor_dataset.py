@@ -8,6 +8,7 @@ import base64
 import hashlib
 from collections import Counter
 from typing import Any, Iterable, Callable
+import mmap
 import requests
 import os
 import aiohttp
@@ -17,6 +18,31 @@ from torch.utils.data import Dataset
 from memory_pool import MemoryPool
 from crypto_utils import constant_time_compare, encrypt_bytes, decrypt_bytes
 from data_compressor import DataCompressor
+
+
+def augment_bit_tensor(
+    tensor: torch.Tensor,
+    *,
+    flip_probability: float = 0.0,
+    noise_probability: float = 0.0,
+) -> torch.Tensor:
+    """Return a copy of ``tensor`` with random bit flips and noise."""
+
+    if flip_probability <= 0.0 and noise_probability <= 0.0:
+        return tensor.clone()
+
+    rand = torch.rand_like(tensor.float())
+    result = tensor.clone()
+    if flip_probability > 0.0:
+        flips = rand < flip_probability
+        result = result ^ flips.to(dtype=result.dtype)
+    if noise_probability > 0.0:
+        noise_mask = (rand >= flip_probability) & (
+            rand < flip_probability + noise_probability
+        )
+        random_bits = torch.randint(0, 2, result.shape, device=result.device, dtype=result.dtype)
+        result = torch.where(noise_mask, random_bits, result)
+    return result
 
 
 def is_pickleable(obj: Any) -> bool:
@@ -447,6 +473,60 @@ class BitTensorDataset(Dataset):
         for inp, target in pairs:
             self.add_pair(inp, target)
 
+    def append_pairs(
+        self,
+        pairs: Iterable[tuple[Any, Any]],
+        *,
+        rebuild_vocab: bool = False,
+    ) -> None:
+        """Append ``pairs`` and optionally rebuild the vocabulary."""
+
+        self.raw_data.extend(pairs)
+        if rebuild_vocab and self.use_vocab:
+            bitstream: list[int] = []
+            for a, b in self.raw_data:
+                in_bytes = object_to_bytes(a)
+                out_bytes = object_to_bytes(b)
+                if self.compress:
+                    in_bytes = self.compressor.compress(in_bytes)
+                    out_bytes = self.compressor.compress(out_bytes)
+                if self.encryption_key is not None:
+                    in_bytes = encrypt_bytes(in_bytes, self.encryption_key)
+                    out_bytes = encrypt_bytes(out_bytes, self.encryption_key)
+                bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(in_bytes))
+                bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(out_bytes))
+            self.vocab = build_vocab(
+                bitstream,
+                min_len=self.min_word_length,
+                max_len=self.max_word_length,
+                max_size=self.max_vocab_size,
+                min_occurrence=self.min_occurrence,
+                start_id=self.start_id,
+            )
+            self.data = [(self._obj_to_tensor(a), self._obj_to_tensor(b)) for a, b in self.raw_data]
+            self.index_pool = MemoryPool(dict)
+            self.index = self.index_pool.allocate()
+            self.checksums = self._build_index()
+            return
+        for inp, target in pairs:
+            self.add_pair(inp, target)
+
+    def augment_bits(
+        self,
+        *,
+        flip_probability: float = 0.0,
+        noise_probability: float = 0.0,
+    ) -> None:
+        """Apply bit-level augmentation to all stored tensors."""
+
+        self.data = [
+            (
+                augment_bit_tensor(a, flip_probability=flip_probability, noise_probability=noise_probability),
+                augment_bit_tensor(b, flip_probability=flip_probability, noise_probability=noise_probability),
+            )
+            for a, b in self.data
+        ]
+
     def add_stream_pair(
         self,
         input_url: str | None = None,
@@ -589,9 +669,16 @@ class BitTensorDataset(Dataset):
         *,
         device: str | torch.device | None = None,
         encryption_key: str | bytes | None = None,
+        memory_mapped: bool = False,
     ) -> "BitTensorDataset":
         """Load a dataset previously saved with :meth:`save`."""
-        obj = torch.load(path, map_location="cpu")
+        if memory_mapped:
+            with open(path, "rb") as f:
+                mm = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
+                obj = torch.load(mm, map_location="cpu")
+                mm.close()
+        else:
+            obj = torch.load(path, map_location="cpu")
         if obj.get("encrypted") and encryption_key is None:
             raise ValueError("encryption_key required to load dataset")
         ds = cls(
