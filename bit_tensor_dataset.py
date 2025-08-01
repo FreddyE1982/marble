@@ -6,6 +6,7 @@ import pickle
 import zlib
 import json
 import base64
+import hashlib
 from collections import Counter
 from typing import Any, Iterable, Callable
 
@@ -525,3 +526,73 @@ class BitTensorDataset(Dataset):
                 keep_data.append((t_in, t_out))
         self.raw_data = keep_raw
         self.data = keep_data
+
+    def shuffle(self, *, generator: torch.Generator | None = None) -> None:
+        """Randomly shuffle dataset order in-place."""
+
+        idx = torch.randperm(len(self.data), generator=generator).tolist()
+        self.raw_data = [self.raw_data[i] for i in idx]
+        self.data = [self.data[i] for i in idx]
+
+    def split(
+        self,
+        ratio: float,
+        *,
+        shuffle: bool = True,
+        generator: torch.Generator | None = None,
+    ) -> tuple["BitTensorDataset", "BitTensorDataset"]:
+        """Return two datasets split by ``ratio``.
+
+        Parameters
+        ----------
+        ratio:
+            Fraction of pairs assigned to the first dataset (``0<ratio<1``).
+        shuffle:
+            When ``True`` pairs are shuffled before splitting.
+        generator:
+            Optional ``torch.Generator`` used for deterministic shuffling.
+        """
+
+        if not 0.0 < ratio < 1.0:
+            raise ValueError("ratio must be between 0 and 1")
+        idx = list(range(len(self.data)))
+        if shuffle:
+            perm = torch.randperm(len(self.data), generator=generator).tolist()
+            idx = perm
+        cut = int(len(self.data) * ratio)
+        first_raw = [self.raw_data[i] for i in idx[:cut]]
+        second_raw = [self.raw_data[i] for i in idx[cut:]]
+        return (
+            BitTensorDataset(
+                first_raw,
+                use_vocab=self.use_vocab,
+                vocab=self.vocab,
+                mixed=self.mixed,
+                max_vocab_size=self.max_vocab_size,
+                min_word_length=self.min_word_length,
+                max_word_length=self.max_word_length,
+                min_occurrence=self.min_occurrence,
+                start_id=self.start_id,
+                device=self.device,
+                compress=self.compress,
+            ),
+            BitTensorDataset(
+                second_raw,
+                use_vocab=self.use_vocab,
+                vocab=self.vocab,
+                mixed=self.mixed,
+                max_vocab_size=self.max_vocab_size,
+                min_word_length=self.min_word_length,
+                max_word_length=self.max_word_length,
+                min_occurrence=self.min_occurrence,
+                start_id=self.start_id,
+                device=self.device,
+                compress=self.compress,
+            ),
+        )
+
+    def hash(self) -> str:
+        """Return SHA256 hash of the dataset contents."""
+
+        digest = hashlib.sha256(self.to_json().encode("utf-8")).hexdigest()
+        return digest

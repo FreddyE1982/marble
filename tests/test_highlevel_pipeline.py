@@ -277,3 +277,15 @@ def test_highlevel_pipeline_summary_and_clear():
     assert info["num_steps"] == 1
     hp.clear_steps()
     assert hp.summary()["num_steps"] == 0
+
+
+def test_highlevel_pipeline_get_and_list_steps():
+    hp = HighLevelPipeline()
+
+    def a():
+        return "a"
+
+    hp.add_step(a)
+    assert hp.get_step(0)["callable"] == a
+    names = hp.list_steps()
+    assert names == ["a"]

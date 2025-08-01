@@ -29,3 +29,12 @@ def test_check_memory_usage_updates_visualizer():
     core = Core(params, metrics_visualizer=mv)
     core.check_memory_usage()
     assert mv.updates
+
+
+def test_core_summary_contains_counts():
+    params = minimal_params()
+    core = Core(params)
+    info = core.summary()
+    assert info["num_neurons"] == len(core.neurons)
+    assert info["num_synapses"] == len(core.synapses)
+    assert set(info["memory"].keys())
