@@ -83,6 +83,11 @@ appending new training samples using the current vocabulary and device
 configuration.
 ``BitTensorDataset.add_stream_pair`` can ingest audio or video streams directly
 from a URL, converting the downloaded bytes into dataset pairs on the fly.
+``BitTensorDataset.add_stream_pair_async`` offers the same functionality using
+``aiohttp`` so multiple streams can be fetched concurrently within an async
+pipeline. Invalid or corrupted pairs can be removed at any time with
+``BitTensorDataset.prune_invalid`` which accepts a callback to check decoded
+objects.
 
 Datasets can now be cached on disk using ``BitTensorDataset.cached`` to avoid
 re-encoding pairs on subsequent runs. Deterministic splitting into training,

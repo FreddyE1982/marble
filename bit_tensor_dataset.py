@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pickle
-import zlib
 import json
 import base64
 import hashlib
@@ -11,11 +10,13 @@ from collections import Counter
 from typing import Any, Iterable, Callable
 import requests
 import os
+import aiohttp
 
 import torch
 from torch.utils.data import Dataset
 from memory_pool import MemoryPool
 from crypto_utils import constant_time_compare
+from data_compressor import DataCompressor
 
 
 def is_pickleable(obj: Any) -> bool:
@@ -86,6 +87,36 @@ def _read_stream(
     if max_bytes is not None:
         return bytes(data[:max_bytes])
     return bytes(data)
+
+
+async def _read_stream_async(
+    url: str,
+    chunk_size: int = 8192,
+    max_bytes: int | None = None,
+    timeout: float | None = None,
+    session: aiohttp.ClientSession | None = None,
+) -> bytes:
+    """Asynchronously download bytes from ``url`` using ``aiohttp``."""
+    close = False
+    if session is None:
+        session = aiohttp.ClientSession()
+        close = True
+    try:
+        async with session.get(url, timeout=timeout) as resp:
+            resp.raise_for_status()
+            data = bytearray()
+            async for chunk in resp.content.iter_chunked(chunk_size):
+                if not chunk:
+                    continue
+                data.extend(chunk)
+                if max_bytes is not None and len(data) >= max_bytes:
+                    break
+            if max_bytes is not None:
+                return bytes(data[:max_bytes])
+            return bytes(data)
+    finally:
+        if close:
+            await session.close()
 
 
 def build_vocab(
@@ -196,6 +227,8 @@ class BitTensorDataset(Dataset):
         start_id: int = 256,
         device: str | torch.device | None = None,
         compress: bool = False,
+        compression_algorithm: str = "zlib",
+        compression_level: int = 6,
     ) -> None:
         """Prepare ``(input, target)`` pairs for training.
 
@@ -223,10 +256,17 @@ class BitTensorDataset(Dataset):
         start_id:
             First vocabulary token index when ``use_vocab`` is ``True``.
         compress:
-            When ``True`` all objects are compressed using ``zlib`` before
-            converting them to bit tensors. This can substantially reduce
-            dataset size when storing large pickled objects at the cost of
-            slightly longer encode/decode times.
+            When ``True`` all objects are compressed before converting them
+            to bit tensors. ``compression_algorithm`` selects the
+            compression backend and ``compression_level`` controls the
+            compression ratio. This can substantially reduce dataset size
+            when storing large pickled objects at the cost of slightly
+            longer encode/decode times.
+        compression_algorithm:
+            Compression backend used when ``compress`` is ``True``.
+            Supported options are ``"zlib"`` and ``"lzma"``.
+        compression_level:
+            Compression level passed to the underlying algorithm.
         """
 
         self.raw_data = list(data)
@@ -242,6 +282,11 @@ class BitTensorDataset(Dataset):
             else torch.device(device or "cpu")
         )
         self.compress = compress
+        self.compressor = DataCompressor(
+            level=compression_level,
+            compression_enabled=compress,
+            algorithm=compression_algorithm,
+        )
         self.vocab: dict[tuple[int, ...], int] | None = vocab
         self.start_id = start_id
 
@@ -251,8 +296,8 @@ class BitTensorDataset(Dataset):
                 in_bytes = object_to_bytes(inp)
                 out_bytes = object_to_bytes(out)
                 if self.compress:
-                    in_bytes = zlib.compress(in_bytes)
-                    out_bytes = zlib.compress(out_bytes)
+                    in_bytes = self.compressor.compress(in_bytes)
+                    out_bytes = self.compressor.compress(out_bytes)
                 bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(in_bytes))
                 bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(out_bytes))
             self.vocab = build_vocab(
@@ -277,7 +322,7 @@ class BitTensorDataset(Dataset):
     def _obj_to_tensor(self, obj: Any) -> torch.Tensor:
         byte_data = object_to_bytes(obj)
         if self.compress:
-            byte_data = zlib.compress(byte_data)
+            byte_data = self.compressor.compress(byte_data)
         bit_tensor = bytes_to_tensors(byte_data).to(self.device)
         if self.vocab is None:
             return bit_tensor
@@ -304,7 +349,7 @@ class BitTensorDataset(Dataset):
             bit_tensor = unflatten_bitstream_to_tensor(decoded)
         byte_data = tensors_to_bytes(bit_tensor)
         if self.compress:
-            byte_data = zlib.decompress(byte_data)
+            byte_data = self.compressor.decompress(byte_data)
         return bytes_to_object(byte_data)
 
     def encode_object(self, obj: Any) -> torch.Tensor:
@@ -398,6 +443,37 @@ class BitTensorDataset(Dataset):
             inp_obj = input_processor(data) if input_processor else data
         if target_url is not None:
             data = _read_stream(target_url, chunk_size, max_bytes, timeout)
+            tgt_obj = target_processor(data) if target_processor else data
+
+        if inp_obj is None or tgt_obj is None:
+            raise ValueError("both input and target streams must be provided")
+
+        self.add_pair(inp_obj, tgt_obj)
+
+    async def add_stream_pair_async(
+        self,
+        input_url: str | None = None,
+        target_url: str | None = None,
+        *,
+        input_processor: Callable[[bytes], Any] | None = None,
+        target_processor: Callable[[bytes], Any] | None = None,
+        chunk_size: int = 8192,
+        max_bytes: int | None = None,
+        timeout: float | None = None,
+        session: aiohttp.ClientSession | None = None,
+    ) -> None:
+        """Asynchronously download streams and add a pair."""
+
+        if input_url is None and target_url is None:
+            raise ValueError("at least one of input_url or target_url must be provided")
+
+        inp_obj = None
+        tgt_obj = None
+        if input_url is not None:
+            data = await _read_stream_async(input_url, chunk_size, max_bytes, timeout, session)
+            inp_obj = input_processor(data) if input_processor else data
+        if target_url is not None:
+            data = await _read_stream_async(target_url, chunk_size, max_bytes, timeout, session)
             tgt_obj = target_processor(data) if target_processor else data
 
         if inp_obj is None or tgt_obj is None:
@@ -510,8 +586,8 @@ class BitTensorDataset(Dataset):
             in_bytes = object_to_bytes(inp)
             out_bytes = object_to_bytes(out)
             if self.compress:
-                in_bytes = zlib.compress(in_bytes)
-                out_bytes = zlib.compress(out_bytes)
+                in_bytes = self.compressor.compress(in_bytes)
+                out_bytes = self.compressor.compress(out_bytes)
             encoded.append(
                 [
                     base64.b64encode(in_bytes).decode("ascii"),
@@ -533,6 +609,8 @@ class BitTensorDataset(Dataset):
             "start_id": self.start_id,
             "device": str(self.device),
             "compress": self.compress,
+            "compression_algorithm": self.compressor.algorithm,
+            "compression_level": self.compressor.level,
             "checksums": self.checksums,
         }
 
@@ -546,8 +624,13 @@ class BitTensorDataset(Dataset):
             in_bytes = base64.b64decode(enc_in)
             out_bytes = base64.b64decode(enc_out)
             if obj.get("compress"):
-                in_bytes = zlib.decompress(in_bytes)
-                out_bytes = zlib.decompress(out_bytes)
+                compressor = DataCompressor(
+                    level=6,
+                    compression_enabled=True,
+                    algorithm=obj.get("compression_algorithm", "zlib"),
+                )
+                in_bytes = compressor.decompress(in_bytes)
+                out_bytes = compressor.decompress(out_bytes)
             inp = bytes_to_object(in_bytes)
             out = bytes_to_object(out_bytes)
             data.append((inp, out))
@@ -567,6 +650,8 @@ class BitTensorDataset(Dataset):
             start_id=obj.get("start_id", 256),
             device=device or obj.get("device"),
             compress=obj.get("compress", False),
+            compression_algorithm=obj.get("compression_algorithm", "zlib"),
+            compression_level=obj.get("compression_level", 6),
         )
         ds.checksums = obj.get("checksums", [])
         ds.verify_checksums()
@@ -610,8 +695,8 @@ class BitTensorDataset(Dataset):
                 in_bytes = object_to_bytes(a)
                 out_bytes = object_to_bytes(b)
                 if self.compress:
-                    in_bytes = zlib.compress(in_bytes)
-                    out_bytes = zlib.compress(out_bytes)
+                    in_bytes = self.compressor.compress(in_bytes)
+                    out_bytes = self.compressor.compress(out_bytes)
                 bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(in_bytes))
                 bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(out_bytes))
             self.vocab = build_vocab(
@@ -641,6 +726,31 @@ class BitTensorDataset(Dataset):
         self.raw_data = keep_raw
         self.data = keep_data
         self.checksums = self._build_index()
+
+    def prune_invalid(self, validator: Callable[[Any, Any], bool] | None = None) -> int:
+        """Remove pairs that fail decoding or ``validator`` check."""
+
+        removed = 0
+        validator = validator or (lambda *_: True)
+        keep_raw: list[tuple[Any, Any]] = []
+        keep_data: list[tuple[torch.Tensor, torch.Tensor]] = []
+        for raw, tensors in zip(self.raw_data, self.data):
+            try:
+                inp = self.tensor_to_object(tensors[0])
+                tgt = self.tensor_to_object(tensors[1])
+                valid = validator(inp, tgt)
+            except Exception:
+                valid = False
+            if valid:
+                keep_raw.append(raw)
+                keep_data.append(tensors)
+            else:
+                removed += 1
+        if removed:
+            self.raw_data = keep_raw
+            self.data = keep_data
+            self.checksums = self._build_index()
+        return removed
 
     def shuffle(self, *, generator: torch.Generator | None = None) -> None:
         """Randomly shuffle dataset order in-place."""

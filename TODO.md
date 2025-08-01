@@ -246,8 +246,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Add migration tests for old checkpoints without embedded tokenizers.
    - [x] Document tokenizer training workflow in more detail.
 
-117. [ ] Add asynchronous streaming loader in `BitTensorDataset` integrating with the remote offload service.
-118. [ ] Introduce pluggable compression modules so the pipeline can swap algorithms transparently.
+117. [x] Add asynchronous streaming loader in `BitTensorDataset` integrating with the remote offload service.
+118. [x] Introduce pluggable compression modules so the pipeline can swap algorithms transparently.
 119. [ ] Implement encryption of stored objects using Marble Core cryptographic utilities.
 120. [x] Provide deduplication to avoid storing identical bit streams across datasets.
 121. [x] Add index generation for constant-time retrieval integrated with the memory pool.
@@ -261,7 +261,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 129. [ ] Stream data directly from compressed archives without extraction.
 130. [ ] Add a bit-level augmentation pipeline for flipping and noisy bits.
 131. [x] Verify data integrity with checksums relying on marble core utilities.
-132. [ ] Automatically prune invalid or corrupted entries with callback hooks.
+132. [x] Automatically prune invalid or corrupted entries with callback hooks.
 133. [x] Cache encoded bitstreams on disk for fast reload between runs.
 134. [ ] Coordinate dataset memory usage with Marble Core's `MemoryPool`.
 135. [ ] Execute transformations asynchronously during idle GPU cycles.

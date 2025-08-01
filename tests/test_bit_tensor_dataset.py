@@ -272,3 +272,52 @@ def test_dataset_checksum_verification(tmp_path):
     torch.save(obj, path)
     with pytest.raises(ValueError):
         BitTensorDataset.load(path)
+
+
+def test_add_stream_pair_async(tmp_path):
+    import http.server
+    import socketserver
+    import threading
+    import asyncio
+
+    content = b"async-data"
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(content)))
+            self.end_headers()
+            self.wfile.write(content)
+
+    with socketserver.TCPServer(("localhost", 0), Handler) as httpd:
+        port = httpd.server_address[1]
+        thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+        thread.start()
+
+        url = f"http://localhost:{port}"
+        ds = BitTensorDataset([])
+
+        async def run():
+            await ds.add_stream_pair_async(url, url)
+
+        asyncio.run(run())
+
+        httpd.shutdown()
+        thread.join()
+
+    assert len(ds) == 1
+    inp, tgt = ds[0]
+    assert ds.tensor_to_object(inp) == content
+    assert ds.tensor_to_object(tgt) == content
+
+
+def test_prune_invalid():
+    ds = BitTensorDataset([("ok", "1"), ("bad", "2")])
+    ds.data[1] = (
+        torch.randint(0, 2, (5, 8), dtype=torch.uint8),
+        torch.randint(0, 2, (5, 8), dtype=torch.uint8),
+    )
+    removed = ds.prune_invalid()
+    assert removed == 1
+    assert len(ds) == 1
+    assert ds.tensor_to_object(ds[0][0]) == "ok"
