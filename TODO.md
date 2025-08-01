@@ -337,17 +337,17 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 201. [ ] Reorder steps dynamically based on dependency resolution.
 202. [x] Broadcast pipeline progress to the Global Workspace plugin.
 203. [x] Route step logs to the metrics visualiser for real-time viewing.
-204. [ ] Diff pipeline configurations to track changes between runs.
-205. [ ] Stream logs from each step into the GUI console.
+204. [x] Diff pipeline configurations to track changes between runs.
+205. [x] Stream logs from each step into the GUI console.
 206. [x] Pre-allocate resources via the memory pool before executing steps.
 207. [x] Freeze and defrost steps without removing them from the pipeline.
 208. [ ] Run pipeline sections in isolated processes for fault tolerance.
 209. [ ] Connect with remote wanderers for asynchronous exploration phases.
 210. [ ] Secure pipeline data flow by integrating dataset encryption routines.
 211. [ ] Route memory allocations through the memory pool for every operation.
-212. [ ] Provide a CLI wrapper so pipelines can run without writing Python code.
-213. [ ] Detect GPU availability and adapt pipeline behaviour automatically.
-214. [ ] Persist vocabulary mappings for reuse across multiple runs.
+212. [x] Provide a CLI wrapper so pipelines can run without writing Python code.
+213. [x] Detect GPU availability and adapt pipeline behaviour automatically.
+214. [x] Persist vocabulary mappings for reuse across multiple runs.
 215. [ ] Train directly from streamed dataset shards loaded via pipeline steps.
 216. [ ] Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements.
 217. [ ] Support streaming dataset shards during Neuronenblitz training to keep the model responsive.
@@ -355,7 +355,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 219. [ ] Use Global Workspace events to guide dynamic attention gating.
 220. [ ] Provide a reinforcement learning loop coordinated by pipeline scheduling.
 221. [ ] Offload wandering to remote hardware using Marble Core utilities.
-222. [ ] Optimise memory usage by sharing dataset caches with the memory pool.
+222. [x] Optimise memory usage by sharing dataset caches with the memory pool.
 223. [ ] Accumulate gradients asynchronously in line with pipeline scheduling.
 224. [ ] Inspect neural pathways interactively via the GUI.
 225. [ ] Register custom loss modules through the plugin system.
@@ -393,6 +393,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 257. [ ] Route decisions based on hierarchical dataset tags.
 258. [ ] Cache activations for repeated passes over dataset shards.
 259. [ ] Send training events to the metrics visualiser.
+    - [ ] Add log_event method to MetricsVisualizer.
+    - [ ] Emit epoch_start and epoch_end in Brain.train.
+    - [ ] Display events in GUI console.
 260. [ ] Ensure encrypted datasets remain private throughout training.
 261. [ ] Replicate networks across nodes using remote hardware plugins.
 262. [ ] Quickly evaluate models via pipeline checkpoint restore.
@@ -421,6 +424,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 285. [ ] Emit resource events to notify components of memory pressure.
 286. [ ] Replicate memory pools across machines for distributed workloads.
 287. [ ] Validate configurations globally before starting a pipeline.
+    - [ ] Implement validate_global_config function.
+    - [ ] Add schema checks for all sections.
 288. [ ] Provide thread-safe APIs for parallel dataset transformations.
 289. [ ] Deduplicate repeated bit tensors across different datasets.
 290. [ ] Aggregate event logs from all modules into a unified stream.
@@ -433,6 +438,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 297. [ ] Propagate context from pipeline events into core behaviours.
 298. [ ] Visualise core operations in a built-in GUI server.
 299. [ ] Cache downloaded datasets at the network level.
+    - [ ] Implement DatasetCacheServer to share downloads.
+    - [ ] Modify load_dataset to query remote cache.
 300. [ ] Orchestrate cross-validation using core utilities and dataset splits.
 301. [ ] Spawn remote workers to handle dataset transformations.
 302. [ ] Serialise pipeline definitions through a portable format.
@@ -440,6 +447,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 304. [ ] Protect remote memory operations with encryption utilities.
 305. [ ] Balance CPU and GPU resources for dataset handling.
 306. [ ] Provide a dedicated test harness for bit tensor functions.
+    - [ ] Create helper class for generating datasets.
+    - [ ] Integrate harness with existing tests.
 307. [ ] Enforce memory quotas per pipeline step.
 308. [ ] Precompile compute graphs to accelerate training.
 309. [ ] Offer multi-step undo for dataset modifications via core services.

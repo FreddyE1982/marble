@@ -8,9 +8,13 @@ import requests_cache
 import pandas as pd
 import threading
 from typing import Any, List
+from memory_pool import MemoryPool
 from marble import DataLoader
 
 _SESSION = requests_cache.CachedSession("http_cache", expire_after=86400)
+_DATASET_CACHE: dict[str, list[tuple[Any, Any]]] = {}
+_DATASET_POOL = MemoryPool(list, max_size=32)
+
 from tqdm import tqdm
 
 
@@ -121,6 +125,9 @@ def load_dataset(
     shard_index: int = 0,
     dataloader: "DataLoader | None" = None,
     return_deps: bool = False,
+    use_cache: bool = True,
+    cache_key: str | None = None,
+    memory_pool: MemoryPool | None = None,
     filter_expr: str | None = None,
 ) -> list[tuple[Any, Any]] | tuple[list[tuple[Any, Any]], list[dict]]:
     """Load a dataset from ``source``.
@@ -138,6 +145,11 @@ def load_dataset(
     each worker processes a different shard. When ``dataloader`` is provided,
     inputs and targets are encoded using :class:`~marble.DataLoader`.
     """
+    if cache_key is None:
+        cache_key = f"{source}:{limit}:{input_col}:{target_col}"
+    if use_cache and cache_key in _DATASET_CACHE:
+        return list(_DATASET_CACHE[cache_key])
+
     if source.startswith("http://") or source.startswith("https://"):
         name = os.path.basename(source)
         if not name:
@@ -231,6 +243,11 @@ def load_dataset(
     elif num_shards is None:
         pairs = distributed_shard(pairs)
 
+    if use_cache:
+        data_obj = memory_pool.allocate() if memory_pool else _DATASET_POOL.allocate()
+        data_obj.extend(pairs)
+        _DATASET_CACHE[cache_key] = data_obj
+
     if return_deps:
         return pairs, deps
     return pairs
@@ -246,3 +263,12 @@ def export_dataset(pairs: list[tuple[Any, Any]], path: str) -> None:
         df.to_json(path, orient="records", lines=ext == ".jsonl")
     else:
         raise ValueError("Unsupported export format")
+
+
+def clear_dataset_cache() -> None:
+    """Release cached datasets back to the memory pool."""
+    for data in list(_DATASET_CACHE.values()):
+        data.clear()
+        _DATASET_POOL.release(data)
+    _DATASET_CACHE.clear()
+

@@ -3,8 +3,10 @@ from __future__ import annotations
 import importlib
 import inspect
 import json
+import difflib
 import time
-from typing import Any
+from typing import Any, Callable
+import torch
 
 import global_workspace
 from marble_core import benchmark_message_passing
@@ -59,11 +61,14 @@ class Pipeline:
         benchmark_iterations: int | None = None,
         preallocate_neurons: int = 0,
         preallocate_synapses: int = 0,
+        log_callback: Callable[[str], None] | None = None,
     ) -> list[Any]:
         results: list[Any] = []
         self._summaries = []
         self._benchmarks = []
         core = None
+        if log_callback is not None:
+            log_callback(f"GPU available: {torch.cuda.is_available()}")
         if marble is not None and hasattr(marble, "get_core"):
             core = marble.get_core()
             if preallocate_neurons:
@@ -81,6 +86,8 @@ class Pipeline:
             result = self._execute_function(module_name, func_name, marble, params)
             runtime = time.perf_counter() - start
             results.append(result)
+            if log_callback is not None:
+                log_callback(f"Step {idx}: {func_name} finished in {runtime:.3f}s")
             if metrics_visualizer is not None:
                 metrics_visualizer.update({"pipeline_step": idx, "step_runtime": runtime})
             if global_workspace.workspace is not None:
@@ -113,7 +120,10 @@ class Pipeline:
             raise ValueError(f"Unknown function: {func_name}")
         func = getattr(module, func_name)
         sig = inspect.signature(func)
+        use_gpu = torch.cuda.is_available()
         kwargs = {}
+        if "device" in sig.parameters and "device" not in params:
+            kwargs["device"] = "cuda" if use_gpu else "cpu"
         for name, p in sig.parameters.items():
             if name == "marble" and marble is not None:
                 kwargs[name] = marble
@@ -142,3 +152,10 @@ class Pipeline:
     def benchmarks(self) -> list[dict]:
         """Return benchmark results collected during :meth:`execute`."""
         return list(self._benchmarks)
+
+    def diff_config(self, other_steps: list[dict]) -> str:
+        """Return unified diff between ``other_steps`` and ``self.steps``."""
+        a = json.dumps(other_steps, indent=2, sort_keys=True).splitlines(keepends=True)
+        b = json.dumps(self.steps, indent=2, sort_keys=True).splitlines(keepends=True)
+        return "".join(difflib.unified_diff(a, b, fromfile="before", tofile="after"))
+

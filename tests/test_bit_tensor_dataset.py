@@ -404,3 +404,13 @@ def test_async_save(tmp_path):
     loaded = BitTensorDataset.load(path)
     assert list(loaded.iter_decoded()) == [("x", "y")]
 
+
+
+def test_vocab_persistence(tmp_path):
+    data = [("a", "b"), ("c", "d")]
+    ds = BitTensorDataset(data, use_vocab=True)
+    path = tmp_path / "vocab.json"
+    ds.save_vocab(path)
+    loaded = BitTensorDataset.load_vocab(path)
+    assert ds.get_vocab() == loaded
+

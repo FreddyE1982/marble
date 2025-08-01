@@ -740,6 +740,20 @@ class BitTensorDataset(Dataset):
             self.pair_pool.release(pair)
         self.data.clear()
 
+
+    def save_vocab(self, path: str) -> None:
+        if self.vocab is None:
+            raise ValueError("No vocabulary available")
+        data = {" ".join(map(str, k)): v for k, v in self.vocab.items()}
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+
+    @classmethod
+    def load_vocab(cls, path: str) -> dict[tuple[int, ...], int]:
+        with open(path, "r", encoding="utf-8") as f:
+            raw = json.load(f)
+        return {tuple(int(x) for x in k.split()): int(v) for k, v in raw.items()}
+
     def save(self, path: str) -> None:
         """Persist dataset tensors and metadata to ``path``."""
         payload = {

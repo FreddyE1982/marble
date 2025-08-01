@@ -171,6 +171,7 @@ class MetricsVisualizer:
             "learning_efficiency": [],
             "memory_efficiency": [],
         }
+        self.events: list[tuple[str, dict]] = []
         self.setup_plot()
 
     def setup_plot(self):
@@ -186,6 +187,11 @@ class MetricsVisualizer:
                 self.metrics[key].append(value)
         clear_output(wait=True)
         self.plot_metrics()
+
+    def log_event(self, name: str, data: dict | None = None) -> None:
+        """Record a training event with optional details."""
+        self.events.append((name, data or {}))
+
 
     def plot_metrics(self):
         self.ax.clear()
