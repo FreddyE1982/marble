@@ -319,3 +319,14 @@ def test_highlevel_pipeline_execute_range(tmp_path):
     marble, results = hp.execute_range(0, 1)
     assert isinstance(marble, marble_interface.MARBLE)
     assert len(results) == 2
+
+
+def test_highlevel_pipeline_config_dot_access(tmp_path):
+    hp = HighLevelPipeline()
+    hp.config.core.width = 2
+    hp.config.core.height = 2
+    hp.config.core.max_iter = 1
+    hp.config.brain.save_dir = str(tmp_path)
+    hp.new_marble_system()
+    marble, _ = hp.execute()
+    assert marble.get_core().params["width"] == 2

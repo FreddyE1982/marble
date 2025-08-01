@@ -34,9 +34,12 @@ warnings.filterwarnings(
 )
 
 
-def new_marble_system(config_path: str | None = None) -> MARBLE:
-    """Instantiate a :class:`MARBLE` system from an optional YAML config."""
-    return create_marble_from_config(config_path)
+def new_marble_system(
+    config_path: str | None = None, *, config: dict | None = None
+) -> MARBLE:
+    """Instantiate a :class:`MARBLE` system from a YAML file or dictionary."""
+
+    return create_marble_from_config(config_path, overrides=config)
 
 
 def configure_marble_system(marble: MARBLE, config: str | dict) -> None:
@@ -536,6 +539,7 @@ def attach_marble_layer(
 
     if isinstance(model_or_path, str):
         from torch_model_io import load_model_auto
+
         model = load_model_auto(model_or_path)
     else:
         model = model_or_path
@@ -583,4 +587,5 @@ def attach_marble_layer(
 def save_attached_model(model: torch.nn.Module, path: str) -> None:
     """Persist ``model`` with attached MARBLE to ``path``."""
     from torch_model_io import save_entire_model
+
     save_entire_model(model, path)

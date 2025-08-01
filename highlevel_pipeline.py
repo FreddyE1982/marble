@@ -7,6 +7,7 @@ import copy
 from typing import Any, Callable, Iterable
 
 from dotdict import DotDict
+from config_loader import load_config
 
 from torch.utils.data import Dataset
 
@@ -91,6 +92,7 @@ class HighLevelPipeline:
         use_bit_dataset: bool = True,
         bit_dataset_params: dict | None = None,
         data_args: Iterable[str] | None = None,
+        config_path: str | None = None,
     ) -> None:
         self.steps: list[dict] = []
         for step in steps or []:
@@ -100,6 +102,7 @@ class HighLevelPipeline:
         self.use_bit_dataset = use_bit_dataset
         self.bit_dataset_params = DotDict(self.DEFAULT_BIT_PARAMS.copy())
         self.data_args = set(data_args or self.DEFAULT_DATA_ARGS)
+        self.config = DotDict(load_config(config_path))
         if bit_dataset_params:
             self.bit_dataset_params.update(bit_dataset_params)
 
@@ -115,6 +118,8 @@ class HighLevelPipeline:
         if hasattr(marble_interface, name):
 
             def wrapper(**params: Any) -> "HighLevelPipeline":
+                if name in {"new_marble_system", "configure_marble_system"}:
+                    params.setdefault("config", self.config.to_dict())
                 self.add_step(name, module="marble_interface", params=params)
                 return self
 
@@ -364,13 +369,17 @@ class HighLevelPipeline:
         marble, results = self._execute_steps([self.steps[index]], marble)
         return marble, results[0]
 
-    def execute_until(self, index: int, marble: Any | None = None) -> tuple[Any | None, list[Any]]:
+    def execute_until(
+        self, index: int, marble: Any | None = None
+    ) -> tuple[Any | None, list[Any]]:
         """Execute pipeline steps up to ``index`` (inclusive)."""
         if index < 0 or index >= len(self.steps):
             raise IndexError("index out of range")
         return self._execute_steps(self.steps[: index + 1], marble)
 
-    def execute_from(self, index: int, marble: Any | None = None) -> tuple[Any | None, list[Any]]:
+    def execute_from(
+        self, index: int, marble: Any | None = None
+    ) -> tuple[Any | None, list[Any]]:
         """Execute pipeline steps starting at ``index`` until the end."""
         if index < 0 or index >= len(self.steps):
             raise IndexError("index out of range")
@@ -422,4 +431,5 @@ class HighLevelPipeline:
             "num_steps": len(self.steps),
             "use_bit_dataset": self.use_bit_dataset,
             "bit_dataset_params": self.bit_dataset_params.to_dict(),
+            "config": self.config.to_dict(),
         }
