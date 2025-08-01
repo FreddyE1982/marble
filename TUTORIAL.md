@@ -2050,3 +2050,30 @@ reconstructed with the correct Python type during decoding.
    pipe.train(data, epochs=1)
    ```
 
+## Project 36 – Theory of Mind Predictions
+
+**Goal:** Train the theory of mind plugin to model agents.
+
+1. **Enable the plugin** by setting `theory_of_mind.enabled: true` in `config.yaml`.
+2. **Train** on small interaction traces:
+   ```python
+   from theory_of_mind import activate
+   from config_loader import load_config
+   cfg = load_config()
+   tom = activate(hidden_size=8, num_layers=1, prediction_horizon=1)
+   tom.train([(0, 1), (1, 0)], epochs=5)
+   ```
+
+## Project 37 – Predictive Coding Integration
+
+**Goal:** Use predictive coding inside DiffusionCore.
+
+1. **Activate predictive coding** by editing `config.yaml` under `predictive_coding`.
+2. **Add the module** when constructing DiffusionCore:
+   ```python
+   from diffusion_core import DiffusionCore
+   from predictive_coding import activate as pc_activate
+   core = DiffusionCore(rep_size=4, predictive_coding_params={"num_layers": 2})
+   core.predictive_coding = pc_activate(num_layers=2, latent_dim=4, learning_rate=0.001)
+   ```
+

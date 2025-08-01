@@ -282,6 +282,12 @@ The interface now includes a **Hybrid Memory** tab as well. This lets you
 initialize a vector store and symbolic memory, store new values, query for the
 closest matches and prune old entries directly from the playground.
 
+Additional plugins such as **Theory of Mind** and **Predictive Coding** can be
+activated through the YAML configuration. These modules allow MARBLE to model
+other agents' behaviour and build hierarchical predictions over time. Enable
+them by adding `theory_of_mind` or `predictive_coding` sections to
+`config.yaml` and calling the respective `activate` functions in your scripts.
+
 ## Possible MARBLE Backcronyms
 
 Below is a list of ideas explored when naming the project:

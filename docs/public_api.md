@@ -14,5 +14,7 @@ This document lists the main classes and functions intended for external use.
 - `global_workspace.GlobalWorkspace.subscribe`
 - `attention_codelets.register_codelet`
 - `attention_codelets.run_cycle`
+- `theory_of_mind.activate`
+- `predictive_coding.activate`
 
 These APIs are kept stable across minor versions. Internal helpers not listed here may change without notice.

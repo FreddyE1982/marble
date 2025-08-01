@@ -28,3 +28,4 @@ MARBLE uses modern type hint syntax. Run `scripts/convert_to_py38.py` on the sou
 ## Plugin Troubleshooting
 * **Global workspace messages not appearing** – Ensure `global_workspace.enabled` is `true` in your configuration and that the plugin is activated before other plugins.
 * **Attention codelets have no effect** – Verify that `attention_codelets.enabled` is `true` and that at least one codelet has been registered. Call `attention_codelets.run_cycle()` during training to broadcast proposals.
+* **Remote hardware tier unavailable** – Ensure `remote_hardware.tier_plugin` points to a valid module and that the remote service is reachable from the network.

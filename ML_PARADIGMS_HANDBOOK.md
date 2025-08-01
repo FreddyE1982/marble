@@ -109,6 +109,16 @@ stored embeddings against the current dialogue context. Retrieved records prime
 the response and new information is written back after answering, allowing
 persistent recall across many turns.
 
+### Theory of Mind
+MARBLE can model the beliefs of other agents using a lightweight recurrent
+network. It predicts future actions and publishes them through the Global
+Workspace so other modules can react.
+
+### Predictive Coding
+Within components like `DiffusionCore` a hierarchical predictive coder learns to
+reconstruct activations across multiple layers. Prediction errors are used as
+additional learning signals.
+
 ### Unified Multi-Paradigm Learning
 All paradigms share the same core and a gating network decides which learning
 rule to emphasise for each batch. The decision depends on memory usage and
@@ -212,6 +222,16 @@ Whenever two active neurons exhibit low cosine similarity, the Core spawns a new
 neuron whose representation is \(\tanh(r_i \odot r_j)\). Synapses connect it to
 both parents so future activity can quickly activate the abstract blend.
 
+### Theory of Mind
+A recurrent network predicts actions of other agents and shares these forecasts
+through the Global Workspace. Reinforcement learners adjust their policies based
+on these predictions.
+
+### Predictive Coding
+Hierarchical predictive coding layers reconstruct activations from deeper
+modules. Their error signals augment standard gradients, improving stability in
+diffusion-based learners.
+
 ### Unified Multi-Paradigm Learning
 Context features such as recent validation loss and tier usage feed a small
 gating network. Its softmax output scales
@@ -311,6 +331,16 @@ During inference a cross-attention network ranks stored embeddings against the
 current context. The best matches retrieve their symbolic entries which are fed
 back into the model. After generating a reply the new information is embedded and
 written to disk for future recall.
+
+### Theory of Mind
+The optional plugin trains a recurrent network that predicts other agents' next
+actions. Predictions are published through the Global Workspace so Reinforcement
+Learning modules can plan accordingly.
+
+### Predictive Coding
+`DiffusionCore` can be configured with a stack of predictive coding layers. They
+attempt to reconstruct activations from deeper layers and propagate prediction
+errors as additional gradients.
 
 ### Unified Multi-Paradigm Learning
 All MARBLE paradigms can now operate under a single meta-controller. A gating
