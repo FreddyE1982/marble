@@ -7,7 +7,7 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from dataset_loader import load_dataset
+from dataset_loader import load_dataset, prefetch_dataset
 from marble import DataLoader
 
 
@@ -116,6 +116,21 @@ def test_offline_mode(tmp_path):
     assert pairs == [(9, 10)]
     with pytest.raises(FileNotFoundError):
         load_dataset(url, cache_dir=tmp_path / "missing", offline=True)
+
+
+def test_prefetch_dataset(tmp_path):
+    csv_path = tmp_path / "prefetch.csv"
+    csv_path.write_text("input,target\n1,2\n")
+    httpd, thread = _serve_directory(tmp_path, 9060)
+    try:
+        url = f"http://localhost:9060/{csv_path.name}"
+        t = prefetch_dataset(url, cache_dir=tmp_path / "cache")
+        t.join()
+        pairs = load_dataset(url, cache_dir=tmp_path / "cache", offline=True)
+        assert pairs == [(1, 2)]
+    finally:
+        httpd.shutdown()
+        thread.join()
 
 
 def test_load_dataset_with_dataloader(tmp_path):

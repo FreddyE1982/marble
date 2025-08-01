@@ -253,12 +253,14 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 121. [x] Add index generation for constant-time retrieval integrated with the memory pool.
 122. [x] Develop shared vocabulary management so multiple datasets keep a unified encoding.
 123. [x] Integrate GPU-accelerated encoding and decoding using core operations.
-124. [ ] Enable background prefetching and caching to support asynchronous pipelines.
+124. [x] Enable background prefetching and caching to support asynchronous pipelines.
+    - [x] Add `prefetch_dataset` helper running downloads in a background thread.
+    - [ ] Integrate the prefetch queue with pipeline execution so steps can await availability.
 125. [x] Implement dataset merging with conflict resolution logic.
 126. [x] Support deterministic splitting into train, validation and test sets via hashing.
 127. [ ] Offer dataset versioning with reversible diffs to update existing sets.
 128. [ ] Provide an interactive dataset browser in the Streamlit GUI for manual review.
-129. [ ] Stream data directly from compressed archives without extraction.
+129. [x] Stream data directly from compressed archives without extraction.
 130. [ ] Add a bit-level augmentation pipeline for flipping and noisy bits.
 131. [x] Verify data integrity with checksums relying on marble core utilities.
 132. [x] Automatically prune invalid or corrupted entries with callback hooks.
