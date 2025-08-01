@@ -310,6 +310,21 @@ Remote offloading demonstrates **RemoteBrainServer**, **RemoteBrainClient** and 
 This project highlights how MARBLE can integrate with external services through
 a minimal web API.
 
+## Project 3c – Config Synchronisation (Medium)
+
+**Goal:** Keep configuration files consistent across multiple machines.
+
+1. **Start the watcher** on the main node:
+   ```python
+   from config_sync_service import ConfigSyncService
+   svc = ConfigSyncService('config.yaml', ['/mnt/nodeA/cfg.yaml', '/mnt/nodeB/cfg.yaml'])
+   svc.start()
+   ```
+2. **Edit `config.yaml`** as usual. Updates propagate automatically to each path
+   listed when the file changes.
+3. **Stop the service** with `svc.stop()` once synchronisation is no longer required.
+
+
 ## Project 4 – Autograd and PyTorch Challenge (Advanced)
 
 **Goal:** Combine MARBLE with a PyTorch model and compare results.
