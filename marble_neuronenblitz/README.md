@@ -8,3 +8,5 @@ This package contains the implementation of the adaptive learning system used by
 - `__init__.py` – exports commonly used functions and the core class.
 
 These modules can be imported individually, allowing advanced users to extend or replace specific functionality.
+
+Additional plugin modules implement context-aware attention, theory-of-mind reasoning and predictive coding. Activate them with the respective `activate` functions to augment the core algorithms.

@@ -351,6 +351,7 @@ Each entry is listed under its section heading.
 - log_dir
 - csv_log_path
 - json_log_path
+- anomaly_std_threshold
 ## metrics_dashboard
 - enabled
 - host
