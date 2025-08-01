@@ -265,14 +265,14 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 131. [x] Verify data integrity with checksums relying on marble core utilities.
 132. [x] Automatically prune invalid or corrupted entries with callback hooks.
 133. [x] Cache encoded bitstreams on disk for fast reload between runs.
-134. [ ] Coordinate dataset memory usage with Marble Core's `MemoryPool`.
-    - 134a. [ ] Allocate dataset pair objects from a shared MemoryPool.
-    - 134b. [ ] Implement helper to release datasets back into the pool.
+134. [x] Coordinate dataset memory usage with Marble Core's `MemoryPool`.
+    - 134a. [x] Allocate dataset pair objects from a shared MemoryPool.
+    - 134b. [x] Implement helper to release datasets back into the pool.
 135. [x] Execute transformations asynchronously during idle GPU cycles.
-136. [ ] Shard datasets for distributed training using core distributed helpers.
-137. [ ] Allow in-place patching of datasets while training is running.
-138. [ ] Manage encryption keys through pipeline configuration files.
-139. [ ] Adapt vocabulary dynamically when new words appear during training.
+136. [x] Shard datasets for distributed training using core distributed helpers.
+137. [x] Allow in-place patching of datasets while training is running.
+138. [x] Manage encryption keys through pipeline configuration files.
+139. [x] Adapt vocabulary dynamically when new words appear during training.
 140. [x] Audit data integrity through checksums and object hashes.
 141. [x] Provide a plugin system for custom object encoders and decoders.
 142. [x] Support memory-mapped files so huge datasets fit into RAM.
