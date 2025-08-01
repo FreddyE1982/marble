@@ -17,6 +17,10 @@ dataset:
   offline: When ``true`` no network access is attempted. Remote datasets must
     already exist in ``cache_dir`` or a ``FileNotFoundError`` is raised. Use
     this to run experiments on machines without internet connectivity.
+  encryption_key: Optional string used to encrypt serialized dataset objects.
+    When provided all objects are encrypted before being written to disk and
+    automatically decrypted when loaded. This should be the same key on every
+    machine processing the dataset.
   hf_token: Path to a file containing your Hugging Face API token. When the
     file exists Marble automatically logs in before downloading datasets or
     models. The default location is ``~/.cache/marble/hf_token``.

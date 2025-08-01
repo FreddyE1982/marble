@@ -400,6 +400,7 @@ Each entry is listed under its section heading.
 - num_shards
 - shard_index
 - offline
+- encryption_key
 
 ## distillation
 - enabled

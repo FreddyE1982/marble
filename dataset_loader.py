@@ -3,6 +3,7 @@ import hashlib
 import zipfile
 import io
 import requests
+import torch.distributed as dist
 import requests_cache
 import pandas as pd
 import threading
@@ -11,6 +12,15 @@ from marble import DataLoader
 
 _SESSION = requests_cache.CachedSession("http_cache", expire_after=86400)
 from tqdm import tqdm
+
+
+def distributed_shard(pairs: list[tuple[Any, Any]]) -> list[tuple[Any, Any]]:
+    """Return subset of ``pairs`` for the current distributed rank."""
+    if dist.is_available() and dist.is_initialized():
+        world_size = dist.get_world_size()
+        rank = dist.get_rank()
+        return pairs[rank::world_size]
+    return pairs
 
 
 def _download_file(url: str, path: str) -> None:
@@ -178,5 +188,7 @@ def load_dataset(
         if shard_index < 0 or shard_index >= num_shards:
             raise ValueError("shard_index must be within [0, num_shards)")
         pairs = pairs[shard_index::num_shards]
+    elif num_shards is None:
+        pairs = distributed_shard(pairs)
 
     return pairs

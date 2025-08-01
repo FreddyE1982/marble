@@ -8,6 +8,7 @@ import base64
 import hashlib
 from collections import Counter
 from typing import Any, Iterable, Callable
+from dataclasses import dataclass
 import mmap
 import requests
 import os
@@ -18,6 +19,14 @@ from torch.utils.data import Dataset
 from memory_pool import MemoryPool
 from crypto_utils import constant_time_compare, encrypt_bytes, decrypt_bytes
 from data_compressor import DataCompressor
+
+
+@dataclass(slots=True)
+class DatasetPair:
+    """Simple container for an input and target tensor."""
+
+    inp: torch.Tensor | None = None
+    tgt: torch.Tensor | None = None
 
 
 def augment_bit_tensor(
@@ -356,11 +365,13 @@ class BitTensorDataset(Dataset):
                 start_id=self.start_id,
             )
 
-        self.data: list[tuple[torch.Tensor, torch.Tensor]] = []
+        self.pair_pool = MemoryPool(DatasetPair)
+        self.data: list[DatasetPair] = []
         for inp, out in self.raw_data:
-            in_tensor = self._obj_to_tensor(inp)
-            out_tensor = self._obj_to_tensor(out)
-            self.data.append((in_tensor, out_tensor))
+            pair = self.pair_pool.allocate()
+            pair.inp = self._obj_to_tensor(inp)
+            pair.tgt = self._obj_to_tensor(out)
+            self.data.append(pair)
 
         self.index_pool = MemoryPool(dict)
         self.index: dict[str, int] = self.index_pool.allocate()
@@ -387,7 +398,8 @@ class BitTensorDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx: int):
-        return self.data[idx]
+        pair = self.data[idx]
+        return pair.inp, pair.tgt
 
     def tensor_to_object(self, tensor: torch.Tensor) -> Any:
         cpu_tensor = tensor.to("cpu")
@@ -422,25 +434,26 @@ class BitTensorDataset(Dataset):
     def _build_index(self) -> list[str]:
         self.index.clear()
         checks: list[str] = []
-        for idx, (a, b) in enumerate(self.data):
-            h = self._hash_pair(a, b)
+        for idx, pair in enumerate(self.data):
+            h = self._hash_pair(pair.inp, pair.tgt)
             self.index[h] = idx
             checks.append(h)
         return checks
 
     def hash_pair(self, idx: int) -> str:
-        a, b = self.data[idx]
-        return self._hash_pair(a, b)
+        pair = self.data[idx]
+        return self._hash_pair(pair.inp, pair.tgt)
 
     def get_by_hash(self, digest: str) -> tuple[torch.Tensor, torch.Tensor]:
-        return self.data[self.index[digest]]
+        pair = self.data[self.index[digest]]
+        return pair.inp, pair.tgt
 
     def deduplicate(self) -> None:
         unique: dict[str, int] = {}
         new_raw: list[tuple[Any, Any]] = []
-        new_data: list[tuple[torch.Tensor, torch.Tensor]] = []
+        new_data: list[DatasetPair] = []
         for pair_raw, pair_tensor in zip(self.raw_data, self.data):
-            h = self._hash_pair(pair_tensor[0], pair_tensor[1])
+            h = self._hash_pair(pair_tensor.inp, pair_tensor.tgt)
             if h not in unique:
                 unique[h] = len(new_data)
                 new_raw.append(pair_raw)
@@ -463,7 +476,10 @@ class BitTensorDataset(Dataset):
         self.raw_data.append((inp, target))
         in_tensor = self._obj_to_tensor(inp)
         out_tensor = self._obj_to_tensor(target)
-        self.data.append((in_tensor, out_tensor))
+        pair = self.pair_pool.allocate()
+        pair.inp = in_tensor
+        pair.tgt = out_tensor
+        self.data.append(pair)
         h = self._hash_pair(in_tensor, out_tensor)
         self.index[h] = len(self.data) - 1
         self.checksums.append(h)
@@ -472,6 +488,48 @@ class BitTensorDataset(Dataset):
         """Add multiple pairs to the dataset."""
         for inp, target in pairs:
             self.add_pair(inp, target)
+
+    def patch_pairs(self, patches: dict[int, tuple[Any, Any]]) -> None:
+        """Replace existing pairs at ``indices`` with new values."""
+        for idx, (inp, tgt) in patches.items():
+            pair = self.data[idx]
+            pair.inp = self._obj_to_tensor(inp)
+            pair.tgt = self._obj_to_tensor(tgt)
+            h = self._hash_pair(pair.inp, pair.tgt)
+            self.index[h] = idx
+            self.checksums[idx] = h
+        self.checksums = self._build_index()
+
+    def adapt_vocab(self, pairs: Iterable[tuple[Any, Any]]) -> None:
+        """Expand vocabulary with new patterns from ``pairs``."""
+        if not self.use_vocab or self.vocab is None:
+            return
+        bitstream: list[int] = []
+        for a, b in pairs:
+            in_bytes = object_to_bytes(a)
+            out_bytes = object_to_bytes(b)
+            if self.compress:
+                in_bytes = self.compressor.compress(in_bytes)
+                out_bytes = self.compressor.compress(out_bytes)
+            if self.encryption_key is not None:
+                in_bytes = encrypt_bytes(in_bytes, self.encryption_key)
+                out_bytes = encrypt_bytes(out_bytes, self.encryption_key)
+            bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(in_bytes))
+            bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(out_bytes))
+        new_vocab = build_vocab(
+            bitstream,
+            min_len=self.min_word_length,
+            max_len=self.max_word_length,
+            start_id=self.start_id,
+            min_occurrence=self.min_occurrence,
+        )
+        next_id = max(self.vocab.values(), default=self.start_id - 1) + 1
+        for pattern in new_vocab:
+            if pattern not in self.vocab:
+                if self.max_vocab_size is not None and len(self.vocab) >= self.max_vocab_size:
+                    break
+                self.vocab[pattern] = next_id
+                next_id += 1
 
     def append_pairs(
         self,
@@ -503,7 +561,12 @@ class BitTensorDataset(Dataset):
                 min_occurrence=self.min_occurrence,
                 start_id=self.start_id,
             )
-            self.data = [(self._obj_to_tensor(a), self._obj_to_tensor(b)) for a, b in self.raw_data]
+            self.data = []
+            for a, b in self.raw_data:
+                pair = self.pair_pool.allocate()
+                pair.inp = self._obj_to_tensor(a)
+                pair.tgt = self._obj_to_tensor(b)
+                self.data.append(pair)
             self.index_pool = MemoryPool(dict)
             self.index = self.index_pool.allocate()
             self.checksums = self._build_index()
@@ -519,13 +582,13 @@ class BitTensorDataset(Dataset):
     ) -> None:
         """Apply bit-level augmentation to all stored tensors."""
 
-        self.data = [
-            (
-                augment_bit_tensor(a, flip_probability=flip_probability, noise_probability=noise_probability),
-                augment_bit_tensor(b, flip_probability=flip_probability, noise_probability=noise_probability),
+        for pair in self.data:
+            pair.inp = augment_bit_tensor(
+                pair.inp, flip_probability=flip_probability, noise_probability=noise_probability
             )
-            for a, b in self.data
-        ]
+            pair.tgt = augment_bit_tensor(
+                pair.tgt, flip_probability=flip_probability, noise_probability=noise_probability
+            )
 
     def add_stream_pair(
         self,
@@ -597,12 +660,15 @@ class BitTensorDataset(Dataset):
     def to(self, device: str | torch.device) -> "BitTensorDataset":
         """Move all stored tensors to ``device`` and return ``self``."""
         self.device = torch.device(device)
-        self.data = [(a.to(self.device), b.to(self.device)) for a, b in self.data]
+        for pair in self.data:
+            pair.inp = pair.inp.to(self.device)
+            pair.tgt = pair.tgt.to(self.device)
         return self
 
     def __iter__(self):
         """Yield each ``(input, target)`` pair in sequence."""
-        return iter(self.data)
+        for pair in self.data:
+            yield pair.inp, pair.tgt
 
     def iter_decoded(self) -> Iterable[tuple[Any, Any]]:
         """Yield decoded ``(input, target)`` pairs one at a time.
@@ -614,8 +680,8 @@ class BitTensorDataset(Dataset):
         """
         if self.encrypted and self.encryption_key is None:
             raise ValueError("encryption_key required to decode dataset")
-        for inp, out in self.data:
-            yield self.tensor_to_object(inp), self.tensor_to_object(out)
+        for pair in self.data:
+            yield self.tensor_to_object(pair.inp), self.tensor_to_object(pair.tgt)
 
     def summary(self) -> dict[str, Any]:
         """Return basic statistics about the dataset.
@@ -626,8 +692,8 @@ class BitTensorDataset(Dataset):
         debugging by providing a quick overview of key attributes.
         """
 
-        total_elements = sum(a.numel() + b.numel() for a, b in self.data)
-        total_bytes = sum(a.element_size() * a.numel() + b.element_size() * b.numel() for a, b in self.data)
+        total_elements = sum(p.inp.numel() + p.tgt.numel() for p in self.data)
+        total_bytes = sum(p.inp.element_size() * p.inp.numel() + p.tgt.element_size() * p.tgt.numel() for p in self.data)
         avg_len = float(total_elements) / len(self.data) if self.data else 0.0
         avg_bytes = float(total_bytes) / len(self.data) if self.data else 0.0
         return {
@@ -642,10 +708,16 @@ class BitTensorDataset(Dataset):
             "avg_pair_bytes": avg_bytes,
         }
 
+    def release_memory(self) -> None:
+        """Return all allocated pair objects to the pool."""
+        for pair in self.data:
+            self.pair_pool.release(pair)
+        self.data.clear()
+
     def save(self, path: str) -> None:
         """Persist dataset tensors and metadata to ``path``."""
         payload = {
-            "data": [(a.cpu(), b.cpu()) for a, b in self.data],
+            "data": [(p.inp.cpu(), p.tgt.cpu()) for p in self.data],
             "vocab": self.vocab,
             "mixed": self.mixed,
             "max_vocab_size": self.max_vocab_size,
@@ -697,7 +769,13 @@ class BitTensorDataset(Dataset):
             compression_level=obj.get("compression_level", 6),
             encryption_key=encryption_key if obj.get("encrypted") else None,
         )
-        ds.data = [(a.to(ds.device), b.to(ds.device)) for a, b in obj["data"]]
+        ds.pair_pool = MemoryPool(DatasetPair)
+        ds.data = []
+        for a, b in obj["data"]:
+            pair = ds.pair_pool.allocate()
+            pair.inp = a.to(ds.device)
+            pair.tgt = b.to(ds.device)
+            ds.data.append(pair)
         ds.index_pool = MemoryPool(dict)
         ds.index = ds.index_pool.allocate()
         ds.checksums = obj.get("checksums", [])
@@ -857,18 +935,23 @@ class BitTensorDataset(Dataset):
             )
 
         self.raw_data = new_raw
-        self.data = [(self._obj_to_tensor(a), self._obj_to_tensor(b)) for a, b in new_raw]
+        self.data = []
+        for a, b in new_raw:
+            pair = self.pair_pool.allocate()
+            pair.inp = self._obj_to_tensor(a)
+            pair.tgt = self._obj_to_tensor(b)
+            self.data.append(pair)
         self.checksums = self._build_index()
 
     def filter_pairs(self, predicate: Callable[[Any, Any], bool]) -> None:
         """Remove pairs for which ``predicate`` returns ``False``."""
 
         keep_raw = []
-        keep_data = []
-        for (inp, out), (t_in, t_out) in zip(self.raw_data, self.data):
-            if predicate(inp, out):
-                keep_raw.append((inp, out))
-                keep_data.append((t_in, t_out))
+        keep_data: list[DatasetPair] = []
+        for raw, pair in zip(self.raw_data, self.data):
+            if predicate(raw[0], raw[1]):
+                keep_raw.append(raw)
+                keep_data.append(pair)
         self.raw_data = keep_raw
         self.data = keep_data
         self.checksums = self._build_index()
@@ -879,17 +962,17 @@ class BitTensorDataset(Dataset):
         removed = 0
         validator = validator or (lambda *_: True)
         keep_raw: list[tuple[Any, Any]] = []
-        keep_data: list[tuple[torch.Tensor, torch.Tensor]] = []
-        for raw, tensors in zip(self.raw_data, self.data):
+        keep_data: list[DatasetPair] = []
+        for raw, pair in zip(self.raw_data, self.data):
             try:
-                inp = self.tensor_to_object(tensors[0])
-                tgt = self.tensor_to_object(tensors[1])
+                inp = self.tensor_to_object(pair.inp)
+                tgt = self.tensor_to_object(pair.tgt)
                 valid = validator(inp, tgt)
             except Exception:
                 valid = False
             if valid:
                 keep_raw.append(raw)
-                keep_data.append(tensors)
+                keep_data.append(pair)
             else:
                 removed += 1
         if removed:

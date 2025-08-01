@@ -361,3 +361,26 @@ def test_append_pairs_rebuild_vocab():
     ds.append_pairs([("c", "d")], rebuild_vocab=True)
     assert ds.vocab_size() >= before_vocab
     assert len(ds) == 2
+
+
+def test_release_memory(tmp_path):
+    ds = BitTensorDataset([(1, 2), (3, 4)])
+    pool_size_before = len(ds.pair_pool)
+    ds.release_memory()
+    assert len(ds) == 0
+    assert len(ds.pair_pool) > pool_size_before
+
+
+def test_patch_pairs():
+    ds = BitTensorDataset([(0, 1), (2, 3)])
+    ds.patch_pairs({1: (4, 5)})
+    assert ds.tensor_to_object(ds[1][0]) == 4
+    assert ds.tensor_to_object(ds[1][1]) == 5
+
+
+def test_adapt_vocab():
+    ds = BitTensorDataset([("a", "b")], use_vocab=True)
+    before = ds.vocab_size()
+    ds.adapt_vocab([("c", "d")])
+    assert ds.vocab_size() >= before
+

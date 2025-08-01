@@ -48,6 +48,11 @@ wrap your ``(input, target)`` pairs in :class:`BitTensorDataset`. This converts
 each object into a tensor of bits and optionally compresses repeated patterns
 through a shared vocabulary.
 
+If you set ``dataset.encryption_key`` in ``config.yaml`` the loader encrypts all
+objects before writing them to disk and automatically decrypts them when
+loading. Use the same key on every machine that processes the dataset to handle
+them correctly.
+
 Set ``dataloader.tokenizer_type: bert_wordpiece`` or ``tokenizer_json`` in
 ``config.yaml`` to use the same tokenizer when constructing ``MARBLE``. Each
 project example assumes a ``dataloader`` prepared this way and passes it to

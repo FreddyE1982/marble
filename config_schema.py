@@ -42,6 +42,8 @@ CONFIG_SCHEMA = {
             "properties": {
                 "num_shards": {"type": "integer", "minimum": 1},
                 "shard_index": {"type": "integer", "minimum": 0},
+                "offline": {"type": "boolean"},
+                "encryption_key": {"type": ["string", "null"]},
             },
         },
         "logging": {
