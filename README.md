@@ -131,6 +131,17 @@ python cli.py --config config.yaml --sync-config /mnt/nodeA/config.yaml /mnt/nod
 
 Pass ``--sync-src`` to specify an alternative source file.
 
+For continuous synchronisation you can start ``ConfigSyncService`` which watches
+the source config for changes and propagates updates automatically:
+
+```python
+from config_sync_service import ConfigSyncService
+
+svc = ConfigSyncService('config.yaml', ['/mnt/nodeA/cfg.yaml', '/mnt/nodeB/cfg.yaml'])
+svc.start()
+```
+Use ``svc.stop()`` to terminate the watcher.
+
 ### Remote Inference API
 
 MARBLE can be exposed through a lightweight HTTP API. Launch the server with:
