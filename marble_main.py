@@ -285,6 +285,8 @@ class MARBLE:
         state = self.__dict__.copy()
         state["metrics_dashboard"] = None
         state["metrics_visualizer"] = None
+        state["benchmark_manager"] = None
+        state["hybrid_memory"] = None
         return state
 
     def __setstate__(self, state):
@@ -296,6 +298,16 @@ class MARBLE:
                 pass
         if self.metrics_visualizer is None:
             self.metrics_visualizer = MetricsVisualizer()
+        if self.hybrid_memory is not None:
+            try:
+                self.hybrid_memory.core = self.core
+                self.hybrid_memory.nb = self.neuronenblitz
+            except Exception:
+                pass
+        if self.benchmark_manager is None:
+            self.benchmark_manager = BenchmarkManager(self)
+        else:
+            self.benchmark_manager.marble = self
 
 
 def insert_into_torch_model(

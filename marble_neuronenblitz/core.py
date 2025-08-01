@@ -363,11 +363,15 @@ class Neuronenblitz:
     def __getstate__(self):
         state = self.__dict__.copy()
         state["lock"] = None
+        state["remote_client"] = None
+        state["torrent_client"] = None
         return state
 
     def __setstate__(self, state):
         self.__dict__.update(state)
         self.lock = threading.RLock()
+        self.remote_client = None
+        self.torrent_client = None
 
     def _compute_loss(self, target_value, output_value):
         """Return loss using either ``loss_module`` or ``loss_fn``."""
