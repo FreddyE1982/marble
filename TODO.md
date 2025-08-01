@@ -248,7 +248,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 
 117. [x] Add asynchronous streaming loader in `BitTensorDataset` integrating with the remote offload service.
 118. [x] Introduce pluggable compression modules so the pipeline can swap algorithms transparently.
-119. [ ] Implement encryption of stored objects using Marble Core cryptographic utilities.
+119. [x] Implement encryption of stored objects using Marble Core cryptographic utilities.
 120. [x] Provide deduplication to avoid storing identical bit streams across datasets.
 121. [x] Add index generation for constant-time retrieval integrated with the memory pool.
 122. [ ] Develop shared vocabulary management so multiple datasets keep a unified encoding.

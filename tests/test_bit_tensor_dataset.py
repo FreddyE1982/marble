@@ -169,9 +169,7 @@ def test_bit_tensor_dataset_split_shuffle_and_hash():
 def test_bit_tensor_dataset_collate_fn():
     data = [("a", "b" * 2), ("long", "c")]
     ds = BitTensorDataset(data, use_vocab=True)
-    loader = torch.utils.data.DataLoader(
-        ds, batch_size=2, collate_fn=BitTensorDataset.collate_fn
-    )
+    loader = torch.utils.data.DataLoader(ds, batch_size=2, collate_fn=BitTensorDataset.collate_fn)
     batch = next(iter(loader))
     inp, out = batch
     assert inp.ndim == 3 and out.ndim == 3
@@ -321,3 +319,22 @@ def test_prune_invalid():
     assert removed == 1
     assert len(ds) == 1
     assert ds.tensor_to_object(ds[0][0]) == "ok"
+
+
+def test_dataset_encryption_roundtrip(tmp_path):
+    key = "secret"
+    ds = BitTensorDataset([("a", 1)], encryption_key=key, compress=True)
+    path = tmp_path / "enc.pt"
+    ds.save(path)
+    loaded = BitTensorDataset.load(path, encryption_key=key)
+    assert loaded.tensor_to_object(loaded[0][0]) == "a"
+    assert loaded.encrypted
+
+
+def test_dataset_encryption_missing_key(tmp_path):
+    key = "secret"
+    ds = BitTensorDataset([("a", 1)], encryption_key=key)
+    path = tmp_path / "enc2.pt"
+    ds.save(path)
+    with pytest.raises(ValueError):
+        BitTensorDataset.load(path)
