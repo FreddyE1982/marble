@@ -195,3 +195,12 @@ def test_synapse_weight_decay_applied():
     core.run_message_passing(iterations=1)
     expected = initial * 0.9
     assert core.synapses[0].weight == pytest.approx(expected, rel=1e-6)
+
+
+def test_core_reset_q_table():
+    params = minimal_params()
+    core = Core(params)
+    core.q_table[(0, 0)] = 1.0
+    assert core.q_table
+    core.reset_q_table()
+    assert core.q_table == {}

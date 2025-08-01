@@ -374,3 +374,17 @@ class HighLevelPipeline:
         """Construct a pipeline from a JSON string."""
         steps = json.loads(json_str)
         return cls(steps=steps)
+
+    def clear_steps(self) -> None:
+        """Remove all steps from the pipeline."""
+
+        self.steps.clear()
+
+    def summary(self) -> dict[str, Any]:
+        """Return a dictionary summarising the pipeline configuration."""
+
+        return {
+            "num_steps": len(self.steps),
+            "use_bit_dataset": self.use_bit_dataset,
+            "bit_dataset_params": self.bit_dataset_params.copy(),
+        }

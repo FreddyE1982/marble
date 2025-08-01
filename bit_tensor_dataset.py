@@ -7,7 +7,7 @@ import zlib
 import json
 import base64
 from collections import Counter
-from typing import Any, Iterable
+from typing import Any, Iterable, Callable
 
 import torch
 from torch.utils.data import Dataset
@@ -469,3 +469,59 @@ class BitTensorDataset(Dataset):
         """Load a dataset from a JSON string produced by :meth:`to_json`."""
         obj = json.loads(json_str)
         return cls.from_dict(obj, device=device)
+
+    def map_pairs(
+        self,
+        transform: Callable[[Any, Any], tuple[Any, Any]],
+        *,
+        rebuild_vocab: bool = False,
+    ) -> None:
+        """Apply ``transform`` to every stored pair and optionally rebuild vocab.
+
+        The function ``transform`` is passed each decoded ``(input, target)``
+        pair and must return a new ``(input, target)`` pair. The dataset is
+        updated in-place. When ``rebuild_vocab`` is ``True`` and a vocabulary is
+        used, a new vocabulary is constructed from the transformed data before
+        encoding the tensors again. This ensures the encoding reflects the new
+        distribution of bit patterns.
+        """
+
+        new_raw = []
+        for inp, out in self.iter_decoded():
+            new_raw.append(transform(inp, out))
+
+        if rebuild_vocab and self.vocab is not None:
+            bitstream: list[int] = []
+            for a, b in new_raw:
+                in_bytes = object_to_bytes(a)
+                out_bytes = object_to_bytes(b)
+                if self.compress:
+                    in_bytes = zlib.compress(in_bytes)
+                    out_bytes = zlib.compress(out_bytes)
+                bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(in_bytes))
+                bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(out_bytes))
+            self.vocab = build_vocab(
+                bitstream,
+                min_len=self.min_word_length,
+                max_len=self.max_word_length,
+                max_size=self.max_vocab_size,
+                min_occurrence=self.min_occurrence,
+                start_id=self.start_id,
+            )
+
+        self.raw_data = new_raw
+        self.data = [
+            (self._obj_to_tensor(a), self._obj_to_tensor(b)) for a, b in new_raw
+        ]
+
+    def filter_pairs(self, predicate: Callable[[Any, Any], bool]) -> None:
+        """Remove pairs for which ``predicate`` returns ``False``."""
+
+        keep_raw = []
+        keep_data = []
+        for (inp, out), (t_in, t_out) in zip(self.raw_data, self.data):
+            if predicate(inp, out):
+                keep_raw.append((inp, out))
+                keep_data.append((t_in, t_out))
+        self.raw_data = keep_raw
+        self.data = keep_data
