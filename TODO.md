@@ -246,3 +246,203 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Add migration tests for old checkpoints without embedded tokenizers.
    - [x] Document tokenizer training workflow in more detail.
 
+117. [ ] Add asynchronous streaming loader in `BitTensorDataset` integrating with the remote offload service.
+118. [ ] Introduce pluggable compression modules so the pipeline can swap algorithms transparently.
+119. [ ] Implement encryption of stored objects using Marble Core cryptographic utilities.
+120. [ ] Provide deduplication to avoid storing identical bit streams across datasets.
+121. [ ] Add index generation for constant-time retrieval integrated with the memory pool.
+122. [ ] Develop shared vocabulary management so multiple datasets keep a unified encoding.
+123. [ ] Integrate GPU-accelerated encoding and decoding using core operations.
+124. [ ] Enable background prefetching and caching to support asynchronous pipelines.
+125. [ ] Implement dataset merging with conflict resolution logic.
+126. [ ] Support deterministic splitting into train, validation and test sets via hashing.
+127. [ ] Offer dataset versioning with reversible diffs to update existing sets.
+128. [ ] Provide an interactive dataset browser in the Streamlit GUI for manual review.
+129. [ ] Stream data directly from compressed archives without extraction.
+130. [ ] Add a bit-level augmentation pipeline for flipping and noisy bits.
+131. [ ] Verify data integrity with checksums relying on marble core utilities.
+132. [ ] Automatically prune invalid or corrupted entries with callback hooks.
+133. [ ] Cache encoded bitstreams on disk for fast reload between runs.
+134. [ ] Coordinate dataset memory usage with Marble Core's `MemoryPool`.
+135. [ ] Execute transformations asynchronously during idle GPU cycles.
+136. [ ] Shard datasets for distributed training using core distributed helpers.
+137. [ ] Allow in-place patching of datasets while training is running.
+138. [ ] Manage encryption keys through pipeline configuration files.
+139. [ ] Adapt vocabulary dynamically when new words appear during training.
+140. [ ] Audit data integrity through checksums and object hashes.
+141. [ ] Provide a plugin system for custom object encoders and decoders.
+142. [ ] Support memory-mapped files so huge datasets fit into RAM.
+143. [ ] Track modification history with the ability to revert changes.
+144. [ ] Offer undo and redo commands for interactive dataset editing.
+145. [ ] Fetch missing remote files automatically when constructing datasets.
+146. [ ] Enable sample-level transformations such as image rotations or text cleanup.
+147. [ ] Lazily decode objects so they are materialised only when accessed.
+148. [ ] Select compression algorithms through a pluggable interface.
+149. [ ] Write datasets asynchronously so saves never block the main loop.
+150. [ ] Track dependencies between dataset entries and their original sources.
+151. [ ] Map every object to a hashed identifier for cross-dataset linking.
+152. [ ] Cache downloads on the network layer to avoid repeated transfers.
+153. [ ] Visualise bit patterns interactively via the Streamlit GUI.
+154. [ ] Filter samples with user-defined expressions evaluated on load.
+155. [ ] Detect corrupted compression files and attempt automatic recovery.
+156. [ ] Export and import datasets from standard formats like JSON or CSV.
+157. [ ] Replicate datasets across nodes with progress notifications.
+158. [ ] Summarise datasets in pipeline descriptions for easier debugging.
+159. [ ] Notify the memory manager about upcoming dataset allocations.
+160. [ ] Add an API to append data incrementally with vocabulary updates.
+161. [ ] Register debugging hooks for inspecting individual samples in the pipeline.
+162. [ ] Provide approximate nearest neighbour search over bit tensors for retrieval.
+163. [ ] Attach hierarchical tags or labels alongside each stored pair.
+164. [ ] Ensure cross-platform serialisation for dataset portability.
+165. [ ] Allow custom serialisation formats beyond pickle.
+166. [ ] Emit lifecycle events so the metrics visualiser can show dataset operations.
+167. [ ] Enable asynchronous step execution in `HighLevelPipeline` to overlap data loading and training.
+168. [ ] Cache intermediate results so iterative experiments run faster.
+169. [ ] Support checkpointing and resuming pipelines with dataset version tracking.
+170. [ ] Provide interactive step visualisation in the Streamlit GUI using dataset introspection.
+171. [ ] Offer a plugin system so users can register custom pipeline steps easily.
+172. [ ] Manage dependencies between steps automatically to maintain correct order.
+173. [ ] Allow branching paths in a pipeline to explore alternative experiment flows.
+174. [ ] Send real-time progress events to the GUI during pipeline execution.
+175. [ ] Recover gracefully from remote failures with retry logic.
+176. [ ] Execute steps on multiple processes while sharing datasets through the core.
+177. [ ] Add pre and post hooks for each step enabling custom behaviour.
+178. [ ] Provide templates to quickly generate common workflows.
+179. [ ] Automatically build training loops for Neuronenblitz when dataset steps are present.
+180. [ ] Offer a specialised step that consumes the new streaming `BitTensorDataset`.
+181. [ ] Persist step results to disk for quick re-runs.
+182. [ ] Visualise pipelines as graphs using the marble graph builder.
+183. [ ] Limit GPU memory usage per step through concurrency controls.
+184. [ ] Debug steps interactively by inspecting their inputs and outputs.
+185. [ ] Export trained models automatically as a final pipeline step.
+186. [ ] Log pipeline events to the remote experiment tracker.
+187. [ ] Validate configuration of each step using marble core schemas.
+188. [ ] Group multiple operations into macro steps for convenience.
+189. [ ] Roll back to earlier step outputs when experiments go wrong.
+190. [ ] Integrate hyperparameter search that plugs directly into the pipeline engine.
+191. [ ] Schedule individual steps on remote hardware tiers seamlessly.
+192. [ ] Distribute dataset shards across parallel pipelines.
+193. [ ] Estimate resource needs ahead of execution to inform the memory manager.
+194. [ ] Save run profiles capturing the exact execution order.
+195. [ ] Edit pipeline definitions interactively through the GUI.
+196. [ ] Relay dataset events to pipeline notifications.
+197. [ ] Update Neuronenblitz models automatically when datasets change.
+198. [ ] Provide built-in cross-validation loops using deterministic dataset splits.
+199. [ ] Serve models through the web API directly from a pipeline step.
+200. [ ] Benchmark pipeline steps using the core micro-benchmark tool.
+201. [ ] Reorder steps dynamically based on dependency resolution.
+202. [ ] Broadcast pipeline progress to the Global Workspace plugin.
+203. [ ] Route step logs to the metrics visualiser for real-time viewing.
+204. [ ] Diff pipeline configurations to track changes between runs.
+205. [ ] Stream logs from each step into the GUI console.
+206. [ ] Pre-allocate resources via the memory pool before executing steps.
+207. [ ] Freeze and defrost steps without removing them from the pipeline.
+208. [ ] Run pipeline sections in isolated processes for fault tolerance.
+209. [ ] Connect with remote wanderers for asynchronous exploration phases.
+210. [ ] Secure pipeline data flow by integrating dataset encryption routines.
+211. [ ] Route memory allocations through the memory pool for every operation.
+212. [ ] Provide a CLI wrapper so pipelines can run without writing Python code.
+213. [ ] Detect GPU availability and adapt pipeline behaviour automatically.
+214. [ ] Persist vocabulary mappings for reuse across multiple runs.
+215. [ ] Train directly from streamed dataset shards loaded via pipeline steps.
+216. [ ] Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements.
+217. [ ] Support streaming dataset shards during Neuronenblitz training to keep the model responsive.
+218. [ ] Allow learning modules to be swapped in and out through a plugin interface.
+219. [ ] Use Global Workspace events to guide dynamic attention gating.
+220. [ ] Provide a reinforcement learning loop coordinated by pipeline scheduling.
+221. [ ] Offload wandering to remote hardware using Marble Core utilities.
+222. [ ] Optimise memory usage by sharing dataset caches with the memory pool.
+223. [ ] Accumulate gradients asynchronously in line with pipeline scheduling.
+224. [ ] Inspect neural pathways interactively via the GUI.
+225. [ ] Register custom loss modules through the plugin system.
+226. [ ] Transfer knowledge between models using dataset serialisation features.
+227. [ ] Refresh vocabulary encodings mid-training when datasets evolve.
+228. [ ] Evaluate models remotely using the pipeline inference plugin.
+229. [ ] Plan actions hierarchically using Global Workspace goals.
+230. [ ] Adjust curricula automatically based on dataset history.
+231. [ ] Update plasticity parameters from dataset augmentation events.
+232. [ ] Allocate weights from the GPU memory pool for efficient updates.
+233. [ ] Step through the pipeline debugger during training runs.
+234. [ ] Wander asynchronously while prefetching dataset shards.
+235. [ ] Include a self-supervised module that consumes augmented data.
+236. [ ] Share memory buffers across nodes with the remote memory pool.
+237. [ ] Load synapse types dynamically via pipeline plugins.
+238. [ ] Checkpoint models in a universal format understood by the pipeline.
+239. [ ] Inject gradient noise derived from dataset noise augmentation.
+240. [ ] Prune routes when deduplication removes redundant data.
+241. [ ] Explore dataset samples in the interactive browser during training.
+242. [ ] Warm-start models from partial pipeline outputs.
+243. [ ] Adapt learning rates using events from the memory manager.
+244. [ ] Decrypt encrypted data on the fly during training.
+245. [ ] Aggregate gradients remotely using distributed helpers.
+246. [ ] Retrieve activations using approximate nearest neighbour search.
+247. [ ] Gating mechanisms use dataset tags for context.
+248. [ ] Reinitialize parts of the network when datasets are patched.
+249. [ ] Evaluate intermediate models using generated validation sets.
+250. [ ] Add runtime extension for registering new neuron types.
+251. [ ] Communicate between models using Global Workspace broadcast.
+252. [ ] Enable dropout gating informed by dataset quality hooks.
+253. [ ] Derive reinforcement signals from pipeline event logs.
+254. [ ] Mix offline and online learning phases based on dataset modifications.
+255. [ ] Integrate with hyperparameter sweeps to evaluate multiple runs.
+256. [ ] Use the memory pool for gradient buffer management.
+257. [ ] Route decisions based on hierarchical dataset tags.
+258. [ ] Cache activations for repeated passes over dataset shards.
+259. [ ] Send training events to the metrics visualiser.
+260. [ ] Ensure encrypted datasets remain private throughout training.
+261. [ ] Replicate networks across nodes using remote hardware plugins.
+262. [ ] Quickly evaluate models via pipeline checkpoint restore.
+263. [ ] Roll back neuron states when dataset audits fail.
+264. [ ] Adapt gating when vocabulary updates occur.
+265. [ ] Manage experiments across runs using pipeline and dataset versions.
+266. [ ] Build a distributed memory pool so datasets are shared across nodes.
+267. [ ] Accelerate bit tensor operations on GPU for faster dataset processing.
+268. [ ] Provide a remote procedure interface to run pipeline steps asynchronously.
+269. [ ] Implement a system-wide event bus linking dataset, pipeline and Neuronenblitz modules.
+270. [ ] Offer encryption utilities supporting secure dataset storage.
+271. [ ] Handle memory-mapped tensors for large streaming datasets.
+272. [ ] Load configuration hierarchies merging dataset and pipeline settings.
+273. [ ] Add backpressure-aware message passing for streaming data.
+274. [ ] Create a cross-process checkpoint manager accessible from pipelines.
+275. [ ] Dynamically load neuron and synapse plugins at runtime.
+276. [ ] Debug message passing flows in real time through GUI tools.
+277. [ ] Provide a remote scheduler for distributed pipeline execution.
+278. [ ] Verify data integrity across modules with unified checksum tools.
+279. [ ] Serialise models and datasets through a cross-platform layer.
+280. [ ] Cache activation tensors that Neuronenblitz reuses during training.
+281. [ ] Securely store encryption keys via a dedicated security manager.
+282. [ ] Hot‑reload modules without stopping ongoing training.
+283. [ ] Manage GPU memory for dataset prefetching.
+284. [ ] Support asynchronous I/O for continuous dataset streaming.
+285. [ ] Emit resource events to notify components of memory pressure.
+286. [ ] Replicate memory pools across machines for distributed workloads.
+287. [ ] Validate configurations globally before starting a pipeline.
+288. [ ] Provide thread-safe APIs for parallel dataset transformations.
+289. [ ] Deduplicate repeated bit tensors across different datasets.
+290. [ ] Aggregate event logs from all modules into a unified stream.
+291. [ ] Update models with partial graph recompilation.
+292. [ ] Accelerate nearest neighbour search via specialised hardware plugins.
+293. [ ] Queue wander jobs reliably even if a process crashes.
+294. [ ] Synchronise checkpoints automatically across nodes.
+295. [ ] Schedule steps using a GPU-aware dispatcher.
+296. [ ] Prune unused neurons according to dataset prune events.
+297. [ ] Propagate context from pipeline events into core behaviours.
+298. [ ] Visualise core operations in a built-in GUI server.
+299. [ ] Cache downloaded datasets at the network level.
+300. [ ] Orchestrate cross-validation using core utilities and dataset splits.
+301. [ ] Spawn remote workers to handle dataset transformations.
+302. [ ] Serialise pipeline definitions through a portable format.
+303. [ ] Aggregate events and feed them to the metrics visualiser.
+304. [ ] Protect remote memory operations with encryption utilities.
+305. [ ] Balance CPU and GPU resources for dataset handling.
+306. [ ] Provide a dedicated test harness for bit tensor functions.
+307. [ ] Enforce memory quotas per pipeline step.
+308. [ ] Precompile compute graphs to accelerate training.
+309. [ ] Offer multi-step undo for dataset modifications via core services.
+310. [ ] Update remote datasets incrementally during long experiments.
+311. [ ] Use a plugin-based scheduler for asynchronous tasks.
+312. [ ] Standardise event formats so dataset and pipeline logs are compatible.
+313. [ ] Supply CLI tools to manage dataset versions across platforms.
+314. [ ] Integrate with the Global Workspace to monitor overall system state.
+315. [ ] Provide cross-device tensor synchronization to minimize latency during distributed training.
+316. [ ] Expose a low-level API to monitor event bus traffic for debugging.
