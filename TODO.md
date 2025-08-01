@@ -251,8 +251,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 119. [x] Implement encryption of stored objects using Marble Core cryptographic utilities.
 120. [x] Provide deduplication to avoid storing identical bit streams across datasets.
 121. [x] Add index generation for constant-time retrieval integrated with the memory pool.
-122. [ ] Develop shared vocabulary management so multiple datasets keep a unified encoding.
-123. [ ] Integrate GPU-accelerated encoding and decoding using core operations.
+122. [x] Develop shared vocabulary management so multiple datasets keep a unified encoding.
+123. [x] Integrate GPU-accelerated encoding and decoding using core operations.
 124. [ ] Enable background prefetching and caching to support asynchronous pipelines.
 125. [x] Implement dataset merging with conflict resolution logic.
 126. [x] Support deterministic splitting into train, validation and test sets via hashing.

@@ -40,16 +40,33 @@ def bytes_to_object(b: bytes) -> Any:
     return pickle.loads(b)
 
 
-def bytes_to_tensors(bytes_obj: bytes) -> torch.Tensor:
-    """Convert bytes to a ``(n, 8)`` uint8 tensor representing bits."""
-    return torch.tensor([[int(bit) for bit in f"{byte:08b}"] for byte in bytes_obj], dtype=torch.uint8)
+def bytes_to_tensors(bytes_obj: bytes, device: str | torch.device | None = None) -> torch.Tensor:
+    """Convert bytes to a ``(n, 8)`` uint8 tensor representing bits.
+
+    Parameters
+    ----------
+    bytes_obj:
+        Raw bytes to convert.
+    device:
+        Optional device the resulting tensor should reside on. When ``None`` the
+        tensor is allocated on CPU. Passing ``"cuda"`` or a CUDA device will
+        place the tensor on the GPU for accelerated processing.
+    """
+
+    arr = torch.tensor(list(bytes_obj), dtype=torch.uint8, device=device)
+    masks = (1 << torch.arange(7, -1, -1, dtype=torch.uint8, device=arr.device))
+    bits = arr.unsqueeze(1).bitwise_and(masks).ne(0).to(torch.uint8)
+    return bits
 
 
 def tensors_to_bytes(tensor: torch.Tensor) -> bytes:
     """Convert a ``(n, 8)`` bit tensor back to bytes."""
+
     assert tensor.ndim == 2 and tensor.shape[1] == 8, "Tensor must have shape (n, 8)"
-    byte_list = [int("".join(str(bit.item()) for bit in byte_bits), 2) for byte_bits in tensor]
-    return bytes(byte_list)
+    tensor = tensor.to(torch.uint8)
+    weights = 1 << torch.arange(7, -1, -1, dtype=torch.uint8, device=tensor.device)
+    byte_vals = torch.sum(tensor * weights, dim=1).to(torch.uint8)
+    return bytes(byte_vals.tolist())
 
 
 def flatten_tensor_to_bitstream(tensor: torch.Tensor) -> list[int]:
