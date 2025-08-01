@@ -6,7 +6,11 @@ import jsonschema
 import pytest
 import yaml
 
-from config_loader import create_marble_from_config, load_config
+from config_loader import (
+    create_marble_from_config,
+    load_config,
+    validate_global_config,
+)
 from marble_main import MARBLE
 from remote_offload import RemoteBrainClient
 from torrent_offload import BrainTorrentClient
@@ -225,6 +229,13 @@ def test_invalid_config_raises(tmp_path):
         yaml.safe_dump(cfg, f)
     with pytest.raises(jsonschema.ValidationError):
         load_config(str(cfg_path))
+
+
+def test_validate_global_config_missing_section(tmp_path):
+    cfg = load_config()
+    del cfg["core"]
+    with pytest.raises(ValueError):
+        validate_global_config(cfg)
 
 
 def test_partial_config_merges_defaults(tmp_path):

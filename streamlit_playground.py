@@ -2215,6 +2215,10 @@ def run_playground() -> None:
             fig = metrics_figure(marble)
             st.plotly_chart(fig, use_container_width=True)
             st.button("Refresh", key="metrics_refresh")
+            with st.expander("Event Log"):
+                events = marble.get_metrics_visualizer().events
+                for name, data in events[-100:]:
+                    st.write(f"{name}: {data}")
 
         with tab_stats:
             st.write("System resource usage in megabytes.")

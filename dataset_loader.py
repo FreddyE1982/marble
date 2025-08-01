@@ -129,6 +129,7 @@ def load_dataset(
     cache_key: str | None = None,
     memory_pool: MemoryPool | None = None,
     filter_expr: str | None = None,
+    cache_server_url: str | None = None,
 ) -> list[tuple[Any, Any]] | tuple[list[tuple[Any, Any]], list[dict]]:
     """Load a dataset from ``source``.
 
@@ -143,7 +144,9 @@ def load_dataset(
     greater than one, only every ``num_shards``-th sample starting at
     ``shard_index`` is returned. This is useful for distributed training where
     each worker processes a different shard. When ``dataloader`` is provided,
-    inputs and targets are encoded using :class:`~marble.DataLoader`.
+    inputs and targets are encoded using :class:`~marble.DataLoader`. When
+    ``cache_server_url`` is set and ``source`` is remote the loader will attempt
+    to fetch the file from the cache server before downloading it directly.
     """
     if cache_key is None:
         cache_key = f"{source}:{limit}:{input_col}:{target_col}"
@@ -161,7 +164,14 @@ def load_dataset(
                     f"{cached} not available in offline mode"
                 )
         elif force_refresh or not os.path.exists(cached):
-            _download_file(source, cached)
+            if cache_server_url:
+                try:
+                    url = f"{cache_server_url}/{name}"
+                    _download_file(url, cached)
+                except Exception:
+                    _download_file(source, cached)
+            else:
+                _download_file(source, cached)
         path = cached
     else:
         path = source

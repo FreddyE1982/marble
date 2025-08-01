@@ -62,6 +62,7 @@ class Pipeline:
         preallocate_neurons: int = 0,
         preallocate_synapses: int = 0,
         log_callback: Callable[[str], None] | None = None,
+        debug_hook: Callable[[int, Any], None] | None = None,
     ) -> list[Any]:
         results: list[Any] = []
         self._summaries = []
@@ -88,6 +89,8 @@ class Pipeline:
             results.append(result)
             if log_callback is not None:
                 log_callback(f"Step {idx}: {func_name} finished in {runtime:.3f}s")
+            if debug_hook is not None:
+                debug_hook(idx, result)
             if metrics_visualizer is not None:
                 metrics_visualizer.update({"pipeline_step": idx, "step_runtime": runtime})
             if global_workspace.workspace is not None:
