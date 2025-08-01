@@ -270,6 +270,18 @@ class MetricsVisualizer:
         if self.backup_scheduler:
             self.backup_scheduler.stop()
 
+    def __getstate__(self) -> dict:
+        state = self.__dict__.copy()
+        state["writer"] = None
+        state["_csv_writer"] = None
+        state["_json_writer"] = None
+        state["backup_scheduler"] = None
+        return state
+
+    def __setstate__(self, state: dict) -> None:
+        self.__dict__.update(state)
+
+
     def __del__(self) -> None:
         self.close()
 
