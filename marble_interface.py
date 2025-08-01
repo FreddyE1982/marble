@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pickle
 import dill
+import cloudpickle
 import warnings
 from typing import Any, Hashable, Iterable
 
@@ -98,7 +99,9 @@ def save_marble_system(marble: MARBLE, path: str) -> None:
         marble.dataloader.metrics_visualizer = None
     marble.metrics_visualizer = None
     with open(path, "wb") as f:
-        dill.dump(marble, f)
+        # Serialize using the MARBLE state dictionary to avoid issues with
+        # unpicklable objects like threads or open file handles.
+        cloudpickle.dump(marble.__getstate__(), f)
     marble.metrics_visualizer = viz
     if nb_viz is not None:
         marble.neuronenblitz.metrics_visualizer = nb_viz
@@ -120,7 +123,10 @@ def save_marble_system(marble: MARBLE, path: str) -> None:
 def load_marble_system(path: str) -> MARBLE:
     """Load a MARBLE system previously saved with :func:`save_marble_system`."""
     with open(path, "rb") as f:
-        return dill.load(f)
+        state = cloudpickle.load(f)
+    marble = MARBLE.__new__(MARBLE)
+    marble.__setstate__(state)
+    return marble
 
 
 def infer_marble_system(
