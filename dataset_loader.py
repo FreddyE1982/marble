@@ -1,7 +1,7 @@
 import os
 import hashlib
 import zipfile
-import io
+import pickle
 import requests
 import torch.distributed as dist
 import requests_cache
@@ -21,6 +21,19 @@ def distributed_shard(pairs: list[tuple[Any, Any]]) -> list[tuple[Any, Any]]:
         rank = dist.get_rank()
         return pairs[rank::world_size]
     return pairs
+
+
+def _hash_value(val: Any, dl: DataLoader | None) -> str:
+    """Return SHA256 hash for ``val`` using ``dl`` if provided."""
+    if dl is not None:
+        tensor = dl.encode(val)
+        try:
+            data = tensor.tobytes()
+        except Exception:
+            data = pickle.dumps(tensor)
+    else:
+        data = pickle.dumps(val)
+    return hashlib.sha256(data).hexdigest()
 
 
 def _download_file(url: str, path: str) -> None:
@@ -107,7 +120,9 @@ def load_dataset(
     num_shards: int | None = None,
     shard_index: int = 0,
     dataloader: "DataLoader | None" = None,
-) -> list[tuple[Any, Any]]:
+    return_deps: bool = False,
+    filter_expr: str | None = None,
+) -> list[tuple[Any, Any]] | tuple[list[tuple[Any, Any]], list[dict]]:
     """Load a dataset from ``source``.
 
     The ``source`` can be a local path, remote URL, or a ZIP archive containing
@@ -160,9 +175,12 @@ def load_dataset(
     else:
         raise ValueError("Unsupported dataset format")
     pairs: list[tuple[Any, Any]] = []
+    deps: list[dict] = []
     for _, row in df.iterrows():
         inp = row[input_col]
         tgt = row[target_col]
+        inp_src = inp
+        tgt_src = tgt
         for val_name, val in [("input", inp), ("target", tgt)]:
             if isinstance(val, str) and val.startswith(("http://", "https://")):
                 name = os.path.basename(val)
@@ -175,14 +193,28 @@ def load_dataset(
                     data_bytes = f.read()
                 if val_name == "input":
                     inp = data_bytes
+                    inp_src = val
                 else:
                     tgt = data_bytes
+                    tgt_src = val
         if dataloader is not None:
             inp = dataloader.encode(inp)
             tgt = dataloader.encode(tgt)
-        pairs.append((inp, tgt))
-        if limit is not None and len(pairs) >= limit:
-            break
+        if filter_expr is None or eval(
+            filter_expr,
+            {"__builtins__": {}},
+            {"input": inp if dataloader is None else dataloader.decode(inp), "target": tgt if dataloader is None else dataloader.decode(tgt)},
+        ):
+            pairs.append((inp, tgt))
+            deps.append(
+                {
+                    "id": _hash_value((inp, tgt), None),
+                    "input_source": inp_src,
+                    "target_source": tgt_src,
+                }
+            )
+            if limit is not None and len(pairs) >= limit:
+                break
 
     if num_shards and num_shards > 1:
         if shard_index < 0 or shard_index >= num_shards:
@@ -191,4 +223,18 @@ def load_dataset(
     elif num_shards is None:
         pairs = distributed_shard(pairs)
 
+    if return_deps:
+        return pairs, deps
     return pairs
+
+
+def export_dataset(pairs: list[tuple[Any, Any]], path: str) -> None:
+    """Save ``pairs`` to ``path`` in CSV or JSON format."""
+    df = pd.DataFrame(pairs, columns=["input", "target"])
+    ext = os.path.splitext(path)[1].lower()
+    if ext == ".csv" or not ext:
+        df.to_csv(path, index=False)
+    elif ext in {".json", ".jsonl"}:
+        df.to_json(path, orient="records", lines=ext == ".jsonl")
+    else:
+        raise ValueError("Unsupported export format")

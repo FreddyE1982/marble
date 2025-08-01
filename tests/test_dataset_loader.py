@@ -7,7 +7,7 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from dataset_loader import load_dataset, prefetch_dataset
+from dataset_loader import load_dataset, prefetch_dataset, export_dataset
 from marble import DataLoader
 
 
@@ -141,4 +141,23 @@ def test_load_dataset_with_dataloader(tmp_path):
     inp, tgt = pairs[0]
     assert dl.decode(inp) == "hello"
     assert dl.decode(tgt) == "world"
+
+
+def test_load_dataset_dependencies_and_filter(tmp_path):
+    csv_path = tmp_path / "deps.csv"
+    csv_path.write_text("input,target\n1,2\n3,4\n")
+    pairs, deps = load_dataset(str(csv_path), return_deps=True, filter_expr="input > 1")
+    assert pairs == [(3, 4)]
+    assert len(deps) == 1
+    assert deps[0]["input_source"] == 3
+    assert deps[0]["target_source"] == 4
+    assert isinstance(deps[0]["id"], str) and len(deps[0]["id"]) == 64
+
+
+def test_export_dataset_roundtrip(tmp_path):
+    pairs = [(5, 6), (7, 8)]
+    path = tmp_path / "out.csv"
+    export_dataset(pairs, str(path))
+    loaded = load_dataset(str(path))
+    assert loaded == pairs
 
