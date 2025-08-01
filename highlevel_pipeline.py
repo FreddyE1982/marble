@@ -209,6 +209,25 @@ class HighLevelPipeline:
             data_args=self.data_args.copy(),
         )
 
+    def get_step(self, index: int) -> dict:
+        """Return the step dictionary at ``index``."""
+
+        if index < 0 or index >= len(self.steps):
+            raise IndexError("index out of range")
+        return self.steps[index]
+
+    def list_steps(self) -> list[str]:
+        """Return a list of step names for introspection."""
+
+        names = []
+        for step in self.steps:
+            if "callable" in step:
+                names.append(step["callable"].__name__)
+            else:
+                mod = step.get("module", "marble_interface")
+                names.append(f"{mod}.{step['func']}")
+        return names
+
     def _execute_steps(
         self, steps: list[dict], marble: Any | None
     ) -> tuple[Any | None, list[Any]]:

@@ -1744,3 +1744,14 @@ class Neuronenblitz:
 
         state = json.loads(json_str)
         return cls.from_dict(core, state)
+
+    def training_summary(self) -> dict:
+        """Return key statistics about recent training."""
+
+        last_err = self.error_history[-1] if self.error_history else 0.0
+        return {
+            "history_length": len(self.training_history),
+            "global_activations": self.global_activation_count,
+            "last_error": float(last_err),
+            "dropout_probability": float(self.dropout_probability),
+        }

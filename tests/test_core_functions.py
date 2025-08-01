@@ -132,6 +132,16 @@ def test_neuronenblitz_train_example_updates_history():
     assert nb.training_history
 
 
+def test_neuronenblitz_training_summary():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    nb.train_example(0.1, 0.0)
+    info = nb.training_summary()
+    assert info["history_length"] == len(nb.training_history)
+    assert info["global_activations"] == nb.global_activation_count
+
+
 def test_brain_validate_runs():
     random.seed(0)
     params = minimal_params()

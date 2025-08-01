@@ -154,3 +154,13 @@ def test_bit_tensor_dataset_map_and_filter():
     ds.filter_pairs(lambda a, b: a > 2)
     assert len(ds) == 1
     assert ds.tensor_to_object(ds[0][0]) == 6
+
+
+def test_bit_tensor_dataset_split_shuffle_and_hash():
+    pairs = [(i, i + 1) for i in range(10)]
+    ds = BitTensorDataset(pairs)
+    ds.shuffle(generator=torch.Generator().manual_seed(0))
+    first, second = ds.split(0.6, shuffle=False)
+    assert len(first) == 6
+    assert len(second) == 4
+    assert ds.hash() == BitTensorDataset.from_json(ds.to_json()).hash()

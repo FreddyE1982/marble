@@ -1712,6 +1712,21 @@ class Core:
         }
         return metrics
 
+    def summary(self) -> dict[str, Any]:
+        """Return high level statistics about the core."""
+
+        metrics = self.get_memory_usage_metrics()
+        tier_counts = {t: 0 for t in TIER_REGISTRY.keys()}
+        for n in self.neurons:
+            tier_counts[n.tier] = tier_counts.get(n.tier, 0) + 1
+        return {
+            "num_neurons": len(self.neurons),
+            "num_synapses": len(self.synapses),
+            "rep_size": self.rep_size,
+            "memory": metrics,
+            "tier_counts": tier_counts,
+        }
+
     def check_memory_usage(self) -> None:
         metrics = self.get_memory_usage_metrics()
         print(
