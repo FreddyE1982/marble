@@ -186,6 +186,21 @@ def test_highlevel_pipeline_custom_start_id():
     assert ds.start_id == 600
 
 
+def test_highlevel_pipeline_dot_access_params():
+    hp = HighLevelPipeline(bit_dataset_params={"start_id": 100})
+    assert hp.bit_dataset_params.start_id == 100
+    hp.bit_dataset_params.start_id = 200
+    assert hp.bit_dataset_params.start_id == 200
+
+    def step_a(x=None):
+        return x
+
+    hp.add_step(step_a, params={"x": 1})
+    assert hp.steps[0].params.x == 1
+    hp.steps[0].params.x = 5
+    assert hp.steps[0].params.x == 5
+
+
 def test_highlevel_pipeline_duplicate_and_describe():
     hp = HighLevelPipeline()
     hp.add_step(lambda: "a")
