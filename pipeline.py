@@ -3,7 +3,12 @@ from __future__ import annotations
 import importlib
 import inspect
 import json
+import time
 from typing import Any
+
+import global_workspace
+from marble_core import benchmark_message_passing
+from marble_base import MetricsVisualizer
 
 from dataset_loader import wait_for_prefetch
 
@@ -16,6 +21,7 @@ class Pipeline:
     def __init__(self, steps: list[dict] | None = None) -> None:
         self.steps: list[dict] = steps or []
         self._summaries: list[dict] = []
+        self._benchmarks: list[dict] = []
 
     def add_step(self, func: str, *, module: str | None = None, params: dict | None = None) -> None:
         self.steps.append({"func": func, "module": module, "params": params or {}})
@@ -33,16 +39,61 @@ class Pipeline:
         step = self.steps.pop(old_index)
         self.steps.insert(new_index, step)
 
-    def execute(self, marble: Any | None = None) -> list[Any]:
+    def freeze_step(self, index: int) -> None:
+        """Disable execution of the step at ``index`` without removing it."""
+        if index < 0 or index >= len(self.steps):
+            raise IndexError("index out of range")
+        self.steps[index]["frozen"] = True
+
+    def defrost_step(self, index: int) -> None:
+        """Re-enable execution of a previously frozen step."""
+        if index < 0 or index >= len(self.steps):
+            raise IndexError("index out of range")
+        self.steps[index]["frozen"] = False
+
+    def execute(
+        self,
+        marble: Any | None = None,
+        *,
+        metrics_visualizer: "MetricsVisualizer | None" = None,
+        benchmark_iterations: int | None = None,
+        preallocate_neurons: int = 0,
+        preallocate_synapses: int = 0,
+    ) -> list[Any]:
         results: list[Any] = []
         self._summaries = []
-        for step in self.steps:
+        self._benchmarks = []
+        core = None
+        if marble is not None and hasattr(marble, "get_core"):
+            core = marble.get_core()
+            if preallocate_neurons:
+                core.neuron_pool.preallocate(preallocate_neurons)
+            if preallocate_synapses:
+                core.synapse_pool.preallocate(preallocate_synapses)
+        for idx, step in enumerate(self.steps):
+            if step.get("frozen"):
+                continue
             wait_for_prefetch()
             module_name = step.get("module")
             func_name = step["func"]
             params = step.get("params", {})
+            start = time.perf_counter()
             result = self._execute_function(module_name, func_name, marble, params)
+            runtime = time.perf_counter() - start
             results.append(result)
+            if metrics_visualizer is not None:
+                metrics_visualizer.update({"pipeline_step": idx, "step_runtime": runtime})
+            if global_workspace.workspace is not None:
+                global_workspace.workspace.publish(
+                    "pipeline", {"index": idx, "step": func_name}
+                )
+            if benchmark_iterations and core is not None:
+                _, msg_time = benchmark_message_passing(
+                    core, iterations=benchmark_iterations, warmup=1
+                )
+                self._benchmarks.append(
+                    {"step": func_name, "runtime": runtime, "msg_time": msg_time}
+                )
             summary: dict | None = None
             if isinstance(result, list) and result and isinstance(result[0], tuple):
                 summary = {"step": func_name, "num_pairs": len(result)}
@@ -87,3 +138,7 @@ class Pipeline:
     def dataset_summaries(self) -> list[dict]:
         """Return summaries for dataset-producing steps from last run."""
         return list(self._summaries)
+
+    def benchmarks(self) -> list[dict]:
+        """Return benchmark results collected during :meth:`execute`."""
+        return list(self._benchmarks)

@@ -286,9 +286,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 150. [x] Track dependencies between dataset entries and their original sources.
 151. [x] Map every object to a hashed identifier for cross-dataset linking.
 152. [x] Cache downloads on the network layer to avoid repeated transfers.
-153. [ ] Visualise bit patterns interactively via the Streamlit GUI.
+153. [x] Visualise bit patterns interactively via the Streamlit GUI.
 154. [x] Filter samples with user-defined expressions evaluated on load.
-155. [ ] Detect corrupted compression files and attempt automatic recovery.
+155. [x] Detect corrupted compression files and attempt automatic recovery.
 156. [x] Export and import datasets from standard formats like JSON or CSV.
 157. [ ] Replicate datasets across nodes with progress notifications.
 158. [x] Summarise datasets in pipeline descriptions for easier debugging.
@@ -333,14 +333,14 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 197. [ ] Update Neuronenblitz models automatically when datasets change.
 198. [ ] Provide built-in cross-validation loops using deterministic dataset splits.
 199. [ ] Serve models through the web API directly from a pipeline step.
-200. [ ] Benchmark pipeline steps using the core micro-benchmark tool.
+200. [x] Benchmark pipeline steps using the core micro-benchmark tool.
 201. [ ] Reorder steps dynamically based on dependency resolution.
-202. [ ] Broadcast pipeline progress to the Global Workspace plugin.
-203. [ ] Route step logs to the metrics visualiser for real-time viewing.
+202. [x] Broadcast pipeline progress to the Global Workspace plugin.
+203. [x] Route step logs to the metrics visualiser for real-time viewing.
 204. [ ] Diff pipeline configurations to track changes between runs.
 205. [ ] Stream logs from each step into the GUI console.
-206. [ ] Pre-allocate resources via the memory pool before executing steps.
-207. [ ] Freeze and defrost steps without removing them from the pipeline.
+206. [x] Pre-allocate resources via the memory pool before executing steps.
+207. [x] Freeze and defrost steps without removing them from the pipeline.
 208. [ ] Run pipeline sections in isolated processes for fault tolerance.
 209. [ ] Connect with remote wanderers for asynchronous exploration phases.
 210. [ ] Secure pipeline data flow by integrating dataset encryption routines.

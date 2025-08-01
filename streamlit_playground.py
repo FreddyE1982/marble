@@ -41,11 +41,13 @@ import yaml
 from PIL import Image
 
 from huggingface_utils import (
-    hf_load_dataset,
-    hf_load_model,
-    search_hf_datasets as hf_search_datasets_fn,
-    search_hf_models as hf_search_models_fn,
+    hf_load_dataset as load_hf_dataset,
+    hf_load_model as load_hf_model,
+    hf_login,
 )
+from huggingface_hub import HfApi
+from transformers import AutoModel
+from marble_interface import load_hf_dataset as _iface_load_hf_dataset
 
 import marble_interface
 from marble_interface import (
@@ -68,6 +70,11 @@ from marble_interface import (
     set_dreaming,
     train_autoencoder,
     train_marble_system,
+)
+from bit_tensor_dataset import (
+    object_to_bytes,
+    bytes_to_tensors,
+    flatten_tensor_to_bitstream,
 )
 from marble_registry import MarbleRegistry
 from metrics_dashboard import MetricsDashboard
@@ -237,19 +244,25 @@ def load_hf_examples(
     limit: int | None = None,
 ) -> list[tuple]:
     """Load ``(input, target)`` pairs from a Hugging Face dataset."""
-    return hf_load_dataset(
+    return load_hf_dataset(
         dataset_name, split, input_key, target_key, limit, streaming=False
     )
 
 
 def search_hf_datasets(query: str, limit: int = 20) -> list[str]:
     """Return dataset IDs from the Hugging Face Hub matching ``query``."""
-    return hf_search_datasets_fn(query, limit)
+    from huggingface_hub import HfApi
+    hf_login()
+    datasets = HfApi().list_datasets(search=query, limit=limit)
+    return [d.id for d in datasets]
 
 
 def search_hf_models(query: str, limit: int = 20) -> list[str]:
     """Return model IDs from the Hugging Face Hub matching ``query``."""
-    return hf_search_models_fn(query, limit)
+    from huggingface_hub import HfApi
+    hf_login()
+    models = HfApi().list_models(search=query, limit=limit)
+    return [m.id for m in models]
 
 
 def lobe_info(marble) -> list[dict]:
@@ -295,9 +308,9 @@ def select_high_attention_neurons(marble, threshold: float = 1.0) -> list[int]:
     return [int(i) for i in ids]
 
 
-def load_hf_model(model_name: str):
+def load_hf_model_wrapper(model_name: str):
     """Return a pretrained model from the Hugging Face Hub."""
-    return hf_load_model(model_name)
+    return load_hf_model(model_name)
 
 
 def model_summary(model: torch.nn.Module) -> str:
@@ -319,7 +332,7 @@ def convert_hf_model(
     dataloader_params: dict | None = None,
 ) -> marble_interface.MARBLE:
     """Convert ``model_name`` from HF Hub into a MARBLE system."""
-    model = load_hf_model(model_name)
+    model = load_hf_model_wrapper(model_name)
     return marble_interface.convert_pytorch_model(
         model,
         core_params=core_params,
@@ -2400,7 +2413,7 @@ def run_playground() -> None:
                 model_name = st.text_input("Model Name", key="hf_model_name")
             if st.button("Preview Model", key="hf_preview") and model_name:
                 try:
-                    mdl = load_hf_model(model_name)
+                    mdl = load_hf_model_wrapper(model_name)
                     st.session_state["hf_model"] = mdl
                     st.text(model_summary(mdl))
                 except Exception as e:
@@ -2715,6 +2728,11 @@ def run_playground() -> None:
             if file is not None:
                 df = preview_file_dataset(file)
                 st.dataframe(df.head(), use_container_width=True)
+                idx = st.number_input("Sample index", min_value=0, max_value=len(df)-1, value=0, step=1, key="bit_idx")
+                row = df.iloc[int(idx)]
+                bits = flatten_tensor_to_bitstream(bytes_to_tensors(object_to_bytes(row["input"])))
+                arr = np.array(bits, dtype=np.uint8).reshape(-1, 8) * 255
+                st.image(arr, caption="Input Bits", width=200)
 
         with tab_src:
             st.write("Browse repository source code.")
