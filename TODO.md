@@ -301,9 +301,20 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 165. [x] Allow custom serialisation formats beyond pickle.
 166. [x] Emit lifecycle events so the metrics visualiser can show dataset operations.
 167. [ ] Enable asynchronous step execution in `HighLevelPipeline` to overlap data loading and training.
+    - [x] Add `_execute_steps_async` helper handling coroutine functions and thread offloading.
+    - [x] Implement `execute_async` public method executing the entire pipeline asynchronously.
+    - [x] Unit tests verifying asynchronous execution with mixed coroutine and blocking steps.
 168. [ ] Cache intermediate results so iterative experiments run faster.
+    - [x] Create file based cache storing step outputs keyed by index and function name.
+    - [x] Add `clear_cache` method to remove cached files when needed.
+    - [x] Unit tests demonstrating that repeated runs reuse cached results.
 169. [ ] Support checkpointing and resuming pipelines with dataset version tracking.
+    - [x] Track `dataset_version` within `HighLevelPipeline` instances.
+    - [x] Implement `save_checkpoint` and `load_checkpoint` methods.
+    - [x] Test saving and loading pipelines with version metadata.
 170. [ ] Provide interactive step visualisation in the Streamlit GUI using dataset introspection.
+    - [x] Add a "Step Visualisation" expander showing step parameters and dataset info.
+    - [x] Unit tests ensuring the new expander appears in the Pipeline tab.
 171. [ ] Offer a plugin system so users can register custom pipeline steps easily.
 172. [ ] Manage dependencies between steps automatically to maintain correct order.
 173. [ ] Allow branching paths in a pipeline to explore alternative experiment flows.

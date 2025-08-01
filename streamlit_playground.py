@@ -2156,6 +2156,10 @@ def run_playground() -> None:
             if st.button("Show Pipeline Graph") and st.session_state["pipeline"]:
                 fig = pipeline_figure(st.session_state["pipeline"])
                 st.plotly_chart(fig, use_container_width=True)
+            with st.expander("Step Visualisation"):
+                for i, step in enumerate(st.session_state["pipeline"]):
+                    st.markdown(f"**Step {i+1}:**")
+                    st.json(step)
             if st.button("Run Pipeline") and st.session_state["pipeline"]:
                 res = execute_function_sequence(st.session_state["pipeline"], marble)
                 for out in res:

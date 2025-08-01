@@ -5,6 +5,9 @@ import inspect
 import json
 import copy
 from typing import Any, Callable, Iterable
+import asyncio
+import os
+import pickle
 
 from dotdict import DotDict
 from config_loader import load_config
@@ -93,6 +96,8 @@ class HighLevelPipeline:
         bit_dataset_params: dict | None = None,
         data_args: Iterable[str] | None = None,
         config_path: str | None = None,
+        cache_dir: str | None = None,
+        dataset_version: str | None = None,
     ) -> None:
         self.steps: list[dict] = []
         for step in steps or []:
@@ -105,6 +110,8 @@ class HighLevelPipeline:
         self.config = DotDict(load_config(config_path))
         if bit_dataset_params:
             self.bit_dataset_params.update(bit_dataset_params)
+        self.cache_dir = cache_dir
+        self.dataset_version = dataset_version
 
     def set_bit_dataset_params(self, **params: Any) -> None:
         """Update default parameters for :class:`BitTensorDataset`."""
@@ -246,7 +253,22 @@ class HighLevelPipeline:
         """Internal helper executing ``steps`` sequentially."""
         current_marble = marble
         results: list[Any] = []
-        for step in steps:
+        for idx, step in enumerate(steps):
+            global_index = self.steps.index(step)
+            cache_hit = False
+            cache_path = None
+            if self.cache_dir:
+                cache_path = self._cache_path(global_index, step)
+                if os.path.exists(cache_path):
+                    with open(cache_path, "rb") as f:
+                        result = pickle.load(f)
+                    found = self._extract_marble(result)
+                    if found is not None:
+                        current_marble = found
+                    results.append(result)
+                    cache_hit = True
+            if cache_hit:
+                continue
             if "callable" in step:
                 func = step["callable"]
                 params = step.get("params", {})
@@ -281,6 +303,79 @@ class HighLevelPipeline:
                 else:
                     raise ValueError(f"Missing parameter: {name}")
             result = func(**kwargs)
+            if self.cache_dir and cache_path:
+                os.makedirs(self.cache_dir, exist_ok=True)
+                with open(cache_path, "wb") as f:
+                    pickle.dump(result, f)
+            found = self._extract_marble(result)
+            if found is not None:
+                current_marble = found
+            results.append(result)
+        return current_marble, results
+
+    async def _execute_steps_async(
+        self, steps: list[dict], marble: Any | None
+    ) -> tuple[Any | None, list[Any]]:
+        current_marble = marble
+        results: list[Any] = []
+        loop = asyncio.get_event_loop()
+        for idx, step in enumerate(steps):
+            global_index = self.steps.index(step)
+            cache_hit = False
+            cache_path = None
+            if self.cache_dir:
+                cache_path = self._cache_path(global_index, step)
+                if os.path.exists(cache_path):
+                    with open(cache_path, "rb") as f:
+                        result = pickle.load(f)
+                    found = self._extract_marble(result)
+                    if found is not None:
+                        current_marble = found
+                    results.append(result)
+                    cache_hit = True
+            if cache_hit:
+                continue
+            if "callable" in step:
+                func = step["callable"]
+                params = step.get("params", {})
+            else:
+                module_name = step.get("module")
+                func_name = step["func"]
+                params = step.get("params", {})
+                module = (
+                    importlib.import_module(module_name)
+                    if module_name
+                    else marble_interface
+                )
+                if not hasattr(module, func_name):
+                    raise ValueError(f"Unknown function: {func_name}")
+                func = getattr(module, func_name)
+            new_params = {}
+            for k, v in params.items():
+                if k in self.data_args:
+                    new_params[k] = self._maybe_bit_dataset(v)
+                else:
+                    new_params[k] = v
+            params = new_params
+            sig = inspect.signature(func)
+            kwargs = {}
+            for name, p in sig.parameters.items():
+                if name == "marble":
+                    kwargs[name] = current_marble
+                elif name in params:
+                    kwargs[name] = params[name]
+                elif p.default is not inspect.Parameter.empty:
+                    kwargs[name] = p.default
+                else:
+                    raise ValueError(f"Missing parameter: {name}")
+            if inspect.iscoroutinefunction(func):
+                result = await func(**kwargs)
+            else:
+                result = await loop.run_in_executor(None, lambda: func(**kwargs))
+            if self.cache_dir and cache_path:
+                os.makedirs(self.cache_dir, exist_ok=True)
+                with open(cache_path, "wb") as f:
+                    pickle.dump(result, f)
             found = self._extract_marble(result)
             if found is not None:
                 current_marble = found
@@ -355,6 +450,11 @@ class HighLevelPipeline:
     def execute(self, marble: Any | None = None) -> tuple[Any | None, list[Any]]:
         return self._execute_steps(self.steps, marble)
 
+    async def execute_async(
+        self, marble: Any | None = None
+    ) -> tuple[Any | None, list[Any]]:
+        return await self._execute_steps_async(self.steps, marble)
+
     def execute_stream(self, marble: Any | None = None):
         """Yield ``(marble, result)`` tuples after each step executes."""
         current_marble = marble
@@ -369,6 +469,12 @@ class HighLevelPipeline:
         marble, results = self._execute_steps([self.steps[index]], marble)
         return marble, results[0]
 
+    async def run_step_async(self, index: int, marble: Any | None = None) -> tuple[Any | None, Any]:
+        if index < 0 or index >= len(self.steps):
+            raise IndexError("index out of range")
+        marble, results = await self._execute_steps_async([self.steps[index]], marble)
+        return marble, results[0]
+
     def execute_until(
         self, index: int, marble: Any | None = None
     ) -> tuple[Any | None, list[Any]]:
@@ -376,6 +482,13 @@ class HighLevelPipeline:
         if index < 0 or index >= len(self.steps):
             raise IndexError("index out of range")
         return self._execute_steps(self.steps[: index + 1], marble)
+
+    async def execute_until_async(
+        self, index: int, marble: Any | None = None
+    ) -> tuple[Any | None, list[Any]]:
+        if index < 0 or index >= len(self.steps):
+            raise IndexError("index out of range")
+        return await self._execute_steps_async(self.steps[: index + 1], marble)
 
     def execute_from(
         self, index: int, marble: Any | None = None
@@ -385,6 +498,13 @@ class HighLevelPipeline:
             raise IndexError("index out of range")
         return self._execute_steps(self.steps[index:], marble)
 
+    async def execute_from_async(
+        self, index: int, marble: Any | None = None
+    ) -> tuple[Any | None, list[Any]]:
+        if index < 0 or index >= len(self.steps):
+            raise IndexError("index out of range")
+        return await self._execute_steps_async(self.steps[index:], marble)
+
     def execute_range(
         self, start: int, end: int, marble: Any | None = None
     ) -> tuple[Any | None, list[Any]]:
@@ -393,6 +513,13 @@ class HighLevelPipeline:
         if start < 0 or end >= len(self.steps) or start > end:
             raise IndexError("invalid range")
         return self._execute_steps(self.steps[start : end + 1], marble)
+
+    async def execute_range_async(
+        self, start: int, end: int, marble: Any | None = None
+    ) -> tuple[Any | None, list[Any]]:
+        if start < 0 or end >= len(self.steps) or start > end:
+            raise IndexError("invalid range")
+        return await self._execute_steps_async(self.steps[start : end + 1], marble)
 
     def save_json(self, path: str) -> None:
         for step in self.steps:
@@ -419,6 +546,35 @@ class HighLevelPipeline:
         steps = json.loads(json_str)
         return cls(steps=steps)
 
+    # ------------------------------------------------------------------
+    # Checkpointing helpers
+    def save_checkpoint(self, path: str) -> None:
+        data = {
+            "steps": self.steps,
+            "bit_dataset_params": self.bit_dataset_params.to_dict(),
+            "use_bit_dataset": self.use_bit_dataset,
+            "data_args": list(self.data_args),
+            "config": self.config.to_dict(),
+            "dataset_version": self.dataset_version,
+        }
+        with open(path, "wb") as f:
+            pickle.dump(data, f)
+
+    @classmethod
+    def load_checkpoint(cls, path: str) -> "HighLevelPipeline":
+        with open(path, "rb") as f:
+            data = pickle.load(f)
+        obj = cls(
+            steps=data.get("steps"),
+            use_bit_dataset=data.get("use_bit_dataset", True),
+            bit_dataset_params=data.get("bit_dataset_params"),
+            data_args=data.get("data_args"),
+            cache_dir=None,
+            dataset_version=data.get("dataset_version"),
+        )
+        obj.config = DotDict(data.get("config", {}))
+        return obj
+
     def clear_steps(self) -> None:
         """Remove all steps from the pipeline."""
 
@@ -432,4 +588,22 @@ class HighLevelPipeline:
             "use_bit_dataset": self.use_bit_dataset,
             "bit_dataset_params": self.bit_dataset_params.to_dict(),
             "config": self.config.to_dict(),
+            "dataset_version": self.dataset_version,
         }
+
+    # ------------------------------------------------------------------
+    # Caching helpers
+    def _cache_path(self, index: int, step: dict) -> str:
+        assert self.cache_dir is not None
+        name = step.get("func") or getattr(step.get("callable"), "__name__", "callable")
+        return os.path.join(self.cache_dir, f"{index}_{name}.pkl")
+
+    def clear_cache(self) -> None:
+        if not self.cache_dir:
+            return
+        for f in os.listdir(self.cache_dir):
+            if f.endswith(".pkl"):
+                try:
+                    os.remove(os.path.join(self.cache_dir, f))
+                except FileNotFoundError:
+                    pass
