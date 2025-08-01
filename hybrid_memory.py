@@ -123,3 +123,12 @@ class HybridMemory:
         for k in excess:
             self.symbolic_memory.data.pop(k, None)
         self.symbolic_memory._save()
+
+    def __getstate__(self) -> dict:
+        state = self.__dict__.copy()
+        state["core"] = None
+        state["nb"] = None
+        return state
+
+    def __setstate__(self, state: dict) -> None:
+        self.__dict__.update(state)

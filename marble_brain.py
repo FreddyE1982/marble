@@ -977,6 +977,8 @@ class Brain:
         state["auto_fire_thread"] = None
         state["dream_thread"] = None
         state["metrics_visualizer"] = None
+        state["remote_client"] = None
+        state["torrent_client"] = None
         return state
 
     def __setstate__(self, state):
@@ -988,6 +990,9 @@ class Brain:
             from marble_base import MetricsVisualizer
 
             self.metrics_visualizer = MetricsVisualizer()
+        # Remote and torrent clients cannot be restored automatically
+        self.remote_client = None
+        self.torrent_client = None
 
 
 class BenchmarkManager:
