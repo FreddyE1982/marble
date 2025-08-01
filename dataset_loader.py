@@ -4,6 +4,7 @@ import zipfile
 import io
 import requests
 import pandas as pd
+import threading
 from typing import Any
 from marble import DataLoader
 from tqdm import tqdm
@@ -22,6 +23,51 @@ def _download_file(url: str, path: str) -> None:
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
                 pbar.update(len(chunk))
+
+
+def prefetch_dataset(
+    source: str, *, cache_dir: str = "dataset_cache", force_refresh: bool = False
+) -> threading.Thread:
+    """Prefetch ``source`` to the cache in a background thread.
+
+    Parameters
+    ----------
+    source:
+        Dataset URL to download. Local paths return an already completed thread.
+    cache_dir:
+        Directory where the downloaded file will be cached.
+    force_refresh:
+        When ``True`` download even if the file is already cached.
+
+    Returns
+    -------
+    threading.Thread
+        Thread handle performing the download. Join the thread to wait.
+    """
+
+    def _noop() -> None:
+        pass
+
+    if not (source.startswith("http://") or source.startswith("https://")):
+        t = threading.Thread(target=_noop, daemon=True)
+        t.start()
+        return t
+
+    name = os.path.basename(source)
+    if not name:
+        name = hashlib.md5(source.encode("utf-8")).hexdigest() + ".dat"
+    path = os.path.join(cache_dir, name)
+    if not force_refresh and os.path.exists(path):
+        t = threading.Thread(target=_noop, daemon=True)
+        t.start()
+        return t
+
+    def _task() -> None:
+        _download_file(source, path)
+
+    thread = threading.Thread(target=_task, daemon=True)
+    thread.start()
+    return thread
 
 
 def load_dataset(
