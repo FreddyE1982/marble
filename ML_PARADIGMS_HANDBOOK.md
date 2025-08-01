@@ -12,6 +12,7 @@ MARBLE is trained to recognise objects in pictures. Images are labeled, and the 
 
 ### Remote Offloading
 Parts of the MARBLE brain can run on another computer. This lets large models use more memory or share computation across machines.
+Remote hardware plugins let MARBLE use extra computers or accelerators easily. Set ``remote_hardware.tier_plugin`` to a module providing ``get_remote_tier`` and heavy calculations run there.
 
 ### Autograd and PyTorch Challenge
 MARBLE can work alongside PyTorch. The challenge compares MARBLE's learning with a PyTorch model while they share training data.
@@ -125,6 +126,7 @@ Images \(x\in\mathbb{R}^{H\times W\times C}\) are flattened and fed through MARB
 
 ### Remote Offloading
 High-attention lobes are serialized and transmitted to a `RemoteBrainServer`. The offload threshold triggers when attention exceeds a configured value. Communication latency is managed through retry and timeout parameters in `config.yaml`.
+Remote hardware plugins allow sending lobes to external accelerators. Set ``remote_hardware.tier_plugin`` to load a module that returns a ``RemoteTier`` instance for custom backends.
 
 ### Autograd and PyTorch Challenge
 `MarbleAutogradLayer` wraps the brain so PyTorch's autograd computes gradients. A SqueezeNet baseline is trained alongside MARBLE while neuromodulatory stress adjusts plasticity when MARBLE underperforms. Comparative metrics include accuracy and energy usage.
@@ -227,6 +229,7 @@ MARBLE learns to guess numbers by looking at lots of examples. It measures how f
 The system studies many labeled pictures so it can say what is shown in new images. It's like teaching it to recognise cats, dogs and other objects.
 
 ### Remote Offloading
+Remote hardware plugins let MARBLE use extra computers or accelerators easily. Set ``remote_hardware.tier_plugin`` to a module providing ``get_remote_tier`` and heavy calculations run there.
 If a single computer is not enough, parts of MARBLE can run on a second machine. They communicate over the network so training can continue even with limited local resources.
 
 ### Autograd and PyTorch Challenge

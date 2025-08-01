@@ -6,6 +6,7 @@ This document outlines upcoming milestones for future Marble releases.
 - TensorFlow interoperability layer.
 - Support for experiment collections in the configuration.
 - Gradient accumulation for autograd training.
+- Dataset cache server for sharing downloads across nodes.
 
 ## v0.5 – Q1 2025
 - Distributed multi-GPU training utilities.
@@ -30,4 +31,4 @@ the coming years. Dates are tentative and may shift based on community needs.
 - **v2.0 – Q4 2026**
   - Context-aware attention mechanisms.
   - Full reinforcement learning suite including hierarchical methods.
-  - Optional remote hardware plugin tier for specialised accelerators.
+  - Remote hardware plugin system supporting gRPC accelerators.
