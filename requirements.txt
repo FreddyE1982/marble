@@ -136,3 +136,4 @@ zipp==3.23.0
 openpyxl==3.1.2
 et_xmlfile==2.0.0
 cloudpickle==3.1.1
+requests-cache==1.2.0
