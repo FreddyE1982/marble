@@ -6,6 +6,8 @@ import json
 import copy
 from typing import Any, Callable, Iterable
 
+from dotdict import DotDict
+
 from torch.utils.data import Dataset
 
 import marble_interface
@@ -90,9 +92,13 @@ class HighLevelPipeline:
         bit_dataset_params: dict | None = None,
         data_args: Iterable[str] | None = None,
     ) -> None:
-        self.steps: list[dict] = steps or []
+        self.steps: list[dict] = []
+        for step in steps or []:
+            new = step.copy()
+            new["params"] = DotDict(step.get("params", {}))
+            self.steps.append(DotDict(new))
         self.use_bit_dataset = use_bit_dataset
-        self.bit_dataset_params = self.DEFAULT_BIT_PARAMS.copy()
+        self.bit_dataset_params = DotDict(self.DEFAULT_BIT_PARAMS.copy())
         self.data_args = set(data_args or self.DEFAULT_DATA_ARGS)
         if bit_dataset_params:
             self.bit_dataset_params.update(bit_dataset_params)
@@ -135,9 +141,10 @@ class HighLevelPipeline:
         cannot be serialised with :meth:`save_json`.
         """
         if callable(func):
-            self.steps.append({"callable": func, "params": params or {}})
+            step = {"callable": func, "params": DotDict(params or {})}
         else:
-            self.steps.append({"func": func, "module": module, "params": params or {}})
+            step = {"func": func, "module": module, "params": DotDict(params or {})}
+        self.steps.append(DotDict(step))
         return self
 
     def remove_step(self, index: int) -> None:
@@ -172,10 +179,10 @@ class HighLevelPipeline:
         if index < 0 or index > len(self.steps):
             raise IndexError("index out of range")
         if callable(func):
-            step = {"callable": func, "params": params or {}}
+            step = {"callable": func, "params": DotDict(params or {})}
         else:
-            step = {"func": func, "module": module, "params": params or {}}
-        self.steps.insert(index, step)
+            step = {"func": func, "module": module, "params": DotDict(params or {})}
+        self.steps.insert(index, DotDict(step))
 
     def replace_step(
         self,
@@ -189,16 +196,16 @@ class HighLevelPipeline:
         if index < 0 or index >= len(self.steps):
             raise IndexError("index out of range")
         if callable(func):
-            step = {"callable": func, "params": params or {}}
+            step = {"callable": func, "params": DotDict(params or {})}
         else:
-            step = {"func": func, "module": module, "params": params or {}}
-        self.steps[index] = step
+            step = {"func": func, "module": module, "params": DotDict(params or {})}
+        self.steps[index] = DotDict(step)
 
     def update_step_params(self, index: int, **params: Any) -> None:
         """Update stored parameters for the step at ``index``."""
         if index < 0 or index >= len(self.steps):
             raise IndexError("index out of range")
-        self.steps[index].setdefault("params", {}).update(params)
+        self.steps[index].setdefault("params", DotDict()).update(params)
 
     def duplicate(self) -> "HighLevelPipeline":
         """Return a deep copy of this pipeline."""
@@ -313,14 +320,14 @@ class HighLevelPipeline:
         return BitTensorDataset(
             pairs,
             use_vocab=True,
-            mixed=self.bit_dataset_params["mixed"],
-            max_vocab_size=self.bit_dataset_params["max_vocab_size"],
-            min_word_length=self.bit_dataset_params["min_word_length"],
-            max_word_length=self.bit_dataset_params["max_word_length"],
-            min_occurrence=self.bit_dataset_params["min_occurrence"],
+            mixed=self.bit_dataset_params.mixed,
+            max_vocab_size=self.bit_dataset_params.max_vocab_size,
+            min_word_length=self.bit_dataset_params.min_word_length,
+            max_word_length=self.bit_dataset_params.max_word_length,
+            min_occurrence=self.bit_dataset_params.min_occurrence,
             start_id=self.bit_dataset_params.get("start_id", 256),
             vocab=self.bit_dataset_params.get("vocab"),
-            device=self.bit_dataset_params["device"],
+            device=self.bit_dataset_params.device,
             compress=self.bit_dataset_params.get("compress", False),
         )
 
@@ -414,5 +421,5 @@ class HighLevelPipeline:
         return {
             "num_steps": len(self.steps),
             "use_bit_dataset": self.use_bit_dataset,
-            "bit_dataset_params": self.bit_dataset_params.copy(),
+            "bit_dataset_params": self.bit_dataset_params.to_dict(),
         }
