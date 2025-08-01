@@ -15,7 +15,7 @@ import aiohttp
 import torch
 from torch.utils.data import Dataset
 from memory_pool import MemoryPool
-from crypto_utils import constant_time_compare
+from crypto_utils import constant_time_compare, encrypt_bytes, decrypt_bytes
 from data_compressor import DataCompressor
 
 
@@ -42,17 +42,13 @@ def bytes_to_object(b: bytes) -> Any:
 
 def bytes_to_tensors(bytes_obj: bytes) -> torch.Tensor:
     """Convert bytes to a ``(n, 8)`` uint8 tensor representing bits."""
-    return torch.tensor(
-        [[int(bit) for bit in f"{byte:08b}"] for byte in bytes_obj], dtype=torch.uint8
-    )
+    return torch.tensor([[int(bit) for bit in f"{byte:08b}"] for byte in bytes_obj], dtype=torch.uint8)
 
 
 def tensors_to_bytes(tensor: torch.Tensor) -> bytes:
     """Convert a ``(n, 8)`` bit tensor back to bytes."""
     assert tensor.ndim == 2 and tensor.shape[1] == 8, "Tensor must have shape (n, 8)"
-    byte_list = [
-        int("".join(str(bit.item()) for bit in byte_bits), 2) for byte_bits in tensor
-    ]
+    byte_list = [int("".join(str(bit.item()) for bit in byte_bits), 2) for byte_bits in tensor]
     return bytes(byte_list)
 
 
@@ -196,9 +192,7 @@ def encode_with_vocab(
     return result
 
 
-def decode_with_vocab(
-    encoded: list[int], vocab: dict[tuple[int, ...], int]
-) -> list[int]:
+def decode_with_vocab(encoded: list[int], vocab: dict[tuple[int, ...], int]) -> list[int]:
     """Expand vocabulary tokens back into bit patterns."""
     inverse = {v: list(k) for k, v in vocab.items()}
     result: list[int] = []
@@ -229,6 +223,7 @@ class BitTensorDataset(Dataset):
         compress: bool = False,
         compression_algorithm: str = "zlib",
         compression_level: int = 6,
+        encryption_key: str | bytes | None = None,
     ) -> None:
         """Prepare ``(input, target)`` pairs for training.
 
@@ -267,6 +262,10 @@ class BitTensorDataset(Dataset):
             Supported options are ``"zlib"`` and ``"lzma"``.
         compression_level:
             Compression level passed to the underlying algorithm.
+        encryption_key:
+            Optional key used to encrypt serialized objects before they are
+            converted to bit tensors. Decryption with the same key is performed
+            automatically when decoding.
         """
 
         self.raw_data = list(data)
@@ -277,9 +276,7 @@ class BitTensorDataset(Dataset):
         self.max_word_length = max_word_length
         self.min_occurrence = min_occurrence
         self.device = (
-            torch.device("cuda")
-            if device is None and torch.cuda.is_available()
-            else torch.device(device or "cpu")
+            torch.device("cuda") if device is None and torch.cuda.is_available() else torch.device(device or "cpu")
         )
         self.compress = compress
         self.compressor = DataCompressor(
@@ -287,6 +284,10 @@ class BitTensorDataset(Dataset):
             compression_enabled=compress,
             algorithm=compression_algorithm,
         )
+        if encryption_key is not None and isinstance(encryption_key, str):
+            encryption_key = encryption_key.encode()
+        self.encryption_key: bytes | None = encryption_key
+        self.encrypted = encryption_key is not None
         self.vocab: dict[tuple[int, ...], int] | None = vocab
         self.start_id = start_id
 
@@ -298,6 +299,9 @@ class BitTensorDataset(Dataset):
                 if self.compress:
                     in_bytes = self.compressor.compress(in_bytes)
                     out_bytes = self.compressor.compress(out_bytes)
+                if self.encryption_key is not None:
+                    in_bytes = encrypt_bytes(in_bytes, self.encryption_key)
+                    out_bytes = encrypt_bytes(out_bytes, self.encryption_key)
                 bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(in_bytes))
                 bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(out_bytes))
             self.vocab = build_vocab(
@@ -323,6 +327,8 @@ class BitTensorDataset(Dataset):
         byte_data = object_to_bytes(obj)
         if self.compress:
             byte_data = self.compressor.compress(byte_data)
+        if self.encryption_key is not None:
+            byte_data = encrypt_bytes(byte_data, self.encryption_key)
         bit_tensor = bytes_to_tensors(byte_data).to(self.device)
         if self.vocab is None:
             return bit_tensor
@@ -348,6 +354,10 @@ class BitTensorDataset(Dataset):
             decoded = decode_with_vocab(cpu_tensor.squeeze(1).tolist(), self.vocab)
             bit_tensor = unflatten_bitstream_to_tensor(decoded)
         byte_data = tensors_to_bytes(bit_tensor)
+        if self.encrypted and self.encryption_key is None:
+            raise ValueError("encryption_key required to decode dataset")
+        if self.encryption_key is not None:
+            byte_data = decrypt_bytes(byte_data, self.encryption_key)
         if self.compress:
             byte_data = self.compressor.decompress(byte_data)
         return bytes_to_object(byte_data)
@@ -505,6 +515,8 @@ class BitTensorDataset(Dataset):
         Python object. It avoids allocating intermediate lists so even
         large datasets can be streamed efficiently.
         """
+        if self.encrypted and self.encryption_key is None:
+            raise ValueError("encryption_key required to decode dataset")
         for inp, out in self.data:
             yield self.tensor_to_object(inp), self.tensor_to_object(out)
 
@@ -518,10 +530,7 @@ class BitTensorDataset(Dataset):
         """
 
         total_elements = sum(a.numel() + b.numel() for a, b in self.data)
-        total_bytes = sum(
-            a.element_size() * a.numel() + b.element_size() * b.numel()
-            for a, b in self.data
-        )
+        total_bytes = sum(a.element_size() * a.numel() + b.element_size() * b.numel() for a, b in self.data)
         avg_len = float(total_elements) / len(self.data) if self.data else 0.0
         avg_bytes = float(total_bytes) / len(self.data) if self.data else 0.0
         return {
@@ -549,16 +558,25 @@ class BitTensorDataset(Dataset):
             "start_id": self.start_id,
             "device": str(self.device),
             "compress": self.compress,
+            "compression_algorithm": self.compressor.algorithm,
+            "compression_level": self.compressor.level,
+            "encrypted": self.encrypted,
             "checksums": self.checksums,
         }
         torch.save(payload, path)
 
     @classmethod
     def load(
-        cls, path: str, *, device: str | torch.device | None = None
+        cls,
+        path: str,
+        *,
+        device: str | torch.device | None = None,
+        encryption_key: str | bytes | None = None,
     ) -> "BitTensorDataset":
         """Load a dataset previously saved with :meth:`save`."""
         obj = torch.load(path, map_location="cpu")
+        if obj.get("encrypted") and encryption_key is None:
+            raise ValueError("encryption_key required to load dataset")
         ds = cls(
             [],
             use_vocab=obj["vocab"] is not None,
@@ -571,12 +589,16 @@ class BitTensorDataset(Dataset):
             start_id=obj.get("start_id", 256),
             device=device or obj["device"],
             compress=obj["compress"],
+            compression_algorithm=obj.get("compression_algorithm", "zlib"),
+            compression_level=obj.get("compression_level", 6),
+            encryption_key=encryption_key if obj.get("encrypted") else None,
         )
         ds.data = [(a.to(ds.device), b.to(ds.device)) for a, b in obj["data"]]
         ds.index_pool = MemoryPool(dict)
         ds.index = ds.index_pool.allocate()
         ds.checksums = obj.get("checksums", [])
         ds.verify_checksums()
+        ds.encrypted = obj.get("encrypted", ds.encrypted)
         return ds
 
     def to_dict(self) -> dict[str, Any]:
@@ -588,6 +610,9 @@ class BitTensorDataset(Dataset):
             if self.compress:
                 in_bytes = self.compressor.compress(in_bytes)
                 out_bytes = self.compressor.compress(out_bytes)
+            if self.encryption_key is not None:
+                in_bytes = encrypt_bytes(in_bytes, self.encryption_key)
+                out_bytes = encrypt_bytes(out_bytes, self.encryption_key)
             encoded.append(
                 [
                     base64.b64encode(in_bytes).decode("ascii"),
@@ -612,11 +637,16 @@ class BitTensorDataset(Dataset):
             "compression_algorithm": self.compressor.algorithm,
             "compression_level": self.compressor.level,
             "checksums": self.checksums,
+            "encrypted": self.encrypted,
         }
 
     @classmethod
     def from_dict(
-        cls, obj: dict[str, Any], *, device: str | torch.device | None = None
+        cls,
+        obj: dict[str, Any],
+        *,
+        device: str | torch.device | None = None,
+        encryption_key: str | bytes | None = None,
     ) -> "BitTensorDataset":
         """Reconstruct a dataset from :meth:`to_dict` output."""
         data = []
@@ -631,6 +661,11 @@ class BitTensorDataset(Dataset):
                 )
                 in_bytes = compressor.decompress(in_bytes)
                 out_bytes = compressor.decompress(out_bytes)
+            if obj.get("encrypted"):
+                if encryption_key is None:
+                    raise ValueError("encryption_key required to load dataset")
+                in_bytes = decrypt_bytes(in_bytes, encryption_key)
+                out_bytes = decrypt_bytes(out_bytes, encryption_key)
             inp = bytes_to_object(in_bytes)
             out = bytes_to_object(out_bytes)
             data.append((inp, out))
@@ -652,7 +687,9 @@ class BitTensorDataset(Dataset):
             compress=obj.get("compress", False),
             compression_algorithm=obj.get("compression_algorithm", "zlib"),
             compression_level=obj.get("compression_level", 6),
+            encryption_key=encryption_key if obj.get("encrypted") else None,
         )
+        ds.encrypted = obj.get("encrypted", ds.encrypted)
         ds.checksums = obj.get("checksums", [])
         ds.verify_checksums()
         return ds
@@ -663,11 +700,15 @@ class BitTensorDataset(Dataset):
 
     @classmethod
     def from_json(
-        cls, json_str: str, *, device: str | torch.device | None = None
+        cls,
+        json_str: str,
+        *,
+        device: str | torch.device | None = None,
+        encryption_key: str | bytes | None = None,
     ) -> "BitTensorDataset":
         """Load a dataset from a JSON string produced by :meth:`to_json`."""
         obj = json.loads(json_str)
-        return cls.from_dict(obj, device=device)
+        return cls.from_dict(obj, device=device, encryption_key=encryption_key)
 
     def map_pairs(
         self,
@@ -697,6 +738,9 @@ class BitTensorDataset(Dataset):
                 if self.compress:
                     in_bytes = self.compressor.compress(in_bytes)
                     out_bytes = self.compressor.compress(out_bytes)
+                if self.encryption_key is not None:
+                    in_bytes = encrypt_bytes(in_bytes, self.encryption_key)
+                    out_bytes = encrypt_bytes(out_bytes, self.encryption_key)
                 bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(in_bytes))
                 bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(out_bytes))
             self.vocab = build_vocab(
@@ -709,9 +753,7 @@ class BitTensorDataset(Dataset):
             )
 
         self.raw_data = new_raw
-        self.data = [
-            (self._obj_to_tensor(a), self._obj_to_tensor(b)) for a, b in new_raw
-        ]
+        self.data = [(self._obj_to_tensor(a), self._obj_to_tensor(b)) for a, b in new_raw]
         self.checksums = self._build_index()
 
     def filter_pairs(self, predicate: Callable[[Any, Any], bool]) -> None:
@@ -835,9 +877,7 @@ class BitTensorDataset(Dataset):
 
         scored: list[tuple[float, tuple[Any, Any]]] = []
         for inp, out in self.iter_decoded():
-            h = hashlib.sha256(
-                object_to_bytes(inp) + object_to_bytes(out) + salt.encode("utf-8")
-            ).digest()
+            h = hashlib.sha256(object_to_bytes(inp) + object_to_bytes(out) + salt.encode("utf-8")).digest()
             frac = int.from_bytes(h[:8], "big") / 2**64
             scored.append((frac, (inp, out)))
 
@@ -875,17 +915,14 @@ class BitTensorDataset(Dataset):
 
         return _make(train_raw), _make(val_raw), _make(test_raw)
 
-    def merge(
-        self, other: "BitTensorDataset", *, prefer: str = "self"
-    ) -> "BitTensorDataset":
+    def merge(self, other: "BitTensorDataset", *, prefer: str = "self") -> "BitTensorDataset":
         """Merge two datasets resolving conflicts by ``prefer``."""
 
         if prefer not in {"self", "other", "raise"}:
             raise ValueError("prefer must be 'self', 'other' or 'raise'")
 
         result: dict[str, tuple[Any, Any]] = {
-            hashlib.sha256(object_to_bytes(i)).hexdigest(): (i, t)
-            for i, t in self.iter_decoded()
+            hashlib.sha256(object_to_bytes(i)).hexdigest(): (i, t) for i, t in self.iter_decoded()
         }
         for inp, tgt in other.iter_decoded():
             key = hashlib.sha256(object_to_bytes(inp)).hexdigest()

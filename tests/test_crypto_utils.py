@@ -1,5 +1,10 @@
 import time
-from crypto_utils import constant_time_compare, constant_time_xor
+from crypto_utils import (
+    constant_time_compare,
+    constant_time_xor,
+    encrypt_bytes,
+    decrypt_bytes,
+)
 
 
 def test_constant_time_compare_equal():
@@ -21,7 +26,9 @@ def test_constant_time_compare_timing():
     diff_time = time.perf_counter_ns() - start
     assert abs(equal_time - diff_time) < 5_000_000  # 5 ms
 
+
 from crypto_profile import profile_compare
+
 
 def test_profile_compare():
     diff = profile_compare(trials=1000)
@@ -45,3 +52,19 @@ def test_constant_time_xor_timing():
     constant_time_xor(a, a)
     xor_time2 = time.perf_counter_ns() - start
     assert abs(xor_time1 - xor_time2) < 5_000_000  # 5 ms
+
+
+def test_encrypt_decrypt_bytes_roundtrip():
+    key = b"secret"
+    data = b"example data"
+    enc = encrypt_bytes(data, key)
+    assert enc != data
+    dec = decrypt_bytes(enc, key)
+    assert dec == data
+
+
+def test_encrypt_bytes_different_keys():
+    data = b"example data"
+    enc1 = encrypt_bytes(data, "key1")
+    enc2 = encrypt_bytes(data, "key2")
+    assert enc1 != enc2
