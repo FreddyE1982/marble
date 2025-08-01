@@ -27,6 +27,9 @@ last message passing change and plasticity thresholds.
 `Neuronenblitz.train_example` on the provided examples, manages
 neurogenesis and consolidation and updates metrics.
 
+### Remote Hardware Plugins
+MARBLE can offload computation to specialized devices through a plugin system. Provide a module defining `get_remote_tier` and set `remote_hardware.tier_plugin` in `config.yaml` to enable it. The included `GrpcRemoteTier` communicates with a gRPC service.
+
 ## Data Compression Pipeline
 The `DataLoader` converts arbitrary Python objects or arrays into binary
 tensors using the `DataCompressor`:

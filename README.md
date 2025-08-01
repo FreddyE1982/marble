@@ -97,6 +97,8 @@ re-encoding pairs on subsequent runs. Deterministic splitting into training,
 validation and test sets is available via ``split_deterministic`` which hashes
 each pair to ensure identical partitions regardless of ordering.
 
+Datasets can also be shared across machines via ``DatasetCacheServer``. Start the server on one node and set ``dataset.cache_url`` in ``config.yaml`` so other nodes fetch files from the cache automatically before downloading.
+
 Several helper pipelines leverage ``BitTensorDataset`` to train various
 learning paradigms on arbitrary Python objects, including ``AutoencoderPipeline``,
 ``ContrastivePipeline``, ``DiffusionPairsPipeline``, ``UnifiedPairsPipeline``,
@@ -247,6 +249,7 @@ attach it to the running system. You can also spin up a torrent client with its
 own tracker to distribute lobes among peers. High‑attention regions of the brain
 may then be offloaded to the remote server or shared via torrent with a single
 button press.
+A pluggable remote hardware layer allows offloading computation to custom devices. Specify a module implementing ``get_remote_tier`` under ``remote_hardware.tier_plugin`` in ``config.yaml``. The provided ``GrpcRemoteTier`` communicates with a gRPC service for acceleration.
 A dedicated **Metrics** tab graphs loss, memory usage and other statistics in
 real time inside the browser. A **System Stats** tab displays current CPU and
 GPU memory usage. Another **Documentation** tab provides quick access to the
