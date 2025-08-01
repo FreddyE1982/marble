@@ -283,15 +283,15 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 147. [x] Lazily decode objects so they are materialised only when accessed.
 148. [x] Select compression algorithms through a pluggable interface.
 149. [x] Write datasets asynchronously so saves never block the main loop.
-150. [ ] Track dependencies between dataset entries and their original sources.
-151. [ ] Map every object to a hashed identifier for cross-dataset linking.
+150. [x] Track dependencies between dataset entries and their original sources.
+151. [x] Map every object to a hashed identifier for cross-dataset linking.
 152. [x] Cache downloads on the network layer to avoid repeated transfers.
 153. [ ] Visualise bit patterns interactively via the Streamlit GUI.
-154. [ ] Filter samples with user-defined expressions evaluated on load.
+154. [x] Filter samples with user-defined expressions evaluated on load.
 155. [ ] Detect corrupted compression files and attempt automatic recovery.
-156. [ ] Export and import datasets from standard formats like JSON or CSV.
+156. [x] Export and import datasets from standard formats like JSON or CSV.
 157. [ ] Replicate datasets across nodes with progress notifications.
-158. [ ] Summarise datasets in pipeline descriptions for easier debugging.
+158. [x] Summarise datasets in pipeline descriptions for easier debugging.
 159. [ ] Notify the memory manager about upcoming dataset allocations.
 160. [x] Add an API to append data incrementally with vocabulary updates.
 161. [ ] Register debugging hooks for inspecting individual samples in the pipeline.
