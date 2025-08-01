@@ -5,7 +5,7 @@ import io
 import requests
 import pandas as pd
 import threading
-from typing import Any
+from typing import Any, List
 from marble import DataLoader
 from tqdm import tqdm
 
@@ -23,6 +23,9 @@ def _download_file(url: str, path: str) -> None:
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
                 pbar.update(len(chunk))
+
+
+_PREFETCH_THREADS: List[threading.Thread] = []
 
 
 def prefetch_dataset(
@@ -67,7 +70,16 @@ def prefetch_dataset(
 
     thread = threading.Thread(target=_task, daemon=True)
     thread.start()
+    _PREFETCH_THREADS.append(thread)
     return thread
+
+
+def wait_for_prefetch() -> None:
+    """Block until all outstanding prefetch threads finished."""
+
+    while _PREFETCH_THREADS:
+        t = _PREFETCH_THREADS.pop(0)
+        t.join()
 
 
 def load_dataset(
@@ -138,6 +150,20 @@ def load_dataset(
     for _, row in df.iterrows():
         inp = row[input_col]
         tgt = row[target_col]
+        for val_name, val in [("input", inp), ("target", tgt)]:
+            if isinstance(val, str) and val.startswith(("http://", "https://")):
+                name = os.path.basename(val)
+                if not name:
+                    name = hashlib.md5(val.encode("utf-8")).hexdigest()
+                cached_path = os.path.join(cache_dir, name)
+                if not os.path.exists(cached_path):
+                    _download_file(val, cached_path)
+                with open(cached_path, "rb") as f:
+                    data_bytes = f.read()
+                if val_name == "input":
+                    inp = data_bytes
+                else:
+                    tgt = data_bytes
         if dataloader is not None:
             inp = dataloader.encode(inp)
             tgt = dataloader.encode(tgt)
