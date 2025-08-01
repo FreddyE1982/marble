@@ -13,6 +13,7 @@ import mmap
 import requests
 import os
 import aiohttp
+import threading
 
 import torch
 from torch.utils.data import Dataset
@@ -377,6 +378,10 @@ class BitTensorDataset(Dataset):
         self.index: dict[str, int] = self.index_pool.allocate()
         self.checksums = self._build_index()
 
+        self._history: list[list[tuple[Any, Any]]] = []
+        self._history_index: int = -1
+        self._snapshot()
+
     def _obj_to_tensor(self, obj: Any) -> torch.Tensor:
         byte_data = object_to_bytes(obj)
         if self.compress:
@@ -473,6 +478,10 @@ class BitTensorDataset(Dataset):
 
     def add_pair(self, inp: Any, target: Any) -> None:
         """Append a single ``(input, target)`` pair to the dataset."""
+        self._add_pair_no_history(inp, target)
+        self._snapshot()
+
+    def _add_pair_no_history(self, inp: Any, target: Any) -> None:
         self.raw_data.append((inp, target))
         in_tensor = self._obj_to_tensor(inp)
         out_tensor = self._obj_to_tensor(target)
@@ -486,8 +495,14 @@ class BitTensorDataset(Dataset):
 
     def extend(self, pairs: Iterable[tuple[Any, Any]]) -> None:
         """Add multiple pairs to the dataset."""
+        added = False
         for inp, target in pairs:
-            self.add_pair(inp, target)
+            self._add_pair_no_history(inp, target)
+            added = True
+        if added:
+            self._snapshot()
+        if pairs:
+            self._snapshot()
 
     def patch_pairs(self, patches: dict[int, tuple[Any, Any]]) -> None:
         """Replace existing pairs at ``indices`` with new values."""
@@ -499,6 +514,12 @@ class BitTensorDataset(Dataset):
             self.index[h] = idx
             self.checksums[idx] = h
         self.checksums = self._build_index()
+        if patches:
+            new_raw = list(self.raw_data)
+            for idx, pair in patches.items():
+                new_raw[idx] = pair
+            self.raw_data = new_raw
+            self._snapshot()
 
     def adapt_vocab(self, pairs: Iterable[tuple[Any, Any]]) -> None:
         """Expand vocabulary with new patterns from ``pairs``."""
@@ -571,8 +592,12 @@ class BitTensorDataset(Dataset):
             self.index = self.index_pool.allocate()
             self.checksums = self._build_index()
             return
+        added = False
         for inp, target in pairs:
-            self.add_pair(inp, target)
+            self._add_pair_no_history(inp, target)
+            added = True
+        if added:
+            self._snapshot()
 
     def augment_bits(
         self,
@@ -589,6 +614,7 @@ class BitTensorDataset(Dataset):
             pair.tgt = augment_bit_tensor(
                 pair.tgt, flip_probability=flip_probability, noise_probability=noise_probability
             )
+        self._snapshot()
 
     def add_stream_pair(
         self,
@@ -942,6 +968,7 @@ class BitTensorDataset(Dataset):
             pair.tgt = self._obj_to_tensor(b)
             self.data.append(pair)
         self.checksums = self._build_index()
+        self._snapshot()
 
     def filter_pairs(self, predicate: Callable[[Any, Any], bool]) -> None:
         """Remove pairs for which ``predicate`` returns ``False``."""
@@ -955,6 +982,7 @@ class BitTensorDataset(Dataset):
         self.raw_data = keep_raw
         self.data = keep_data
         self.checksums = self._build_index()
+        self._snapshot()
 
     def prune_invalid(self, validator: Callable[[Any, Any], bool] | None = None) -> int:
         """Remove pairs that fail decoding or ``validator`` check."""
@@ -979,6 +1007,7 @@ class BitTensorDataset(Dataset):
             self.raw_data = keep_raw
             self.data = keep_data
             self.checksums = self._build_index()
+            self._snapshot()
         return removed
 
     def shuffle(self, *, generator: torch.Generator | None = None) -> None:
@@ -988,6 +1017,7 @@ class BitTensorDataset(Dataset):
         self.raw_data = [self.raw_data[i] for i in idx]
         self.data = [self.data[i] for i in idx]
         self.checksums = self._build_index()
+        self._snapshot()
 
     def split(
         self,
@@ -1177,3 +1207,66 @@ class BitTensorDataset(Dataset):
         padded_in = torch.nn.utils.rnn.pad_sequence(inputs, batch_first=True)
         padded_out = torch.nn.utils.rnn.pad_sequence(targets, batch_first=True)
         return padded_in, padded_out
+
+    # --- Modification history helpers ---
+    def _snapshot(self) -> None:
+        self._history = self._history[: self._history_index + 1]
+        self._history.append([(a, b) for a, b in self.raw_data])
+        self._history_index += 1
+
+    def _rebuild_from_raw(self) -> None:
+        self.data = []
+        for inp, out in self.raw_data:
+            pair = self.pair_pool.allocate()
+            pair.inp = self._obj_to_tensor(inp)
+            pair.tgt = self._obj_to_tensor(out)
+            self.data.append(pair)
+        self.checksums = self._build_index()
+
+    def undo(self, steps: int = 1) -> None:
+        """Revert dataset state ``steps`` back in history."""
+
+        for _ in range(steps):
+            if self._history_index <= 0:
+                break
+            self._history_index -= 1
+            self.raw_data = [(a, b) for a, b in self._history[self._history_index]]
+        self._rebuild_from_raw()
+
+    def redo(self, steps: int = 1) -> None:
+        """Reapply undone modifications."""
+
+        for _ in range(steps):
+            if self._history_index + 1 >= len(self._history):
+                break
+            self._history_index += 1
+            self.raw_data = [(a, b) for a, b in self._history[self._history_index]]
+        self._rebuild_from_raw()
+
+    # --- Sample level transforms and async save ---
+    def transform_samples(
+        self,
+        input_transform: Callable[[Any], Any] | None = None,
+        target_transform: Callable[[Any], Any] | None = None,
+        *,
+        rebuild_vocab: bool = False,
+    ) -> None:
+        """Apply per-sample transforms to all pairs."""
+
+        def _fn(inp: Any, tgt: Any) -> tuple[Any, Any]:
+            return (
+                input_transform(inp) if input_transform else inp,
+                target_transform(tgt) if target_transform else tgt,
+            )
+
+        self.map_pairs(_fn, rebuild_vocab=rebuild_vocab)
+
+    def save_async(self, path: str) -> threading.Thread:
+        """Persist dataset in a background thread."""
+
+        def _task() -> None:
+            self.save(path)
+
+        t = threading.Thread(target=_task, daemon=True)
+        t.start()
+        return t

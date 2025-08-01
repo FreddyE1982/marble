@@ -1,6 +1,28 @@
 import pickle
 import struct
 import zlib
+from typing import Callable, Dict
+
+ALGORITHMS: Dict[str, tuple[Callable[[bytes, int], bytes], Callable[[bytes], bytes]]] = {}
+
+
+def register_algorithm(
+    name: str,
+    compress_fn: Callable[[bytes, int], bytes],
+    decompress_fn: Callable[[bytes], bytes],
+) -> None:
+    """Register a custom compression algorithm."""
+
+    ALGORITHMS[name] = (compress_fn, decompress_fn)
+
+
+# register built-in algorithms
+register_algorithm("zlib", lambda b, level: zlib.compress(b, level), zlib.decompress)
+register_algorithm(
+    "lzma",
+    lambda b, level: __import__("lzma").compress(b, preset=level),
+    lambda b: __import__("lzma").decompress(b),
+)
 
 import numpy as np
 
@@ -36,6 +58,8 @@ class DataCompressor:
         self.level = level
         self.compression_enabled = compression_enabled
         self.delta_encoding = delta_encoding
+        if algorithm not in ALGORITHMS:
+            raise ValueError(f"Unknown compression algorithm {algorithm}")
         self.algorithm = algorithm
 
     @staticmethod
@@ -56,24 +80,18 @@ class DataCompressor:
         if not self.compression_enabled:
             return data
         bits = self.bytes_to_bits(data)
-        if self.algorithm == "zlib":
-            return zlib.compress(bits.tobytes(), self.level)
-        if self.algorithm == "lzma":
-            import lzma
-
-            return lzma.compress(bits.tobytes(), preset=self.level)
+        if self.algorithm in ALGORITHMS:
+            fn, _ = ALGORITHMS[self.algorithm]
+            return fn(bits.tobytes(), self.level)
         raise ValueError(f"Unknown compression algorithm {self.algorithm}")
 
     def decompress(self, compressed: bytes) -> bytes:
         """Decompress and convert the binary representation back to bytes."""
         if not self.compression_enabled:
             return compressed
-        if self.algorithm == "zlib":
-            bits_bytes = zlib.decompress(compressed)
-        elif self.algorithm == "lzma":
-            import lzma
-
-            bits_bytes = lzma.decompress(compressed)
+        if self.algorithm in ALGORITHMS:
+            _, fn = ALGORITHMS[self.algorithm]
+            bits_bytes = fn(compressed)
         else:
             raise ValueError(f"Unknown compression algorithm {self.algorithm}")
         bits = np.frombuffer(bits_bytes, dtype=np.uint8)

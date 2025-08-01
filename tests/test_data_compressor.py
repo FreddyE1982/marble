@@ -5,6 +5,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import numpy as np
 
 from data_compressor import DataCompressor
+from data_compressor import register_algorithm
 
 
 def test_compression_roundtrip():
@@ -53,3 +54,10 @@ def test_lzma_algorithm():
     data = b"compress me" * 10
     out = dc.decompress(dc.compress(data))
     assert out == data
+
+
+def test_plugin_algorithm():
+    register_algorithm("reverse", lambda b, lvl: b[::-1], lambda b: b[::-1])
+    dc = DataCompressor(algorithm="reverse")
+    data = b"plugin-data"
+    assert dc.decompress(dc.compress(data)) == data

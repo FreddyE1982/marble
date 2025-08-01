@@ -20,6 +20,44 @@ def _compute_diff(base: List[Tuple[Any, Any]], new: List[Tuple[Any, Any]]):
     return ops
 
 
+def compute_diff(base: List[Tuple[Any, Any]], new: List[Tuple[Any, Any]]) -> list[dict]:
+    """Return a list of operations turning ``base`` into ``new``."""
+
+    return _compute_diff(base, new)
+
+
+def apply_diff(base: List[Tuple[Any, Any]], ops: list[dict]) -> List[Tuple[Any, Any]]:
+    """Return ``base`` patched with ``ops``."""
+
+    data = [list(p) for p in base]
+    encoded = {tuple(map(json.dumps, p)): list(p) for p in data}
+    for op in ops:
+        pair = tuple(json.loads(x) for x in op["pair"])
+        if op["op"] == "remove":
+            encoded.pop(tuple(map(json.dumps, pair)), None)
+        elif op["op"] == "add":
+            encoded[tuple(map(json.dumps, pair))] = list(pair)
+    return [tuple(p) for p in encoded.values()]
+
+
+def revert_diff(current: List[Tuple[Any, Any]], ops: list[dict]) -> List[Tuple[Any, Any]]:
+    """Undo ``ops`` applied to ``current``."""
+
+    inverse = []
+    for op in ops:
+        inverse.append(
+            {"op": "add" if op["op"] == "remove" else "remove", "pair": op["pair"]}
+        )
+    encoded = {tuple(map(json.dumps, p)): list(p) for p in current}
+    for op in inverse:
+        pair = tuple(json.loads(x) for x in op["pair"])
+        if op["op"] == "remove":
+            encoded.pop(tuple(map(json.dumps, pair)), None)
+        else:
+            encoded[tuple(map(json.dumps, pair))] = list(pair)
+    return [tuple(p) for p in encoded.values()]
+
+
 def create_version(
     base: List[Tuple[Any, Any]],
     new: List[Tuple[Any, Any]],

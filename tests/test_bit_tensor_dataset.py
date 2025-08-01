@@ -7,6 +7,7 @@ import torch
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from bit_tensor_dataset import BitTensorDataset
+import threading
 
 
 def test_roundtrip_no_vocab():
@@ -383,4 +384,23 @@ def test_adapt_vocab():
     before = ds.vocab_size()
     ds.adapt_vocab([("c", "d")])
     assert ds.vocab_size() >= before
+
+
+def test_transform_samples_and_history():
+    ds = BitTensorDataset([(1, 2), (3, 4)])
+    ds.transform_samples(lambda x: x * 2, lambda y: y * 2)
+    assert ds.tensor_to_object(ds[0][0]) == 2
+    ds.undo()
+    assert ds.tensor_to_object(ds[0][0]) == 1
+    ds.redo()
+    assert ds.tensor_to_object(ds[0][0]) == 2
+
+
+def test_async_save(tmp_path):
+    ds = BitTensorDataset([("x", "y")])
+    path = tmp_path / "ds.pt"
+    t = ds.save_async(path)
+    t.join()
+    loaded = BitTensorDataset.load(path)
+    assert list(loaded.iter_decoded()) == [("x", "y")]
 

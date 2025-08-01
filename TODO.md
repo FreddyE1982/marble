@@ -276,13 +276,13 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 140. [x] Audit data integrity through checksums and object hashes.
 141. [x] Provide a plugin system for custom object encoders and decoders.
 142. [x] Support memory-mapped files so huge datasets fit into RAM.
-143. [ ] Track modification history with the ability to revert changes.
-144. [ ] Offer undo and redo commands for interactive dataset editing.
+143. [x] Track modification history with the ability to revert changes.
+144. [x] Offer undo and redo commands for interactive dataset editing.
 145. [x] Fetch missing remote files automatically when constructing datasets.
-146. [ ] Enable sample-level transformations such as image rotations or text cleanup.
+146. [x] Enable sample-level transformations such as image rotations or text cleanup.
 147. [x] Lazily decode objects so they are materialised only when accessed.
-148. [ ] Select compression algorithms through a pluggable interface.
-149. [ ] Write datasets asynchronously so saves never block the main loop.
+148. [x] Select compression algorithms through a pluggable interface.
+149. [x] Write datasets asynchronously so saves never block the main loop.
 150. [ ] Track dependencies between dataset entries and their original sources.
 151. [ ] Map every object to a hashed identifier for cross-dataset linking.
 152. [x] Cache downloads on the network layer to avoid repeated transfers.
