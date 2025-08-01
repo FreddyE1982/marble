@@ -2052,6 +2052,11 @@ class Core:
             self.rl_min_epsilon, self.rl_epsilon * self.rl_epsilon_decay
         )
 
+    def reset_q_table(self) -> None:
+        """Clear all stored Q-values."""
+
+        self.q_table = {}
+
     def cluster_neurons(self, k=3):
         if not self.neurons:
             return

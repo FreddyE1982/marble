@@ -268,3 +268,12 @@ def test_highlevel_pipeline_execute_stream(tmp_path):
     results = list(hp.execute_stream())
     assert isinstance(results[-1][0], marble_interface.MARBLE)
     assert len(results) == 2
+
+
+def test_highlevel_pipeline_summary_and_clear():
+    hp = HighLevelPipeline()
+    hp.add_step(lambda: "x")
+    info = hp.summary()
+    assert info["num_steps"] == 1
+    hp.clear_steps()
+    assert hp.summary()["num_steps"] == 0

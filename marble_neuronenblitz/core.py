@@ -8,6 +8,7 @@ import random
 import threading
 from collections import deque
 from datetime import datetime, timezone
+import json
 
 import numpy as np
 
@@ -1711,3 +1712,35 @@ class Neuronenblitz:
         updated = pickle.loads(best_state)
         updated.lock = threading.RLock()
         self.__dict__.update(updated.__dict__)
+
+    def to_dict(self) -> dict:
+        """Return a serialisable representation of this Neuronenblitz."""
+
+        state = self.__getstate__()
+        state.pop("core", None)
+        filtered = {k: v for k, v in state.items() if not callable(v)}
+        for key, val in list(filtered.items()):
+            if isinstance(val, deque):
+                filtered[key] = list(val)
+        return filtered
+
+    @classmethod
+    def from_dict(cls, core, state: dict) -> "Neuronenblitz":
+        """Create a new instance from ``state`` linked to ``core``."""
+
+        nb = cls(core)
+        nb.__setstate__(state)
+        nb.core = core
+        return nb
+
+    def to_json(self) -> str:
+        """Serialise this Neuronenblitz to a JSON string."""
+
+        return json.dumps(self.to_dict())
+
+    @classmethod
+    def from_json(cls, core, json_str: str) -> "Neuronenblitz":
+        """Load a Neuronenblitz from ``json_str`` for ``core``."""
+
+        state = json.loads(json_str)
+        return cls.from_dict(core, state)

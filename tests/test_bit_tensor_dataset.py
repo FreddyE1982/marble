@@ -144,3 +144,13 @@ def test_bit_tensor_dataset_json_roundtrip():
     assert clone.get_vocab() == ds.get_vocab()
     info = clone.summary()
     assert "total_bytes" in info and info["total_bytes"] > 0
+
+
+def test_bit_tensor_dataset_map_and_filter():
+    data = [(1, 2), (3, 4)]
+    ds = BitTensorDataset(data)
+    ds.map_pairs(lambda a, b: (a * 2, b * 2))
+    assert ds.tensor_to_object(ds[0][0]) == 2
+    ds.filter_pairs(lambda a, b: a > 2)
+    assert len(ds) == 1
+    assert ds.tensor_to_object(ds[0][0]) == 6
