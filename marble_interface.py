@@ -69,6 +69,8 @@ def save_marble_system(marble: MARBLE, path: str) -> None:
     brain_viz = None
     if hasattr(marble, "brain"):
         brain_viz = getattr(marble.brain, "metrics_visualizer", None)
+    nb_viz = getattr(marble.neuronenblitz, "metrics_visualizer", None)
+    dl_viz = getattr(marble.dataloader, "metrics_visualizer", None)
     fig = ax = ax_twin = csv_writer = json_writer = scheduler = None
     if viz is not None:
         fig = getattr(viz, "fig", None)
@@ -90,10 +92,18 @@ def save_marble_system(marble: MARBLE, path: str) -> None:
     if brain_viz is not None:
         brain_viz.close()
         marble.brain.metrics_visualizer = None
+    if nb_viz is not None:
+        marble.neuronenblitz.metrics_visualizer = None
+    if dl_viz is not None:
+        marble.dataloader.metrics_visualizer = None
     marble.metrics_visualizer = None
     with open(path, "wb") as f:
         dill.dump(marble, f)
     marble.metrics_visualizer = viz
+    if nb_viz is not None:
+        marble.neuronenblitz.metrics_visualizer = nb_viz
+    if dl_viz is not None:
+        marble.dataloader.metrics_visualizer = dl_viz
     if brain_viz is not None:
         marble.brain.metrics_visualizer = brain_viz
     if viz is not None:

@@ -1,2 +1,1 @@
 tests/test_marble_interface.py::test_save_and_load_marble
-tests/test_marble_interface.py::test_export_and_import_core
