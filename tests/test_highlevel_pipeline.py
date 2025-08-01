@@ -289,3 +289,18 @@ def test_highlevel_pipeline_get_and_list_steps():
     assert hp.get_step(0)["callable"] == a
     names = hp.list_steps()
     assert names == ["a"]
+
+
+def test_highlevel_pipeline_execute_range(tmp_path):
+    marble_imports.tqdm = std_tqdm
+    marble_brain.tqdm = std_tqdm
+    marble_main.MetricsVisualizer = MetricsVisualizer
+
+    cfg = _config_path(tmp_path)
+    hp = HighLevelPipeline()
+    hp.new_marble_system(config_path=str(cfg))
+    hp.train_marble_system(train_examples=[(0, 0)], epochs=1)
+
+    marble, results = hp.execute_range(0, 1)
+    assert isinstance(marble, marble_interface.MARBLE)
+    assert len(results) == 2
