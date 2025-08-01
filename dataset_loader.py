@@ -7,8 +7,11 @@ import torch.distributed as dist
 import requests_cache
 import pandas as pd
 import threading
+import sys
 from typing import Any, List
 from memory_pool import MemoryPool
+from memory_manager import MemoryManager
+from marble_base import MetricsVisualizer
 from marble import DataLoader
 
 _SESSION = requests_cache.CachedSession("http_cache", expire_after=86400)
@@ -128,6 +131,8 @@ def load_dataset(
     use_cache: bool = True,
     cache_key: str | None = None,
     memory_pool: MemoryPool | None = None,
+    memory_manager: "MemoryManager | None" = None,
+    metrics_visualizer: "MetricsVisualizer | None" = None,
     filter_expr: str | None = None,
     cache_server_url: str | None = None,
 ) -> list[tuple[Any, Any]] | tuple[list[tuple[Any, Any]], list[dict]]:
@@ -146,10 +151,20 @@ def load_dataset(
     each worker processes a different shard. When ``dataloader`` is provided,
     inputs and targets are encoded using :class:`~marble.DataLoader`. When
     ``cache_server_url`` is set and ``source`` is remote the loader will attempt
-    to fetch the file from the cache server before downloading it directly.
+    to fetch the file from the cache server before downloading it directly. If
+    ``memory_manager`` is provided, the estimated allocated bytes are reported
+    after loading completes.
     """
+    if metrics_visualizer:
+        metrics_visualizer.log_event("dataset_load_start", {"source": source})
     if cache_key is None:
         cache_key = f"{source}:{limit}:{input_col}:{target_col}"
+
+    if offline and (source.startswith("http://") or source.startswith("https://")):
+        name = os.path.basename(source) or hashlib.md5(source.encode("utf-8")).hexdigest() + ".dat"
+        cached = os.path.join(cache_dir, name)
+        if not os.path.exists(cached):
+            raise FileNotFoundError(f"{cached} not available in offline mode")
     if use_cache and cache_key in _DATASET_CACHE:
         return list(_DATASET_CACHE[cache_key])
 
@@ -158,12 +173,7 @@ def load_dataset(
         if not name:
             name = hashlib.md5(source.encode("utf-8")).hexdigest() + ".dat"
         cached = os.path.join(cache_dir, name)
-        if offline:
-            if not os.path.exists(cached):
-                raise FileNotFoundError(
-                    f"{cached} not available in offline mode"
-                )
-        elif force_refresh or not os.path.exists(cached):
+        if not offline and (force_refresh or not os.path.exists(cached)):
             if cache_server_url:
                 try:
                     url = f"{cache_server_url}/{name}"
@@ -257,7 +267,14 @@ def load_dataset(
         data_obj = memory_pool.allocate() if memory_pool else _DATASET_POOL.allocate()
         data_obj.extend(pairs)
         _DATASET_CACHE[cache_key] = data_obj
+    if memory_manager is not None:
+        est = sum(sys.getsizeof(a) + sys.getsizeof(b) for a, b in pairs)
+        memory_manager.notify_allocation(est)
 
+    if metrics_visualizer:
+        metrics_visualizer.log_event(
+            "dataset_load_end", {"pairs": len(pairs)}
+        )
     if return_deps:
         return pairs, deps
     return pairs

@@ -290,16 +290,16 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 154. [x] Filter samples with user-defined expressions evaluated on load.
 155. [x] Detect corrupted compression files and attempt automatic recovery.
 156. [x] Export and import datasets from standard formats like JSON or CSV.
-157. [ ] Replicate datasets across nodes with progress notifications.
+157. [x] Replicate datasets across nodes with progress notifications.
 158. [x] Summarise datasets in pipeline descriptions for easier debugging.
-159. [ ] Notify the memory manager about upcoming dataset allocations.
+159. [x] Notify the memory manager about upcoming dataset allocations.
 160. [x] Add an API to append data incrementally with vocabulary updates.
 161. [x] Register debugging hooks for inspecting individual samples in the pipeline.
-162. [ ] Provide approximate nearest neighbour search over bit tensors for retrieval.
-163. [ ] Attach hierarchical tags or labels alongside each stored pair.
-164. [ ] Ensure cross-platform serialisation for dataset portability.
-165. [ ] Allow custom serialisation formats beyond pickle.
-166. [ ] Emit lifecycle events so the metrics visualiser can show dataset operations.
+162. [x] Provide approximate nearest neighbour search over bit tensors for retrieval.
+163. [x] Attach hierarchical tags or labels alongside each stored pair.
+164. [x] Ensure cross-platform serialisation for dataset portability.
+165. [x] Allow custom serialisation formats beyond pickle.
+166. [x] Emit lifecycle events so the metrics visualiser can show dataset operations.
 167. [ ] Enable asynchronous step execution in `HighLevelPipeline` to overlap data loading and training.
 168. [ ] Cache intermediate results so iterative experiments run faster.
 169. [ ] Support checkpointing and resuming pipelines with dataset version tracking.

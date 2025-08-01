@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import pickle
 import json
+import msgpack
+import json
 import base64
 import hashlib
 from collections import Counter
@@ -28,6 +30,7 @@ class DatasetPair:
 
     inp: torch.Tensor | None = None
     tgt: torch.Tensor | None = None
+    tags: list[str] | None = None
 
 
 def augment_bit_tensor(
@@ -64,16 +67,28 @@ def is_pickleable(obj: Any) -> bool:
         return False
 
 
-def object_to_bytes(obj: Any) -> bytes:
-    """Serialize ``obj`` to bytes using pickle."""
-    if not is_pickleable(obj):
-        raise TypeError(f"Object of type {type(obj)} is not pickleable.")
-    return pickle.dumps(obj)
+def object_to_bytes(obj: Any, *, serializer: str = "pickle") -> bytes:
+    """Serialize ``obj`` to bytes using the selected ``serializer``."""
+    if serializer == "pickle":
+        if not is_pickleable(obj):
+            raise TypeError(f"Object of type {type(obj)} is not pickleable.")
+        return pickle.dumps(obj)
+    if serializer == "json":
+        return json.dumps(obj).encode("utf-8")
+    if serializer == "msgpack":
+        return msgpack.dumps(obj)
+    raise ValueError(f"unknown serializer {serializer}")
 
 
-def bytes_to_object(b: bytes) -> Any:
-    """Deserialize bytes previously produced by :func:`object_to_bytes`."""
-    return pickle.loads(b)
+def bytes_to_object(b: bytes, *, serializer: str = "pickle") -> Any:
+    """Deserialize bytes produced by :func:`object_to_bytes`."""
+    if serializer == "pickle":
+        return pickle.loads(b)
+    if serializer == "json":
+        return json.loads(b.decode("utf-8"))
+    if serializer == "msgpack":
+        return msgpack.loads(b)
+    raise ValueError(f"unknown serializer {serializer}")
 
 
 def bytes_to_tensors(bytes_obj: bytes, device: str | torch.device | None = None) -> torch.Tensor:
@@ -277,6 +292,8 @@ class BitTensorDataset(Dataset):
         compression_algorithm: str = "zlib",
         compression_level: int = 6,
         encryption_key: str | bytes | None = None,
+        serializer: str = "pickle",
+        tags: Iterable[list[str] | None] | None = None,
     ) -> None:
         """Prepare ``(input, target)`` pairs for training.
 
@@ -337,6 +354,7 @@ class BitTensorDataset(Dataset):
             compression_enabled=compress,
             algorithm=compression_algorithm,
         )
+        self.serializer = serializer
         if encryption_key is not None and isinstance(encryption_key, str):
             encryption_key = encryption_key.encode()
         self.encryption_key: bytes | None = encryption_key
@@ -347,8 +365,8 @@ class BitTensorDataset(Dataset):
         if self.use_vocab and self.vocab is None:
             bitstream: list[int] = []
             for inp, out in self.raw_data:
-                in_bytes = object_to_bytes(inp)
-                out_bytes = object_to_bytes(out)
+                in_bytes = object_to_bytes(inp, serializer=self.serializer)
+                out_bytes = object_to_bytes(out, serializer=self.serializer)
                 if self.compress:
                     in_bytes = self.compressor.compress(in_bytes)
                     out_bytes = self.compressor.compress(out_bytes)
@@ -368,10 +386,12 @@ class BitTensorDataset(Dataset):
 
         self.pair_pool = MemoryPool(DatasetPair)
         self.data: list[DatasetPair] = []
+        tag_iter = iter(tags) if tags is not None else None
         for inp, out in self.raw_data:
             pair = self.pair_pool.allocate()
             pair.inp = self._obj_to_tensor(inp)
             pair.tgt = self._obj_to_tensor(out)
+            pair.tags = next(tag_iter) if tag_iter else None
             self.data.append(pair)
 
         self.index_pool = MemoryPool(dict)
@@ -383,7 +403,7 @@ class BitTensorDataset(Dataset):
         self._snapshot()
 
     def _obj_to_tensor(self, obj: Any) -> torch.Tensor:
-        byte_data = object_to_bytes(obj)
+        byte_data = object_to_bytes(obj, serializer=self.serializer)
         if self.compress:
             byte_data = self.compressor.compress(byte_data)
         if self.encryption_key is not None:
@@ -420,7 +440,7 @@ class BitTensorDataset(Dataset):
             byte_data = decrypt_bytes(byte_data, self.encryption_key)
         if self.compress:
             byte_data = self.compressor.decompress(byte_data)
-        return bytes_to_object(byte_data)
+        return bytes_to_object(byte_data, serializer=self.serializer)
 
     def encode_object(self, obj: Any) -> torch.Tensor:
         """Return tensor representation of ``obj`` using the dataset vocabulary."""
@@ -527,8 +547,8 @@ class BitTensorDataset(Dataset):
             return
         bitstream: list[int] = []
         for a, b in pairs:
-            in_bytes = object_to_bytes(a)
-            out_bytes = object_to_bytes(b)
+            in_bytes = object_to_bytes(a, serializer=self.serializer)
+            out_bytes = object_to_bytes(b, serializer=self.serializer)
             if self.compress:
                 in_bytes = self.compressor.compress(in_bytes)
                 out_bytes = self.compressor.compress(out_bytes)
@@ -564,8 +584,8 @@ class BitTensorDataset(Dataset):
         if rebuild_vocab and self.use_vocab:
             bitstream: list[int] = []
             for a, b in self.raw_data:
-                in_bytes = object_to_bytes(a)
-                out_bytes = object_to_bytes(b)
+                in_bytes = object_to_bytes(a, serializer=self.serializer)
+                out_bytes = object_to_bytes(b, serializer=self.serializer)
                 if self.compress:
                     in_bytes = self.compressor.compress(in_bytes)
                     out_bytes = self.compressor.compress(out_bytes)
@@ -808,6 +828,7 @@ class BitTensorDataset(Dataset):
             compression_algorithm=obj.get("compression_algorithm", "zlib"),
             compression_level=obj.get("compression_level", 6),
             encryption_key=encryption_key if obj.get("encrypted") else None,
+            serializer=obj.get("serializer", "pickle"),
         )
         ds.pair_pool = MemoryPool(DatasetPair)
         ds.data = []
@@ -826,9 +847,10 @@ class BitTensorDataset(Dataset):
     def to_dict(self) -> dict[str, Any]:
         """Return a serialisable dictionary representing this dataset."""
         encoded = []
+        tags = []
         for inp, out in self.iter_decoded():
-            in_bytes = object_to_bytes(inp)
-            out_bytes = object_to_bytes(out)
+            in_bytes = object_to_bytes(inp, serializer=self.serializer)
+            out_bytes = object_to_bytes(out, serializer=self.serializer)
             if self.compress:
                 in_bytes = self.compressor.compress(in_bytes)
                 out_bytes = self.compressor.compress(out_bytes)
@@ -841,6 +863,7 @@ class BitTensorDataset(Dataset):
                     base64.b64encode(out_bytes).decode("ascii"),
                 ]
             )
+            tags.append(None)
         if self.vocab is not None:
             vocab = {" ".join(map(str, k)): v for k, v in self.vocab.items()}
         else:
@@ -860,6 +883,8 @@ class BitTensorDataset(Dataset):
             "compression_level": self.compressor.level,
             "checksums": self.checksums,
             "encrypted": self.encrypted,
+            "serializer": self.serializer,
+            "tags": [p.tags for p in self.data],
         }
 
     @classmethod
@@ -872,7 +897,8 @@ class BitTensorDataset(Dataset):
     ) -> "BitTensorDataset":
         """Reconstruct a dataset from :meth:`to_dict` output."""
         data = []
-        for enc_in, enc_out in obj["data"]:
+        tags = obj.get("tags")
+        for idx, (enc_in, enc_out) in enumerate(obj["data"]):
             in_bytes = base64.b64decode(enc_in)
             out_bytes = base64.b64decode(enc_out)
             if obj.get("compress"):
@@ -888,8 +914,8 @@ class BitTensorDataset(Dataset):
                     raise ValueError("encryption_key required to load dataset")
                 in_bytes = decrypt_bytes(in_bytes, encryption_key)
                 out_bytes = decrypt_bytes(out_bytes, encryption_key)
-            inp = bytes_to_object(in_bytes)
-            out = bytes_to_object(out_bytes)
+            inp = bytes_to_object(in_bytes, serializer=obj.get("serializer", "pickle"))
+            out = bytes_to_object(out_bytes, serializer=obj.get("serializer", "pickle"))
             data.append((inp, out))
         if obj.get("vocab") is not None:
             vocab = {tuple(map(int, k.split())): v for k, v in obj["vocab"].items()}
@@ -910,6 +936,7 @@ class BitTensorDataset(Dataset):
             compression_algorithm=obj.get("compression_algorithm", "zlib"),
             compression_level=obj.get("compression_level", 6),
             encryption_key=encryption_key if obj.get("encrypted") else None,
+            tags=tags,
         )
         ds.encrypted = obj.get("encrypted", ds.encrypted)
         ds.checksums = obj.get("checksums", [])
@@ -955,8 +982,8 @@ class BitTensorDataset(Dataset):
         if rebuild_vocab and self.vocab is not None:
             bitstream: list[int] = []
             for a, b in new_raw:
-                in_bytes = object_to_bytes(a)
-                out_bytes = object_to_bytes(b)
+                in_bytes = object_to_bytes(a, serializer=self.serializer)
+                out_bytes = object_to_bytes(b, serializer=self.serializer)
                 if self.compress:
                     in_bytes = self.compressor.compress(in_bytes)
                     out_bytes = self.compressor.compress(out_bytes)
@@ -991,6 +1018,19 @@ class BitTensorDataset(Dataset):
         keep_data: list[DatasetPair] = []
         for raw, pair in zip(self.raw_data, self.data):
             if predicate(raw[0], raw[1]):
+                keep_raw.append(raw)
+                keep_data.append(pair)
+        self.raw_data = keep_raw
+        self.data = keep_data
+        self.checksums = self._build_index()
+        self._snapshot()
+
+    def filter_by_tag(self, tag: str) -> None:
+        """Keep only pairs containing ``tag`` in their tag list."""
+        keep_raw: list[tuple[Any, Any]] = []
+        keep_data: list[DatasetPair] = []
+        for raw, pair in zip(self.raw_data, self.data):
+            if pair.tags and tag in pair.tags:
                 keep_raw.append(raw)
                 keep_data.append(pair)
         self.raw_data = keep_raw
@@ -1108,7 +1148,11 @@ class BitTensorDataset(Dataset):
 
         scored: list[tuple[float, tuple[Any, Any]]] = []
         for inp, out in self.iter_decoded():
-            h = hashlib.sha256(object_to_bytes(inp) + object_to_bytes(out) + salt.encode("utf-8")).digest()
+            h = hashlib.sha256(
+                object_to_bytes(inp, serializer=self.serializer)
+                + object_to_bytes(out, serializer=self.serializer)
+                + salt.encode("utf-8")
+            ).digest()
             frac = int.from_bytes(h[:8], "big") / 2**64
             scored.append((frac, (inp, out)))
 
@@ -1153,10 +1197,11 @@ class BitTensorDataset(Dataset):
             raise ValueError("prefer must be 'self', 'other' or 'raise'")
 
         result: dict[str, tuple[Any, Any]] = {
-            hashlib.sha256(object_to_bytes(i)).hexdigest(): (i, t) for i, t in self.iter_decoded()
+            hashlib.sha256(object_to_bytes(i, serializer=self.serializer)).hexdigest(): (i, t)
+            for i, t in self.iter_decoded()
         }
         for inp, tgt in other.iter_decoded():
-            key = hashlib.sha256(object_to_bytes(inp)).hexdigest()
+            key = hashlib.sha256(object_to_bytes(inp, serializer=self.serializer)).hexdigest()
             if key in result:
                 existing = result[key][1]
                 if existing != tgt:
@@ -1284,3 +1329,27 @@ class BitTensorDataset(Dataset):
         t = threading.Thread(target=_task, daemon=True)
         t.start()
         return t
+
+    # --- Approximate nearest neighbour search ---
+    def build_ann_index(self, num_trees: int = 10) -> None:
+        """Build an Annoy index for the dataset using Hamming distance."""
+        try:
+            from annoy import AnnoyIndex
+        except Exception as e:  # pragma: no cover - import failure
+            raise RuntimeError("annoy package required") from e
+
+        dim = self[0][0].numel()
+        self._ann_index = AnnoyIndex(dim, "hamming")
+        for idx, (inp, _) in enumerate(self):
+            self._ann_index.add_item(idx, inp.flatten().tolist())
+        self._ann_index.build(num_trees)
+
+    def nearest_neighbors(self, tensor: torch.Tensor, k: int = 5) -> list[int]:
+        """Return indices of ``k`` nearest inputs to ``tensor``."""
+        if hasattr(self, "_ann_index"):
+            return self._ann_index.get_nns_by_vector(tensor.flatten().tolist(), k)
+        # Fallback using torch.cdist
+        inputs = torch.stack([p.inp.flatten() for p in self.data])
+        dists = torch.cdist(inputs.float(), tensor.flatten().unsqueeze(0).float())
+        _, idx = torch.topk(dists.squeeze(1), k, largest=False)
+        return idx.tolist()
