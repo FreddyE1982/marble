@@ -169,7 +169,9 @@ def test_bit_tensor_dataset_split_shuffle_and_hash():
 def test_bit_tensor_dataset_collate_fn():
     data = [("a", "b" * 2), ("long", "c")]
     ds = BitTensorDataset(data, use_vocab=True)
-    loader = torch.utils.data.DataLoader(ds, batch_size=2, collate_fn=BitTensorDataset.collate_fn)
+    loader = torch.utils.data.DataLoader(
+        ds, batch_size=2, collate_fn=BitTensorDataset.collate_fn
+    )
     batch = next(iter(loader))
     inp, out = batch
     assert inp.ndim == 3 and out.ndim == 3
@@ -241,3 +243,32 @@ def test_add_stream_pair(tmp_path):
     inp, tgt = ds[0]
     assert ds.tensor_to_object(inp) == content
     assert ds.tensor_to_object(tgt) == content
+
+
+def test_dataset_deduplicate():
+    data = [(1, 2), (1, 2), (3, 4)]
+    ds = BitTensorDataset(data)
+    ds.deduplicate()
+    assert len(ds) == 2
+    assert list(ds.iter_decoded()) == [(1, 2), (3, 4)]
+
+
+def test_dataset_index_lookup():
+    data = [(10, 20), (30, 40)]
+    ds = BitTensorDataset(data)
+    h = ds.hash_pair(1)
+    pair = ds.get_by_hash(h)
+    assert ds.tensor_to_object(pair[0]) == 30
+    assert ds.tensor_to_object(pair[1]) == 40
+
+
+def test_dataset_checksum_verification(tmp_path):
+    ds = BitTensorDataset([(5, 6)])
+    path = tmp_path / "ds.pt"
+    ds.save(path)
+    obj = torch.load(path)
+    a, b = obj["data"][0]
+    obj["data"][0] = (a + 1, b)
+    torch.save(obj, path)
+    with pytest.raises(ValueError):
+        BitTensorDataset.load(path)
