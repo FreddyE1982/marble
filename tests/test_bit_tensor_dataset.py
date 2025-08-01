@@ -164,3 +164,13 @@ def test_bit_tensor_dataset_split_shuffle_and_hash():
     assert len(first) == 6
     assert len(second) == 4
     assert ds.hash() == BitTensorDataset.from_json(ds.to_json()).hash()
+
+
+def test_bit_tensor_dataset_collate_fn():
+    data = [("a", "b" * 2), ("long", "c")]
+    ds = BitTensorDataset(data, use_vocab=True)
+    loader = torch.utils.data.DataLoader(ds, batch_size=2, collate_fn=BitTensorDataset.collate_fn)
+    batch = next(iter(loader))
+    inp, out = batch
+    assert inp.ndim == 3 and out.ndim == 3
+    assert inp.shape[0] == 2 and out.shape[0] == 2

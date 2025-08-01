@@ -129,8 +129,11 @@ core:
   weight_init_type: Distribution used for initial synapse weights. ``"uniform"``
     samples values between ``weight_init_min`` and ``weight_init_max``.
     ``"normal"`` draws from a normal distribution with ``weight_init_mean``
-    and ``weight_init_std``. ``"xavier_uniform"`` uses Xavier uniform
-    initialization based on the connection fan-in and fan-out.
+    and ``weight_init_std``. ``"xavier_uniform"`` and ``"xavier_normal"`` use
+    Xavier initialisation based on both the fan-in and fan-out of each
+    connection. ``"kaiming_uniform"`` and ``"kaiming_normal"`` implement
+    Kaiming (He) initialisation for deeper networks. ``"constant"`` sets all
+    weights to ``weight_init_mean``.
   weight_init_strategy: Strategy for the message passing MLP weights. Supports
     ``"uniform"`` and ``"normal"`` with the same semantics as
     ``weight_init_type``.

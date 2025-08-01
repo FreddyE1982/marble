@@ -1755,3 +1755,19 @@ class Neuronenblitz:
             "last_error": float(last_err),
             "dropout_probability": float(self.dropout_probability),
         }
+
+    def reset_learning_state(self) -> None:
+        """Clear caches and optimiser state used during training."""
+
+        with self.lock:
+            self._momentum.clear()
+            self._eligibility_traces.clear()
+            self._prev_gradients.clear()
+            self._path_usage.clear()
+            self.wander_cache.clear()
+            self._cache_order.clear()
+            self.subpath_cache.clear()
+            self._subpath_order.clear()
+            self.replay_buffer.clear()
+            self.replay_priorities.clear()
+            self._grad_sq.clear()

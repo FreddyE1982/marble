@@ -1680,6 +1680,15 @@ class Core:
         if self.weight_init_type == "xavier_uniform":
             limit = math.sqrt(6.0 / (fan_in + fan_out))
             return random.uniform(-limit, limit)
+        if self.weight_init_type == "xavier_normal":
+            std = math.sqrt(2.0 / (fan_in + fan_out))
+            return random.gauss(0.0, std)
+        if self.weight_init_type == "kaiming_uniform":
+            limit = math.sqrt(6.0 / fan_in)
+            return random.uniform(-limit, limit)
+        if self.weight_init_type == "kaiming_normal":
+            std = math.sqrt(2.0 / fan_in)
+            return random.gauss(0.0, std)
         if self.weight_init_type == "constant":
             return self.weight_init_mean
         raise ValueError(f"Unknown weight_init_type: {self.weight_init_type}")

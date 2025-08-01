@@ -369,6 +369,15 @@ class HighLevelPipeline:
             raise IndexError("index out of range")
         return self._execute_steps(self.steps[index:], marble)
 
+    def execute_range(
+        self, start: int, end: int, marble: Any | None = None
+    ) -> tuple[Any | None, list[Any]]:
+        """Execute steps from ``start`` to ``end`` inclusive."""
+
+        if start < 0 or end >= len(self.steps) or start > end:
+            raise IndexError("invalid range")
+        return self._execute_steps(self.steps[start : end + 1], marble)
+
     def save_json(self, path: str) -> None:
         for step in self.steps:
             if "callable" in step:

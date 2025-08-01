@@ -596,3 +596,21 @@ class BitTensorDataset(Dataset):
 
         digest = hashlib.sha256(self.to_json().encode("utf-8")).hexdigest()
         return digest
+
+    @staticmethod
+    def collate_fn(
+        batch: list[tuple[torch.Tensor, torch.Tensor]],
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """Pad and stack a list of dataset items into batch tensors.
+
+        This helper allows :class:`~torch.utils.data.DataLoader` to handle
+        variable-length encoded examples. Each input and target tensor is padded
+        to the longest sequence in the batch using zero padding. The resulting
+        tensors have shape ``(batch, max_len, features)`` where ``features`` is
+        either ``8`` for raw bit streams or ``1`` for vocabulary tokens.
+        """
+
+        inputs, targets = zip(*batch)
+        padded_in = torch.nn.utils.rnn.pad_sequence(inputs, batch_first=True)
+        padded_out = torch.nn.utils.rnn.pad_sequence(targets, batch_first=True)
+        return padded_in, padded_out
