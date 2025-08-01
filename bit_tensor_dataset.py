@@ -14,6 +14,8 @@ import os
 
 import torch
 from torch.utils.data import Dataset
+from memory_pool import MemoryPool
+from crypto_utils import constant_time_compare
 
 
 def is_pickleable(obj: Any) -> bool:
@@ -251,12 +253,8 @@ class BitTensorDataset(Dataset):
                 if self.compress:
                     in_bytes = zlib.compress(in_bytes)
                     out_bytes = zlib.compress(out_bytes)
-                bitstream += flatten_tensor_to_bitstream(
-                    bytes_to_tensors(in_bytes)
-                )
-                bitstream += flatten_tensor_to_bitstream(
-                    bytes_to_tensors(out_bytes)
-                )
+                bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(in_bytes))
+                bitstream += flatten_tensor_to_bitstream(bytes_to_tensors(out_bytes))
             self.vocab = build_vocab(
                 bitstream,
                 min_len=self.min_word_length,
@@ -271,6 +269,10 @@ class BitTensorDataset(Dataset):
             in_tensor = self._obj_to_tensor(inp)
             out_tensor = self._obj_to_tensor(out)
             self.data.append((in_tensor, out_tensor))
+
+        self.index_pool = MemoryPool(dict)
+        self.index: dict[str, int] = self.index_pool.allocate()
+        self.checksums = self._build_index()
 
     def _obj_to_tensor(self, obj: Any) -> torch.Tensor:
         byte_data = object_to_bytes(obj)
@@ -313,12 +315,60 @@ class BitTensorDataset(Dataset):
         """Inverse of :meth:`encode_object`."""
         return self.tensor_to_object(tensor)
 
+    def _hash_pair(self, a: torch.Tensor, b: torch.Tensor) -> str:
+        m = hashlib.sha256()
+        m.update(a.to("cpu").numpy().tobytes())
+        m.update(b.to("cpu").numpy().tobytes())
+        return m.hexdigest()
+
+    def _build_index(self) -> list[str]:
+        self.index.clear()
+        checks: list[str] = []
+        for idx, (a, b) in enumerate(self.data):
+            h = self._hash_pair(a, b)
+            self.index[h] = idx
+            checks.append(h)
+        return checks
+
+    def hash_pair(self, idx: int) -> str:
+        a, b = self.data[idx]
+        return self._hash_pair(a, b)
+
+    def get_by_hash(self, digest: str) -> tuple[torch.Tensor, torch.Tensor]:
+        return self.data[self.index[digest]]
+
+    def deduplicate(self) -> None:
+        unique: dict[str, int] = {}
+        new_raw: list[tuple[Any, Any]] = []
+        new_data: list[tuple[torch.Tensor, torch.Tensor]] = []
+        for pair_raw, pair_tensor in zip(self.raw_data, self.data):
+            h = self._hash_pair(pair_tensor[0], pair_tensor[1])
+            if h not in unique:
+                unique[h] = len(new_data)
+                new_raw.append(pair_raw)
+                new_data.append(pair_tensor)
+        self.raw_data = new_raw
+        self.data = new_data
+        self.checksums = self._build_index()
+
+    def verify_checksums(self) -> None:
+        current = self._build_index()
+        if len(current) != len(self.checksums):
+            raise ValueError("Dataset checksum mismatch")
+        for saved, curr in zip(self.checksums, current):
+            if not constant_time_compare(saved, curr):
+                raise ValueError("Dataset checksum mismatch")
+        self.checksums = current
+
     def add_pair(self, inp: Any, target: Any) -> None:
         """Append a single ``(input, target)`` pair to the dataset."""
         self.raw_data.append((inp, target))
         in_tensor = self._obj_to_tensor(inp)
         out_tensor = self._obj_to_tensor(target)
         self.data.append((in_tensor, out_tensor))
+        h = self._hash_pair(in_tensor, out_tensor)
+        self.index[h] = len(self.data) - 1
+        self.checksums.append(h)
 
     def extend(self, pairs: Iterable[tuple[Any, Any]]) -> None:
         """Add multiple pairs to the dataset."""
@@ -391,19 +441,13 @@ class BitTensorDataset(Dataset):
         debugging by providing a quick overview of key attributes.
         """
 
-        total_elements = sum(
-            a.numel() + b.numel() for a, b in self.data
-        )
+        total_elements = sum(a.numel() + b.numel() for a, b in self.data)
         total_bytes = sum(
             a.element_size() * a.numel() + b.element_size() * b.numel()
             for a, b in self.data
         )
-        avg_len = (
-            float(total_elements) / len(self.data) if self.data else 0.0
-        )
-        avg_bytes = (
-            float(total_bytes) / len(self.data) if self.data else 0.0
-        )
+        avg_len = float(total_elements) / len(self.data) if self.data else 0.0
+        avg_bytes = float(total_bytes) / len(self.data) if self.data else 0.0
         return {
             "num_pairs": len(self.data),
             "vocab_size": self.vocab_size(),
@@ -429,11 +473,14 @@ class BitTensorDataset(Dataset):
             "start_id": self.start_id,
             "device": str(self.device),
             "compress": self.compress,
+            "checksums": self.checksums,
         }
         torch.save(payload, path)
 
     @classmethod
-    def load(cls, path: str, *, device: str | torch.device | None = None) -> "BitTensorDataset":
+    def load(
+        cls, path: str, *, device: str | torch.device | None = None
+    ) -> "BitTensorDataset":
         """Load a dataset previously saved with :meth:`save`."""
         obj = torch.load(path, map_location="cpu")
         ds = cls(
@@ -450,6 +497,10 @@ class BitTensorDataset(Dataset):
             compress=obj["compress"],
         )
         ds.data = [(a.to(ds.device), b.to(ds.device)) for a, b in obj["data"]]
+        ds.index_pool = MemoryPool(dict)
+        ds.index = ds.index_pool.allocate()
+        ds.checksums = obj.get("checksums", [])
+        ds.verify_checksums()
         return ds
 
     def to_dict(self) -> dict[str, Any]:
@@ -462,7 +513,10 @@ class BitTensorDataset(Dataset):
                 in_bytes = zlib.compress(in_bytes)
                 out_bytes = zlib.compress(out_bytes)
             encoded.append(
-                [base64.b64encode(in_bytes).decode("ascii"), base64.b64encode(out_bytes).decode("ascii")]
+                [
+                    base64.b64encode(in_bytes).decode("ascii"),
+                    base64.b64encode(out_bytes).decode("ascii"),
+                ]
             )
         if self.vocab is not None:
             vocab = {" ".join(map(str, k)): v for k, v in self.vocab.items()}
@@ -479,10 +533,13 @@ class BitTensorDataset(Dataset):
             "start_id": self.start_id,
             "device": str(self.device),
             "compress": self.compress,
+            "checksums": self.checksums,
         }
 
     @classmethod
-    def from_dict(cls, obj: dict[str, Any], *, device: str | torch.device | None = None) -> "BitTensorDataset":
+    def from_dict(
+        cls, obj: dict[str, Any], *, device: str | torch.device | None = None
+    ) -> "BitTensorDataset":
         """Reconstruct a dataset from :meth:`to_dict` output."""
         data = []
         for enc_in, enc_out in obj["data"]:
@@ -495,12 +552,10 @@ class BitTensorDataset(Dataset):
             out = bytes_to_object(out_bytes)
             data.append((inp, out))
         if obj.get("vocab") is not None:
-            vocab = {
-                tuple(map(int, k.split())): v for k, v in obj["vocab"].items()
-            }
+            vocab = {tuple(map(int, k.split())): v for k, v in obj["vocab"].items()}
         else:
             vocab = None
-        return cls(
+        ds = cls(
             data,
             use_vocab=obj.get("vocab") is not None,
             vocab=vocab,
@@ -513,13 +568,18 @@ class BitTensorDataset(Dataset):
             device=device or obj.get("device"),
             compress=obj.get("compress", False),
         )
+        ds.checksums = obj.get("checksums", [])
+        ds.verify_checksums()
+        return ds
 
     def to_json(self) -> str:
         """Serialise the dataset to a JSON string."""
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str, *, device: str | torch.device | None = None) -> "BitTensorDataset":
+    def from_json(
+        cls, json_str: str, *, device: str | torch.device | None = None
+    ) -> "BitTensorDataset":
         """Load a dataset from a JSON string produced by :meth:`to_json`."""
         obj = json.loads(json_str)
         return cls.from_dict(obj, device=device)
@@ -567,6 +627,7 @@ class BitTensorDataset(Dataset):
         self.data = [
             (self._obj_to_tensor(a), self._obj_to_tensor(b)) for a, b in new_raw
         ]
+        self.checksums = self._build_index()
 
     def filter_pairs(self, predicate: Callable[[Any, Any], bool]) -> None:
         """Remove pairs for which ``predicate`` returns ``False``."""
@@ -579,6 +640,7 @@ class BitTensorDataset(Dataset):
                 keep_data.append((t_in, t_out))
         self.raw_data = keep_raw
         self.data = keep_data
+        self.checksums = self._build_index()
 
     def shuffle(self, *, generator: torch.Generator | None = None) -> None:
         """Randomly shuffle dataset order in-place."""
@@ -586,6 +648,7 @@ class BitTensorDataset(Dataset):
         idx = torch.randperm(len(self.data), generator=generator).tolist()
         self.raw_data = [self.raw_data[i] for i in idx]
         self.data = [self.data[i] for i in idx]
+        self.checksums = self._build_index()
 
     def split(
         self,
@@ -663,11 +726,9 @@ class BitTensorDataset(Dataset):
         scored: list[tuple[float, tuple[Any, Any]]] = []
         for inp, out in self.iter_decoded():
             h = hashlib.sha256(
-                object_to_bytes(inp)
-                + object_to_bytes(out)
-                + salt.encode("utf-8")
+                object_to_bytes(inp) + object_to_bytes(out) + salt.encode("utf-8")
             ).digest()
-            frac = int.from_bytes(h[:8], "big") / 2 ** 64
+            frac = int.from_bytes(h[:8], "big") / 2**64
             scored.append((frac, (inp, out)))
 
         scored.sort(key=lambda x: x[0])

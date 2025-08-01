@@ -249,8 +249,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 117. [ ] Add asynchronous streaming loader in `BitTensorDataset` integrating with the remote offload service.
 118. [ ] Introduce pluggable compression modules so the pipeline can swap algorithms transparently.
 119. [ ] Implement encryption of stored objects using Marble Core cryptographic utilities.
-120. [ ] Provide deduplication to avoid storing identical bit streams across datasets.
-121. [ ] Add index generation for constant-time retrieval integrated with the memory pool.
+120. [x] Provide deduplication to avoid storing identical bit streams across datasets.
+121. [x] Add index generation for constant-time retrieval integrated with the memory pool.
 122. [ ] Develop shared vocabulary management so multiple datasets keep a unified encoding.
 123. [ ] Integrate GPU-accelerated encoding and decoding using core operations.
 124. [ ] Enable background prefetching and caching to support asynchronous pipelines.
@@ -260,7 +260,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 128. [ ] Provide an interactive dataset browser in the Streamlit GUI for manual review.
 129. [ ] Stream data directly from compressed archives without extraction.
 130. [ ] Add a bit-level augmentation pipeline for flipping and noisy bits.
-131. [ ] Verify data integrity with checksums relying on marble core utilities.
+131. [x] Verify data integrity with checksums relying on marble core utilities.
 132. [ ] Automatically prune invalid or corrupted entries with callback hooks.
 133. [x] Cache encoded bitstreams on disk for fast reload between runs.
 134. [ ] Coordinate dataset memory usage with Marble Core's `MemoryPool`.
@@ -269,7 +269,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 137. [ ] Allow in-place patching of datasets while training is running.
 138. [ ] Manage encryption keys through pipeline configuration files.
 139. [ ] Adapt vocabulary dynamically when new words appear during training.
-140. [ ] Audit data integrity through checksums and object hashes.
+140. [x] Audit data integrity through checksums and object hashes.
 141. [ ] Provide a plugin system for custom object encoders and decoders.
 142. [ ] Support memory-mapped files so huge datasets fit into RAM.
 143. [ ] Track modification history with the ability to revert changes.
