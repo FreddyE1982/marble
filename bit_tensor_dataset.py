@@ -9,6 +9,7 @@ import base64
 import hashlib
 from collections import Counter
 from typing import Any, Iterable, Callable
+import requests
 import os
 
 import torch
@@ -62,6 +63,27 @@ def unflatten_bitstream_to_tensor(bitstream: list[int]) -> torch.Tensor:
     padding = (8 - len(bitstream) % 8) % 8
     bitstream += [0] * padding
     return torch.tensor(bitstream, dtype=torch.uint8).view(-1, 8)
+
+
+def _read_stream(
+    url: str,
+    chunk_size: int = 8192,
+    max_bytes: int | None = None,
+    timeout: float | None = None,
+) -> bytes:
+    """Return bytes downloaded from ``url`` using streaming requests."""
+    with requests.get(url, stream=True, timeout=timeout) as resp:
+        resp.raise_for_status()
+        data = bytearray()
+        for chunk in resp.iter_content(chunk_size=chunk_size):
+            if not chunk:
+                continue
+            data.extend(chunk)
+            if max_bytes is not None and len(data) >= max_bytes:
+                break
+    if max_bytes is not None:
+        return bytes(data[:max_bytes])
+    return bytes(data)
 
 
 def build_vocab(
@@ -302,6 +324,36 @@ class BitTensorDataset(Dataset):
         """Add multiple pairs to the dataset."""
         for inp, target in pairs:
             self.add_pair(inp, target)
+
+    def add_stream_pair(
+        self,
+        input_url: str | None = None,
+        target_url: str | None = None,
+        *,
+        input_processor: Callable[[bytes], Any] | None = None,
+        target_processor: Callable[[bytes], Any] | None = None,
+        chunk_size: int = 8192,
+        max_bytes: int | None = None,
+        timeout: float | None = None,
+    ) -> None:
+        """Download stream data from ``input_url`` and ``target_url`` and add it."""
+
+        if input_url is None and target_url is None:
+            raise ValueError("at least one of input_url or target_url must be provided")
+
+        inp_obj = None
+        tgt_obj = None
+        if input_url is not None:
+            data = _read_stream(input_url, chunk_size, max_bytes, timeout)
+            inp_obj = input_processor(data) if input_processor else data
+        if target_url is not None:
+            data = _read_stream(target_url, chunk_size, max_bytes, timeout)
+            tgt_obj = target_processor(data) if target_processor else data
+
+        if inp_obj is None or tgt_obj is None:
+            raise ValueError("both input and target streams must be provided")
+
+        self.add_pair(inp_obj, tgt_obj)
 
     def get_vocab(self):
         return self.vocab

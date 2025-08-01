@@ -81,6 +81,8 @@ footprint for convenient logging. Datasets can be serialised to JSON with
 ``BitTensorDataset.add_pair`` and ``BitTensorDataset.extend`` allow dynamically
 appending new training samples using the current vocabulary and device
 configuration.
+``BitTensorDataset.add_stream_pair`` can ingest audio or video streams directly
+from a URL, converting the downloaded bytes into dataset pairs on the fly.
 
 Datasets can now be cached on disk using ``BitTensorDataset.cached`` to avoid
 re-encoding pairs on subsequent runs. Deterministic splitting into training,

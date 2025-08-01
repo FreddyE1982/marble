@@ -209,3 +209,35 @@ def test_dataset_cached(tmp_path):
     ds2 = BitTensorDataset.cached(data2, path)
     assert len(ds2) == len(ds1)
     assert ds2.hash() == ds1.hash()
+
+
+def test_add_stream_pair(tmp_path):
+    import http.server
+    import socketserver
+    import threading
+
+    content = b"stream-data"
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(content)))
+            self.end_headers()
+            self.wfile.write(content)
+
+    with socketserver.TCPServer(("localhost", 0), Handler) as httpd:
+        port = httpd.server_address[1]
+        thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+        thread.start()
+
+        url = f"http://localhost:{port}"
+        ds = BitTensorDataset([])
+        ds.add_stream_pair(url, url)
+
+        httpd.shutdown()
+        thread.join()
+
+    assert len(ds) == 1
+    inp, tgt = ds[0]
+    assert ds.tensor_to_object(inp) == content
+    assert ds.tensor_to_object(tgt) == content
