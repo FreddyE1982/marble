@@ -472,6 +472,13 @@ def test_pipeline_tab_graph_and_clear():
     assert at.session_state["pipeline"] == []
 
 
+def test_pipeline_step_visualisation():
+    at = _setup_advanced_playground()
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+    expanders = [e.label for e in pipe_tab.expander]
+    assert "Step Visualisation" in expanders
+
+
 def test_lobe_manager_actions():
     at = _setup_advanced_playground()
     lobe_tab = next(t for t in at.tabs if t.label == "Lobe Manager")
