@@ -83,6 +83,9 @@ class MARBLE:
         dl_enabled = True
         dl_dtype = "uint8"
         tokenizer = None
+        track_meta = True
+        enable_rtc = False
+        rt_penalty = 0.0
         if dataloader_params is not None:
             dl_level = dataloader_params.get("compression_level", dl_level)
             dl_enabled = dataloader_params.get("compression_enabled", True)
