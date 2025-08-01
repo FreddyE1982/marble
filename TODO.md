@@ -254,15 +254,15 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 122. [ ] Develop shared vocabulary management so multiple datasets keep a unified encoding.
 123. [ ] Integrate GPU-accelerated encoding and decoding using core operations.
 124. [ ] Enable background prefetching and caching to support asynchronous pipelines.
-125. [ ] Implement dataset merging with conflict resolution logic.
-126. [ ] Support deterministic splitting into train, validation and test sets via hashing.
+125. [x] Implement dataset merging with conflict resolution logic.
+126. [x] Support deterministic splitting into train, validation and test sets via hashing.
 127. [ ] Offer dataset versioning with reversible diffs to update existing sets.
 128. [ ] Provide an interactive dataset browser in the Streamlit GUI for manual review.
 129. [ ] Stream data directly from compressed archives without extraction.
 130. [ ] Add a bit-level augmentation pipeline for flipping and noisy bits.
 131. [ ] Verify data integrity with checksums relying on marble core utilities.
 132. [ ] Automatically prune invalid or corrupted entries with callback hooks.
-133. [ ] Cache encoded bitstreams on disk for fast reload between runs.
+133. [x] Cache encoded bitstreams on disk for fast reload between runs.
 134. [ ] Coordinate dataset memory usage with Marble Core's `MemoryPool`.
 135. [ ] Execute transformations asynchronously during idle GPU cycles.
 136. [ ] Shard datasets for distributed training using core distributed helpers.

@@ -82,6 +82,11 @@ footprint for convenient logging. Datasets can be serialised to JSON with
 appending new training samples using the current vocabulary and device
 configuration.
 
+Datasets can now be cached on disk using ``BitTensorDataset.cached`` to avoid
+re-encoding pairs on subsequent runs. Deterministic splitting into training,
+validation and test sets is available via ``split_deterministic`` which hashes
+each pair to ensure identical partitions regardless of ordering.
+
 Several helper pipelines leverage ``BitTensorDataset`` to train various
 learning paradigms on arbitrary Python objects, including ``AutoencoderPipeline``,
 ``ContrastivePipeline``, ``DiffusionPairsPipeline``, ``UnifiedPairsPipeline``,

@@ -174,3 +174,38 @@ def test_bit_tensor_dataset_collate_fn():
     inp, out = batch
     assert inp.ndim == 3 and out.ndim == 3
     assert inp.shape[0] == 2 and out.shape[0] == 2
+
+
+def test_split_deterministic_consistent():
+    pairs = [(i, i + 1) for i in range(10)]
+    ds1 = BitTensorDataset(pairs)
+    train1, val1, test1 = ds1.split_deterministic(0.6, 0.2, salt="seed")
+
+    ds2 = BitTensorDataset(list(reversed(pairs)))
+    train2, val2, test2 = ds2.split_deterministic(0.6, 0.2, salt="seed")
+
+    assert list(train1.iter_decoded()) == list(train2.iter_decoded())
+    assert list(val1.iter_decoded()) == list(val2.iter_decoded())
+    assert list(test1.iter_decoded()) == list(test2.iter_decoded())
+
+
+def test_dataset_merge(tmp_path):
+    a = BitTensorDataset([(1, "a"), (2, "b")])
+    b = BitTensorDataset([(2, "c"), (3, "d")])
+    merged = a.merge(b, prefer="self")
+    assert len(merged) == 3
+    assert dict(merged.iter_decoded())[2] == "b"
+    merged_other = a.merge(b, prefer="other")
+    assert dict(merged_other.iter_decoded())[2] == "c"
+
+
+def test_dataset_cached(tmp_path):
+    path = tmp_path / "cache.pt"
+    data1 = [(1, 2), (3, 4)]
+    ds1 = BitTensorDataset.cached(data1, path)
+    assert path.exists()
+
+    data2 = [(5, 6)]
+    ds2 = BitTensorDataset.cached(data2, path)
+    assert len(ds2) == len(ds1)
+    assert ds2.hash() == ds1.hash()

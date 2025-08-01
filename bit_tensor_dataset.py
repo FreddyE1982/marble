@@ -9,6 +9,7 @@ import base64
 import hashlib
 from collections import Counter
 from typing import Any, Iterable, Callable
+import os
 
 import torch
 from torch.utils.data import Dataset
@@ -590,6 +591,121 @@ class BitTensorDataset(Dataset):
                 compress=self.compress,
             ),
         )
+
+    def split_deterministic(
+        self,
+        train_ratio: float,
+        val_ratio: float,
+        *,
+        salt: str = "",
+    ) -> tuple["BitTensorDataset", "BitTensorDataset", "BitTensorDataset"]:
+        """Deterministically split dataset into train/val/test using hashing."""
+
+        if not 0.0 < train_ratio < 1.0:
+            raise ValueError("train_ratio must be between 0 and 1")
+        if not 0.0 <= val_ratio < 1.0:
+            raise ValueError("val_ratio must be between 0 and 1")
+        if train_ratio + val_ratio >= 1.0:
+            raise ValueError("train_ratio + val_ratio must be < 1")
+
+        scored: list[tuple[float, tuple[Any, Any]]] = []
+        for inp, out in self.iter_decoded():
+            h = hashlib.sha256(
+                object_to_bytes(inp)
+                + object_to_bytes(out)
+                + salt.encode("utf-8")
+            ).digest()
+            frac = int.from_bytes(h[:8], "big") / 2 ** 64
+            scored.append((frac, (inp, out)))
+
+        scored.sort(key=lambda x: x[0])
+
+        train_cut = train_ratio
+        val_cut = train_ratio + val_ratio
+
+        train_raw: list[tuple[Any, Any]] = []
+        val_raw: list[tuple[Any, Any]] = []
+        test_raw: list[tuple[Any, Any]] = []
+
+        for frac, pair in scored:
+            if frac < train_cut:
+                train_raw.append(pair)
+            elif frac < val_cut:
+                val_raw.append(pair)
+            else:
+                test_raw.append(pair)
+
+        def _make(raw: list[tuple[Any, Any]]) -> "BitTensorDataset":
+            return BitTensorDataset(
+                raw,
+                use_vocab=self.use_vocab,
+                vocab=self.vocab,
+                mixed=self.mixed,
+                max_vocab_size=self.max_vocab_size,
+                min_word_length=self.min_word_length,
+                max_word_length=self.max_word_length,
+                min_occurrence=self.min_occurrence,
+                start_id=self.start_id,
+                device=self.device,
+                compress=self.compress,
+            )
+
+        return _make(train_raw), _make(val_raw), _make(test_raw)
+
+    def merge(
+        self, other: "BitTensorDataset", *, prefer: str = "self"
+    ) -> "BitTensorDataset":
+        """Merge two datasets resolving conflicts by ``prefer``."""
+
+        if prefer not in {"self", "other", "raise"}:
+            raise ValueError("prefer must be 'self', 'other' or 'raise'")
+
+        result: dict[str, tuple[Any, Any]] = {
+            hashlib.sha256(object_to_bytes(i)).hexdigest(): (i, t)
+            for i, t in self.iter_decoded()
+        }
+        for inp, tgt in other.iter_decoded():
+            key = hashlib.sha256(object_to_bytes(inp)).hexdigest()
+            if key in result:
+                existing = result[key][1]
+                if existing != tgt:
+                    if prefer == "other":
+                        result[key] = (inp, tgt)
+                    elif prefer == "raise":
+                        raise ValueError("conflicting target for input")
+            else:
+                result[key] = (inp, tgt)
+
+        merged_raw = list(result.values())
+        return BitTensorDataset(
+            merged_raw,
+            use_vocab=self.use_vocab,
+            vocab=self.vocab,
+            mixed=self.mixed,
+            max_vocab_size=self.max_vocab_size,
+            min_word_length=self.min_word_length,
+            max_word_length=self.max_word_length,
+            min_occurrence=self.min_occurrence,
+            start_id=self.start_id,
+            device=self.device,
+            compress=self.compress,
+        )
+
+    @classmethod
+    def cached(
+        cls,
+        data: Iterable[tuple[Any, Any]],
+        cache_path: str,
+        **kwargs,
+    ) -> "BitTensorDataset":
+        """Load dataset from ``cache_path`` or create and cache it."""
+
+        if os.path.exists(cache_path):
+            return cls.load(cache_path)
+        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+        ds = cls(list(data), **kwargs)
+        ds.save(cache_path)
+        return ds
 
     def hash(self) -> str:
         """Return SHA256 hash of the dataset contents."""
