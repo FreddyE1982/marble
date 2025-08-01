@@ -70,10 +70,13 @@ possible to train on multimodal pairs such as text-to-image, image-to-text or
 even audio and arbitrary byte blobs without additional conversion steps. When
 operating directly on the bit level, ``BitTensorDataset`` can convert objects
 into binary tensors and optionally build a shared vocabulary for compact
-storage. A ``compress`` option uses ``zlib`` to shrink the byte representation
-before conversion, reducing dataset size when storing large objects.
-You can also pass an existing ``vocab`` dictionary to reuse the same mapping
-across multiple datasets for consistent encoding.
+storage. The helper ``shared_vocab.build_shared_vocab`` can merge multiple data
+sources into one vocabulary so disparate datasets share identical encodings.
+A ``compress`` option uses ``zlib`` to shrink the byte representation before
+conversion, reducing dataset size when storing large objects. Encoding and
+decoding operations are accelerated with vectorised PyTorch kernels that run on
+CPU or GPU automatically. You can also pass an existing ``vocab`` dictionary to
+reuse the same mapping across multiple datasets for consistent encoding.
 ``BitTensorDataset.summary`` provides quick statistics about the stored pairs,
 vocabulary size, device placement and now also the total and average byte
 footprint for convenient logging. Datasets can be serialised to JSON with
