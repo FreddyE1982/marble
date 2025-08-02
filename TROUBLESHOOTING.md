@@ -31,3 +31,8 @@ not covered by the test suite and some optional features may be unavailable.
 * **Global workspace messages not appearing** – Ensure `global_workspace.enabled` is `true` in your configuration and that the plugin is activated before other plugins.
 * **Attention codelets have no effect** – Verify that `attention_codelets.enabled` is `true` and that at least one codelet has been registered. Call `attention_codelets.run_cycle()` during training to broadcast proposals.
 * **Remote hardware tier unavailable** – Ensure `remote_hardware.tier_plugin` points to a valid module and that the remote service is reachable from the network.
+
+## Networking Issues
+* **Dataset cache server not reachable** – Start `DatasetCacheServer` on the host machine and set `dataset.cache_url` correctly in `config.yaml`.
+* **Distributed training hangs** – Verify all workers can connect to the master address and that `init_distributed` uses a unique port.
+* **Remote offload timeouts** – Confirm `RemoteBrainServer` is running and any authentication token matches the client configuration.

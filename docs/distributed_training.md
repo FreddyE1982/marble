@@ -14,3 +14,10 @@ weights are written back to every worker so all models remain in sync without
 altering the core learning logic. `DistributedTrainer` accepts a configurable
 `world_size` and `backend` (``gloo`` by default) allowing the same interface to
 scale from a single machine to a small cluster.
+
+Workers require `init_distributed` to run before constructing `Core` instances.
+Set `MASTER_ADDR` and `MASTER_PORT` environment variables when launching across
+machines. Datasets can be synchronised by combining `DatasetCacheServer` with
+the `dataset_replication` helpers so each rank pulls the same shards. After
+training, metrics can be visualised live through `metrics_dashboard` when all
+workers log to a shared directory.

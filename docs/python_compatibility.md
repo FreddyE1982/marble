@@ -12,3 +12,5 @@ require shims on older versions:
 Continuous integration runs the full test suite on Python 3.10 and 3.12 to guarantee that new
 changes remain compatible. The `scripts/convert_to_py38.py` tool can be used to backport the
 code to Python 3.8/3.9, but these runtimes are no longer officially supported.
+The `pycompat` module centralises these shims so components like
+`remote_offload` and `dataset_cache_server` remain usable on older interpreters.
