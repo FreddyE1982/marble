@@ -30,9 +30,17 @@ neurogenesis and consolidation and updates metrics.
 ### Remote Hardware Plugins
 MARBLE can offload computation to specialized devices through a plugin system. Provide a module defining `get_remote_tier` and set `remote_hardware.tier_plugin` in `config.yaml` to enable it. The included `GrpcRemoteTier` communicates with a gRPC service.
 
+### Plugin System
+Beyond hardware acceleration, MARBLE exposes a lightweight plugin framework.
+Modules listed under the top-level `plugins` key in `config.yaml` are imported
+on start-up and may register new neuron or synapse types, background services or
+other utilities via a `register(brain)` function. This enables experimentation
+without modifying the core codebase.
+
 ## Data Compression Pipeline
 The `DataLoader` converts arbitrary Python objects or arrays into binary
-tensors using the `DataCompressor`:
+representations using the `DataCompressor` and can optionally cache them via
+`BitTensorDataset`:
 
 1. **Serialize** – objects are pickled or converted to NumPy arrays.
 2. **Binary Conversion** – the raw bytes are turned into a stream of bits
@@ -40,12 +48,13 @@ tensors using the `DataCompressor`:
 3. **Compression** – `zlib.compress` is applied with a configurable
    compression level.
 4. **Decoding** performs the exact inverse: decompress, convert bits back
-   to bytes and unpickle.  This guarantees full transitivity so that the
-   original object is recovered exactly.
+   to bytes and unpickle.  Cached datasets are keyed by a shared vocabulary so
+   multiple processes can reuse encodings.  Deterministic splitting and optional
+   on-disk caching allow large corpora to be reused across runs.
 
-Throughout training the compression ratio is logged in
+Throughout training the compression ratio and cache hit rate are logged in
 `MetricsVisualizer` which allows monitoring of the overhead introduced by
-compression.
+compression and the effectiveness of caching.
 
 ## Component Interaction
 1. Input data from the outside world is fed through `DataLoader.encode`

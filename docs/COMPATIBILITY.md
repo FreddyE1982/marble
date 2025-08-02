@@ -1,6 +1,8 @@
 # Python Version Compatibility
 
-MARBLE primarily targets Python 3.11 but can run on Python 3.8 and 3.9 with a preprocessing step.
+MARBLE targets Python 3.10 and newer. The library can still be transformed to run on
+Python 3.8 or 3.9 using a preprocessing step, but these versions are considered
+experimental.
 
 ## Incompatible Features
 
@@ -19,8 +21,9 @@ python scripts/convert_to_py38.py path/to/marble
 
 ## Continuous Integration
 
-The CI pipeline tests the library on Python 3.8, 3.9 and 3.11 to ensure basic
-compatibility. Some optional features may be disabled on older versions.
+The CI pipeline tests the library on Python 3.10 and 3.12 to ensure basic
+compatibility. Backporting to Python 3.8/3.9 is not covered by automated tests
+and may require additional validation.
 
 ## Limitations
 

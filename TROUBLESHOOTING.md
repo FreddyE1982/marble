@@ -22,8 +22,10 @@ This guide lists common issues when running MARBLE and how to solve them.
 
 For further help open an issue on the project repository with your configuration and logs.
 
-## Python 3.8/3.9 Support
-MARBLE uses modern type hint syntax. Run `scripts/convert_to_py38.py` on the source tree when using Python 3.8 or 3.9. Some optional features may be unavailable.
+## Python Version Support
+MARBLE officially supports Python 3.10 and above. The `scripts/convert_to_py38.py`
+helper can backport the source tree for Python 3.8 or 3.9, but these runtimes are
+not covered by the test suite and some optional features may be unavailable.
 
 ## Plugin Troubleshooting
 * **Global workspace messages not appearing** – Ensure `global_workspace.enabled` is `true` in your configuration and that the plugin is activated before other plugins.

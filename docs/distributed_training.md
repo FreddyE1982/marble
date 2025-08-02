@@ -6,7 +6,11 @@ synchronisation of gradients and parameters on both CPU and GPU backends. For
 clusters that span multiple machines, libraries such as Horovod offer
 additional orchestration and elastic scaling.
 
-The provided `DistributedTrainer` wrapper initialises a Torch distributed
-process group and averages synapse weights after each training batch. This
-ensures all workers remain in sync without introducing significant changes to
-the core algorithms.
+The `distributed_training.DistributedTrainer` helper spawns one worker per
+process with `torch.multiprocessing.spawn`. Each worker initialises a
+distributed process group via `init_distributed`, trains locally and then
+averages synapse weights using `torch.distributed.all_reduce`. The averaged
+weights are written back to every worker so all models remain in sync without
+altering the core learning logic. `DistributedTrainer` accepts a configurable
+`world_size` and `backend` (``gloo`` by default) allowing the same interface to
+scale from a single machine to a small cluster.

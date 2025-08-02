@@ -3,6 +3,19 @@
 This file enumerates every parameter that can be specified in `config.yaml`.
 Each entry is listed under its section heading.
 
+## dataset
+- num_shards
+- shard_index
+- offline
+- encryption_key
+
+## logging
+- structured
+- log_file
+
+## plugins
+- (list of module import paths to load)
+
 ## core
 - xmin
 - xmax
@@ -68,10 +81,8 @@ Each entry is listed under its section heading.
 - cwfl
 - harmonic
 - fractal
-- cross_tier_migration
 - synapse_echo_length
 - synapse_echo_decay
-- global_phase_rate
 - interconnection_prob
 
 ## neuronenblitz
