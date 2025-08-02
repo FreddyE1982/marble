@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 import math
 import multiprocessing as mp
@@ -8,7 +9,6 @@ import random
 import threading
 from collections import deque
 from datetime import datetime, timezone
-import json
 
 import numpy as np
 
@@ -184,7 +184,7 @@ class Neuronenblitz:
         torrent_map=None,
         metrics_visualizer=None,
     ):
-        self.core = core
+        self.attach_core(core)
         self.backtrack_probability = backtrack_probability
         self.consolidation_probability = consolidation_probability
         self.consolidation_strength = consolidation_strength
@@ -359,6 +359,27 @@ class Neuronenblitz:
             n_plugin.register(self)
         except Exception:
             pass
+
+    def attach_core(self, core) -> None:
+        """Attach to ``core`` and register with it.
+
+        Parameters
+        ----------
+        core:
+            The :class:`~marble_core.Core` instance to connect with.
+
+        Notes
+        -----
+        Sets ``self.core`` and stores ``self`` on ``core`` via
+        :meth:`core.attach_neuronenblitz` when available. This creates a
+        bidirectional link so both objects can access each other directly.
+        """
+
+        self.core = core
+        if hasattr(core, "attach_neuronenblitz"):
+            core.attach_neuronenblitz(self)
+        else:  # pragma: no cover - legacy path
+            setattr(core, "neuronenblitz", self)
 
     def __getstate__(self):
         state = self.__dict__.copy()

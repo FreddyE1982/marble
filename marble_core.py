@@ -1,25 +1,25 @@
 # ruff: noqa
 from __future__ import annotations
 
+import contextlib
 import copy
+import functools
 import os
 import pickle
 import random
 import time
-import functools
 from collections import deque
-from memory_pool import MemoryPool
 from datetime import datetime
-from typing import Any, Hashable, Callable
-import contextlib
+from typing import Any, Callable, Hashable
 
 import numpy as np
-
-from marble_base import MetricsVisualizer
-from marble_imports import *  # noqa: F401,F403,F405
 import torch
 import torch.distributed as dist
 from tokenizers import Tokenizer
+
+from marble_base import MetricsVisualizer
+from marble_imports import *  # noqa: F401,F403,F405
+from memory_pool import MemoryPool
 
 
 def init_distributed(world_size: int, rank: int = 0, backend: str = "gloo") -> bool:
@@ -55,6 +55,7 @@ def cleanup_distributed() -> None:
 
     if dist.is_available() and dist.is_initialized():  # pragma: no cover
         dist.destroy_process_group()
+
 
 # Representation size for GNN-style message passing
 _REP_SIZE = 4
@@ -932,13 +933,24 @@ class Neuron:
             if torch.is_tensor(value):
                 return torch.nn.functional.gelu(value)
             elif isinstance(value, cp.ndarray):
-                return 0.5 * value * (
-                    1.0 + cp.tanh(cp.sqrt(2.0 / cp.pi) * (value + 0.044715 * value**3))
+                return (
+                    0.5
+                    * value
+                    * (
+                        1.0
+                        + cp.tanh(cp.sqrt(2.0 / cp.pi) * (value + 0.044715 * value**3))
+                    )
                 )
             else:
-                return 0.5 * value * (
-                    1.0
-                    + math.tanh(math.sqrt(2.0 / math.pi) * (value + 0.044715 * value**3))
+                return (
+                    0.5
+                    * value
+                    * (
+                        1.0
+                        + math.tanh(
+                            math.sqrt(2.0 / math.pi) * (value + 0.044715 * value**3)
+                        )
+                    )
                 )
         elif self.neuron_type == "sigmoid":
             if torch.is_tensor(value):
@@ -1208,7 +1220,9 @@ class Synapse:
             if torch.is_tensor(source_value):
                 return source_value * 0
             return 0.0 if not isinstance(source_value, cp.ndarray) else source_value * 0
-        out = source_value * w if not torch.is_tensor(source_value) else source_value * w
+        out = (
+            source_value * w if not torch.is_tensor(source_value) else source_value * w
+        )
         if self.synapse_type == "batchnorm":
             if torch.is_tensor(out):
                 arr = out.detach().cpu().numpy()
@@ -1218,8 +1232,12 @@ class Synapse:
                 arr = np.asarray(out)
             mean = arr.mean()
             var = arr.var()
-            self.running_mean = self.momentum * mean + (1 - self.momentum) * self.running_mean
-            self.running_var = self.momentum * var + (1 - self.momentum) * self.running_var
+            self.running_mean = (
+                self.momentum * mean + (1 - self.momentum) * self.running_mean
+            )
+            self.running_var = (
+                self.momentum * var + (1 - self.momentum) * self.running_var
+            )
             norm = (arr - self.running_mean) / np.sqrt(self.running_var + 1e-5)
             if torch.is_tensor(out):
                 out = torch.as_tensor(norm, device=out.device)
@@ -1428,7 +1446,10 @@ class DataLoader:
             if isinstance(data, typ):
                 plugin_type = typ.__name__
                 data_bytes = enc(data)
-                payload = {"__marble_plugin__": {"type": plugin_type}, "payload": data_bytes}
+                payload = {
+                    "__marble_plugin__": {"type": plugin_type},
+                    "payload": data_bytes,
+                }
                 serialized = pickle.dumps(payload)
                 break
         else:
@@ -1439,7 +1460,10 @@ class DataLoader:
                 data = np.asarray(ids, dtype=np.int32)
                 tokenized = True
             if self.track_metadata:
-                meta = {"module": original_type.__module__, "type": original_type.__name__}
+                meta = {
+                    "module": original_type.__module__,
+                    "type": original_type.__name__,
+                }
                 if tokenized:
                     meta["tokenized"] = True
                 payload = {"__marble_meta__": meta, "payload": data}
@@ -1702,6 +1726,27 @@ class Core:
         self.check_memory_usage()
         if self.tier_autotune_enabled:
             self.autotune_tiers()
+        # Neuronenblitz instance attached to this core, if any
+        self.neuronenblitz = None
+
+    def attach_neuronenblitz(self, nb: "Neuronenblitz") -> None:
+        """Attach a Neuronenblitz instance for bidirectional access.
+
+        Parameters
+        ----------
+        nb:
+            The :class:`~marble_neuronenblitz.Neuronenblitz` instance to attach.
+
+        Notes
+        -----
+        Stores ``nb`` on ``self`` and ensures ``nb.core`` references this
+        ``Core``. This enables both objects to look each other up without
+        manual wiring by the caller.
+        """
+
+        self.neuronenblitz = nb
+        if getattr(nb, "core", None) is not self:
+            nb.core = self
 
     def _init_weight(self, fan_in: int = 1, fan_out: int = 1) -> float:
         """Return an initial synapse weight based on configuration."""
@@ -1841,7 +1886,9 @@ class Core:
             neuron.synapses = [s for s in new_syn if s.source == neuron.id]
         for idx in to_remove:
             self.neuron_pool.release(self.neurons[idx])
-        removed_syn = [s for s in self.synapses if s.source in to_remove or s.target in to_remove]
+        removed_syn = [
+            s for s in self.synapses if s.source in to_remove or s.target in to_remove
+        ]
         for syn in removed_syn:
             self.synapse_pool.release(syn)
         self.neurons = remaining
