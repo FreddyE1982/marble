@@ -28,5 +28,13 @@ This document lists the main classes and functions intended for external use.
 - `memory_manager.MemoryManager`
 - `config_sync_service.ConfigSyncService`
 - `highlevel_pipeline.HighLevelPipeline`
+- `dataset_loader.load_dataset`
+- `dataset_loader.prefetch_dataset`
+- `dataset_versioning.create_version`
+- `dataset_versioning.apply_version`
+- `dataset_replication.replicate_dataset`
+- `pipeline.Pipeline`
+- `model_quantization.quantize_core_weights`
+- `experiment_tracker.ExperimentTracker`
 
 These APIs are kept stable across minor versions. Internal helpers not listed here may change without notice.

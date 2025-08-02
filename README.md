@@ -120,6 +120,15 @@ each pair to ensure identical partitions regardless of ordering.
 
 Datasets can also be shared across machines via ``DatasetCacheServer``. Start the server on one node and set ``dataset.cache_url`` in ``config.yaml`` so other nodes fetch files from the cache automatically before downloading.
 
+``dataset_versioning`` tracks changes to training pairs over time.  After calling
+``create_version`` the resulting diff file can be reapplied with
+``apply_version`` or sent to collaborators for reproducible experiments.
+``dataset_replication.replicate_dataset`` pushes a local file to multiple
+HTTP endpoints so that remote workers receive identical copies.  When combined
+with the high level ``dataset_loader`` utility, datasets can be prefetched,
+sharded and cached transparently using a memory pool and optional metrics
+visualisation.
+
 Several helper pipelines leverage ``BitTensorDataset`` to train various
 learning paradigms on arbitrary Python objects, including ``AutoencoderPipeline``,
 ``ContrastivePipeline``, ``DiffusionPairsPipeline``, ``UnifiedPairsPipeline``,
@@ -141,6 +150,18 @@ python cli.py --config path/to/cfg.yaml --train data.csv --epochs 10 \
 Use ``--save`` to persist the entire MARBLE object with pickle and
 ``--export-core`` to write just the core for later loading via
 ``import_core_from_json``.
+
+Complex training workflows defined in YAML can be launched through
+``pipeline_cli.py``.  It loads ``pipeline`` sections from a configuration file
+and executes the referenced learning pipeline end-to-end without additional
+scripting:
+
+```bash
+python pipeline_cli.py --config pipeline.yaml --pipeline unified_pairs
+```
+
+Each pipeline consumes standard datasets and honours the same logging and
+sharding options as the regular CLI.
 
 ### Manual Config Synchronisation
 
@@ -400,6 +421,12 @@ An additional `attention_codelets` plugin can broadcast the output of custom
 codelets through the workspace. Register your own codelets via
 `attention_codelets.register_codelet` and invoke
 `attention_codelets.run_cycle()` during training.
+
+For heavy computation on dedicated accelerators the `remote_offload` plugin
+spawns a `RemoteBrainServer` that executes message passing and learning steps on
+another machine. Local clients interact with it transparently through
+`RemoteBrainClient`, enabling lightweight control nodes with powerful remote
+workers.
 
 ## PyTorch to MARBLE Conversion
 The project ships with a converter that maps PyTorch models into the MARBLE
