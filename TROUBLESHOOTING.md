@@ -32,6 +32,18 @@ not covered by the test suite and some optional features may be unavailable.
 * **Attention codelets have no effect** – Verify that `attention_codelets.enabled` is `true` and that at least one codelet has been registered. Call `attention_codelets.run_cycle()` during training to broadcast proposals.
 * **Remote hardware tier unavailable** – Ensure `remote_hardware.tier_plugin` points to a valid module and that the remote service is reachable from the network.
 
+## Experiment Tracker Issues
+* **Weights & Biases login failures** – Ensure the `WANDB_API_KEY` environment
+  variable is set or run `wandb login` before training.
+* **Missing metrics** – Call `tracker.log_metrics` during training and invoke
+  `tracker.finish()` at shutdown to flush pending logs.
+
+## Dataset Versioning Issues
+* **Version diff not applied** – Verify the path passed to `apply_version`
+  contains the saved version files.
+* **Replication targets unreachable** – Confirm all URLs given to
+  `dataset_replication.replicate_dataset` are accessible from the current host.
+
 ## Networking Issues
 * **Dataset cache server not reachable** – Start `DatasetCacheServer` on the host machine and set `dataset.cache_url` correctly in `config.yaml`.
 * **Distributed training hangs** – Verify all workers can connect to the master address and that `init_distributed` uses a unique port.

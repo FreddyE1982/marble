@@ -405,6 +405,34 @@ When tuning a new task consider the following workflow:
 
 Documenting the parameters of each run with the new experiment tracker makes it easy to compare results later.
 
+## Experiment Tracking
+
+The `experiment_tracker` module provides a simple abstraction for logging metrics
+to external services. The included `WandbTracker` sends results to
+[Weights & Biases](https://wandb.ai) and can be extended for other backends.
+Call `tracker.log_metrics({"loss": value}, step)` during training and invoke
+`tracker.finish()` once the run ends.
+
+## Dataset Versioning and Replication
+
+Datasets can be tracked over time with `dataset_versioning`. The
+`create_version` function writes a diff between two data states, while
+`apply_version` restores a previous snapshot. To distribute datasets across
+workers use `dataset_replication.replicate_dataset` to push files to remote
+HTTP endpoints before training begins.
+
+## System Metrics and Profiling
+
+`system_metrics.profile_resource_usage` returns the current CPU, RAM and GPU
+utilisation. For longer runs `usage_profiler.UsageProfiler` records these
+metrics at regular intervals and writes them to CSV for later inspection.
+
+## HTTP Inference API
+
+`web_api.InferenceServer` exposes a trained brain through a minimal Flask
+application. Sending a JSON payload to `/infer` returns the decoded output so
+other services can integrate MARBLE predictions.
+
 ## Troubleshooting
 If training diverges or produces NaNs:
 

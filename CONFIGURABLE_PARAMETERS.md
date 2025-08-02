@@ -284,6 +284,19 @@ Each entry is listed under its section heading.
 - threshold
 - consolidation_interval
 
+## cwfl
+- num_basis
+- bandwidth
+- reg_lambda
+- learning_rate
+
+## harmonic
+- base_frequency
+- decay
+
+## fractal
+- target_dimension
+
 ## hybrid_memory
 - vector_store_path
 - symbolic_store_path
