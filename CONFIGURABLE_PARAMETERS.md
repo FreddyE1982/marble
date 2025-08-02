@@ -135,7 +135,7 @@ Each entry is listed under its section heading.
 - wander_cache_ttl
 - wander_anomaly_threshold
 - wander_history_size
- - phase_rate
+- phase_rate
 - phase_adaptation_rate
 - synaptic_fatigue_enabled
 - fatigue_increase

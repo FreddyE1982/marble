@@ -36,3 +36,12 @@ not covered by the test suite and some optional features may be unavailable.
 * **Dataset cache server not reachable** – Start `DatasetCacheServer` on the host machine and set `dataset.cache_url` correctly in `config.yaml`.
 * **Distributed training hangs** – Verify all workers can connect to the master address and that `init_distributed` uses a unique port.
 * **Remote offload timeouts** – Confirm `RemoteBrainServer` is running and any authentication token matches the client configuration.
+
+## Web API Issues
+* **HTTP `/infer` endpoint returns 500** – Validate that the input JSON contains an `"input"` field and that the active brain can handle the value type.
+* **Server does not start** – Check that no other process is using the configured port and that `flask` is installed. Review console logs for stack traces.
+* **Shutdown hangs** – Ensure requests are sent to `/shutdown` using `POST`; `GET` requests will not trigger the Flask shutdown hook.
+
+## Resource Monitoring
+* **CPU or memory spikes** – Use `system_metrics.profile_resource_usage` to check current utilisation and lower batch sizes or graph dimensions accordingly.
+* **Long‑running jobs consume excessive resources** – Start a `UsageProfiler` instance to log CPU, RAM and GPU usage over time and inspect the generated CSV to identify problematic phases.

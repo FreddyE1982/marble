@@ -46,6 +46,12 @@ group API to synchronise weights across multiple workers. A
 and the minimalist ``memory_manager.MemoryManager`` tracks upcoming allocations
 to avoid oversubscription.
 
+``system_metrics`` exposes lightweight functions to query CPU, RAM and GPU
+utilisation, while ``usage_profiler.UsageProfiler`` records these values to CSV
+for long-running jobs. For serving predictions ``web_api.InferenceServer`` spins
+up a minimal Flask application that exposes the active brain over HTTP so other
+systems can submit inference requests.
+
 ``dataset_loader`` provides high level helpers for downloading, sharding and
 caching tabular datasets while tracking dependencies and memory usage. Datasets
 can be versioned with ``dataset_versioning`` which writes diffs for each change

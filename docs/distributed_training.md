@@ -24,3 +24,7 @@ machines. Datasets can be synchronised by combining `DatasetCacheServer` with
 the `dataset_replication` helpers so each rank pulls the same shards. After
 training, metrics can be visualised live through `metrics_dashboard` when all
 workers log to a shared directory.
+
+Monitor resource usage on each node with `system_metrics.profile_resource_usage`
+or run a long‑term `usage_profiler.UsageProfiler` instance to capture CPU, RAM
+and GPU trends while distributed jobs execute.

@@ -230,6 +230,26 @@ curl -X POST http://localhost:5000/infer -H 'Content-Type: application/json' \
 
 Call ``server.stop()`` to shut it down.
 
+### System Metrics and Profiling
+
+Monitor resource usage during training runs with the utilities in
+`system_metrics` and `usage_profiler`:
+
+```python
+from system_metrics import profile_resource_usage
+from usage_profiler import UsageProfiler
+
+print(profile_resource_usage())
+profiler = UsageProfiler(interval=1.0)
+profiler.start()
+# training code...
+profiler.stop()
+```
+
+`profile_resource_usage` returns current CPU, RAM and GPU consumption while
+`UsageProfiler` records these values over time and writes them to CSV for later
+analysis.
+
 ### Playground
 
 An interactive Streamlit playground allows quick experimentation with all of
