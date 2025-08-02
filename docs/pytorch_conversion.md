@@ -18,6 +18,15 @@ def convert_linear(layer, core, inputs):
 The registry dictionaries ``LAYER_CONVERTERS``, ``FUNCTION_CONVERTERS`` and
 ``METHOD_CONVERTERS`` hold these mappings. Custom layers can be supported by
 adding new entries using ``register_converter``.
+The shipped registry covers a wide range of core building blocks including:
+
+- Linear, Conv2d and the activations ReLU, Sigmoid, Tanh and GELU
+- Dropout, Flatten and Unflatten for shape manipulation
+- MaxPool2d, AvgPool2d and their adaptive and global variants
+- Embedding and EmbeddingBag layers with ``padding_idx`` and ``max_norm``
+- Recurrent modules RNN, LSTM and GRU
+- BatchNorm1d/2d, LayerNorm and GroupNorm
+- Sequential containers and ModuleList objects which expand recursively
 
 Pooling layers like ``MaxPool2d`` and ``AvgPool2d`` are handled by dedicated
 converters that create neurons with ``neuron_type`` set to ``"maxpool2d"`` or

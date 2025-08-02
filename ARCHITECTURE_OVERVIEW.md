@@ -46,6 +46,13 @@ group API to synchronise weights across multiple workers. A
 and the minimalist ``memory_manager.MemoryManager`` tracks upcoming allocations
 to avoid oversubscription.
 
+``dataset_loader`` provides high level helpers for downloading, sharding and
+caching tabular datasets while tracking dependencies and memory usage. Datasets
+can be versioned with ``dataset_versioning`` which writes diffs for each change
+and later applies them to reproduce exact states. ``dataset_replication``
+pushes dataset files to multiple HTTP endpoints so distributed jobs start from
+identical inputs.
+
 ## Data Compression Pipeline
 The `DataLoader` converts arbitrary Python objects or arrays into binary
 representations using the `DataCompressor` and can optionally cache them via

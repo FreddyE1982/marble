@@ -2077,3 +2077,32 @@ reconstructed with the correct Python type during decoding.
    core.predictive_coding = pc_activate(num_layers=2, latent_dim=4, learning_rate=0.001)
    ```
 
+## Project 38 – Dataset Versioning and Replication
+
+**Goal:** Track dataset changes and distribute files to remote workers.**
+
+1. **Load a dataset** using ``dataset_loader.load_dataset``:
+   ```python
+   from dataset_loader import load_dataset
+   pairs = load_dataset(
+       "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv",
+       input_col="sepal_length",
+       target_col="species",
+       limit=32,
+   )
+   ```
+2. **Create a version diff** so modifications can be reproduced later:
+   ```python
+   from dataset_versioning import create_version, apply_version
+   vid = create_version([], pairs, "versions")
+   restored = apply_version([], "versions", vid)
+   ```
+3. **Export and replicate the dataset** to additional machines:
+   ```python
+   from dataset_loader import export_dataset
+   from dataset_replication import replicate_dataset
+   export_dataset(restored, "iris_subset.csv")
+   replicate_dataset("iris_subset.csv", ["http://worker1:8000", "http://worker2:8000"])
+   ```
+Run ``python project38_dataset_tools.py`` to reproduce and distribute the dataset.
+

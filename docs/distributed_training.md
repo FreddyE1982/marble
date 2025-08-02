@@ -15,6 +15,9 @@ altering the core learning logic. `DistributedTrainer` accepts a configurable
 `world_size` and `backend` (``gloo`` by default) allowing the same interface to
 scale from a single machine to a small cluster.
 
+Use ``dataset_replication.replicate_dataset`` to push training files to all
+machines before starting jobs so that each worker loads identical data shards.
+
 Workers require `init_distributed` to run before constructing `Core` instances.
 Set `MASTER_ADDR` and `MASTER_PORT` environment variables when launching across
 machines. Datasets can be synchronised by combining `DatasetCacheServer` with
