@@ -377,21 +377,21 @@ class Neuronenblitz:
         """
 
         if self.core is not None and self.core is not core:
-            old_core = self.core
-            self.core = None
-            if getattr(old_core, "neuronenblitz", None) is self:
-                old_core.neuronenblitz = None
+            self.detach_core()
 
         if getattr(core, "neuronenblitz", None) not in (None, self):
-            existing = core.neuronenblitz
-            core.neuronenblitz = None
-            if getattr(existing, "core", None) is core:
-                existing.core = None
+            if hasattr(core, "detach_neuronenblitz"):
+                core.detach_neuronenblitz()
+            else:
+                existing = core.neuronenblitz
+                if getattr(existing, "core", None) is core:
+                    existing.core = None
+                core.neuronenblitz = None
 
-        self.core = core
         if hasattr(core, "attach_neuronenblitz"):
             core.attach_neuronenblitz(self)
         else:  # pragma: no cover - legacy path
+            self.core = core
             setattr(core, "neuronenblitz", self)
 
     def detach_core(self) -> None:
