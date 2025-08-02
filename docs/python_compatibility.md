@@ -14,3 +14,5 @@ changes remain compatible. The `scripts/convert_to_py38.py` tool can be used to 
 code to Python 3.8/3.9, but these runtimes are no longer officially supported.
 The `pycompat` module centralises these shims so components like
 `remote_offload` and `dataset_cache_server` remain usable on older interpreters.
+The `pyproject.toml` specifies `requires-python = ">=3.10"`, making 3.12 the
+primary development target.
