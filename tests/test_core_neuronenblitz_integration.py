@@ -47,3 +47,16 @@ def test_detach_methods():
     nb.detach_core()
     assert core.neuronenblitz is None
     assert nb.core is None
+
+
+def test_core_attach_neuronenblitz_switch():
+    random.seed(0)
+    core1 = Core(tiny_params())
+    nb1 = Neuronenblitz(core1)
+    core2 = Core(tiny_params())
+    nb2 = Neuronenblitz(core2)
+    core1.attach_neuronenblitz(nb2)
+    assert core1.neuronenblitz is nb2
+    assert nb2.core is core1
+    assert core2.neuronenblitz is None
+    assert nb1.core is None

@@ -1746,17 +1746,23 @@ class Core:
 
         # Detach any existing Neuronenblitz instance from this core
         if self.neuronenblitz is not None and self.neuronenblitz is not nb:
-            old_nb = self.neuronenblitz
-            self.neuronenblitz = None
-            if getattr(old_nb, "core", None) is self:
-                old_nb.core = None
+            if hasattr(self.neuronenblitz, "detach_core"):
+                self.neuronenblitz.detach_core()
+            else:
+                old_nb = self.neuronenblitz
+                self.neuronenblitz = None
+                if getattr(old_nb, "core", None) is self:
+                    old_nb.core = None
 
         # Ensure the incoming instance is detached from its previous core
         if getattr(nb, "core", None) not in (None, self):
-            old_core = nb.core
-            nb.core = None
-            if getattr(old_core, "neuronenblitz", None) is nb:
-                old_core.neuronenblitz = None
+            if hasattr(nb, "detach_core"):
+                nb.detach_core()
+            else:
+                old_core = nb.core
+                nb.core = None
+                if getattr(old_core, "neuronenblitz", None) is nb:
+                    old_core.neuronenblitz = None
 
         self.neuronenblitz = nb
         if getattr(nb, "core", None) is not self:
@@ -1768,7 +1774,9 @@ class Core:
         if self.neuronenblitz is not None:
             nb = self.neuronenblitz
             self.neuronenblitz = None
-            if getattr(nb, "core", None) is self:
+            if hasattr(nb, "detach_core"):
+                nb.detach_core()
+            elif getattr(nb, "core", None) is self:
                 nb.core = None
 
     def _init_weight(self, fan_in: int = 1, fan_out: int = 1) -> float:
