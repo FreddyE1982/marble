@@ -3,6 +3,8 @@
 MARBLE targets Python 3.10 and newer. Continuous integration runs on Python
 3.10 and 3.12. The library can still be transformed to run on Python 3.8 or 3.9
 using a preprocessing step, but these versions are considered experimental.
+The `pyproject.toml` explicitly requires Python 3.10 or later, aligning local
+development with the CI matrix.
 
 ## Incompatible Features
 

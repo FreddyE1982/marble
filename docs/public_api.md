@@ -20,6 +20,12 @@ This document lists the main classes and functions intended for external use.
 - `theory_of_mind.activate`
 - `predictive_coding.activate`
 - `bit_tensor_dataset.BitTensorDataset`
+- `fractal_dimension_learning.FractalDimensionLearner`
+- `quantum_flux_learning.QuantumFluxLearner`
+- `continuous_weight_field_learning.ContinuousWeightFieldLearner`
+- `dream_reinforcement_learning.DreamReinforcementLearner`
+- `neural_schema_induction.NeuralSchemaInductionLearner`
+- `conceptual_integration.ConceptualIntegrationLearner`
 - `distributed_training.DistributedTrainer`
 - `dataset_cache_server.DatasetCacheServer`
 - `remote_offload.RemoteBrainServer`

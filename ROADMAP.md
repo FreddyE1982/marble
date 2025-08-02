@@ -2,31 +2,28 @@
 
 This document outlines upcoming milestones for future Marble releases.
 
-## v0.4 – Q4 2024 *(released)*
-- TensorFlow interoperability layer.
-- Support for experiment collections in the configuration.
-- Gradient accumulation for autograd training.
-- Dataset cache server for sharing downloads across nodes.
+## v0.1.0 – Current Release
+- TensorFlow interoperability layer
+- Experiment collections in the configuration
+- Gradient accumulation for autograd training
+- Dataset cache server for sharing downloads across nodes
+- Distributed multi-GPU training utilities via ``DistributedTrainer``
+- Expanded neuron and synapse template library
+- Docker images for streamlined deployment
+- Remote offloading with compression
+- Live metrics dashboard and memory manager
+- BitTensor pipelines for imitation and fractal learning
+- Dataset versioning and replication utilities
+- Pipeline CLI for executing YAML-defined workflows
+- Model quantization helpers
+- System metrics module and usage profiler
+- HTTP inference server for remote predictions
+- Enhanced documentation sync across modules
 
-## v0.5 – Q1 2025 *(released)*
-- Distributed multi-GPU training utilities via ``DistributedTrainer``.
-- Expanded template library for neurons and synapses.
-- Docker images for streamlined deployment.
-
-## v0.6 – Q3 2025 *(released)*
-- Remote offloading with compression.
-- Live metrics dashboard and memory manager.
-- Additional BitTensor pipelines for imitation and fractal learning.
-
-## v0.7 – Q1 2026 *(released)*
-- Dataset versioning and replication utilities.
-- Pipeline CLI for executing YAML-defined workflows.
-- Initial model quantization helpers.
-
-## v0.8 – Q3 2026
-- System metrics module and usage profiler.
-- HTTP inference server for remote predictions.
-- Enhanced documentation sync across modules.
+## v0.2.0 – Planned
+- Streamlined GUI integration across all features
+- Additional tutorials and educational projects
+- Extended hardware plugin catalog
 
 Further versions will refine the API and add more tutorials based on
 community feedback.

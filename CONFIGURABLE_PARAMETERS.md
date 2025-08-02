@@ -78,9 +78,19 @@ Each entry is listed under its section heading.
 - activation_output_dir
 - activation_colormap
 - memory_system
+  - long_term_path
+  - threshold
+  - consolidation_interval
 - cwfl
+  - num_basis
+  - bandwidth
+  - reg_lambda
+  - learning_rate
 - harmonic
+  - base_frequency
+  - decay
 - fractal
+  - target_dimension
 - synapse_echo_length
 - synapse_echo_decay
 - interconnection_prob
@@ -278,24 +288,6 @@ Each entry is listed under its section heading.
 - stress
 - reward
 - emotion
-
-## memory_system
-- long_term_path
-- threshold
-- consolidation_interval
-
-## cwfl
-- num_basis
-- bandwidth
-- reg_lambda
-- learning_rate
-
-## harmonic
-- base_frequency
-- decay
-
-## fractal
-- target_dimension
 
 ## hybrid_memory
 - vector_store_path

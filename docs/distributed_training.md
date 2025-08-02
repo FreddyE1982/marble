@@ -25,6 +25,9 @@ the `dataset_replication` helpers so each rank pulls the same shards. After
 training, metrics can be visualised live through `metrics_dashboard` when all
 workers log to a shared directory.
 
+Always call `cleanup_distributed()` on every worker once training completes to
+ensure process groups are dismantled cleanly and resources are released.
+
 Monitor resource usage on each node with `system_metrics.profile_resource_usage`
 or run a long‑term `usage_profiler.UsageProfiler` instance to capture CPU, RAM
 and GPU trends while distributed jobs execute.

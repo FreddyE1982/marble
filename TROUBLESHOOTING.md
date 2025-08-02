@@ -13,6 +13,7 @@ This guide lists common issues when running MARBLE and how to solve them.
 ## Training Instability
 * **Loss becomes NaN** – This may be caused by extreme learning rates or numeric overflow. Enable gradient clipping in `config.yaml` and reduce `neuronenblitz.learning_rate`.
 * **Early stopping triggers too soon** – Increase `brain.early_stopping_patience` or adjust `brain.early_stopping_delta`.
+* **Fractal or weight field expansions explode** – Lower `fractal.target_dimension` or reduce `cwfl.num_basis` to keep memory growth in check.
 
 ## Benchmarking Issues
 * **Unexpectedly slow message passing** – Use the CLI option `--benchmark-msgpass` to measure throughput.
