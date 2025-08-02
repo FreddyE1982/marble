@@ -30,12 +30,15 @@ This document lists the main classes and functions intended for external use.
 - `highlevel_pipeline.HighLevelPipeline`
 - `dataset_loader.load_dataset`
 - `dataset_loader.prefetch_dataset`
+- `dataset_loader.export_dataset`
 - `dataset_versioning.create_version`
 - `dataset_versioning.apply_version`
 - `dataset_replication.replicate_dataset`
+- `graph_streaming.stream_graph_chunks`
 - `pipeline.Pipeline`
 - `model_quantization.quantize_core_weights`
 - `experiment_tracker.ExperimentTracker`
+- `experiment_tracker.WandbTracker`
 - `system_metrics.profile_resource_usage`
 - `usage_profiler.UsageProfiler`
 - `web_api.InferenceServer`

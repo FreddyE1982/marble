@@ -44,7 +44,9 @@ downloads. ``distributed_training.DistributedTrainer`` wraps PyTorch's process
 group API to synchronise weights across multiple workers. A
 ``metrics_dashboard.MetricsDashboard`` instance renders live charts in a browser
 and the minimalist ``memory_manager.MemoryManager`` tracks upcoming allocations
-to avoid oversubscription.
+to avoid oversubscription. The ``experiment_tracker`` module logs metrics to
+external services such as Weights & Biases via ``WandbTracker`` so long-running
+experiments remain reproducible.
 
 ``system_metrics`` exposes lightweight functions to query CPU, RAM and GPU
 utilisation, while ``usage_profiler.UsageProfiler`` records these values to CSV
