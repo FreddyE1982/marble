@@ -22,5 +22,11 @@ This document lists the main classes and functions intended for external use.
 - `bit_tensor_dataset.BitTensorDataset`
 - `distributed_training.DistributedTrainer`
 - `dataset_cache_server.DatasetCacheServer`
+- `remote_offload.RemoteBrainServer`
+- `remote_offload.RemoteBrainClient`
+- `metrics_dashboard.MetricsDashboard`
+- `memory_manager.MemoryManager`
+- `config_sync_service.ConfigSyncService`
+- `highlevel_pipeline.HighLevelPipeline`
 
 These APIs are kept stable across minor versions. Internal helpers not listed here may change without notice.

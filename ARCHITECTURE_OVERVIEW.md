@@ -37,6 +37,15 @@ on start-up and may register new neuron or synapse types, background services or
 other utilities via a `register(brain)` function. This enables experimentation
 without modifying the core codebase.
 
+### Auxiliary Services
+Several helper modules support large scale experiments. ``DatasetCacheServer``
+shares preprocessed datasets over HTTP so repeated runs avoid redundant
+downloads. ``distributed_training.DistributedTrainer`` wraps PyTorch's process
+group API to synchronise weights across multiple workers. A
+``metrics_dashboard.MetricsDashboard`` instance renders live charts in a browser
+and the minimalist ``memory_manager.MemoryManager`` tracks upcoming allocations
+to avoid oversubscription.
+
 ## Data Compression Pipeline
 The `DataLoader` converts arbitrary Python objects or arrays into binary
 representations using the `DataCompressor` and can optionally cache them via

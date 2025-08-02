@@ -17,3 +17,7 @@ after which a scaled dot-product is computed. Softmax weights are applied to the
 value tensor and the computation transparently utilises CUDA when available. The
 layer therefore slots into existing models while allowing external signals to
 influence attention weights.
+The layer exposes `temperature` and `dropout` parameters configurable via
+`config.yaml` to control sharpness and regularisation. When
+`dynamic_attention_enabled` is set, the temperature adapts based on recent
+`message_passing_change` statistics.

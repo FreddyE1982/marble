@@ -163,6 +163,25 @@ svc.start()
 ```
 Use ``svc.stop()`` to terminate the watcher.
 
+### Distributed and Remote Execution
+
+Large training runs can be scaled across processes with
+``distributed_training.DistributedTrainer`` which wraps PyTorch's
+``DistributedDataParallel`` API. It initialises a process group,
+averages synapse weights with ``torch.distributed.all_reduce`` and keeps the
+standard learning code unchanged.
+
+For heterogeneous hardware, ``remote_offload.RemoteBrainServer`` and
+``RemoteBrainClient`` allow parts of a brain to run on another machine. Values
+are compressed with ``DataCompressor`` and transmitted over HTTP with optional
+authentication.
+
+The lightweight ``DatasetCacheServer`` shares preprocessed dataset files between
+nodes to avoid repeated downloads. Memory usage during these workflows can be
+tracked using ``memory_manager.MemoryManager`` while
+``metrics_dashboard.MetricsDashboard`` provides live charts of loss, VRAM
+consumption and other metrics.
+
 ### Remote Inference API
 
 MARBLE can be exposed through a lightweight HTTP API. Launch the server with:

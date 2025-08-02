@@ -1,8 +1,8 @@
 # Python Version Compatibility
 
-MARBLE targets Python 3.10 and newer. The library can still be transformed to run on
-Python 3.8 or 3.9 using a preprocessing step, but these versions are considered
-experimental.
+MARBLE targets Python 3.10 and newer. Continuous integration runs on Python
+3.10 and 3.12. The library can still be transformed to run on Python 3.8 or 3.9
+using a preprocessing step, but these versions are considered experimental.
 
 ## Incompatible Features
 
@@ -11,9 +11,10 @@ experimental.
 
 ## Polyfill Script
 
-The `scripts/convert_to_py38.py` tool rewrites source files to use `typing.Union`
-and `typing.List` so the code can execute on Python 3.8/3.9. Run it before
-installation:
+The `scripts/convert_to_py38.py` tool and the ``pycompat`` module rewrite source
+files to use `typing.Union`, `typing.List` and polyfills such as
+`pycompat.removeprefix` so the code can execute on Python 3.8/3.9. Run the
+conversion before installation:
 
 ```bash
 python scripts/convert_to_py38.py path/to/marble

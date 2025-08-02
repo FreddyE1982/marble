@@ -2,16 +2,25 @@
 
 This document outlines upcoming milestones for future Marble releases.
 
-## v0.4 – Q4 2024
+## v0.4 – Q4 2024 *(released)*
 - TensorFlow interoperability layer.
 - Support for experiment collections in the configuration.
 - Gradient accumulation for autograd training.
 - Dataset cache server for sharing downloads across nodes.
 
-## v0.5 – Q1 2025
-- Distributed multi-GPU training utilities.
+## v0.5 – Q1 2025 *(released)*
+- Distributed multi-GPU training utilities via ``DistributedTrainer``.
 - Expanded template library for neurons and synapses.
 - Docker images for streamlined deployment.
+
+## v0.6 – Q3 2025
+- Remote offloading with compression.
+- Live metrics dashboard and memory manager.
+- Additional BitTensor pipelines for imitation and fractal learning.
+
+## v0.7 – Q1 2026
+- Full GUI test coverage across all tabs.
+- Improved plugin discovery and configuration.
 
 Further versions will refine the API and add more tutorials based on
 community feedback.
