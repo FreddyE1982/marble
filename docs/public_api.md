@@ -36,5 +36,8 @@ This document lists the main classes and functions intended for external use.
 - `pipeline.Pipeline`
 - `model_quantization.quantize_core_weights`
 - `experiment_tracker.ExperimentTracker`
+- `system_metrics.profile_resource_usage`
+- `usage_profiler.UsageProfiler`
+- `web_api.InferenceServer`
 
 These APIs are kept stable across minor versions. Internal helpers not listed here may change without notice.

@@ -18,10 +18,15 @@ This document outlines upcoming milestones for future Marble releases.
 - Live metrics dashboard and memory manager.
 - Additional BitTensor pipelines for imitation and fractal learning.
 
-## v0.7 – Q1 2026
+## v0.7 – Q1 2026 *(released)*
 - Dataset versioning and replication utilities.
 - Pipeline CLI for executing YAML-defined workflows.
 - Initial model quantization helpers.
+
+## v0.8 – Q3 2026
+- System metrics module and usage profiler.
+- HTTP inference server for remote predictions.
+- Enhanced documentation sync across modules.
 
 Further versions will refine the API and add more tutorials based on
 community feedback.
