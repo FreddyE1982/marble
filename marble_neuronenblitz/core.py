@@ -184,6 +184,7 @@ class Neuronenblitz:
         torrent_map=None,
         metrics_visualizer=None,
     ):
+        self.core = None
         self.attach_core(core)
         self.backtrack_probability = backtrack_probability
         self.consolidation_probability = consolidation_probability
@@ -363,23 +364,44 @@ class Neuronenblitz:
     def attach_core(self, core) -> None:
         """Attach to ``core`` and register with it.
 
+        If previously attached to another core it will be detached first and
+        the former core's reference cleared. Likewise, if ``core`` already has
+        a different Neuronenblitz instance attached, that instance will be
+        detached. This guarantees a consistent bidirectional link between the
+        objects.
+
         Parameters
         ----------
         core:
             The :class:`~marble_core.Core` instance to connect with.
-
-        Notes
-        -----
-        Sets ``self.core`` and stores ``self`` on ``core`` via
-        :meth:`core.attach_neuronenblitz` when available. This creates a
-        bidirectional link so both objects can access each other directly.
         """
+
+        if self.core is not None and self.core is not core:
+            old_core = self.core
+            self.core = None
+            if getattr(old_core, "neuronenblitz", None) is self:
+                old_core.neuronenblitz = None
+
+        if getattr(core, "neuronenblitz", None) not in (None, self):
+            existing = core.neuronenblitz
+            core.neuronenblitz = None
+            if getattr(existing, "core", None) is core:
+                existing.core = None
 
         self.core = core
         if hasattr(core, "attach_neuronenblitz"):
             core.attach_neuronenblitz(self)
         else:  # pragma: no cover - legacy path
             setattr(core, "neuronenblitz", self)
+
+    def detach_core(self) -> None:
+        """Detach from the currently connected core, if any."""
+
+        if self.core is not None:
+            core = self.core
+            self.core = None
+            if getattr(core, "neuronenblitz", None) is self:
+                core.neuronenblitz = None
 
     def __getstate__(self):
         state = self.__dict__.copy()
