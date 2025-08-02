@@ -45,6 +45,27 @@ Activation heatmaps for each run can be written by setting
 MARBLE can train on datasets provided as lists of ``(input, target)`` pairs or using PyTorch-style ``Dataset``/``DataLoader`` objects. Each sample must expose an ``input`` and ``target`` field. After training and saving a model, ``Brain.infer`` generates outputs when given only an input value.
 For quick experiments without external files you can generate synthetic regression pairs using ``synthetic_dataset.generate_sine_wave_dataset``.
 
+## Dataset and Logging Configuration
+
+The top-level `dataset` section in `config.yaml` controls how MARBLE locates and
+shards training data:
+
+- `num_shards` – total number of shards when splitting datasets across workers.
+- `shard_index` – the shard index handled by this process.
+- `offline` – disable remote downloads for fully local operation.
+- `encryption_key` – optional key used to encrypt on-disk dataset caches.
+
+Logging behaviour is configured under the `logging` section:
+
+```yaml
+logging:
+  structured: false  # emit JSON lines when true
+  log_file: "marble.log"  # path of the primary log file
+```
+
+These options allow replicating experiments exactly across machines and enable
+machine-readable logs for external monitoring systems.
+
 ## Command Line Interface
 
 The ``cli.py`` script offers a convenient way to train and evaluate MARBLE directly

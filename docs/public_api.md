@@ -3,6 +3,9 @@
 This document lists the main classes and functions intended for external use.
 
 - `marble_core.Core`
+- `marble_core.DataLoader`
+- `marble_brain.Brain`
+- `marble_main.MARBLE`
 - `marble_neuronenblitz.Neuronenblitz`
 - `marble_neuronenblitz.learning.enable_rl`
 - `marble_neuronenblitz.learning.disable_rl`
@@ -16,5 +19,8 @@ This document lists the main classes and functions intended for external use.
 - `attention_codelets.run_cycle`
 - `theory_of_mind.activate`
 - `predictive_coding.activate`
+- `bit_tensor_dataset.BitTensorDataset`
+- `distributed_training.DistributedTrainer`
+- `dataset_cache_server.DatasetCacheServer`
 
 These APIs are kept stable across minor versions. Internal helpers not listed here may change without notice.
