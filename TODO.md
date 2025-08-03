@@ -316,36 +316,156 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Add a "Step Visualisation" expander showing step parameters and dataset info.
     - [x] Unit tests ensuring the new expander appears in the Pipeline tab.
 171. [ ] Offer a plugin system so users can register custom pipeline steps easily.
+   - [ ] Outline design for Offer a plugin system so users can register custom pipeline steps easily.
+   - [ ] Implement Offer a plugin system so users can register custom pipeline steps easily with CPU/GPU support.
+   - [ ] Add tests validating Offer a plugin system so users can register custom pipeline steps easily.
+   - [ ] Document Offer a plugin system so users can register custom pipeline steps easily in README and TUTORIAL.
 172. [ ] Manage dependencies between steps automatically to maintain correct order.
+   - [ ] Outline design for Manage dependencies between steps automatically to maintain correct order.
+   - [ ] Implement Manage dependencies between steps automatically to maintain correct order with CPU/GPU support.
+   - [ ] Add tests validating Manage dependencies between steps automatically to maintain correct order.
+   - [ ] Document Manage dependencies between steps automatically to maintain correct order in README and TUTORIAL.
 173. [ ] Allow branching paths in a pipeline to explore alternative experiment flows.
+   - [ ] Outline design for Allow branching paths in a pipeline to explore alternative experiment flows.
+   - [ ] Implement Allow branching paths in a pipeline to explore alternative experiment flows with CPU/GPU support.
+   - [ ] Add tests validating Allow branching paths in a pipeline to explore alternative experiment flows.
+   - [ ] Document Allow branching paths in a pipeline to explore alternative experiment flows in README and TUTORIAL.
 174. [ ] Send real-time progress events to the GUI during pipeline execution.
+   - [ ] Outline design for Send real-time progress events to the GUI during pipeline execution.
+   - [ ] Implement Send real-time progress events to the GUI during pipeline execution with CPU/GPU support.
+   - [ ] Add tests validating Send real-time progress events to the GUI during pipeline execution.
+   - [ ] Document Send real-time progress events to the GUI during pipeline execution in README and TUTORIAL.
 175. [ ] Recover gracefully from remote failures with retry logic.
+   - [ ] Outline design for Recover gracefully from remote failures with retry logic.
+   - [ ] Implement Recover gracefully from remote failures with retry logic with CPU/GPU support.
+   - [ ] Add tests validating Recover gracefully from remote failures with retry logic.
+   - [ ] Document Recover gracefully from remote failures with retry logic in README and TUTORIAL.
 176. [ ] Execute steps on multiple processes while sharing datasets through the core.
+   - [ ] Outline design for Execute steps on multiple processes while sharing datasets through the core.
+   - [ ] Implement Execute steps on multiple processes while sharing datasets through the core with CPU/GPU support.
+   - [ ] Add tests validating Execute steps on multiple processes while sharing datasets through the core.
+   - [ ] Document Execute steps on multiple processes while sharing datasets through the core in README and TUTORIAL.
 177. [ ] Add pre and post hooks for each step enabling custom behaviour.
+   - [ ] Outline design for Add pre and post hooks for each step enabling custom behaviour.
+   - [ ] Implement Add pre and post hooks for each step enabling custom behaviour with CPU/GPU support.
+   - [ ] Add tests validating Add pre and post hooks for each step enabling custom behaviour.
+   - [ ] Document Add pre and post hooks for each step enabling custom behaviour in README and TUTORIAL.
 178. [ ] Provide templates to quickly generate common workflows.
+   - [ ] Outline design for Provide templates to quickly generate common workflows.
+   - [ ] Implement Provide templates to quickly generate common workflows with CPU/GPU support.
+   - [ ] Add tests validating Provide templates to quickly generate common workflows.
+   - [ ] Document Provide templates to quickly generate common workflows in README and TUTORIAL.
 179. [ ] Automatically build training loops for Neuronenblitz when dataset steps are present.
+   - [ ] Outline design for Automatically build training loops for Neuronenblitz when dataset steps are present.
+   - [ ] Implement Automatically build training loops for Neuronenblitz when dataset steps are present with CPU/GPU support.
+   - [ ] Add tests validating Automatically build training loops for Neuronenblitz when dataset steps are present.
+   - [ ] Document Automatically build training loops for Neuronenblitz when dataset steps are present in README and TUTORIAL.
 180. [ ] Offer a specialised step that consumes the new streaming `BitTensorDataset`.
+   - [ ] Outline design for Offer a specialised step that consumes the new streaming `BitTensorDataset`.
+   - [ ] Implement Offer a specialised step that consumes the new streaming `BitTensorDataset` with CPU/GPU support.
+   - [ ] Add tests validating Offer a specialised step that consumes the new streaming `BitTensorDataset`.
+   - [ ] Document Offer a specialised step that consumes the new streaming `BitTensorDataset` in README and TUTORIAL.
 181. [ ] Persist step results to disk for quick re-runs.
+   - [ ] Outline design for Persist step results to disk for quick re-runs.
+   - [ ] Implement Persist step results to disk for quick re-runs with CPU/GPU support.
+   - [ ] Add tests validating Persist step results to disk for quick re-runs.
+   - [ ] Document Persist step results to disk for quick re-runs in README and TUTORIAL.
 182. [ ] Visualise pipelines as graphs using the marble graph builder.
+   - [ ] Outline design for Visualise pipelines as graphs using the marble graph builder.
+   - [ ] Implement Visualise pipelines as graphs using the marble graph builder with CPU/GPU support.
+   - [ ] Add tests validating Visualise pipelines as graphs using the marble graph builder.
+   - [ ] Document Visualise pipelines as graphs using the marble graph builder in README and TUTORIAL.
 183. [ ] Limit GPU memory usage per step through concurrency controls.
+   - [ ] Outline design for Limit GPU memory usage per step through concurrency controls.
+   - [ ] Implement Limit GPU memory usage per step through concurrency controls with CPU/GPU support.
+   - [ ] Add tests validating Limit GPU memory usage per step through concurrency controls.
+   - [ ] Document Limit GPU memory usage per step through concurrency controls in README and TUTORIAL.
 184. [ ] Debug steps interactively by inspecting their inputs and outputs.
+   - [ ] Outline design for Debug steps interactively by inspecting their inputs and outputs.
+   - [ ] Implement Debug steps interactively by inspecting their inputs and outputs with CPU/GPU support.
+   - [ ] Add tests validating Debug steps interactively by inspecting their inputs and outputs.
+   - [ ] Document Debug steps interactively by inspecting their inputs and outputs in README and TUTORIAL.
 185. [ ] Export trained models automatically as a final pipeline step.
+   - [ ] Outline design for Export trained models automatically as a final pipeline step.
+   - [ ] Implement Export trained models automatically as a final pipeline step with CPU/GPU support.
+   - [ ] Add tests validating Export trained models automatically as a final pipeline step.
+   - [ ] Document Export trained models automatically as a final pipeline step in README and TUTORIAL.
 186. [ ] Log pipeline events to the remote experiment tracker.
+   - [ ] Outline design for Log pipeline events to the remote experiment tracker.
+   - [ ] Implement Log pipeline events to the remote experiment tracker with CPU/GPU support.
+   - [ ] Add tests validating Log pipeline events to the remote experiment tracker.
+   - [ ] Document Log pipeline events to the remote experiment tracker in README and TUTORIAL.
 187. [ ] Validate configuration of each step using marble core schemas.
+   - [ ] Outline design for Validate configuration of each step using marble core schemas.
+   - [ ] Implement Validate configuration of each step using marble core schemas with CPU/GPU support.
+   - [ ] Add tests validating Validate configuration of each step using marble core schemas.
+   - [ ] Document Validate configuration of each step using marble core schemas in README and TUTORIAL.
 188. [ ] Group multiple operations into macro steps for convenience.
+   - [ ] Outline design for Group multiple operations into macro steps for convenience.
+   - [ ] Implement Group multiple operations into macro steps for convenience with CPU/GPU support.
+   - [ ] Add tests validating Group multiple operations into macro steps for convenience.
+   - [ ] Document Group multiple operations into macro steps for convenience in README and TUTORIAL.
 189. [ ] Roll back to earlier step outputs when experiments go wrong.
+   - [ ] Outline design for Roll back to earlier step outputs when experiments go wrong.
+   - [ ] Implement Roll back to earlier step outputs when experiments go wrong with CPU/GPU support.
+   - [ ] Add tests validating Roll back to earlier step outputs when experiments go wrong.
+   - [ ] Document Roll back to earlier step outputs when experiments go wrong in README and TUTORIAL.
 190. [ ] Integrate hyperparameter search that plugs directly into the pipeline engine.
+   - [ ] Outline design for Integrate hyperparameter search that plugs directly into the pipeline engine.
+   - [ ] Implement Integrate hyperparameter search that plugs directly into the pipeline engine with CPU/GPU support.
+   - [ ] Add tests validating Integrate hyperparameter search that plugs directly into the pipeline engine.
+   - [ ] Document Integrate hyperparameter search that plugs directly into the pipeline engine in README and TUTORIAL.
 191. [ ] Schedule individual steps on remote hardware tiers seamlessly.
+   - [ ] Outline design for Schedule individual steps on remote hardware tiers seamlessly.
+   - [ ] Implement Schedule individual steps on remote hardware tiers seamlessly with CPU/GPU support.
+   - [ ] Add tests validating Schedule individual steps on remote hardware tiers seamlessly.
+   - [ ] Document Schedule individual steps on remote hardware tiers seamlessly in README and TUTORIAL.
 192. [ ] Distribute dataset shards across parallel pipelines.
+   - [ ] Outline design for Distribute dataset shards across parallel pipelines.
+   - [ ] Implement Distribute dataset shards across parallel pipelines with CPU/GPU support.
+   - [ ] Add tests validating Distribute dataset shards across parallel pipelines.
+   - [ ] Document Distribute dataset shards across parallel pipelines in README and TUTORIAL.
 193. [ ] Estimate resource needs ahead of execution to inform the memory manager.
+   - [ ] Outline design for Estimate resource needs ahead of execution to inform the memory manager.
+   - [ ] Implement Estimate resource needs ahead of execution to inform the memory manager with CPU/GPU support.
+   - [ ] Add tests validating Estimate resource needs ahead of execution to inform the memory manager.
+   - [ ] Document Estimate resource needs ahead of execution to inform the memory manager in README and TUTORIAL.
 194. [ ] Save run profiles capturing the exact execution order.
+   - [ ] Outline design for Save run profiles capturing the exact execution order.
+   - [ ] Implement Save run profiles capturing the exact execution order with CPU/GPU support.
+   - [ ] Add tests validating Save run profiles capturing the exact execution order.
+   - [ ] Document Save run profiles capturing the exact execution order in README and TUTORIAL.
 195. [ ] Edit pipeline definitions interactively through the GUI.
+   - [ ] Outline design for Edit pipeline definitions interactively through the GUI.
+   - [ ] Implement Edit pipeline definitions interactively through the GUI with CPU/GPU support.
+   - [ ] Add tests validating Edit pipeline definitions interactively through the GUI.
+   - [ ] Document Edit pipeline definitions interactively through the GUI in README and TUTORIAL.
 196. [ ] Relay dataset events to pipeline notifications.
+   - [ ] Outline design for Relay dataset events to pipeline notifications.
+   - [ ] Implement Relay dataset events to pipeline notifications with CPU/GPU support.
+   - [ ] Add tests validating Relay dataset events to pipeline notifications.
+   - [ ] Document Relay dataset events to pipeline notifications in README and TUTORIAL.
 197. [ ] Update Neuronenblitz models automatically when datasets change.
+   - [ ] Outline design for Update Neuronenblitz models automatically when datasets change.
+   - [ ] Implement Update Neuronenblitz models automatically when datasets change with CPU/GPU support.
+   - [ ] Add tests validating Update Neuronenblitz models automatically when datasets change.
+   - [ ] Document Update Neuronenblitz models automatically when datasets change in README and TUTORIAL.
 198. [ ] Provide built-in cross-validation loops using deterministic dataset splits.
+   - [ ] Outline design for Provide built-in cross-validation loops using deterministic dataset splits.
+   - [ ] Implement Provide built-in cross-validation loops using deterministic dataset splits with CPU/GPU support.
+   - [ ] Add tests validating Provide built-in cross-validation loops using deterministic dataset splits.
+   - [ ] Document Provide built-in cross-validation loops using deterministic dataset splits in README and TUTORIAL.
 199. [ ] Serve models through the web API directly from a pipeline step.
+   - [ ] Outline design for Serve models through the web API directly from a pipeline step.
+   - [ ] Implement Serve models through the web API directly from a pipeline step with CPU/GPU support.
+   - [ ] Add tests validating Serve models through the web API directly from a pipeline step.
+   - [ ] Document Serve models through the web API directly from a pipeline step in README and TUTORIAL.
 200. [x] Benchmark pipeline steps using the core micro-benchmark tool.
 201. [ ] Reorder steps dynamically based on dependency resolution.
+   - [ ] Outline design for Reorder steps dynamically based on dependency resolution.
+   - [ ] Implement Reorder steps dynamically based on dependency resolution with CPU/GPU support.
+   - [ ] Add tests validating Reorder steps dynamically based on dependency resolution.
+   - [ ] Document Reorder steps dynamically based on dependency resolution in README and TUTORIAL.
 202. [x] Broadcast pipeline progress to the Global Workspace plugin.
 203. [x] Route step logs to the metrics visualiser for real-time viewing.
 204. [x] Diff pipeline configurations to track changes between runs.
@@ -353,101 +473,441 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 206. [x] Pre-allocate resources via the memory pool before executing steps.
 207. [x] Freeze and defrost steps without removing them from the pipeline.
 208. [ ] Run pipeline sections in isolated processes for fault tolerance.
+   - [ ] Outline design for Run pipeline sections in isolated processes for fault tolerance.
+   - [ ] Implement Run pipeline sections in isolated processes for fault tolerance with CPU/GPU support.
+   - [ ] Add tests validating Run pipeline sections in isolated processes for fault tolerance.
+   - [ ] Document Run pipeline sections in isolated processes for fault tolerance in README and TUTORIAL.
 209. [ ] Connect with remote wanderers for asynchronous exploration phases.
+   - [ ] Outline design for Connect with remote wanderers for asynchronous exploration phases.
+   - [ ] Implement Connect with remote wanderers for asynchronous exploration phases with CPU/GPU support.
+   - [ ] Add tests validating Connect with remote wanderers for asynchronous exploration phases.
+   - [ ] Document Connect with remote wanderers for asynchronous exploration phases in README and TUTORIAL.
 210. [ ] Secure pipeline data flow by integrating dataset encryption routines.
+   - [ ] Outline design for Secure pipeline data flow by integrating dataset encryption routines.
+   - [ ] Implement Secure pipeline data flow by integrating dataset encryption routines with CPU/GPU support.
+   - [ ] Add tests validating Secure pipeline data flow by integrating dataset encryption routines.
+   - [ ] Document Secure pipeline data flow by integrating dataset encryption routines in README and TUTORIAL.
 211. [ ] Route memory allocations through the memory pool for every operation.
+   - [ ] Outline design for Route memory allocations through the memory pool for every operation.
+   - [ ] Implement Route memory allocations through the memory pool for every operation with CPU/GPU support.
+   - [ ] Add tests validating Route memory allocations through the memory pool for every operation.
+   - [ ] Document Route memory allocations through the memory pool for every operation in README and TUTORIAL.
 212. [x] Provide a CLI wrapper so pipelines can run without writing Python code.
 213. [x] Detect GPU availability and adapt pipeline behaviour automatically.
 214. [x] Persist vocabulary mappings for reuse across multiple runs.
 215. [ ] Train directly from streamed dataset shards loaded via pipeline steps.
+   - [ ] Outline design for Train directly from streamed dataset shards loaded via pipeline steps.
+   - [ ] Implement Train directly from streamed dataset shards loaded via pipeline steps with CPU/GPU support.
+   - [ ] Add tests validating Train directly from streamed dataset shards loaded via pipeline steps.
+   - [ ] Document Train directly from streamed dataset shards loaded via pipeline steps in README and TUTORIAL.
 216. [ ] Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements.
+   - [ ] Outline design for Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements.
+   - [ ] Implement Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements with CPU/GPU support.
+   - [ ] Add tests validating Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements.
+   - [ ] Document Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements in README and TUTORIAL.
 217. [ ] Support streaming dataset shards during Neuronenblitz training to keep the model responsive.
+   - [ ] Outline design for Support streaming dataset shards during Neuronenblitz training to keep the model responsive.
+   - [ ] Implement Support streaming dataset shards during Neuronenblitz training to keep the model responsive with CPU/GPU support.
+   - [ ] Add tests validating Support streaming dataset shards during Neuronenblitz training to keep the model responsive.
+   - [ ] Document Support streaming dataset shards during Neuronenblitz training to keep the model responsive in README and TUTORIAL.
 218. [ ] Allow learning modules to be swapped in and out through a plugin interface.
+   - [ ] Outline design for Allow learning modules to be swapped in and out through a plugin interface.
+   - [ ] Implement Allow learning modules to be swapped in and out through a plugin interface with CPU/GPU support.
+   - [ ] Add tests validating Allow learning modules to be swapped in and out through a plugin interface.
+   - [ ] Document Allow learning modules to be swapped in and out through a plugin interface in README and TUTORIAL.
 219. [ ] Use Global Workspace events to guide dynamic attention gating.
+   - [ ] Outline design for Use Global Workspace events to guide dynamic attention gating.
+   - [ ] Implement Use Global Workspace events to guide dynamic attention gating with CPU/GPU support.
+   - [ ] Add tests validating Use Global Workspace events to guide dynamic attention gating.
+   - [ ] Document Use Global Workspace events to guide dynamic attention gating in README and TUTORIAL.
 220. [ ] Provide a reinforcement learning loop coordinated by pipeline scheduling.
+   - [ ] Outline design for Provide a reinforcement learning loop coordinated by pipeline scheduling.
+   - [ ] Implement Provide a reinforcement learning loop coordinated by pipeline scheduling with CPU/GPU support.
+   - [ ] Add tests validating Provide a reinforcement learning loop coordinated by pipeline scheduling.
+   - [ ] Document Provide a reinforcement learning loop coordinated by pipeline scheduling in README and TUTORIAL.
 221. [ ] Offload wandering to remote hardware using Marble Core utilities.
+   - [ ] Outline design for Offload wandering to remote hardware using Marble Core utilities.
+   - [ ] Implement Offload wandering to remote hardware using Marble Core utilities with CPU/GPU support.
+   - [ ] Add tests validating Offload wandering to remote hardware using Marble Core utilities.
+   - [ ] Document Offload wandering to remote hardware using Marble Core utilities in README and TUTORIAL.
 222. [x] Optimise memory usage by sharing dataset caches with the memory pool.
 223. [ ] Accumulate gradients asynchronously in line with pipeline scheduling.
+   - [ ] Outline design for Accumulate gradients asynchronously in line with pipeline scheduling.
+   - [ ] Implement Accumulate gradients asynchronously in line with pipeline scheduling with CPU/GPU support.
+   - [ ] Add tests validating Accumulate gradients asynchronously in line with pipeline scheduling.
+   - [ ] Document Accumulate gradients asynchronously in line with pipeline scheduling in README and TUTORIAL.
 224. [ ] Inspect neural pathways interactively via the GUI.
+   - [ ] Outline design for Inspect neural pathways interactively via the GUI.
+   - [ ] Implement Inspect neural pathways interactively via the GUI with CPU/GPU support.
+   - [ ] Add tests validating Inspect neural pathways interactively via the GUI.
+   - [ ] Document Inspect neural pathways interactively via the GUI in README and TUTORIAL.
 225. [ ] Register custom loss modules through the plugin system.
+   - [ ] Outline design for Register custom loss modules through the plugin system.
+   - [ ] Implement Register custom loss modules through the plugin system with CPU/GPU support.
+   - [ ] Add tests validating Register custom loss modules through the plugin system.
+   - [ ] Document Register custom loss modules through the plugin system in README and TUTORIAL.
 226. [ ] Transfer knowledge between models using dataset serialisation features.
+   - [ ] Outline design for Transfer knowledge between models using dataset serialisation features.
+   - [ ] Implement Transfer knowledge between models using dataset serialisation features with CPU/GPU support.
+   - [ ] Add tests validating Transfer knowledge between models using dataset serialisation features.
+   - [ ] Document Transfer knowledge between models using dataset serialisation features in README and TUTORIAL.
 227. [ ] Refresh vocabulary encodings mid-training when datasets evolve.
+   - [ ] Outline design for Refresh vocabulary encodings mid-training when datasets evolve.
+   - [ ] Implement Refresh vocabulary encodings mid-training when datasets evolve with CPU/GPU support.
+   - [ ] Add tests validating Refresh vocabulary encodings mid-training when datasets evolve.
+   - [ ] Document Refresh vocabulary encodings mid-training when datasets evolve in README and TUTORIAL.
 228. [ ] Evaluate models remotely using the pipeline inference plugin.
+   - [ ] Outline design for Evaluate models remotely using the pipeline inference plugin.
+   - [ ] Implement Evaluate models remotely using the pipeline inference plugin with CPU/GPU support.
+   - [ ] Add tests validating Evaluate models remotely using the pipeline inference plugin.
+   - [ ] Document Evaluate models remotely using the pipeline inference plugin in README and TUTORIAL.
 229. [ ] Plan actions hierarchically using Global Workspace goals.
+   - [ ] Outline design for Plan actions hierarchically using Global Workspace goals.
+   - [ ] Implement Plan actions hierarchically using Global Workspace goals with CPU/GPU support.
+   - [ ] Add tests validating Plan actions hierarchically using Global Workspace goals.
+   - [ ] Document Plan actions hierarchically using Global Workspace goals in README and TUTORIAL.
 230. [ ] Adjust curricula automatically based on dataset history.
+   - [ ] Outline design for Adjust curricula automatically based on dataset history.
+   - [ ] Implement Adjust curricula automatically based on dataset history with CPU/GPU support.
+   - [ ] Add tests validating Adjust curricula automatically based on dataset history.
+   - [ ] Document Adjust curricula automatically based on dataset history in README and TUTORIAL.
 231. [ ] Update plasticity parameters from dataset augmentation events.
+   - [ ] Outline design for Update plasticity parameters from dataset augmentation events.
+   - [ ] Implement Update plasticity parameters from dataset augmentation events with CPU/GPU support.
+   - [ ] Add tests validating Update plasticity parameters from dataset augmentation events.
+   - [ ] Document Update plasticity parameters from dataset augmentation events in README and TUTORIAL.
 232. [ ] Allocate weights from the GPU memory pool for efficient updates.
+   - [ ] Outline design for Allocate weights from the GPU memory pool for efficient updates.
+   - [ ] Implement Allocate weights from the GPU memory pool for efficient updates with CPU/GPU support.
+   - [ ] Add tests validating Allocate weights from the GPU memory pool for efficient updates.
+   - [ ] Document Allocate weights from the GPU memory pool for efficient updates in README and TUTORIAL.
 233. [ ] Step through the pipeline debugger during training runs.
+   - [ ] Outline design for Step through the pipeline debugger during training runs.
+   - [ ] Implement Step through the pipeline debugger during training runs with CPU/GPU support.
+   - [ ] Add tests validating Step through the pipeline debugger during training runs.
+   - [ ] Document Step through the pipeline debugger during training runs in README and TUTORIAL.
 234. [ ] Wander asynchronously while prefetching dataset shards.
+   - [ ] Outline design for Wander asynchronously while prefetching dataset shards.
+   - [ ] Implement Wander asynchronously while prefetching dataset shards with CPU/GPU support.
+   - [ ] Add tests validating Wander asynchronously while prefetching dataset shards.
+   - [ ] Document Wander asynchronously while prefetching dataset shards in README and TUTORIAL.
 235. [ ] Include a self-supervised module that consumes augmented data.
+   - [ ] Outline design for Include a self-supervised module that consumes augmented data.
+   - [ ] Implement Include a self-supervised module that consumes augmented data with CPU/GPU support.
+   - [ ] Add tests validating Include a self-supervised module that consumes augmented data.
+   - [ ] Document Include a self-supervised module that consumes augmented data in README and TUTORIAL.
 236. [ ] Share memory buffers across nodes with the remote memory pool.
+   - [ ] Outline design for Share memory buffers across nodes with the remote memory pool.
+   - [ ] Implement Share memory buffers across nodes with the remote memory pool with CPU/GPU support.
+   - [ ] Add tests validating Share memory buffers across nodes with the remote memory pool.
+   - [ ] Document Share memory buffers across nodes with the remote memory pool in README and TUTORIAL.
 237. [ ] Load synapse types dynamically via pipeline plugins.
+   - [ ] Outline design for Load synapse types dynamically via pipeline plugins.
+   - [ ] Implement Load synapse types dynamically via pipeline plugins with CPU/GPU support.
+   - [ ] Add tests validating Load synapse types dynamically via pipeline plugins.
+   - [ ] Document Load synapse types dynamically via pipeline plugins in README and TUTORIAL.
 238. [ ] Checkpoint models in a universal format understood by the pipeline.
+   - [ ] Outline design for Checkpoint models in a universal format understood by the pipeline.
+   - [ ] Implement Checkpoint models in a universal format understood by the pipeline with CPU/GPU support.
+   - [ ] Add tests validating Checkpoint models in a universal format understood by the pipeline.
+   - [ ] Document Checkpoint models in a universal format understood by the pipeline in README and TUTORIAL.
 239. [ ] Inject gradient noise derived from dataset noise augmentation.
+   - [ ] Outline design for Inject gradient noise derived from dataset noise augmentation.
+   - [ ] Implement Inject gradient noise derived from dataset noise augmentation with CPU/GPU support.
+   - [ ] Add tests validating Inject gradient noise derived from dataset noise augmentation.
+   - [ ] Document Inject gradient noise derived from dataset noise augmentation in README and TUTORIAL.
 240. [ ] Prune routes when deduplication removes redundant data.
+   - [ ] Outline design for Prune routes when deduplication removes redundant data.
+   - [ ] Implement Prune routes when deduplication removes redundant data with CPU/GPU support.
+   - [ ] Add tests validating Prune routes when deduplication removes redundant data.
+   - [ ] Document Prune routes when deduplication removes redundant data in README and TUTORIAL.
 241. [ ] Explore dataset samples in the interactive browser during training.
+   - [ ] Outline design for Explore dataset samples in the interactive browser during training.
+   - [ ] Implement Explore dataset samples in the interactive browser during training with CPU/GPU support.
+   - [ ] Add tests validating Explore dataset samples in the interactive browser during training.
+   - [ ] Document Explore dataset samples in the interactive browser during training in README and TUTORIAL.
 242. [ ] Warm-start models from partial pipeline outputs.
+   - [ ] Outline design for Warm-start models from partial pipeline outputs.
+   - [ ] Implement Warm-start models from partial pipeline outputs with CPU/GPU support.
+   - [ ] Add tests validating Warm-start models from partial pipeline outputs.
+   - [ ] Document Warm-start models from partial pipeline outputs in README and TUTORIAL.
 243. [ ] Adapt learning rates using events from the memory manager.
+   - [ ] Outline design for Adapt learning rates using events from the memory manager.
+   - [ ] Implement Adapt learning rates using events from the memory manager with CPU/GPU support.
+   - [ ] Add tests validating Adapt learning rates using events from the memory manager.
+   - [ ] Document Adapt learning rates using events from the memory manager in README and TUTORIAL.
 244. [ ] Decrypt encrypted data on the fly during training.
+   - [ ] Outline design for Decrypt encrypted data on the fly during training.
+   - [ ] Implement Decrypt encrypted data on the fly during training with CPU/GPU support.
+   - [ ] Add tests validating Decrypt encrypted data on the fly during training.
+   - [ ] Document Decrypt encrypted data on the fly during training in README and TUTORIAL.
 245. [ ] Aggregate gradients remotely using distributed helpers.
+   - [ ] Outline design for Aggregate gradients remotely using distributed helpers.
+   - [ ] Implement Aggregate gradients remotely using distributed helpers with CPU/GPU support.
+   - [ ] Add tests validating Aggregate gradients remotely using distributed helpers.
+   - [ ] Document Aggregate gradients remotely using distributed helpers in README and TUTORIAL.
 246. [ ] Retrieve activations using approximate nearest neighbour search.
+   - [ ] Outline design for Retrieve activations using approximate nearest neighbour search.
+   - [ ] Implement Retrieve activations using approximate nearest neighbour search with CPU/GPU support.
+   - [ ] Add tests validating Retrieve activations using approximate nearest neighbour search.
+   - [ ] Document Retrieve activations using approximate nearest neighbour search in README and TUTORIAL.
 247. [ ] Gating mechanisms use dataset tags for context.
+   - [ ] Outline design for Gating mechanisms use dataset tags for context.
+   - [ ] Implement Gating mechanisms use dataset tags for context with CPU/GPU support.
+   - [ ] Add tests validating Gating mechanisms use dataset tags for context.
+   - [ ] Document Gating mechanisms use dataset tags for context in README and TUTORIAL.
 248. [ ] Reinitialize parts of the network when datasets are patched.
+   - [ ] Outline design for Reinitialize parts of the network when datasets are patched.
+   - [ ] Implement Reinitialize parts of the network when datasets are patched with CPU/GPU support.
+   - [ ] Add tests validating Reinitialize parts of the network when datasets are patched.
+   - [ ] Document Reinitialize parts of the network when datasets are patched in README and TUTORIAL.
 249. [ ] Evaluate intermediate models using generated validation sets.
+   - [ ] Outline design for Evaluate intermediate models using generated validation sets.
+   - [ ] Implement Evaluate intermediate models using generated validation sets with CPU/GPU support.
+   - [ ] Add tests validating Evaluate intermediate models using generated validation sets.
+   - [ ] Document Evaluate intermediate models using generated validation sets in README and TUTORIAL.
 250. [ ] Add runtime extension for registering new neuron types.
+   - [ ] Outline design for Add runtime extension for registering new neuron types.
+   - [ ] Implement Add runtime extension for registering new neuron types with CPU/GPU support.
+   - [ ] Add tests validating Add runtime extension for registering new neuron types.
+   - [ ] Document Add runtime extension for registering new neuron types in README and TUTORIAL.
 251. [ ] Communicate between models using Global Workspace broadcast.
+   - [ ] Outline design for Communicate between models using Global Workspace broadcast.
+   - [ ] Implement Communicate between models using Global Workspace broadcast with CPU/GPU support.
+   - [ ] Add tests validating Communicate between models using Global Workspace broadcast.
+   - [ ] Document Communicate between models using Global Workspace broadcast in README and TUTORIAL.
 252. [ ] Enable dropout gating informed by dataset quality hooks.
+   - [ ] Outline design for Enable dropout gating informed by dataset quality hooks.
+   - [ ] Implement Enable dropout gating informed by dataset quality hooks with CPU/GPU support.
+   - [ ] Add tests validating Enable dropout gating informed by dataset quality hooks.
+   - [ ] Document Enable dropout gating informed by dataset quality hooks in README and TUTORIAL.
 253. [ ] Derive reinforcement signals from pipeline event logs.
+   - [ ] Outline design for Derive reinforcement signals from pipeline event logs.
+   - [ ] Implement Derive reinforcement signals from pipeline event logs with CPU/GPU support.
+   - [ ] Add tests validating Derive reinforcement signals from pipeline event logs.
+   - [ ] Document Derive reinforcement signals from pipeline event logs in README and TUTORIAL.
 254. [ ] Mix offline and online learning phases based on dataset modifications.
+   - [ ] Outline design for Mix offline and online learning phases based on dataset modifications.
+   - [ ] Implement Mix offline and online learning phases based on dataset modifications with CPU/GPU support.
+   - [ ] Add tests validating Mix offline and online learning phases based on dataset modifications.
+   - [ ] Document Mix offline and online learning phases based on dataset modifications in README and TUTORIAL.
 255. [ ] Integrate with hyperparameter sweeps to evaluate multiple runs.
+   - [ ] Outline design for Integrate with hyperparameter sweeps to evaluate multiple runs.
+   - [ ] Implement Integrate with hyperparameter sweeps to evaluate multiple runs with CPU/GPU support.
+   - [ ] Add tests validating Integrate with hyperparameter sweeps to evaluate multiple runs.
+   - [ ] Document Integrate with hyperparameter sweeps to evaluate multiple runs in README and TUTORIAL.
 256. [ ] Use the memory pool for gradient buffer management.
+   - [ ] Outline design for Use the memory pool for gradient buffer management.
+   - [ ] Implement Use the memory pool for gradient buffer management with CPU/GPU support.
+   - [ ] Add tests validating Use the memory pool for gradient buffer management.
+   - [ ] Document Use the memory pool for gradient buffer management in README and TUTORIAL.
 257. [ ] Route decisions based on hierarchical dataset tags.
+   - [ ] Outline design for Route decisions based on hierarchical dataset tags.
+   - [ ] Implement Route decisions based on hierarchical dataset tags with CPU/GPU support.
+   - [ ] Add tests validating Route decisions based on hierarchical dataset tags.
+   - [ ] Document Route decisions based on hierarchical dataset tags in README and TUTORIAL.
 258. [ ] Cache activations for repeated passes over dataset shards.
+   - [ ] Outline design for Cache activations for repeated passes over dataset shards.
+   - [ ] Implement Cache activations for repeated passes over dataset shards with CPU/GPU support.
+   - [ ] Add tests validating Cache activations for repeated passes over dataset shards.
+   - [ ] Document Cache activations for repeated passes over dataset shards in README and TUTORIAL.
 259. [x] Send training events to the metrics visualiser.
     - [x] Add log_event method to MetricsVisualizer.
     - [x] Emit epoch_start and epoch_end in Brain.train.
     - [x] Display events in GUI console.
 260. [ ] Ensure encrypted datasets remain private throughout training.
+   - [ ] Outline design for Ensure encrypted datasets remain private throughout training.
+   - [ ] Implement Ensure encrypted datasets remain private throughout training with CPU/GPU support.
+   - [ ] Add tests validating Ensure encrypted datasets remain private throughout training.
+   - [ ] Document Ensure encrypted datasets remain private throughout training in README and TUTORIAL.
 261. [ ] Replicate networks across nodes using remote hardware plugins.
+   - [ ] Outline design for Replicate networks across nodes using remote hardware plugins.
+   - [ ] Implement Replicate networks across nodes using remote hardware plugins with CPU/GPU support.
+   - [ ] Add tests validating Replicate networks across nodes using remote hardware plugins.
+   - [ ] Document Replicate networks across nodes using remote hardware plugins in README and TUTORIAL.
 262. [ ] Quickly evaluate models via pipeline checkpoint restore.
+   - [ ] Outline design for Quickly evaluate models via pipeline checkpoint restore.
+   - [ ] Implement Quickly evaluate models via pipeline checkpoint restore with CPU/GPU support.
+   - [ ] Add tests validating Quickly evaluate models via pipeline checkpoint restore.
+   - [ ] Document Quickly evaluate models via pipeline checkpoint restore in README and TUTORIAL.
 263. [ ] Roll back neuron states when dataset audits fail.
+   - [ ] Outline design for Roll back neuron states when dataset audits fail.
+   - [ ] Implement Roll back neuron states when dataset audits fail with CPU/GPU support.
+   - [ ] Add tests validating Roll back neuron states when dataset audits fail.
+   - [ ] Document Roll back neuron states when dataset audits fail in README and TUTORIAL.
 264. [ ] Adapt gating when vocabulary updates occur.
+   - [ ] Outline design for Adapt gating when vocabulary updates occur.
+   - [ ] Implement Adapt gating when vocabulary updates occur with CPU/GPU support.
+   - [ ] Add tests validating Adapt gating when vocabulary updates occur.
+   - [ ] Document Adapt gating when vocabulary updates occur in README and TUTORIAL.
 265. [ ] Manage experiments across runs using pipeline and dataset versions.
+   - [ ] Outline design for Manage experiments across runs using pipeline and dataset versions.
+   - [ ] Implement Manage experiments across runs using pipeline and dataset versions with CPU/GPU support.
+   - [ ] Add tests validating Manage experiments across runs using pipeline and dataset versions.
+   - [ ] Document Manage experiments across runs using pipeline and dataset versions in README and TUTORIAL.
 266. [ ] Build a distributed memory pool so datasets are shared across nodes.
+   - [ ] Outline design for Build a distributed memory pool so datasets are shared across nodes.
+   - [ ] Implement Build a distributed memory pool so datasets are shared across nodes with CPU/GPU support.
+   - [ ] Add tests validating Build a distributed memory pool so datasets are shared across nodes.
+   - [ ] Document Build a distributed memory pool so datasets are shared across nodes in README and TUTORIAL.
 267. [ ] Accelerate bit tensor operations on GPU for faster dataset processing.
+   - [ ] Outline design for Accelerate bit tensor operations on GPU for faster dataset processing.
+   - [ ] Implement Accelerate bit tensor operations on GPU for faster dataset processing with CPU/GPU support.
+   - [ ] Add tests validating Accelerate bit tensor operations on GPU for faster dataset processing.
+   - [ ] Document Accelerate bit tensor operations on GPU for faster dataset processing in README and TUTORIAL.
 268. [ ] Provide a remote procedure interface to run pipeline steps asynchronously.
+   - [ ] Outline design for Provide a remote procedure interface to run pipeline steps asynchronously.
+   - [ ] Implement Provide a remote procedure interface to run pipeline steps asynchronously with CPU/GPU support.
+   - [ ] Add tests validating Provide a remote procedure interface to run pipeline steps asynchronously.
+   - [ ] Document Provide a remote procedure interface to run pipeline steps asynchronously in README and TUTORIAL.
 269. [ ] Implement a system-wide event bus linking dataset, pipeline and Neuronenblitz modules.
+   - [ ] Outline design for Implement a system-wide event bus linking dataset, pipeline and Neuronenblitz modules.
+   - [ ] Implement Implement a system-wide event bus linking dataset, pipeline and Neuronenblitz modules with CPU/GPU support.
+   - [ ] Add tests validating Implement a system-wide event bus linking dataset, pipeline and Neuronenblitz modules.
+   - [ ] Document Implement a system-wide event bus linking dataset, pipeline and Neuronenblitz modules in README and TUTORIAL.
 270. [ ] Offer encryption utilities supporting secure dataset storage.
+   - [ ] Outline design for Offer encryption utilities supporting secure dataset storage.
+   - [ ] Implement Offer encryption utilities supporting secure dataset storage with CPU/GPU support.
+   - [ ] Add tests validating Offer encryption utilities supporting secure dataset storage.
+   - [ ] Document Offer encryption utilities supporting secure dataset storage in README and TUTORIAL.
 271. [ ] Handle memory-mapped tensors for large streaming datasets.
+   - [ ] Outline design for Handle memory-mapped tensors for large streaming datasets.
+   - [ ] Implement Handle memory-mapped tensors for large streaming datasets with CPU/GPU support.
+   - [ ] Add tests validating Handle memory-mapped tensors for large streaming datasets.
+   - [ ] Document Handle memory-mapped tensors for large streaming datasets in README and TUTORIAL.
 272. [ ] Load configuration hierarchies merging dataset and pipeline settings.
+   - [ ] Outline design for Load configuration hierarchies merging dataset and pipeline settings.
+   - [ ] Implement Load configuration hierarchies merging dataset and pipeline settings with CPU/GPU support.
+   - [ ] Add tests validating Load configuration hierarchies merging dataset and pipeline settings.
+   - [ ] Document Load configuration hierarchies merging dataset and pipeline settings in README and TUTORIAL.
 273. [ ] Add backpressure-aware message passing for streaming data.
+   - [ ] Outline design for Add backpressure-aware message passing for streaming data.
+   - [ ] Implement Add backpressure-aware message passing for streaming data with CPU/GPU support.
+   - [ ] Add tests validating Add backpressure-aware message passing for streaming data.
+   - [ ] Document Add backpressure-aware message passing for streaming data in README and TUTORIAL.
 274. [ ] Create a cross-process checkpoint manager accessible from pipelines.
+   - [ ] Outline design for Create a cross-process checkpoint manager accessible from pipelines.
+   - [ ] Implement Create a cross-process checkpoint manager accessible from pipelines with CPU/GPU support.
+   - [ ] Add tests validating Create a cross-process checkpoint manager accessible from pipelines.
+   - [ ] Document Create a cross-process checkpoint manager accessible from pipelines in README and TUTORIAL.
 275. [ ] Dynamically load neuron and synapse plugins at runtime.
+   - [ ] Outline design for Dynamically load neuron and synapse plugins at runtime.
+   - [ ] Implement Dynamically load neuron and synapse plugins at runtime with CPU/GPU support.
+   - [ ] Add tests validating Dynamically load neuron and synapse plugins at runtime.
+   - [ ] Document Dynamically load neuron and synapse plugins at runtime in README and TUTORIAL.
 276. [ ] Debug message passing flows in real time through GUI tools.
+   - [ ] Outline design for Debug message passing flows in real time through GUI tools.
+   - [ ] Implement Debug message passing flows in real time through GUI tools with CPU/GPU support.
+   - [ ] Add tests validating Debug message passing flows in real time through GUI tools.
+   - [ ] Document Debug message passing flows in real time through GUI tools in README and TUTORIAL.
 277. [ ] Provide a remote scheduler for distributed pipeline execution.
+   - [ ] Outline design for Provide a remote scheduler for distributed pipeline execution.
+   - [ ] Implement Provide a remote scheduler for distributed pipeline execution with CPU/GPU support.
+   - [ ] Add tests validating Provide a remote scheduler for distributed pipeline execution.
+   - [ ] Document Provide a remote scheduler for distributed pipeline execution in README and TUTORIAL.
 278. [ ] Verify data integrity across modules with unified checksum tools.
+   - [ ] Outline design for Verify data integrity across modules with unified checksum tools.
+   - [ ] Implement Verify data integrity across modules with unified checksum tools with CPU/GPU support.
+   - [ ] Add tests validating Verify data integrity across modules with unified checksum tools.
+   - [ ] Document Verify data integrity across modules with unified checksum tools in README and TUTORIAL.
 279. [ ] Serialise models and datasets through a cross-platform layer.
+   - [ ] Outline design for Serialise models and datasets through a cross-platform layer.
+   - [ ] Implement Serialise models and datasets through a cross-platform layer with CPU/GPU support.
+   - [ ] Add tests validating Serialise models and datasets through a cross-platform layer.
+   - [ ] Document Serialise models and datasets through a cross-platform layer in README and TUTORIAL.
 280. [ ] Cache activation tensors that Neuronenblitz reuses during training.
+   - [ ] Outline design for Cache activation tensors that Neuronenblitz reuses during training.
+   - [ ] Implement Cache activation tensors that Neuronenblitz reuses during training with CPU/GPU support.
+   - [ ] Add tests validating Cache activation tensors that Neuronenblitz reuses during training.
+   - [ ] Document Cache activation tensors that Neuronenblitz reuses during training in README and TUTORIAL.
 281. [ ] Securely store encryption keys via a dedicated security manager.
+   - [ ] Outline design for Securely store encryption keys via a dedicated security manager.
+   - [ ] Implement Securely store encryption keys via a dedicated security manager with CPU/GPU support.
+   - [ ] Add tests validating Securely store encryption keys via a dedicated security manager.
+   - [ ] Document Securely store encryption keys via a dedicated security manager in README and TUTORIAL.
 282. [ ] Hot‑reload modules without stopping ongoing training.
+   - [ ] Outline design for Hot‑reload modules without stopping ongoing training.
+   - [ ] Implement Hot‑reload modules without stopping ongoing training with CPU/GPU support.
+   - [ ] Add tests validating Hot‑reload modules without stopping ongoing training.
+   - [ ] Document Hot‑reload modules without stopping ongoing training in README and TUTORIAL.
 283. [ ] Manage GPU memory for dataset prefetching.
+   - [ ] Outline design for Manage GPU memory for dataset prefetching.
+   - [ ] Implement Manage GPU memory for dataset prefetching with CPU/GPU support.
+   - [ ] Add tests validating Manage GPU memory for dataset prefetching.
+   - [ ] Document Manage GPU memory for dataset prefetching in README and TUTORIAL.
 284. [ ] Support asynchronous I/O for continuous dataset streaming.
+   - [ ] Outline design for Support asynchronous I/O for continuous dataset streaming.
+   - [ ] Implement Support asynchronous I/O for continuous dataset streaming with CPU/GPU support.
+   - [ ] Add tests validating Support asynchronous I/O for continuous dataset streaming.
+   - [ ] Document Support asynchronous I/O for continuous dataset streaming in README and TUTORIAL.
 285. [ ] Emit resource events to notify components of memory pressure.
+   - [ ] Outline design for Emit resource events to notify components of memory pressure.
+   - [ ] Implement Emit resource events to notify components of memory pressure with CPU/GPU support.
+   - [ ] Add tests validating Emit resource events to notify components of memory pressure.
+   - [ ] Document Emit resource events to notify components of memory pressure in README and TUTORIAL.
 286. [ ] Replicate memory pools across machines for distributed workloads.
+   - [ ] Outline design for Replicate memory pools across machines for distributed workloads.
+   - [ ] Implement Replicate memory pools across machines for distributed workloads with CPU/GPU support.
+   - [ ] Add tests validating Replicate memory pools across machines for distributed workloads.
+   - [ ] Document Replicate memory pools across machines for distributed workloads in README and TUTORIAL.
 287. [x] Validate configurations globally before starting a pipeline.
     - [x] Implement validate_global_config function.
     - [x] Add schema checks for all sections.
 288. [ ] Provide thread-safe APIs for parallel dataset transformations.
+   - [ ] Outline design for Provide thread-safe APIs for parallel dataset transformations.
+   - [ ] Implement Provide thread-safe APIs for parallel dataset transformations with CPU/GPU support.
+   - [ ] Add tests validating Provide thread-safe APIs for parallel dataset transformations.
+   - [ ] Document Provide thread-safe APIs for parallel dataset transformations in README and TUTORIAL.
 289. [ ] Deduplicate repeated bit tensors across different datasets.
+   - [ ] Outline design for Deduplicate repeated bit tensors across different datasets.
+   - [ ] Implement Deduplicate repeated bit tensors across different datasets with CPU/GPU support.
+   - [ ] Add tests validating Deduplicate repeated bit tensors across different datasets.
+   - [ ] Document Deduplicate repeated bit tensors across different datasets in README and TUTORIAL.
 290. [ ] Aggregate event logs from all modules into a unified stream.
+   - [ ] Outline design for Aggregate event logs from all modules into a unified stream.
+   - [ ] Implement Aggregate event logs from all modules into a unified stream with CPU/GPU support.
+   - [ ] Add tests validating Aggregate event logs from all modules into a unified stream.
+   - [ ] Document Aggregate event logs from all modules into a unified stream in README and TUTORIAL.
 291. [ ] Update models with partial graph recompilation.
+   - [ ] Outline design for Update models with partial graph recompilation.
+   - [ ] Implement Update models with partial graph recompilation with CPU/GPU support.
+   - [ ] Add tests validating Update models with partial graph recompilation.
+   - [ ] Document Update models with partial graph recompilation in README and TUTORIAL.
 292. [ ] Accelerate nearest neighbour search via specialised hardware plugins.
+   - [ ] Outline design for Accelerate nearest neighbour search via specialised hardware plugins.
+   - [ ] Implement Accelerate nearest neighbour search via specialised hardware plugins with CPU/GPU support.
+   - [ ] Add tests validating Accelerate nearest neighbour search via specialised hardware plugins.
+   - [ ] Document Accelerate nearest neighbour search via specialised hardware plugins in README and TUTORIAL.
 293. [ ] Queue wander jobs reliably even if a process crashes.
+   - [ ] Outline design for Queue wander jobs reliably even if a process crashes.
+   - [ ] Implement Queue wander jobs reliably even if a process crashes with CPU/GPU support.
+   - [ ] Add tests validating Queue wander jobs reliably even if a process crashes.
+   - [ ] Document Queue wander jobs reliably even if a process crashes in README and TUTORIAL.
 294. [ ] Synchronise checkpoints automatically across nodes.
+   - [ ] Outline design for Synchronise checkpoints automatically across nodes.
+   - [ ] Implement Synchronise checkpoints automatically across nodes with CPU/GPU support.
+   - [ ] Add tests validating Synchronise checkpoints automatically across nodes.
+   - [ ] Document Synchronise checkpoints automatically across nodes in README and TUTORIAL.
 295. [ ] Schedule steps using a GPU-aware dispatcher.
+   - [ ] Outline design for Schedule steps using a GPU-aware dispatcher.
+   - [ ] Implement Schedule steps using a GPU-aware dispatcher with CPU/GPU support.
+   - [ ] Add tests validating Schedule steps using a GPU-aware dispatcher.
+   - [ ] Document Schedule steps using a GPU-aware dispatcher in README and TUTORIAL.
 296. [ ] Prune unused neurons according to dataset prune events.
+   - [ ] Outline design for Prune unused neurons according to dataset prune events.
+   - [ ] Implement Prune unused neurons according to dataset prune events with CPU/GPU support.
+   - [ ] Add tests validating Prune unused neurons according to dataset prune events.
+   - [ ] Document Prune unused neurons according to dataset prune events in README and TUTORIAL.
 297. [ ] Propagate context from pipeline events into core behaviours.
+   - [ ] Outline design for Propagate context from pipeline events into core behaviours.
+   - [ ] Implement Propagate context from pipeline events into core behaviours with CPU/GPU support.
+   - [ ] Add tests validating Propagate context from pipeline events into core behaviours.
+   - [ ] Document Propagate context from pipeline events into core behaviours in README and TUTORIAL.
 298. [ ] Visualise core operations in a built-in GUI server.
+   - [ ] Outline design for Visualise core operations in a built-in GUI server.
+   - [ ] Implement Visualise core operations in a built-in GUI server with CPU/GPU support.
+   - [ ] Add tests validating Visualise core operations in a built-in GUI server.
+   - [ ] Document Visualise core operations in a built-in GUI server in README and TUTORIAL.
 299. [x] Cache downloaded datasets at the network level.
     - [x] Implement DatasetCacheServer to share downloads.
     - [x] Modify load_dataset to query remote cache.
