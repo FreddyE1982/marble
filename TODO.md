@@ -452,26 +452,98 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Implement DatasetCacheServer to share downloads.
     - [x] Modify load_dataset to query remote cache.
 300. [ ] Orchestrate cross-validation using core utilities and dataset splits.
+    - [ ] Implement K-fold dataset splitter producing training and validation subsets.
+    - [ ] Add cross-validation runner to training pipeline.
+    - [ ] Expose CLI and YAML options to select number of folds.
+    - [ ] Add tests verifying aggregated metrics across folds.
 301. [ ] Spawn remote workers to handle dataset transformations.
+    - [ ] Define worker API for preprocessing jobs.
+    - [ ] Implement remote worker pool using RPC.
+    - [ ] Dispatch pipeline transformations to worker pool.
+    - [ ] Provide tests simulating worker failures and recoveries.
 302. [ ] Serialise pipeline definitions through a portable format.
+    - [ ] Define JSON schema capturing pipeline steps and parameters.
+    - [ ] Implement serializer and deserializer utilities.
+    - [ ] Support loading pipeline definitions from file or CLI.
+    - [ ] Add round-trip serialization tests.
 303. [ ] Aggregate events and feed them to the metrics visualiser.
+    - [ ] Define event bus API for pipeline components.
+    - [ ] Implement aggregator collecting events across processes.
+    - [ ] Integrate aggregator output with metrics dashboard.
+    - [ ] Test event flow with mock components.
 304. [ ] Protect remote memory operations with encryption utilities.
+    - [ ] Add symmetric encryption helper for memory transfers.
+    - [ ] Store keys in configuration with rotation support.
+    - [ ] Encrypt and decrypt data during remote operations.
+    - [ ] Write tests verifying encrypted transfers.
 305. [ ] Balance CPU and GPU resources for dataset handling.
+    - [ ] Profile pipeline steps to measure CPU/GPU load.
+    - [ ] Add scheduler assigning operations to appropriate device.
+    - [ ] Expose YAML parameters to tune balancing strategy.
+    - [ ] Test pipeline under CPU-only and GPU modes.
 306. [x] Provide a dedicated test harness for bit tensor functions.
     - [x] Create helper class for generating datasets.
     - [x] Integrate harness with existing tests.
 307. [ ] Enforce memory quotas per pipeline step.
+    - [ ] Introduce configuration parameter for per-step memory limit.
+    - [ ] Instrument steps to track allocated memory.
+    - [ ] Abort or queue step when quota exceeded.
+    - [ ] Add tests simulating quota breaches.
 308. [ ] Precompile compute graphs to accelerate training.
+    - [ ] Implement graph caching for repeated computations.
+    - [ ] Add precompilation phase in training initialization.
+    - [ ] Provide CLI flag to toggle precompilation.
+    - [ ] Benchmark speed improvements on sample models.
 309. [ ] Offer multi-step undo for dataset modifications via core services.
+    - [ ] Track modification history with unique IDs.
+    - [ ] Implement undo stack supporting multiple levels.
+    - [ ] Expose CLI and GUI controls to revert operations.
+    - [ ] Add tests covering undo and redo logic.
 310. [ ] Update remote datasets incrementally during long experiments.
+    - [ ] Detect dataset changes and compute delta patches.
+    - [ ] Sync remote storage with incremental updates.
+    - [ ] Provide progress reporting for each sync.
+    - [ ] Add tests verifying no data loss.
 311. [ ] Use a plugin-based scheduler for asynchronous tasks.
+    - [ ] Define scheduler plugin interface.
+    - [ ] Implement default thread and asyncio scheduler plugins.
+    - [ ] Allow selection via configuration or CLI.
+    - [ ] Test plugin lifecycle and task dispatch.
 312. [ ] Standardise event formats so dataset and pipeline logs are compatible.
+    - [ ] Define unified event schema.
+    - [ ] Update logging emitters to output schema-compliant events.
+    - [ ] Provide converter for legacy log formats.
+    - [ ] Add tests validating event schema.
 313. [ ] Supply CLI tools to manage dataset versions across platforms.
+    - [ ] Implement `dataset version` CLI commands (list, create, switch).
+    - [ ] Support both local and remote registries.
+    - [ ] Integrate version info with pipeline loader.
+    - [ ] Add tests for version switching.
 314. [ ] Integrate with the Global Workspace to monitor overall system state.
+    - [ ] Expose pipeline metrics to Global Workspace.
+    - [ ] Add callbacks pushing state updates.
+    - [ ] Visualize workspace status in metrics dashboard.
+    - [ ] Test Global Workspace integration path.
 315. [ ] Provide cross-device tensor synchronization to minimize latency during distributed training.
+    - [ ] Implement diff-based synchronization protocol.
+    - [ ] Add background sync service coordinating devices.
+    - [ ] Tune synchronization interval via configuration.
+    - [ ] Add tests measuring latency reduction.
 316. [ ] Expose a low-level API to monitor event bus traffic for debugging.
+    - [ ] Add debug hooks to subscribe to raw events.
+    - [ ] Provide filtering and rate limiting options.
+    - [ ] Document usage in developer guide.
+    - [ ] Add tests ensuring hooks have minimal overhead.
 317. [ ] Review all documentation for completeness regarding new features such as DatasetCacheServer and remote hardware plugins.
+    - [ ] Audit existing docs for missing references.
+    - [ ] Add sections for DatasetCacheServer.
+    - [ ] Document remote hardware plugin API usage.
+    - [ ] Ensure tutorial and README mention new features.
 318. [ ] Update remaining markdown files to reference the remote hardware plugin API where relevant.
+    - [ ] Search repository for outdated plugin references.
+    - [ ] Update examples and configuration docs.
+    - [ ] Cross-link plugin API from relevant guides.
+    - [ ] Run lint checks to ensure markdown consistency.
 319. [ ] Integrate JAX backend for differentiability.
     - [ ] Create backend abstraction layer (`tensor_backend.py`) with functions like `matmul`, `sigmoid`, and `relu`.
     - [ ] Implement NumPy and JAX backend versions.

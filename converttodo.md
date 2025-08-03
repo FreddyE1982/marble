@@ -63,16 +63,34 @@
   - [x] Converter for ``GRU``
   - [x] Unit tests with tiny sequences
   - [ ] Bidirectional and multi-layer support
+    - [ ] Map forward and backward weights for bidirectional RNNs.
+    - [ ] Handle stacked layers with appropriate parameter naming.
+    - [ ] Add tests converting multi-layer bidirectional models.
   - [ ] Persistent hidden state mapping
+    - [ ] Serialize initial hidden states with layer metadata.
+    - [ ] Restore hidden states during MARBLE execution.
+    - [ ] Provide tests verifying state persistence across runs.
 - [x] Normalization layers (LayerNorm, GroupNorm)
   - [x] ``LayerNorm`` converter
   - [x] ``GroupNorm`` converter
   - [x] Unit tests for normalization
-- [ ] Transformer blocks
+ - [ ] Transformer blocks
   - [ ] Self-attention conversion
+    - [ ] Translate query, key, and value projections.
+    - [ ] Support multi-head attention weight splitting.
+    - [ ] Add unit tests for attention weight parity.
   - [ ] Feed-forward sublayers
+    - [ ] Convert linear1 and linear2 layers with activation.
+    - [ ] Handle dropout placement within sublayer.
+    - [ ] Verify output numerically against PyTorch.
   - [ ] Positional encoding handling
+    - [ ] Map sinusoidal and learned positional embeddings.
+    - [ ] Expose positional encoding choice via config.
+    - [ ] Add tests ensuring positions align after conversion.
   - [ ] Integration tests on a small transformer
+    - [ ] Convert a tiny transformer model end-to-end.
+    - [ ] Compare MARBLE and PyTorch outputs for sample inputs.
+    - [ ] Document transformer conversion workflow.
 
 ### 2. High-level graph construction API
 - [x] Helper to add neuron groups with activations
@@ -81,7 +99,10 @@
   - [x] ``linear_layer`` wrapper
   - [x] ``conv2d_layer`` wrapper
 - [x] Documentation for graph builder utilities
-- [ ] Examples demonstrating dynamic message passing setup
+ - [ ] Examples demonstrating dynamic message passing setup
+  - [ ] Create example script building a dynamic message passing graph.
+  - [ ] Document example usage in README.
+  - [ ] Add unit test covering dynamic example conversion.
 
 ### 3. Weight and activation handling
 - [x] Extract weights and biases from PyTorch layers
@@ -104,10 +125,14 @@
 - [x] Support saving summary to JSON via `--summary-output`
 ### 6. Validation utilities
 - [ ] Validate converted models by comparing PyTorch and MARBLE outputs
-  - [ ] Unit tests for small networks
-  - [ ] Integration test for a custom model
-  - [ ] CLI option to run validation automatically
+    - [ ] Unit tests for small networks
+    - [ ] Integration test for a custom model
+    - [ ] CLI option to run validation automatically
 - [ ] Numerical tolerances for output comparison
+    - [ ] Define default tolerance thresholds for floating point comparisons.
+    - [ ] Allow overriding tolerance via CLI and configuration.
+    - [ ] Document tolerance settings in README.
+    - [ ] Add tests covering tolerance edge cases.
 
 ### 7. Additional tooling
 - [x] Support converting `.pt` files directly into `.marble` snapshots
@@ -125,8 +150,17 @@
 
 ### 9. Graph visualization and inspection
 - [ ] Visualize generated MARBLE graph structure
+  - [ ] Integrate graph visualization library (e.g., pyvis or plotly).
+  - [ ] Save rendered graphs to HTML for inspection.
+  - [ ] Add tests verifying graph export.
 - [ ] Display neuron and synapse counts per layer
+  - [ ] Implement summarizer that tallies counts per layer.
+  - [ ] Provide CLI option to print or save counts.
+  - [ ] Write unit tests for summarizer accuracy.
 - [ ] Interactive tool to inspect neuron parameters
+  - [ ] Build Streamlit viewer with filtering and search.
+  - [ ] Support selecting neurons to show detailed parameters.
+  - [ ] Add GUI tests for viewer components.
 
 ### 10. Error handling and logging
 - [x] Unsupported layers raise `"[layer type name] is not supported for conversion"`
@@ -135,9 +169,20 @@
 
 ### 11. Dynamic graph support
 - [ ] Map PyTorch control flow to MARBLE dynamic topology
+  - [ ] Parse torch.fx conditional and loop nodes.
+  - [ ] Generate dynamic neuron groups for branches.
+  - [ ] Document limitations and edge cases.
 - [ ] Handle evolving neuron and synapse creation during inference
+  - [ ] Implement runtime graph mutation utilities.
+  - [ ] Ensure thread safety during dynamic updates.
+  - [ ] Add tests exercising dynamic growth.
 - [ ] Unit tests covering dynamic model conversion paths
+  - [ ] Create mock models with branching control flow.
+  - [ ] Verify converted graphs execute correctly.
 - [ ] Research torch.fx support for control flow constructs
+  - [ ] Survey existing torch.fx features for loops and conditionals.
+  - [ ] Prototype tracing of a model using control flow.
+  - [ ] Summarize findings in documentation.
 
 ### 12. Universal converter roadmap
 - [ ] Comprehensive layer mapping registry
@@ -146,7 +191,11 @@
 - [ ] Graph construction utilities bridging to dynamic message passing
   - [x] Helper to spawn neurons for input/output dimensions
   - [x] Helper to connect neurons with weighted synapses
-  - [ ] Activation flag storage for message passing
+    - [ ] Activation flag storage for message passing
+      - [ ] Add boolean flag field to neuron metadata.
+      - [ ] Propagate activation flags through graph builder.
+      - [ ] Document usage for runtime evaluators.
+      - [ ] Add tests verifying flag presence.
 - [ ] torch.fx integration for arbitrary models
   - [ ] Trace custom layers and call registered converters
   - [ ] Allow decorators to register new converters
@@ -163,15 +212,42 @@
 
 ### 13. Dynamic message passing integration
 - [ ] Store activation behavior metadata in neurons for runtime evaluation
+  - [ ] Extend neuron data structures with activation descriptors.
+  - [ ] Ensure converters populate metadata.
+  - [ ] Add tests validating metadata availability.
 - [ ] Plugin or extension to handle activations during message passing
+  - [ ] Define plugin API for custom activation behaviors.
+  - [ ] Provide default plugin implementing common activations.
+  - [ ] Include tests for plugin registration.
 - [ ] Example script demonstrating dynamic message passing with converted networks
+  - [ ] Build sample network utilizing activation plugin.
+  - [ ] Show runtime evaluation using metadata.
+  - [ ] Document script in examples directory.
 
 ### 14. Control flow and topology adaptation
 - [ ] Convert if/else branches to dynamic neuron creation
+  - [ ] Detect branch conditions during tracing.
+  - [ ] Generate neurons for each branch path.
+  - [ ] Merge results with switch-like synapses.
 - [ ] Support loops by reusing neuron groups per iteration
+  - [ ] Identify loop bodies in torch.fx graphs.
+  - [ ] Implement mechanism to reuse neuron structures.
+  - [ ] Handle loop termination criteria.
 - [ ] Unit test a model with simple control flow
+  - [ ] Build toy model containing branch and loop.
+  - [ ] Verify converted dynamic graph produces same output.
+  - [ ] Document test scenario.
 
 ### 15. Visualization enhancements
 - [ ] Provide CLI flag to visualize generated MARBLE graph
+  - [ ] Add `--show-graph` option to converter CLI.
+  - [ ] Render graph after conversion when flag is set.
+  - [ ] Include tests verifying flag triggers visualization.
 - [ ] Save neuron and synapse counts per layer to .csv
+  - [ ] Implement exporter writing counts to CSV.
+  - [ ] Add CLI argument for output path.
+  - [ ] Test CSV output formatting.
 - [ ] Interactive viewer to inspect weights
+  - [ ] Develop Streamlit app to browse layer weights.
+  - [ ] Provide search and filtering capabilities.
+  - [ ] Write GUI tests ensuring viewer loads converted weights.
