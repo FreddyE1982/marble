@@ -36,9 +36,18 @@ plugins:
     ``register(register_neuron, register_synapse)`` to add custom neuron and
     synapse types. Paths may be absolute or relative to the working directory.
 
-  shard_index: Index of the shard this instance will process. Set to ``0`` when
-    running on a single machine. Values outside the valid range raise an error
-    during dataset loading.
+pipeline:
+  async_enabled: When set to ``true`` the ``HighLevelPipeline`` executes its
+    steps using ``asyncio`` to overlap data loading and computation. This
+    reduces idle time for both CPU and GPU workloads, enabling more efficient
+    throughput. Some steps may still run synchronously if they are not
+    awaitable. Defaults to ``false``.
+  cache_dir: Directory on disk where the ``HighLevelPipeline`` stores cached
+    results for each step. Reusing cached outputs speeds up iterative
+    experiments at the cost of additional storage. When ``null`` the directory
+    is chosen automatically: ``pipeline_cache_gpu`` when a CUDA device is
+    available or ``pipeline_cache_cpu`` otherwise. Use ``HighLevelPipeline.clear_cache()``
+    to remove cached files when space is needed.
 
 core:
   xmin: Minimum X coordinate for the Mandelbrot seed. Defines the left boundary

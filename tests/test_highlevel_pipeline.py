@@ -322,7 +322,7 @@ def test_highlevel_pipeline_execute_range(tmp_path):
 
 
 def test_highlevel_pipeline_config_dot_access(tmp_path):
-    hp = HighLevelPipeline()
+    hp = HighLevelPipeline(cache_dir=str(tmp_path))
     hp.config.core.width = 2
     hp.config.core.height = 2
     hp.config.core.max_iter = 1

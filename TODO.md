@@ -304,17 +304,17 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Add `_execute_steps_async` helper handling coroutine functions and thread offloading.
     - [x] Implement `execute_async` public method executing the entire pipeline asynchronously.
     - [x] Unit tests verifying asynchronous execution with mixed coroutine and blocking steps.
-    - [ ] Expose `pipeline.async_enabled` configuration option with CPU and GPU support.
+    - [x] Expose `pipeline.async_enabled` configuration option with CPU and GPU support.
     - [ ] Benchmark asynchronous execution on CPU and GPU to quantify speedup.
-    - [ ] Document asynchronous pipeline usage in README and TUTORIAL.
+    - [x] Document asynchronous pipeline usage in README and TUTORIAL.
     - [ ] Add integration tests for asynchronous execution in multi-node environments.
 168. [ ] Cache intermediate results so iterative experiments run faster.
     - [x] Create file based cache storing step outputs keyed by index and function name.
     - [x] Add `clear_cache` method to remove cached files when needed.
     - [x] Unit tests demonstrating that repeated runs reuse cached results.
-    - [ ] Make cache directory configurable via `pipeline.cache_dir` with CPU/GPU aware paths.
-    - [ ] Track and display cache hit/miss statistics in the metrics dashboard.
-    - [ ] Document caching workflow and disk space considerations.
+    - [x] Make cache directory configurable via `pipeline.cache_dir` with CPU/GPU aware paths.
+    - [x] Track and display cache hit/miss statistics in the metrics dashboard.
+    - [x] Document caching workflow and disk space considerations.
     - [ ] Stress-test cache performance on large datasets for CPU and GPU runs.
 169. [ ] Support checkpointing and resuming pipelines with dataset version tracking.
     - [x] Track `dataset_version` within `HighLevelPipeline` instances.

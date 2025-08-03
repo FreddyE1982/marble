@@ -318,6 +318,22 @@ through a single ``HighLevelPipeline`` instance.
 Multiple MARBLE systems can be created in one session. Use the *Active Instance*
 selector in the sidebar to switch between them, duplicate a system for
 comparison or delete instances you no longer need.
+
+### Asynchronous execution and caching
+
+``HighLevelPipeline`` can overlap data loading with computation for faster
+throughput. Enable asynchronous execution by setting ``pipeline.async_enabled``
+to ``true`` in ``config.yaml`` or by passing ``async_enabled=True`` when
+creating the pipeline. Steps are driven by ``asyncio`` so both CPU and GPU
+devices remain utilized.
+
+Intermediate step outputs are cached to disk to speed up iterative experiments.
+Set ``pipeline.cache_dir`` to control where these artifacts are stored. When the
+value is ``null`` MARBLE chooses ``pipeline_cache_gpu`` or ``pipeline_cache_cpu``
+based on hardware. The metrics dashboard exposes ``cache_hit`` and ``cache_miss``
+counters so you can monitor effectiveness. Ensure the cache directory has
+sufficient free space and use ``HighLevelPipeline.clear_cache()`` to purge old
+results when necessary.
 The advanced interface now features a **Config Editor** tab where any
 parameter from the YAML configuration can be modified on the fly.  Changes are
 applied immediately and you can re-initialise the system with the updated

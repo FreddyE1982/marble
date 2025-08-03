@@ -140,6 +140,8 @@ class MetricsVisualizer:
             "ram_usage": [],
             "gpu_usage": [],
             "cpu_usage": [],
+            "cache_hit": [],
+            "cache_miss": [],
         }
         self.fig_width = fig_width
         self.fig_height = fig_height

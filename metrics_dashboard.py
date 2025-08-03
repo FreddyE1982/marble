@@ -102,6 +102,14 @@ class MetricsDashboard:
             fig.add_scatter(
                 y=self.smooth(metrics["meta_loss_avg"]), mode="lines", name="MetaLossAvg"
             )
+        if "cache_hit" in selected and metrics.get("cache_hit"):
+            fig.add_scatter(
+                y=self.smooth(metrics["cache_hit"]), mode="lines", name="Cache Hit"
+            )
+        if "cache_miss" in selected and metrics.get("cache_miss"):
+            fig.add_scatter(
+                y=self.smooth(metrics["cache_miss"]), mode="lines", name="Cache Miss"
+            )
         fig.update_layout(xaxis_title="Updates", yaxis_title="Value")
         return fig
 

@@ -17,6 +17,10 @@ Each entry is listed under its section heading.
 ## plugins
 - (list of module import paths to load)
 
+## pipeline
+- async_enabled
+- cache_dir
+
 ## core
 - xmin
 - xmax
