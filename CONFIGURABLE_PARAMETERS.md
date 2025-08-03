@@ -21,6 +21,9 @@ Each entry is listed under its section heading.
 - async_enabled
 - cache_dir
 
+## sync
+- interval_ms
+
 ## core
 - xmin
 - xmax

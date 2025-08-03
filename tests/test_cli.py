@@ -89,3 +89,21 @@ def test_cli_grid_search(tmp_path):
     )
     assert result.returncode == 0
     assert b"dropout_probability" in result.stdout
+
+
+def test_cli_sync_interval_override(tmp_path):
+    cfg = Path(tmp_path) / "cfg.yaml"
+    import yaml
+
+    cfg.write_text(yaml.safe_dump({"core": minimal_params()}))
+    result = subprocess.run(
+        [
+            sys.executable,
+            "cli.py",
+            "--config",
+            str(cfg),
+            "--sync-interval-ms",
+            "2000",
+        ]
+    )
+    assert result.returncode == 0

@@ -6,11 +6,7 @@ import jsonschema
 import pytest
 import yaml
 
-from config_loader import (
-    create_marble_from_config,
-    load_config,
-    validate_global_config,
-)
+from config_loader import create_marble_from_config, load_config, validate_global_config
 from marble_main import MARBLE
 from remote_offload import RemoteBrainClient
 from torrent_offload import BrainTorrentClient
@@ -47,6 +43,7 @@ def test_load_config_defaults():
     assert cfg["network"]["remote_client"]["max_retries"] == 3
     assert cfg["network"]["torrent_client"]["client_id"] == "main"
     assert cfg["network"]["torrent_client"]["buffer_size"] == 10
+    assert cfg["sync"]["interval_ms"] == 1000
     assert cfg["brain"]["initial_neurogenesis_factor"] == 1.0
     assert cfg["brain"]["offload_enabled"] is False
     assert cfg["brain"]["torrent_offload_enabled"] is False

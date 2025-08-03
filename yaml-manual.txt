@@ -49,6 +49,13 @@ pipeline:
     available or ``pipeline_cache_cpu`` otherwise. Use ``HighLevelPipeline.clear_cache()``
     to remove cached files when space is needed.
 
+sync:
+  interval_ms: Number of milliseconds between background tensor synchronization cycles
+    across devices in distributed training. Lower values (100–500) keep model
+    parameters closely aligned but increase communication overhead. Higher values
+    (1000–10000) reduce network usage at the cost of more stale updates. Must be
+    a positive integer. Defaults to ``1000``.
+
 core:
   xmin: Minimum X coordinate for the Mandelbrot seed. Defines the left boundary
     of the complex plane used when initializing neuron values.

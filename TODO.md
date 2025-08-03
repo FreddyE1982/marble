@@ -1010,8 +1010,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [ ] Spawn a lightweight worker thread per device to exchange deltas.
         - [ ] Aggregate metrics to detect and resync stale devices.
     - [ ] Tune synchronization interval via configuration.
-        - [ ] Add `sync.interval_ms` to configuration and CLI flags.
-        - [ ] Provide recommended ranges in YAML manual and parameters list.
+        - [x] Add `sync.interval_ms` to configuration and CLI flags.
+        - [x] Provide recommended ranges in YAML manual and parameters list.
     - [ ] Add tests measuring latency reduction.
         - [ ] Simulate a two-device setup with dummy tensors.
         - [ ] Verify synchronization reduces transfer volume and wall-clock time.
