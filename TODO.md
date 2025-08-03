@@ -306,8 +306,16 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Unit tests verifying asynchronous execution with mixed coroutine and blocking steps.
     - [x] Expose `pipeline.async_enabled` configuration option with CPU and GPU support.
     - [ ] Benchmark asynchronous execution on CPU and GPU to quantify speedup.
+        - [ ] Establish synchronous baseline timings on CPU.
+        - [ ] Measure asynchronous execution timings on CPU.
+        - [ ] Establish synchronous baseline timings on GPU.
+        - [ ] Measure asynchronous execution timings on GPU.
+        - [ ] Compile and analyse speedup results.
     - [x] Document asynchronous pipeline usage in README and TUTORIAL.
     - [ ] Add integration tests for asynchronous execution in multi-node environments.
+        - [ ] Configure multi-node CPU environment for testing.
+        - [ ] Configure multi-node GPU environment for testing.
+        - [ ] Verify asynchronous steps execute correctly across nodes.
 168. [ ] Cache intermediate results so iterative experiments run faster.
     - [x] Create file based cache storing step outputs keyed by index and function name.
     - [x] Add `clear_cache` method to remove cached files when needed.
@@ -316,21 +324,50 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Track and display cache hit/miss statistics in the metrics dashboard.
     - [x] Document caching workflow and disk space considerations.
     - [ ] Stress-test cache performance on large datasets for CPU and GPU runs.
+        - [ ] Prepare representative large dataset for benchmarking.
+        - [ ] Run cache stress tests on CPU and record metrics.
+        - [ ] Run cache stress tests on GPU and record metrics.
+        - [ ] Compare results and document performance findings.
 169. [ ] Support checkpointing and resuming pipelines with dataset version tracking.
     - [x] Track `dataset_version` within `HighLevelPipeline` instances.
     - [x] Implement `save_checkpoint` and `load_checkpoint` methods.
     - [x] Test saving and loading pipelines with version metadata.
     - [ ] Provide CLI commands to create and resume checkpoints.
+        - [ ] Add command to generate checkpoints from running pipelines.
+        - [ ] Add command to resume pipelines from saved checkpoints.
+        - [ ] Include CPU/GPU flags and usage help.
     - [ ] Validate checkpoints across CPU and GPU environments.
+        - [ ] Test saving and loading on CPU-only setups.
+        - [ ] Test saving and loading on GPU-enabled setups.
+        - [ ] Ensure outputs match across devices.
     - [ ] Document versioned checkpoint workflow in README and TUTORIAL.
+        - [ ] Explain checkpoint commands in README.
+        - [ ] Add tutorial section demonstrating save and resume.
+        - [ ] Review documentation for clarity.
     - [ ] Add integration tests simulating interrupted runs and resume behaviour.
+        - [ ] Interrupt and resume training on CPU.
+        - [ ] Interrupt and resume training on GPU.
+        - [ ] Confirm dataset versions persist across resumes.
 170. [ ] Provide interactive step visualisation in the Streamlit GUI using dataset introspection.
     - [x] Add a "Step Visualisation" expander showing step parameters and dataset info.
     - [x] Unit tests ensuring the new expander appears in the Pipeline tab.
     - [ ] Render real-time metrics within each step visualisation for CPU and GPU runs.
+        - [ ] Stream metric updates during CPU executions.
+        - [ ] Stream metric updates during GPU executions.
+        - [ ] Refresh visualisation panels live.
     - [ ] Allow exporting step details as JSON or CSV from the GUI.
+        - [ ] Add export buttons for JSON and CSV formats.
+        - [ ] Implement JSON serialisation of step details.
+        - [ ] Implement CSV serialisation of step details.
+        - [ ] Verify downloads work on desktop and mobile.
     - [ ] Document visualisation features in README and TUTORIAL.
+        - [ ] Update README with screenshots and explanations.
+        - [ ] Extend tutorial with step-by-step visualisation guide.
+        - [ ] Mention export options and metrics display.
     - [ ] Add GUI tests verifying export functionality and mobile layout.
+        - [ ] Test export features on desktop layout.
+        - [ ] Test export features on mobile layout.
+        - [ ] Assert metric panels render correctly in both views.
 171. [ ] Offer a plugin system so users can register custom pipeline steps easily.
    - [ ] Outline design for Offer a plugin system so users can register custom pipeline steps easily.
    - [ ] Implement Offer a plugin system so users can register custom pipeline steps easily with CPU/GPU support.
