@@ -128,6 +128,10 @@
     - [ ] Unit tests for small networks
     - [ ] Integration test for a custom model
     - [ ] CLI option to run validation automatically
+        - [ ] Add `--validate` flag to `convert_model.py`.
+        - [ ] Execute PyTorch vs MARBLE comparison when the flag is provided.
+        - [ ] Output a validation report highlighting layer mismatches.
+        - [ ] Document the validation flag in README and CLI help.
 - [ ] Numerical tolerances for output comparison
     - [ ] Define default tolerance thresholds for floating point comparisons.
     - [ ] Allow overriding tolerance via CLI and configuration.
