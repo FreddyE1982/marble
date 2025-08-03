@@ -1325,8 +1325,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Add methods for retrieval and composite prompt generation.
         - [x] Provide serialization for stored pairs.
     - [ ] Modify inference to use `prompt + input` as composite query.
-        - [ ] Concatenate prompts with new inputs before inference.
-        - [ ] Handle empty or oversized prompt caches gracefully.
+        - [x] Concatenate prompts with new inputs before inference.
+        - [x] Handle empty or oversized prompt caches gracefully.
     - [ ] Add GUI control for toggling prompt injection.
         - [ ] Create Streamlit toggle linked to inference pipeline.
         - [ ] Persist user preference between sessions.
@@ -1335,7 +1335,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Include timestamps for chronological retrieval.
     - [ ] Write tests for prompt cache behavior.
         - [x] Verify FIFO eviction policy.
-        - [ ] Test inference output when prompts are applied.
+        - [x] Test inference output when prompts are applied.
 
 327. [ ] Add YAML config editor in Streamlit.
     - [ ] Add new "Config Editor" tab using `st_ace` with YAML syntax.

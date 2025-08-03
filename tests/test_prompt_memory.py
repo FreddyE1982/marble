@@ -32,3 +32,16 @@ def test_timestamps_persist(tmp_path):
     loaded_records = loaded.get_records()
     assert [(r["input"], r["output"]) for r in loaded_records] == [("x", "1"), ("y", "2")]
     assert "timestamp" in loaded_records[0]
+
+
+def test_composite_with_handles_limits():
+    mem = PromptMemory(max_size=3)
+    mem.add("a", "1")
+    mem.add("b", "2")
+    composite = mem.composite_with("c", max_chars=50)
+    assert "Input: a" in composite and "Input: b" in composite and composite.endswith("Input: c")
+    # Create long strings to trigger truncation of oldest pair
+    mem.add("x" * 40, "y" * 40)
+    composite2 = mem.composite_with("end", max_chars=80)
+    assert "x" * 40 not in composite2  # oldest removed to fit size
+    assert composite2.endswith("end")

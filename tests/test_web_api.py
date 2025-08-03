@@ -9,6 +9,7 @@ from marble_brain import Brain
 from marble_core import DataLoader
 from tests.test_core_functions import minimal_params
 from web_api import InferenceServer
+from prompt_memory import PromptMemory
 
 
 def test_inference_server(tmp_path):
@@ -26,5 +27,25 @@ def test_inference_server(tmp_path):
         data = resp.json()
         assert "output" in data
         assert isinstance(data["output"], float)
+    finally:
+        server.stop()
+
+
+def test_inference_server_with_prompt_memory(tmp_path):
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    brain = Brain(core, nb, DataLoader())
+    memory = PromptMemory(max_size=2)
+    server = InferenceServer(brain, host="localhost", port=5091, prompt_memory=memory)
+    server.start()
+    try:
+        time.sleep(0.5)
+        resp = requests.post("http://localhost:5091/infer", json={"text": "hello"}, timeout=5)
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "output" in data
+        assert len(memory.get_pairs()) == 1
+        assert memory.get_pairs()[0][0] == "hello"
     finally:
         server.stop()
