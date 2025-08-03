@@ -17,6 +17,8 @@ import torch
 import torch.distributed as dist
 from tokenizers import Tokenizer
 
+import tensor_backend as tb
+
 from marble_base import MetricsVisualizer
 from marble_imports import *  # noqa: F401,F403,F405
 from memory_pool import MemoryPool
@@ -143,9 +145,9 @@ def resize_neuron_representations(core: "Core", new_size: int) -> None:
 def _apply_activation(arr: np.ndarray, activation: str) -> np.ndarray:
     """Return ``arr`` passed through the given activation function."""
     if activation == "relu":
-        return np.maximum(arr, 0)
+        return tb.relu(arr)
     if activation == "sigmoid":
-        return 1.0 / (1.0 + np.exp(-arr))
+        return tb.sigmoid(arr)
     return np.tanh(arr)
 
 
@@ -204,10 +206,10 @@ def _simple_mlp(
         return out
     # Handle potential NaNs or infinities to avoid runtime warnings
     x = np.nan_to_num(x, nan=0.0, posinf=0.0, neginf=0.0)
-    h = _apply_activation(x @ _W1 + _B1, activation)
+    h = _apply_activation(tb.matmul(x, _W1) + _B1, activation)
     if apply_layer_norm:
         h = _layer_norm(h)
-    out = _apply_activation(h @ _W2 + _B2, activation)
+    out = _apply_activation(tb.matmul(h, _W2) + _B2, activation)
     if not np.all(np.isfinite(out)):
         raise ValueError("NaN or Inf encountered in MLP output")
     return out

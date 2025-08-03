@@ -1031,12 +1031,12 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Cross-link plugin API from relevant guides.
     - [x] Run lint checks to ensure markdown consistency.
 319. [ ] Integrate JAX backend for differentiability.
-    - [ ] Create backend abstraction layer (`tensor_backend.py`) with functions like `matmul`, `sigmoid`, and `relu`.
-    - [ ] Implement NumPy and JAX backend versions.
+    - [x] Create backend abstraction layer (`tensor_backend.py`) with functions like `matmul`, `sigmoid`, and `relu`.
+    - [x] Implement NumPy and JAX backend versions.
     - [ ] Refactor Mandelbrot seed generation (`core/init_seed.py`) to use backend functions.
     - [ ] Update message passing (`core/message_passing.py`) to rely on the abstraction.
-    - [ ] Add `core.backend` to `config.yaml` with fallback to NumPy and document in `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
-    - [ ] Test Mandelbrot output consistency across backends.
+    - [x] Add `core.backend` to `config.yaml` with fallback to NumPy and document in `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
+    - [x] Test Mandelbrot output consistency across backends.
 
 320. [ ] Introduce parallel Neuronenblitz workers.
     - [ ] Refactor `Neuronenblitz.train_example()` to be stateless and reentrant.
@@ -1061,12 +1061,12 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [ ] Visualize mask and gate effects on message propagation.
     - [ ] Add tests for causal attention and gating behavior.
 
-323. [ ] Build streaming tokenizer and data loader.
-    - [ ] Refactor tokenizer interface to yield `tokenize(line)` instead of whole corpus.
-    - [ ] Implement `StreamingCSVLoader` in `dataset_loader.py`.
-    - [ ] Add resume token to track current byte offset and store metadata in `.meta.json`.
-    - [ ] Document streaming loader in tutorials and config manuals.
-    - [ ] Add tests for streaming tokenization and loader functionality.
+323. [x] Build streaming tokenizer and data loader.
+    - [x] Refactor tokenizer interface to yield `tokenize(line)` instead of whole corpus.
+    - [x] Implement `StreamingCSVLoader` in `dataset_loader.py`.
+    - [x] Add resume token to track current byte offset and store metadata in `.meta.json`.
+    - [x] Document streaming loader in tutorials and config manuals.
+    - [x] Add tests for streaming tokenization and loader functionality.
 
 324. [ ] Enhance Theory of Mind module.
     - [ ] Add `agent_id` and `belief_state` fields to input.

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable
+from typing import Iterable, Iterator
 
 from tokenizers import Tokenizer
 from tokenizers.models import BPE, WordPiece, Unigram
@@ -65,3 +65,20 @@ def tokenizer_to_json(tokenizer: Tokenizer) -> str:
 def tokenizer_from_json(data: str) -> Tokenizer:
     """Load a tokenizer from a JSON string."""
     return Tokenizer.from_str(data)
+
+
+def tokenize_line(tokenizer: Tokenizer, line: str) -> list[int]:
+    """Tokenize a single ``line`` and return token ids.
+
+    This utility avoids loading an entire corpus into memory and enables
+    streaming tokenisation.
+    """
+
+    return tokenizer.encode(line).ids
+
+
+def tokenize_lines(tokenizer: Tokenizer, lines: Iterable[str]) -> Iterator[list[int]]:
+    """Yield token ids for each line in ``lines`` using ``tokenizer``."""
+
+    for line in lines:
+        yield tokenize_line(tokenizer, line)

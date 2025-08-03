@@ -114,6 +114,10 @@ core:
     tier choice is provided explicitly.
   random_seed: Seed used for random operations in the core. Keeping this fixed
     ensures reproducible initialization.
+  backend: Selects the tensor math library for core operations. ``"numpy"``
+    executes with NumPy on the CPU while ``"jax"`` uses JAX and transparently
+    exploits GPU acceleration when available. Choose ``"jax"`` to enable
+    automatic differentiation with GPU/CPU fallback. Defaults to ``"numpy"``.
   message_passing_dropout: Fraction of messages dropped during propagation to
     regularize learning. ``0.0`` disables dropout.
   synapse_dropout_prob: Probability of zeroing out connections of synapses

@@ -12,6 +12,8 @@ from remote_hardware import load_remote_tier_plugin
 from remote_offload import RemoteBrainClient, RemoteBrainServer
 from torrent_offload import BrainTorrentClient, BrainTorrentTracker
 
+import tensor_backend as tb
+
 DEFAULT_CONFIG_FILE = Path(__file__).resolve().parent / "config.yaml"
 
 
@@ -77,6 +79,7 @@ def create_marble_from_config(
         load_plugins(plugin_dirs)
 
     core_params = cfg.get("core", {})
+    tb.set_backend(core_params.get("backend", "numpy"))
     qbits = core_params.get("quantization_bits", 0)
     nb_params = cfg.get("neuronenblitz", {})
     brain_params = cfg.get("brain", {})

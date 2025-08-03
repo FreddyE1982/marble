@@ -2,6 +2,8 @@ import os
 import hashlib
 import zipfile
 import pickle
+import csv
+import json
 import requests
 import torch.distributed as dist
 import requests_cache
@@ -13,6 +15,7 @@ from memory_pool import MemoryPool
 from memory_manager import MemoryManager
 from marble_base import MetricsVisualizer
 from marble import DataLoader
+from tokenizer_utils import tokenize_line
 
 _SESSION = requests_cache.CachedSession("http_cache", expire_after=86400)
 _DATASET_CACHE: dict[str, list[tuple[Any, Any]]] = {}
@@ -278,6 +281,49 @@ def load_dataset(
     if return_deps:
         return pairs, deps
     return pairs
+
+
+class StreamingCSVLoader:
+    """Iterate over a CSV file line by line with resume support.
+
+    The loader stores the current byte ``offset`` in ``<path>.meta.json`` after
+    each yielded row so subsequent runs can resume where the previous one left
+    off. When ``tokenizer`` is provided, an ``input_ids`` field containing token
+    ids is added to each row using :func:`tokenize_line`.
+    """
+
+    def __init__(self, path: str, *, tokenizer: "Tokenizer | None" = None,
+                 meta_suffix: str = ".meta.json") -> None:
+        self.path = path
+        self.meta_path = path + meta_suffix
+        self.tokenizer = tokenizer
+        self._file = open(path, "r", encoding="utf-8", newline="")
+        self._header = self._file.readline().strip().split(",")
+        if os.path.exists(self.meta_path):
+            try:
+                with open(self.meta_path, "r", encoding="utf-8") as f:
+                    meta = json.load(f)
+                self._file.seek(meta.get("offset", 0))
+                if self._file.tell() == 0:
+                    self._file.readline()
+            except Exception:
+                pass
+
+    def __iter__(self):
+        while True:
+            line = self._file.readline()
+            if not line:
+                break
+            offset = self._file.tell()
+            with open(self.meta_path, "w", encoding="utf-8") as f:
+                json.dump({"offset": offset}, f)
+            row = next(csv.DictReader([line], fieldnames=self._header))
+            if self.tokenizer and "input" in row:
+                row["input_ids"] = tokenize_line(self.tokenizer, row["input"])
+            yield row
+
+    def close(self) -> None:
+        self._file.close()
 
 
 def export_dataset(pairs: list[tuple[Any, Any]], path: str) -> None:
