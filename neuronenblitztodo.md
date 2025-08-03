@@ -197,8 +197,16 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
        decentralized all-reduce schemes can keep wander policies in sync
        while each worker explores a distinct region of the graph.
    - [ ] Implement distributed wander workers for massive parallelism within Neuronenblitz.
+       - [ ] Spawn worker processes that execute wander policies concurrently.
+       - [ ] Synchronize model parameters via parameter server or all-reduce.
+       - [ ] Handle worker startup and shutdown, recovering from failures.
    - [ ] Evaluate distributed wander workers for massive parallelism on benchmark tasks and document results.
+       - [ ] Benchmark speedup versus single-process baseline on CPU.
+       - [ ] Benchmark scalability on multi-GPU setups.
+       - [ ] Summarize performance metrics and resource usage.
    - [ ] Create tests covering distributed wander workers for massive parallelism.
+       - [ ] Unit test worker creation and parameter synchronization.
+       - [ ] Integration test multi-worker execution on CPU and GPU.
 21. Utilize learned heuristics for selecting starting neurons.
    - [x] Research approaches for learned heuristics for selecting starting neurons.
      - Contextual bandit methods and meta-learning can predict promising

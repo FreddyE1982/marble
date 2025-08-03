@@ -362,5 +362,12 @@
   - [x] Test CSV output formatting.
 - [ ] Interactive viewer to inspect weights
   - [ ] Develop Streamlit app to browse layer weights.
+    - [ ] Set up dedicated Streamlit page with CPU/GPU selection.
+    - [ ] Load converted weight tensors and render them as heatmaps.
+    - [ ] Display layer metadata alongside visualisations.
   - [ ] Provide search and filtering capabilities.
+    - [ ] Add text search to locate layers by name.
+    - [ ] Include sliders to filter by weight magnitude or index range.
   - [ ] Write GUI tests ensuring viewer loads converted weights.
+    - [ ] Test loading of weights from a sample converted model.
+    - [ ] Validate search and filter controls update the view.
