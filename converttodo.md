@@ -268,7 +268,13 @@
 ### 12. Universal converter roadmap
 - [ ] Comprehensive layer mapping registry
   - [ ] Enumerate all built-in nn layers and map to converters
+      - [ ] List available layers from PyTorch documentation.
+      - [ ] Match existing converters to these layers.
+      - [ ] Flag layers missing converter implementations.
   - [ ] Provide template for unsupported layers to raise errors
+      - [ ] Define standard error message format.
+      - [ ] Create helper generating error stubs for new layers.
+      - [ ] Document template usage for contributors.
 - [ ] Graph construction utilities bridging to dynamic message passing
   - [x] Helper to spawn neurons for input/output dimensions
   - [x] Helper to connect neurons with weighted synapses
@@ -279,17 +285,43 @@
       - [x] Add tests verifying flag presence.
 - [ ] torch.fx integration for arbitrary models
   - [ ] Trace custom layers and call registered converters
+      - [ ] Extend tracing logic to capture user-defined layers.
+      - [ ] Look up converters via registry and invoke them.
+      - [ ] Raise descriptive errors when converters are missing.
   - [ ] Allow decorators to register new converters
+      - [ ] Design decorator API for converter registration.
+      - [ ] Register decorated functions at import time.
+      - [ ] Provide examples demonstrating decorator usage.
 - [ ] Weight and bias extraction helpers
   - [ ] Handle GPU tensors transparently
+      - [ ] Detect tensor device during extraction.
+      - [ ] Move GPU tensors to CPU when necessary.
+      - [ ] Preserve original device information for reconstruction.
   - [ ] Inject bias neurons with correct values
+      - [ ] Create bias neuron nodes within graph builder.
+      - [ ] Populate bias nodes with corresponding weights.
+      - [ ] Validate bias application through unit tests.
 - [ ] Conversion CLI and API enhancements
   - [ ] Option to produce .marble snapshot directly
+      - [ ] Add CLI flag enabling snapshot output.
+      - [ ] Serialise converted graph into `.marble` format.
+      - [ ] Ensure snapshot includes required metadata.
   - [ ] Auto-inference mode printing neuron/synapse counts
+      - [ ] Implement flag triggering automatic inference.
+      - [ ] Compute neuron and synapse counts after conversion.
+      - [ ] Display counts in CLI output.
   - [ ] Validation mode comparing outputs with PyTorch
+      - [ ] Run forward pass on original PyTorch model.
+      - [ ] Run same inputs through converted MARBLE model.
+      - [ ] Report differences and fail on large deviations.
 - [ ] Validation suite comparing PyTorch and MARBLE outputs
   - [ ] Per-layer unit tests
+      - [ ] Select representative layers for testing.
+      - [ ] Verify converted outputs match PyTorch results.
   - [ ] End-to-end comparison for simple models
+      - [ ] Convert small reference model to MARBLE.
+      - [ ] Execute model in both frameworks on sample data.
+      - [ ] Compare predictions and document parity.
 
 ### 13. Dynamic message passing integration
 - [ ] Store activation behavior metadata in neurons for runtime evaluation
