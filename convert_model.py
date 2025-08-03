@@ -2,16 +2,21 @@ import argparse
 from pathlib import Path
 from typing import Dict
 
-from pytorch_to_marble import convert_model
+import yaml
+
 from marble_interface import MARBLE, save_marble_system
 from marble_utils import core_to_json
+from pytorch_to_marble import convert_model
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Convert PyTorch model checkpoint to MARBLE JSON or snapshot"
     )
-    parser.add_argument("--pytorch", required=True, help="Path to PyTorch model")
+    parser.add_argument("--pytorch", help="Path to PyTorch model")
+    parser.add_argument(
+        "--config", help="Path to YAML file providing default arguments"
+    )
     parser.add_argument(
         "--output",
         help="Output path (.json or .marble)",
@@ -36,20 +41,27 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    if args.config:
+        with open(args.config, "r", encoding="utf-8") as f:
+            cfg = yaml.safe_load(f) or {}
+        for key, value in cfg.items():
+            if getattr(args, key, None) in (None, False):
+                setattr(args, key, value)
+
+    if not args.pytorch:
+        parser.error("--pytorch is required (either via CLI or config file)")
+
     if not args.output and not (
         args.dry_run or args.summary or args.summary_output or args.summary_plot
     ):
-        parser.error(
-            "--output is required unless running in dry-run or summary mode"
-        )
+        parser.error("--output is required unless running in dry-run or summary mode")
 
     from torch_model_io import load_model_auto
+
     model = load_model_auto(args.pytorch)
 
     if args.summary or args.summary_output or args.summary_plot:
-        core, summary = convert_model(
-            model, dry_run=True, return_summary=True
-        )
+        core, summary = convert_model(model, dry_run=True, return_summary=True)
         if args.summary_output:
             import json
 
@@ -101,4 +113,3 @@ def _plot_summary(summary: Dict[str, Dict], path: str) -> None:
 
 if __name__ == "__main__":
     main()
-
