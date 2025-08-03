@@ -100,52 +100,92 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
    - [ ] Evaluate gradient accumulation for stable high-depth wandering on benchmark tasks and document results.
    - [ ] Create tests covering gradient accumulation for stable high-depth wandering.
 20. Implement distributed wander workers for massive parallelism.
-   - [ ] Research approaches for distributed wander workers for massive parallelism.
+   - [x] Research approaches for distributed wander workers for massive parallelism.
+     - Scalable RL systems like IMPALA and Ape-X show that separating
+       actors from learners enables thousands of concurrent workers with
+       minimal synchronization overhead. Parameter servers or
+       decentralized all-reduce schemes can keep wander policies in sync
+       while each worker explores a distinct region of the graph.
    - [ ] Implement distributed wander workers for massive parallelism within Neuronenblitz.
    - [ ] Evaluate distributed wander workers for massive parallelism on benchmark tasks and document results.
    - [ ] Create tests covering distributed wander workers for massive parallelism.
 21. Utilize learned heuristics for selecting starting neurons.
-   - [ ] Research approaches for learned heuristics for selecting starting neurons.
+   - [x] Research approaches for learned heuristics for selecting starting neurons.
+     - Contextual bandit methods and meta-learning can predict promising
+       starting neurons based on past reward profiles. Graph centrality
+       measures such as PageRank or betweenness can serve as features for
+       the heuristic network.
    - [ ] Implement learned heuristics for selecting starting neurons within Neuronenblitz.
    - [ ] Evaluate learned heuristics for selecting starting neurons on benchmark tasks and document results.
    - [ ] Create tests covering learned heuristics for selecting starting neurons.
 22. Add differentiable memory addressing for improved recall.
-   - [ ] Research approaches for differentiable memory addressing for improved recall.
+   - [x] Research approaches for differentiable memory addressing for improved recall.
+     - Differentiable Neural Computers and attention-based memory modules
+       allow content-based addressing with gradient backpropagation. Using
+       key-value memory slots with softmax attention enables precise
+       recall of past wander contexts.
    - [ ] Implement differentiable memory addressing for improved recall within Neuronenblitz.
    - [ ] Evaluate differentiable memory addressing for improved recall on benchmark tasks and document results.
    - [ ] Create tests covering differentiable memory addressing for improved recall.
 23. Integrate RL-based scheduler for exploration vs. exploitation.
-   - [ ] Research approaches for RL-based scheduler for exploration vs. exploitation.
+   - [x] Research approaches for RL-based scheduler for exploration vs. exploitation.
+     - Multi-armed bandit schedulers and reinforcement meta-controllers
+       can dynamically balance exploration and exploitation. Approaches
+       like Upper Confidence Bound (UCB) or Thompson Sampling adapt the
+       schedule based on observed wander rewards.
    - [ ] Implement RL-based scheduler for exploration vs. exploitation within Neuronenblitz.
    - [ ] Evaluate RL-based scheduler for exploration vs. exploitation on benchmark tasks and document results.
    - [ ] Create tests covering RL-based scheduler for exploration vs. exploitation.
 24. Use generative models to synthesize plausible wander paths.
-   - [ ] Research approaches for generative models to synthesize plausible wander paths.
+   - [x] Research approaches for generative models to synthesize plausible wander paths.
+     - Variational Autoencoders and diffusion models can learn the
+       distribution of successful wander paths and sample novel but
+       plausible trajectories. Generative adversarial imitation learning
+       (GAIL) provides another route for path synthesis.
    - [ ] Implement generative models to synthesize plausible wander paths within Neuronenblitz.
    - [ ] Evaluate generative models to synthesize plausible wander paths on benchmark tasks and document results.
    - [ ] Create tests covering generative models to synthesize plausible wander paths.
 25. Introduce dynamic freezing of low-impact synapses.
-   - [ ] Research approaches for dynamic freezing of low-impact synapses.
+   - [x] Research approaches for dynamic freezing of low-impact synapses.
+     - Techniques like magnitude-based pruning and Fisher information
+       pruning highlight synapses with minimal contribution to loss.
+       Freezing such connections during wandering reduces computation
+       while preserving performance.
    - [ ] Implement dynamic freezing of low-impact synapses within Neuronenblitz.
    - [ ] Evaluate dynamic freezing of low-impact synapses on benchmark tasks and document results.
    - [ ] Create tests covering dynamic freezing of low-impact synapses.
 26. Implement spectral normalization for stable synapse weights.
-   - [ ] Research approaches for spectral normalization for stable synapse weights.
+   - [x] Research approaches for spectral normalization for stable synapse weights.
+     - Spectral normalization constrains the Lipschitz constant by
+       dividing weights by their largest singular value. This technique
+       stabilizes training of GANs and could prevent exploding synapse
+       activations in Neuronenblitz.
    - [ ] Implement spectral normalization for stable synapse weights within Neuronenblitz.
    - [ ] Evaluate spectral normalization for stable synapse weights on benchmark tasks and document results.
    - [ ] Create tests covering spectral normalization for stable synapse weights.
 27. Use policy gradients to update wander decision policies.
-   - [ ] Research approaches for policy gradients to update wander decision policies.
+   - [x] Research approaches for policy gradients to update wander decision policies.
+     - REINFORCE and actor-critic methods compute gradients of expected
+       rewards with respect to policy parameters. Applying these to
+       wander decisions allows direct optimization of exploration paths.
    - [ ] Implement policy gradients to update wander decision policies within Neuronenblitz.
    - [ ] Evaluate policy gradients to update wander decision policies on benchmark tasks and document results.
    - [ ] Create tests covering policy gradients to update wander decision policies.
 28. Incorporate graph sparsification to prune redundant routes.
-   - [ ] Research approaches for graph sparsification to prune redundant routes.
+   - [x] Research approaches for graph sparsification to prune redundant routes.
+     - Techniques such as Laplacian sparsification and backbone extraction
+       retain critical edges while removing redundant connections. These
+       methods maintain graph connectivity and can focus wandering on
+       informative pathways.
    - [ ] Implement graph sparsification to prune redundant routes within Neuronenblitz.
    - [ ] Evaluate graph sparsification to prune redundant routes on benchmark tasks and document results.
    - [ ] Create tests covering graph sparsification to prune redundant routes.
 29. Apply local Hebbian updates during each wander step.
-   - [ ] Research approaches for local Hebbian updates during each wander step.
+   - [x] Research approaches for local Hebbian updates during each wander step.
+     - Classical Hebbian learning strengthens synapses when pre- and
+       post-synaptic neurons co-activate. Spike-timing dependent plasticity
+       and Oja's rule provide biologically inspired formulations suitable
+       for incremental updates during wandering.
    - [ ] Implement local Hebbian updates during each wander step within Neuronenblitz.
    - [ ] Evaluate local Hebbian updates during each wander step on benchmark tasks and document results.
    - [ ] Create tests covering local Hebbian updates during each wander step.
