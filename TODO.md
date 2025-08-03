@@ -1001,10 +1001,20 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Visualize workspace status in metrics dashboard.
     - [x] Test Global Workspace integration path.
 315. [ ] Provide cross-device tensor synchronization to minimize latency during distributed training.
+    - [ ] Design delta encoding format for tensors.
     - [ ] Implement diff-based synchronization protocol.
+        - [ ] Compute tensor deltas using XOR for integer types and arithmetic
+          difference for floating tensors.
+        - [ ] Apply incoming deltas atomically on each device.
     - [ ] Add background sync service coordinating devices.
+        - [ ] Spawn a lightweight worker thread per device to exchange deltas.
+        - [ ] Aggregate metrics to detect and resync stale devices.
     - [ ] Tune synchronization interval via configuration.
+        - [ ] Add `sync.interval_ms` to configuration and CLI flags.
+        - [ ] Provide recommended ranges in YAML manual and parameters list.
     - [ ] Add tests measuring latency reduction.
+        - [ ] Simulate a two-device setup with dummy tensors.
+        - [ ] Verify synchronization reduces transfer volume and wall-clock time.
 316. [x] Expose a low-level API to monitor event bus traffic for debugging.
     - [x] Add debug hooks to subscribe to raw events.
     - [x] Provide filtering and rate limiting options.

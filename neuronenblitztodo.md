@@ -240,53 +240,110 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
    - [ ] Evaluate policy regularization to avoid deterministic wandering on benchmark tasks and document results.
    - [ ] Create tests covering policy regularization to avoid deterministic wandering.
 40. Implement differentiable synapse routing for learned gating.
-   - [ ] Research approaches for differentiable synapse routing for learned gating.
+   - [x] Research approaches for differentiable synapse routing for learned gating.
+     - Differentiable synapse routing can be achieved by introducing a softmax‑
+       based attention mask over candidate synapses. Routing weights become
+       learnable parameters updated through backpropagation, enabling the model
+       to gate information flow without hard switches. Approaches such as
+       differentiable neural computers and dynamic routing in capsule networks
+       provide templates for training these gating masks while preserving
+       gradient flow.
    - [ ] Implement differentiable synapse routing for learned gating within Neuronenblitz.
    - [ ] Evaluate differentiable synapse routing for learned gating on benchmark tasks and document results.
    - [ ] Create tests covering differentiable synapse routing for learned gating.
 41. Use cross-modal embeddings for richer neuron representations.
-   - [ ] Research approaches for cross-modal embeddings for richer neuron representations.
+   - [x] Research approaches for cross-modal embeddings for richer neuron representations.
+     - Cross‑modal embeddings align heterogeneous data (text, audio, vision)
+       into a shared latent space. Techniques like CLIP and multimodal
+       transformers project each modality through modality‑specific encoders
+       followed by contrastive or fusion objectives. For Neuronenblitz, shared
+       embeddings would allow neurons to encode relationships across modalities
+       and enable transfer learning from one sensory domain to another.
    - [ ] Implement cross-modal embeddings for richer neuron representations within Neuronenblitz.
    - [ ] Evaluate cross-modal embeddings for richer neuron representations on benchmark tasks and document results.
    - [ ] Create tests covering cross-modal embeddings for richer neuron representations.
 42. Employ mutual information maximization between wander paths.
-   - [ ] Research approaches for mutual information maximization between wander paths.
+   - [x] Research approaches for mutual information maximization between wander paths.
+     - InfoMax objectives such as Deep InfoMax or MINE estimate mutual
+       information between representations. By maximizing MI between distinct
+       wander trajectories, the system encourages diverse yet informative paths
+       through the graph. Contrastive learning with positive/negative path
+       pairs can serve as a practical estimator, reinforcing paths that share
+       salient features.
    - [ ] Implement mutual information maximization between wander paths within Neuronenblitz.
    - [ ] Evaluate mutual information maximization between wander paths on benchmark tasks and document results.
    - [ ] Create tests covering mutual information maximization between wander paths.
 43. Introduce cyclical wandering phases inspired by biological sleep.
-   - [ ] Research approaches for cyclical wandering phases inspired by biological sleep.
+   - [x] Research approaches for cyclical wandering phases inspired by biological sleep.
+     - Biological sleep alternates between REM and non‑REM phases, each serving
+       complementary consolidation roles. Mimicking this, Neuronenblitz can
+       cycle between exploratory phases and consolidation phases where replay
+       or synaptic downscaling occurs. Literature on sleep‑wake reinforcement
+       learning suggests scheduling these phases based on time or performance
+       thresholds to balance exploration and stabilization.
    - [ ] Implement cyclical wandering phases inspired by biological sleep within Neuronenblitz.
    - [ ] Evaluate cyclical wandering phases inspired by biological sleep on benchmark tasks and document results.
    - [ ] Create tests covering cyclical wandering phases inspired by biological sleep.
 44. Apply dynamic weight averaging across parallel wanderers. (Completed with averaging strategy)
 45. Use discrete variational autoencoders for route encoding.
-   - [ ] Research approaches for discrete variational autoencoders for route encoding.
+   - [x] Research approaches for discrete variational autoencoders for route encoding.
+     - Discrete VAEs such as VQ‑VAE represent latent variables with learned
+       codebooks, enabling compression of complex structures. Encoding wander
+       routes via VQ‑VAE would allow Neuronenblitz to store prototypical
+       trajectories and reconstruct them during planning. Training involves
+       commit and reconstruction losses, while straight‑through estimators
+       preserve gradients for discrete code selections.
    - [ ] Implement discrete variational autoencoders for route encoding within Neuronenblitz.
    - [ ] Evaluate discrete variational autoencoders for route encoding on benchmark tasks and document results.
    - [ ] Create tests covering discrete variational autoencoders for route encoding.
 46. Introduce feature-wise modulation for neuromodulatory signals.
-   - [ ] Research approaches for feature-wise modulation for neuromodulatory signals.
+   - [x] Research approaches for feature-wise modulation for neuromodulatory signals.
+     - Feature‑wise transformations like FiLM apply learned scale and shift
+       parameters conditioned on external signals. By mapping neuromodulatory
+       variables (arousal, reward) to FiLM layers, the network can modulate
+       neuron activations dynamically, enabling context‑dependent processing
+       without duplicating network weights.
    - [ ] Implement feature-wise modulation for neuromodulatory signals within Neuronenblitz.
    - [ ] Evaluate feature-wise modulation for neuromodulatory signals on benchmark tasks and document results.
    - [ ] Create tests covering feature-wise modulation for neuromodulatory signals.
 47. Apply an attention-based critic for reinforcement learning loops.
-   - [ ] Research approaches for an attention-based critic for reinforcement learning loops.
+   - [x] Research approaches for an attention-based critic for reinforcement learning loops.
+     - Attention critics weigh state features based on relevance before value
+       estimation. Integrating self‑attention into the critic network allows it
+       to focus on influential neurons when computing value estimates, leading
+       to more sample‑efficient policy gradients. Transformer critics and
+       attention‑augmented actor‑critic methods provide reference designs.
    - [ ] Implement an attention-based critic for reinforcement learning loops within Neuronenblitz.
    - [ ] Evaluate an attention-based critic for reinforcement learning loops on benchmark tasks and document results.
    - [ ] Create tests covering an attention-based critic for reinforcement learning loops.
 48. Integrate hierarchical reinforcement learning for complex tasks.
-   - [ ] Research approaches for hierarchical reinforcement learning for complex tasks.
+   - [x] Research approaches for hierarchical reinforcement learning for complex tasks.
+     - Hierarchical RL decomposes objectives into high‑level managers that set
+       subgoals for lower‑level policies. Options framework and FeUdal
+       networks show how temporal abstraction improves long‑horizon planning.
+       For Neuronenblitz, a manager could allocate wander budgets or goal
+       regions, while workers explore locally to satisfy those subgoals.
    - [ ] Implement hierarchical reinforcement learning for complex tasks within Neuronenblitz.
    - [ ] Evaluate hierarchical reinforcement learning for complex tasks on benchmark tasks and document results.
    - [ ] Create tests covering hierarchical reinforcement learning for complex tasks.
 49. Use structural regularization to maintain balanced graph growth.
-   - [ ] Research approaches for structural regularization to maintain balanced graph growth.
+   - [x] Research approaches for structural regularization to maintain balanced graph growth.
+     - Structural regularizers penalize disproportionate expansion of certain
+       graph regions. Techniques like network sparsity penalties, Laplacian
+       regularization, or balanced growth objectives can constrain Neuronenblitz
+       to expand uniformly, preventing over‑concentration of neurons in
+       frequently visited areas while still allowing specialization.
    - [ ] Implement structural regularization to maintain balanced graph growth within Neuronenblitz.
    - [ ] Evaluate structural regularization to maintain balanced graph growth on benchmark tasks and document results.
    - [ ] Create tests covering structural regularization to maintain balanced graph growth.
 50. Implement zero-shot wandering via meta-learned initial states.
-   - [ ] Research approaches for zero-shot wandering via meta-learned initial states.
+   - [x] Research approaches for zero-shot wandering via meta-learned initial states.
+     - Meta-learned initializations such as MAML allow models to adapt to new
+       tasks with few updates. By training Neuronenblitz on diverse graph
+       structures and learning an initialization that encodes general wandering
+       heuristics, the system can begin effective exploration in unseen graphs
+       without lengthy warm-up. Context encoders can supply task embeddings to
+       further tailor the initial state.
    - [ ] Implement zero-shot wandering via meta-learned initial states within Neuronenblitz.
    - [ ] Evaluate zero-shot wandering via meta-learned initial states on benchmark tasks and document results.
    - [ ] Create tests covering zero-shot wandering via meta-learned initial states.
