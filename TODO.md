@@ -1427,9 +1427,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Cover QuantizedTensor round-trip accuracy.
             - [x] Create quantized tensors with known values.
             - [x] Convert to float and back and assert equality.
-        - [ ] Ensure parallel wanderers yield consistent results.
-            - [ ] Set up small world simulation with multiple wanderers.
-            - [ ] Compare outputs and convergence metrics.
+        - [x] Ensure parallel wanderers yield consistent results.
+            - [x] Set up small world simulation with multiple wanderers.
+            - [x] Compare outputs and convergence metrics.
         - [ ] Test prompt cache operations under load.
             - [ ] Fill cache with synthetic prompts.
             - [ ] Measure latency and eviction behaviour.
