@@ -79,6 +79,31 @@ def test_convert_model_summary_output(tmp_path):
     assert summary_path.exists()
 
 
+def test_convert_model_summary_csv(tmp_path):
+    model = SmallModel()
+    model_path = tmp_path / "model.pt"
+    torch.save(model, model_path)
+
+    csv_path = tmp_path / "summary.csv"
+    script = Path(__file__).resolve().parent.parent / "convert_model.py"
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--pytorch",
+            str(model_path),
+            "--summary-csv",
+            str(csv_path),
+        ],
+        capture_output=True,
+    )
+    assert result.returncode == 0
+    assert csv_path.exists()
+    content = csv_path.read_text(encoding="utf-8").strip().splitlines()
+    assert content[0] == "layer,neurons,synapses"
+    assert len(content) >= 2
+
+
 def test_convert_model_config(tmp_path):
     model = SmallModel()
     model_path = tmp_path / "model.pt"

@@ -39,6 +39,10 @@ def main() -> None:
         "--summary-plot",
         help="Path to save bar chart of neurons and synapses per layer",
     )
+    parser.add_argument(
+        "--summary-csv",
+        help="Path to save dry-run summary CSV",
+    )
     args = parser.parse_args()
 
     if args.config:
@@ -52,7 +56,11 @@ def main() -> None:
         parser.error("--pytorch is required (either via CLI or config file)")
 
     if not args.output and not (
-        args.dry_run or args.summary or args.summary_output or args.summary_plot
+        args.dry_run
+        or args.summary
+        or args.summary_output
+        or args.summary_plot
+        or args.summary_csv
     ):
         parser.error("--output is required unless running in dry-run or summary mode")
 
@@ -60,7 +68,12 @@ def main() -> None:
 
     model = load_model_auto(args.pytorch)
 
-    if args.summary or args.summary_output or args.summary_plot:
+    if (
+        args.summary
+        or args.summary_output
+        or args.summary_plot
+        or args.summary_csv
+    ):
         core, summary = convert_model(model, dry_run=True, return_summary=True)
         if args.summary_output:
             import json
@@ -69,6 +82,8 @@ def main() -> None:
                 json.dump(summary, f, indent=2)
         if args.summary_plot:
             _plot_summary(summary, args.summary_plot)
+        if args.summary_csv:
+            _summary_to_csv(summary, args.summary_csv)
         return
 
     core = convert_model(model, dry_run=args.dry_run)
@@ -109,6 +124,16 @@ def _plot_summary(summary: Dict[str, Dict], path: str) -> None:
     plt.tight_layout()
     plt.savefig(path)
     plt.close()
+
+
+def _summary_to_csv(summary: Dict[str, Dict], path: str) -> None:
+    import csv
+
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow(["layer", "neurons", "synapses"])
+        for layer, info in summary["layers"].items():
+            writer.writerow([layer, info["neurons"], info["synapses"]])
 
 
 if __name__ == "__main__":

@@ -157,10 +157,10 @@
   - [ ] Integrate graph visualization library (e.g., pyvis or plotly).
   - [ ] Save rendered graphs to HTML for inspection.
   - [ ] Add tests verifying graph export.
-- [ ] Display neuron and synapse counts per layer
-  - [ ] Implement summarizer that tallies counts per layer.
-  - [ ] Provide CLI option to print or save counts.
-  - [ ] Write unit tests for summarizer accuracy.
+- [x] Display neuron and synapse counts per layer
+  - [x] Implement summarizer that tallies counts per layer.
+  - [x] Provide CLI option to print or save counts.
+  - [x] Write unit tests for summarizer accuracy.
 - [ ] Interactive tool to inspect neuron parameters
   - [ ] Build Streamlit viewer with filtering and search.
   - [ ] Support selecting neurons to show detailed parameters.
@@ -247,10 +247,10 @@
   - [ ] Add `--show-graph` option to converter CLI.
   - [ ] Render graph after conversion when flag is set.
   - [ ] Include tests verifying flag triggers visualization.
-- [ ] Save neuron and synapse counts per layer to .csv
-  - [ ] Implement exporter writing counts to CSV.
-  - [ ] Add CLI argument for output path.
-  - [ ] Test CSV output formatting.
+- [x] Save neuron and synapse counts per layer to .csv
+  - [x] Implement exporter writing counts to CSV.
+  - [x] Add CLI argument for output path.
+  - [x] Test CSV output formatting.
 - [ ] Interactive viewer to inspect weights
   - [ ] Develop Streamlit app to browse layer weights.
   - [ ] Provide search and filtering capabilities.
