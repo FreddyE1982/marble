@@ -577,24 +577,56 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
    - [ ] Create tests covering heterogeneous learning rates across synapse types.
 77. Use differentiable search to optimize path sampling policies.
    - [ ] Research approaches for differentiable search to optimize path sampling policies.
+       - [ ] Survey academic papers and existing implementations.
+       - [ ] Summarize viable techniques for integration.
    - [ ] Implement differentiable search to optimize path sampling policies within Neuronenblitz.
+       - [ ] Design module integrating search into wanderer.
+       - [ ] Unit test core optimisation routine.
    - [ ] Evaluate differentiable search to optimize path sampling policies on benchmark tasks and document results.
+       - [ ] Run experiments on representative tasks.
+       - [ ] Compare performance against baseline strategies.
    - [ ] Create tests covering differentiable search to optimize path sampling policies.
+       - [ ] Write tests for search integration logic.
+       - [ ] Verify behaviour on CPU and GPU.
 78. Introduce knowledge distillation from expert wander traces.
    - [ ] Research approaches for knowledge distillation from expert wander traces.
+       - [ ] Review literature on distillation techniques.
+       - [ ] Identify datasets containing expert traces.
    - [ ] Implement knowledge distillation from expert wander traces within Neuronenblitz.
+       - [ ] Add module loading expert trajectories.
+       - [ ] Integrate distillation loss into training loop.
    - [ ] Evaluate knowledge distillation from expert wander traces on benchmark tasks and document results.
+       - [ ] Train models with and without distillation.
+       - [ ] Report accuracy and convergence improvements.
    - [ ] Create tests covering knowledge distillation from expert wander traces.
+       - [ ] Test loading of expert data.
+       - [ ] Validate loss computation with synthetic traces.
 79. Employ evolutionary strategies for parameter initialization.
    - [ ] Research approaches for evolutionary strategies for parameter initialization.
+       - [ ] Examine algorithms like CMA-ES and genetic algorithms.
+       - [ ] Assess suitability for initializing wander parameters.
    - [ ] Implement evolutionary strategies for parameter initialization within Neuronenblitz.
+       - [ ] Integrate evolutionary optimizer for initial weights.
+       - [ ] Ensure reproducibility through seeded runs.
    - [ ] Evaluate evolutionary strategies for parameter initialization on benchmark tasks and document results.
+       - [ ] Compare initialization quality against random seeds.
+       - [ ] Document performance across multiple runs.
    - [ ] Create tests covering evolutionary strategies for parameter initialization.
+       - [ ] Unit test mutation and selection routines.
+       - [ ] Check initialization produces valid parameter shapes.
 80. Use conditional computation to skip irrelevant pathways.
    - [ ] Research approaches for conditional computation to skip irrelevant pathways.
+       - [ ] Survey gating and routing mechanisms in literature.
+       - [ ] Outline trade-offs in computation vs accuracy.
    - [ ] Implement conditional computation to skip irrelevant pathways within Neuronenblitz.
+       - [ ] Insert gating modules into network.
+       - [ ] Provide fallbacks when conditions are unmet.
    - [ ] Evaluate conditional computation to skip irrelevant pathways on benchmark tasks and document results.
+       - [ ] Measure speedups from skipping pathways.
+       - [ ] Validate that accuracy remains acceptable.
    - [ ] Create tests covering conditional computation to skip irrelevant pathways.
+       - [ ] Unit test gating decisions under different inputs.
+       - [ ] Confirm skipped paths do not affect gradients.
 81. Incorporate learnable metrics for synapse pruning decisions.
    - [ ] Research approaches for learnable metrics for synapse pruning decisions.
    - [ ] Implement learnable metrics for synapse pruning decisions within Neuronenblitz.

@@ -251,7 +251,11 @@
         - [ ] Add checks for concurrent modification.
     - [ ] Add tests exercising dynamic growth.
         - [ ] Simulate incremental graph expansion during inference.
+            - [ ] Build test model that adds nodes at runtime.
+            - [ ] Trigger growth while evaluating sample inputs.
         - [ ] Verify outputs remain stable.
+            - [ ] Compare predictions before and after growth.
+            - [ ] Assert no divergence beyond tolerance.
   - [ ] Unit tests covering dynamic model conversion paths
     - [ ] Create mock models with branching control flow.
         - [ ] Include nested loops and conditionals.
