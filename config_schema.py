@@ -74,6 +74,12 @@ CONFIG_SCHEMA = {
                 "tokenizer_vocab_size": {"type": "integer", "minimum": 1},
             },
         },
+        "sync": {
+            "type": "object",
+            "properties": {
+                "interval_ms": {"type": "integer", "minimum": 1},
+            },
+        },
         "plugins": {
             "type": ["array", "string"],
             "items": {"type": "string"},

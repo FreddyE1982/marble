@@ -36,6 +36,11 @@ def main() -> None:
     parser.add_argument("--min-lr", type=float, help="Minimum learning rate")
     parser.add_argument("--max-lr", type=float, help="Maximum learning rate")
     parser.add_argument(
+        "--sync-interval-ms",
+        type=int,
+        help="Milliseconds between cross-device tensor synchronizations",
+    )
+    parser.add_argument(
         "--pipeline",
         help="Path to a pipeline JSON file to execute after initialization",
     )
@@ -81,7 +86,7 @@ def main() -> None:
         sync_config(src, args.sync_config)
         return
 
-    overrides: dict[str, dict] = {"neuronenblitz": {}, "brain": {}}
+    overrides: dict[str, dict] = {"neuronenblitz": {}, "brain": {}, "sync": {}}
     if args.lr_scheduler:
         overrides["neuronenblitz"]["lr_scheduler"] = args.lr_scheduler
     if args.scheduler_steps is not None:
@@ -92,6 +97,8 @@ def main() -> None:
         overrides["neuronenblitz"]["min_learning_rate"] = args.min_lr
     if args.max_lr is not None:
         overrides["neuronenblitz"]["max_learning_rate"] = args.max_lr
+    if args.sync_interval_ms is not None:
+        overrides["sync"]["interval_ms"] = args.sync_interval_ms
     if args.early_stopping_patience is not None:
         overrides["brain"]["early_stopping_patience"] = args.early_stopping_patience
     if args.early_stopping_delta is not None:
@@ -99,6 +106,7 @@ def main() -> None:
     marble = create_marble_from_config(args.config, overrides=overrides)
     if args.grid_search:
         import yaml
+
         from hyperparameter_search import grid_search
 
         with open(args.grid_search, "r", encoding="utf-8") as f:

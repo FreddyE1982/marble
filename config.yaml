@@ -20,6 +20,9 @@ pipeline:
   cache_dir: null       # Directory for cached step outputs; defaults to pipeline_cache_gpu or pipeline_cache_cpu
 
 
+sync:
+  interval_ms: 1000     # Interval in milliseconds between cross-device tensor synchronization cycles
+
 # =====
 # Core
 # =====
