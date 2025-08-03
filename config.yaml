@@ -170,6 +170,7 @@ neuronenblitz:
   rl_epsilon: 1.0
   rl_epsilon_decay: 0.95
   rl_min_epsilon: 0.1
+  entropy_epsilon_enabled: false
   shortcut_creation_threshold: 5
   chaotic_gating_enabled: false
   chaotic_gating_param: 3.7

@@ -408,6 +408,12 @@ neuronenblitz:
   rl_epsilon_decay: Multiplicative decay applied to ``rl_epsilon`` each time an
     update occurs.
   rl_min_epsilon: Smallest allowed exploration rate once decay has taken place.
+  entropy_epsilon_enabled: When ``true`` the ``update_exploration_schedule``
+    method also adjusts ``rl_epsilon`` using the entropy of synapse visit
+    counts. Low entropy (meaning few synapses are explored) pushes
+    ``rl_epsilon`` toward 1.0 to encourage broader exploration, while high
+    entropy reduces it toward ``rl_min_epsilon``. This automatic balancing helps
+    trade off exploration and exploitation without manual schedules.
   shortcut_creation_threshold: Number of times the exact synapse path must be
     observed before a direct shortcut connection from the first to the last
     neuron is added. Set ``0`` to disable automatic shortcut formation.

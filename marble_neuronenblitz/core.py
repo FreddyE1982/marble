@@ -133,6 +133,7 @@ class Neuronenblitz:
         rl_epsilon=1.0,
         rl_epsilon_decay=0.95,
         rl_min_epsilon=0.1,
+        entropy_epsilon_enabled=False,
         shortcut_creation_threshold=5,
         use_echo_modulation=False,
         wander_cache_ttl=300,
@@ -250,6 +251,7 @@ class Neuronenblitz:
         self.rl_epsilon = rl_epsilon
         self.rl_epsilon_decay = rl_epsilon_decay
         self.rl_min_epsilon = rl_min_epsilon
+        self.entropy_epsilon_enabled = entropy_epsilon_enabled
         self.shortcut_creation_threshold = int(shortcut_creation_threshold)
         self.use_echo_modulation = use_echo_modulation
         self.phase_rate = phase_rate
@@ -581,13 +583,18 @@ class Neuronenblitz:
         return score
 
     def update_exploration_schedule(self) -> None:
-        """Adapt dropout probability based on visit entropy."""
+        """Adapt exploration settings based on synapse-visit entropy."""
         ent = self.compute_path_entropy()
         norm = math.log(len(self.core.synapses) + 1e-12)
         if norm > 0:
             ent /= norm
         val = self.exploration_entropy_scale * ent + self.exploration_entropy_shift
         self.dropout_probability = float(max(0.0, min(1.0, val)))
+        if self.entropy_epsilon_enabled:
+            eps_val = self.exploration_entropy_scale * (1 - ent) + self.exploration_entropy_shift
+            self.rl_epsilon = float(
+                max(self.rl_min_epsilon, min(1.0, eps_val))
+            )
 
     def decay_memory_gates(self) -> None:
         """Decay memory gate strengths over time."""
