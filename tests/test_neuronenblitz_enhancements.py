@@ -1,12 +1,15 @@
-import os, sys
+import os
+import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-import random
-import numpy as np
-import time
 import math
+import random
+import time
+
+import numpy as np
 import pytest
+
 from marble_core import Core, Neuron
 from marble_neuronenblitz import Neuronenblitz
 from tests.test_core_functions import minimal_params
@@ -124,7 +127,7 @@ def test_weight_update_with_noise():
     nb.learning_rate = 1.0
     core.neurons[0].value = 1.0
     np.random.seed(0)
-    expected_noise = np.random.normal(0.0, 0.5)
+    _ = np.random.normal(0.0, 0.5)
     np.random.seed(0)
     nb.apply_weight_updates_and_attention([syn], error=1.0)
     expected = 2.37578056622
@@ -223,7 +226,7 @@ def test_momentum_values_decay():
     nb.learning_rate = 1.0
     core.neurons[0].value = 1.0
     nb.apply_weight_updates_and_attention([syn], error=1.0)
-    first = nb._momentum[syn]
+    _ = nb._momentum[syn]
     core.neurons[0].value = 1.0
     nb.apply_weight_updates_and_attention([syn], error=1.0)
     second = nb._momentum[syn]
@@ -543,7 +546,7 @@ def test_gradient_alignment_gating():
     nb.learning_rate = 1.0
     core.neurons[0].value = 1.0
     nb.apply_weight_updates_and_attention([syn], error=1.0)
-    first_weight = syn.weight
+    _ = syn.weight
     core.neurons[0].value = 1.0
     nb.apply_weight_updates_and_attention([syn], error=-1.0)
     assert syn.weight == pytest.approx(1.02383970547, abs=1e-6)
@@ -814,7 +817,7 @@ def test_memory_gate_biases_selection():
     random.seed(0)
     np.random.seed(0)
     core, syn_a = create_simple_core()
-    syn_b = core.add_synapse(0, 1, weight=1.0)
+    _ = core.add_synapse(0, 1, weight=1.0)
     nb = Neuronenblitz(
         core,
         memory_gate_strength=1.0,
@@ -826,6 +829,29 @@ def test_memory_gate_biases_selection():
     )
     nb.train_example(1.0, 1.0)  # should record successful path
     assert nb.memory_gates
+
+
+def test_memory_gates_modulate_attention():
+    random.seed(0)
+    np.random.seed(0)
+    params = minimal_params()
+    core = Core(params)
+    core.neurons = [Neuron(0, value=0.0), Neuron(1, value=0.0), Neuron(2, value=0.0)]
+    core.synapses = []
+    syn_a = core.add_synapse(0, 1, weight=1.0)
+    syn_b = core.add_synapse(0, 2, weight=1.0)
+    nb = Neuronenblitz(
+        core,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        consolidation_probability=0.0,
+        weight_decay=0.0,
+        gradient_accumulation_steps=100,
+    )
+    nb.memory_gates[syn_a] = 1.0
+    nb.apply_weight_updates_and_attention([syn_a], error=1.0)
+    nb.apply_weight_updates_and_attention([syn_b], error=1.0)
+    assert core.neurons[1].attention_score > core.neurons[2].attention_score
 
 
 def test_curiosity_strength_biases_toward_novel_synapse():
@@ -873,7 +899,7 @@ def test_active_forgetting_decays_context():
     nb = Neuronenblitz(core, forgetting_rate=0.5)
     nb.update_context(reward=1.0)
     nb.dynamic_wander(1.0)
-    assert nb.context_history[0]['reward'] < 1.0
+    assert nb.context_history[0]["reward"] < 1.0
 
 
 def test_structural_dropout_skips_plasticity(monkeypatch):
