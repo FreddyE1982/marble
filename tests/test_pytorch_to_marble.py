@@ -8,7 +8,7 @@ import logging
 import pytest
 import torch
 
-from marble_core import Core
+from marble_core import Core, Neuron
 from pytorch_to_marble import (
     LAYER_CONVERTERS,
     GlobalAvgPool2d,
@@ -711,3 +711,18 @@ def test_conversion_gpu_weights():
     params = minimal_params()
     core = convert_model(model, core_params=params)
     assert len(core.neurons) > 0
+
+
+def test_weight_device_info():
+    layer = torch.nn.Linear(2, 2)
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+    if torch.cuda.is_available():
+        layer = layer.to("cuda")
+    core = Core()
+    for i in range(2):
+        core.neurons.append(Neuron(i, value=0.0, tier="vram"))
+    out_ids = _add_fully_connected_layer(core, [0, 1], layer)
+    for nid in out_ids:
+        assert core.neurons[nid].params["weight_device"] == device
+        if layer.bias is not None:
+            assert core.neurons[nid].params["bias_device"] == device

@@ -3,6 +3,7 @@ import logging
 from typing import Callable, Dict, List, Type
 
 import torch
+import numpy as np
 import torch.nn.functional as F
 from torch.fx import GraphModule, Tracer
 from torch.nn.modules.batchnorm import _BatchNorm
@@ -34,6 +35,12 @@ LayerConverter = Callable[..., List[int]]
 LAYER_CONVERTERS: Dict[Type[torch.nn.Module], LayerConverter] = {}
 FUNCTION_CONVERTERS: Dict[Callable, LayerConverter] = {}
 METHOD_CONVERTERS: Dict[str, LayerConverter] = {}
+
+
+def _extract_tensor(t: torch.Tensor) -> tuple[np.ndarray, str]:
+    """Return tensor as CPU ``numpy`` array and record original device."""
+    device = str(t.device)
+    return t.detach().cpu().numpy(), device
 
 
 class ConverterTracer(Tracer):
@@ -91,9 +98,16 @@ def _add_fully_connected_layer(
     core: Core, input_ids: List[int], layer: torch.nn.Linear
 ) -> List[int]:
     """Add a fully connected layer using the graph builder utility."""
-    weights = layer.weight.detach().cpu().numpy()
-    bias = layer.bias.detach().cpu().numpy() if layer.bias is not None else None
-    return gb_add_fc(core, input_ids, layer.out_features, weights=weights, bias=bias)
+    weights, w_device = _extract_tensor(layer.weight)
+    bias, b_device = (None, None)
+    if layer.bias is not None:
+        bias, b_device = _extract_tensor(layer.bias)
+    out_ids = gb_add_fc(core, input_ids, layer.out_features, weights=weights, bias=bias)
+    for nid in out_ids:
+        core.neurons[nid].params["weight_device"] = w_device
+        if b_device is not None:
+            core.neurons[nid].params["bias_device"] = b_device
+    return out_ids
 
 
 def _add_conv2d_layer(
@@ -110,7 +124,10 @@ def _add_conv2d_layer(
         )
 
     out_ids: List[int] = []
-    weight = layer.weight.detach().cpu().numpy()
+    weight, w_device = _extract_tensor(layer.weight)
+    bias, b_device = (None, None)
+    if layer.bias is not None:
+        bias, b_device = _extract_tensor(layer.bias)
     stride = layer.stride[0] if isinstance(layer.stride, tuple) else layer.stride
     padding = layer.padding[0] if isinstance(layer.padding, tuple) else layer.padding
 
@@ -118,6 +135,7 @@ def _add_conv2d_layer(
         nid = len(core.neurons)
         neuron = Neuron(nid, value=0.0, tier="vram", neuron_type="conv2d")
         neuron.params["kernel"] = weight[j]
+        neuron.params["weight_device"] = w_device
         neuron.params["stride"] = stride
         neuron.params["padding"] = padding
         core.neurons.append(neuron)
@@ -127,13 +145,14 @@ def _add_conv2d_layer(
             core.neurons[in_id].synapses.append(syn)
             core.synapses.append(syn)
 
-        if layer.bias is not None:
+        if bias is not None:
             bias_id = len(core.neurons)
             core.neurons.append(Neuron(bias_id, value=1.0, tier="vram"))
-            b = float(layer.bias.detach().cpu().numpy()[j])
+            b = float(bias[j])
             bsyn = Synapse(bias_id, nid, weight=b)
             core.neurons[bias_id].synapses.append(bsyn)
             core.synapses.append(bsyn)
+            neuron.params["bias_device"] = b_device
 
         out_ids.append(nid)
 
@@ -208,7 +227,9 @@ def _add_embedding_layer(
     neuron = Neuron(nid, value=0.0, tier="vram", neuron_type="embedding")
     neuron.params["num_embeddings"] = int(layer.num_embeddings)
     neuron.params["embedding_dim"] = int(layer.embedding_dim)
-    neuron.params["weights"] = layer.weight.detach().cpu().numpy()
+    weights, w_device = _extract_tensor(layer.weight)
+    neuron.params["weights"] = weights
+    neuron.params["weight_device"] = w_device
     if layer.padding_idx is not None:
         neuron.params["padding_idx"] = int(layer.padding_idx)
     if layer.max_norm is not None:
@@ -233,23 +254,27 @@ def _add_recurrent_layer(
         )
 
     out_ids: List[int] = []
-    weight_ih = layer.weight_ih_l0.detach().cpu().numpy()
-    weight_hh = layer.weight_hh_l0.detach().cpu().numpy()
+    weight_ih, wih_device = _extract_tensor(layer.weight_ih_l0)
+    weight_hh, whh_device = _extract_tensor(layer.weight_hh_l0)
     bias = None
+    b_device = None
     if layer.bias:
-        bias = (
-            layer.bias_ih_l0.detach().cpu().numpy()
-            + layer.bias_hh_l0.detach().cpu().numpy()
-        )
+        bias_ih, bih_device = _extract_tensor(layer.bias_ih_l0)
+        bias_hh, bhh_device = _extract_tensor(layer.bias_hh_l0)
+        bias = bias_ih + bias_hh
+        b_device = bih_device
 
     # create neurons first
     for j in range(layer.hidden_size):
         nid = len(core.neurons)
         neuron = Neuron(nid, value=0.0, tier="vram", neuron_type=neuron_type)
         neuron.params["weight_ih"] = weight_ih[j]
+        neuron.params["weight_ih_device"] = wih_device
         neuron.params["weight_hh"] = weight_hh[j]
+        neuron.params["weight_hh_device"] = whh_device
         if bias is not None:
             neuron.params["bias"] = float(bias[j])
+            neuron.params["bias_device"] = b_device
         if neuron_type == "rnn":
             neuron.params["nonlinearity"] = layer.nonlinearity
         neuron.params["input_size"] = int(layer.input_size)
