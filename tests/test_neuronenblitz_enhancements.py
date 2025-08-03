@@ -813,6 +813,27 @@ def test_cyclic_epsilon_scheduler():
     assert end_eps == pytest.approx(start_eps)
 
 
+def test_entropy_based_epsilon_adaptation():
+    core, syn = create_simple_core()
+    syn.visit_count = 10
+    nb = Neuronenblitz(
+        core,
+        rl_epsilon=0.5,
+        rl_min_epsilon=0.1,
+        exploration_entropy_scale=1.0,
+        exploration_entropy_shift=0.0,
+        entropy_epsilon_enabled=True,
+    )
+    nb.update_exploration_schedule()
+    low_ent_eps = nb.rl_epsilon
+    syn2 = core.add_synapse(0, 1, weight=1.0)
+    syn2.visit_count = 10
+    nb.update_exploration_schedule()
+    high_ent_eps = nb.rl_epsilon
+    assert low_ent_eps > high_ent_eps
+    assert high_ent_eps >= nb.rl_min_epsilon
+
+
 def test_experience_replay_buffer_fills_and_replays():
     random.seed(0)
     np.random.seed(0)

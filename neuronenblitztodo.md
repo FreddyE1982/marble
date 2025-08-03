@@ -3,7 +3,7 @@
 This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorithm. Each item focuses on improving exploration, learning efficiency or structural adaptability beyond simply adding new parameters.
 
 1. Implement prioritized experience replay for wander results. (Completed with importance-sampling weights)
-2. Introduce adaptive exploration schedules based on entropy.
+2. Introduce adaptive exploration schedules based on entropy. (Completed with entropy-driven epsilon adjustment)
 3. Integrate gradient-based path scoring to accelerate learning.
 4. Employ soft actor-critic for reinforcement-driven wandering.
 5. Add memory-gated attention to modulate path selection.

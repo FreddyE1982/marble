@@ -184,6 +184,7 @@ Each entry is listed under its section heading.
 - replay_batch_size
 - exploration_entropy_scale
 - exploration_entropy_shift
+- entropy_epsilon_enabled
 - gradient_score_scale
 - memory_gate_decay
 - memory_gate_strength
