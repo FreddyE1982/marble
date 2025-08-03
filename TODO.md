@@ -370,53 +370,135 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [ ] Assert metric panels render correctly in both views.
 171. [ ] Offer a plugin system so users can register custom pipeline steps easily.
    - [ ] Draft plugin interface and lifecycle expectations.
+       - [ ] Outline core lifecycle phases (initialise, execute, teardown).
+       - [ ] Specify required methods and expected inputs/outputs.
    - [ ] Implement registry and dynamic loader for third-party plugins.
+       - [ ] Create registry mapping identifiers to plugin classes.
+       - [ ] Implement loader scanning entry points or directories.
    - [ ] Support CPU and GPU execution contexts within plugins.
+       - [ ] Detect available device and select execution target.
+       - [ ] Route tensors and operations to the appropriate device.
    - [ ] Ship an example plugin demonstrating registration and usage.
+       - [ ] Build minimal plugin exercising the interface.
+       - [ ] Provide instructions to register and invoke the sample.
    - [ ] Add unit and integration tests for plugin discovery and execution.
+       - [ ] Test registry registration and lookup behaviour.
+       - [ ] Execute example plugin on CPU and GPU to verify paths.
    - [ ] Document plugin architecture and example workflow in README and TUTORIAL.
+       - [ ] Add architecture overview section to README.
+       - [ ] Extend tutorial with step-by-step plugin creation guide.
 172. [ ] Manage dependencies between steps automatically to maintain correct order.
    - [ ] Design dependency graph representation for pipeline steps.
+       - [ ] Choose data structure to model nodes and edges.
+       - [ ] Document semantics of dependencies and allowed patterns.
    - [ ] Implement topological sorting with cycle detection and clear errors.
+       - [ ] Implement sorting algorithm with cycle checks.
+       - [ ] Raise descriptive error messages when cycles are found.
    - [ ] Ensure resolved ordering executes correctly on CPU and GPU.
+       - [ ] Run sample pipelines on CPU and validate outputs.
+       - [ ] Run sample pipelines on GPU to confirm parity.
    - [ ] Add unit and integration tests for dependency management.
+       - [ ] Test graph construction and sorting logic in isolation.
+       - [ ] Create integration tests covering complex dependency chains.
    - [ ] Document dependency configuration and troubleshooting in README and TUTORIAL.
+       - [ ] Provide examples of declaring step dependencies.
+       - [ ] Include troubleshooting tips for cycle and ordering issues.
 173. [ ] Allow branching paths in a pipeline to explore alternative experiment flows.
    - [ ] Design branch step abstraction and merge semantics.
+       - [ ] Define API for creating branch and merge nodes.
+       - [ ] Specify rules for combining outputs from branches.
    - [ ] Implement branching container enabling parallel sub-pipelines.
+       - [ ] Develop container managing branch execution contexts.
+       - [ ] Ensure synchronization points after branch completion.
    - [ ] Handle CPU/GPU resource allocation across concurrent branches.
+       - [ ] Plan device assignment for branch workloads.
+       - [ ] Monitor memory usage to avoid overcommit.
    - [ ] Add tests verifying branch execution, merging, and error handling.
+       - [ ] Cover normal branch merging scenarios.
+       - [ ] Simulate failures within branches to test recovery.
    - [ ] Document branching usage with illustrative examples in README and TUTORIAL.
+       - [ ] Provide code sample demonstrating two-branch pipeline.
+       - [ ] Explain when branching is advantageous.
 174. [ ] Send real-time progress events to the GUI during pipeline execution.
    - [ ] Define event schema and integrate with existing message bus.
+       - [ ] Specify fields included in progress events.
+       - [ ] Wire schema into current message bus definitions.
    - [ ] Implement progress emitter in pipeline core with CPU/GPU hooks.
+       - [ ] Emit events at key step boundaries.
+       - [ ] Include device information in emitted data.
    - [ ] Update Streamlit GUI to subscribe and render live progress updates.
+       - [ ] Register listener consuming progress events.
+       - [ ] Display updates in desktop and mobile layouts.
    - [ ] Add tests checking event emission and GUI rendering on desktop and mobile.
+       - [ ] Unit test event publishing mechanisms.
+       - [ ] GUI tests verifying updates appear in both form factors.
    - [ ] Document progress event workflow in README and TUTORIAL.
+       - [ ] Describe event flow from pipeline to GUI.
+       - [ ] Add troubleshooting section for missing updates.
 175. [ ] Recover gracefully from remote failures with retry logic.
    - [ ] Specify retry policies and backoff strategies for remote calls.
+       - [ ] Define default retry counts and delay schedules.
+       - [ ] Allow customization per step or endpoint.
    - [ ] Implement failure detection and retry handler compatible with CPU/GPU steps.
+       - [ ] Detect transient errors and trigger retries.
+       - [ ] Ensure retries release GPU resources properly.
    - [ ] Expose configurable retry parameters via YAML and CLI.
+       - [ ] Add YAML fields for retry count and backoff.
+       - [ ] Support equivalent CLI flags.
    - [ ] Add tests simulating transient and persistent remote failures.
+       - [ ] Simulate recoverable failures and confirm retries.
+       - [ ] Verify persistent failures surface clear errors.
    - [ ] Document recovery scenarios and configuration in README and TUTORIAL.
+       - [ ] Provide examples of tuning retry parameters.
+       - [ ] Explain differences between transient and fatal failures.
 176. [ ] Execute steps on multiple processes while sharing datasets through the core.
    - [ ] Design multiprocessing architecture and shared dataset mechanism.
+       - [ ] Decide between multiprocessing or thread pools.
+       - [ ] Plan shared memory or IPC for dataset access.
    - [ ] Implement process manager coordinating step execution across workers.
+       - [ ] Spawn worker processes with configured tasks.
+       - [ ] Aggregate results and handle worker lifecycle.
    - [ ] Ensure dataset sharing works seamlessly for CPU and GPU tensors.
+       - [ ] Share CPU tensors via memory maps.
+       - [ ] Transfer GPU tensors efficiently between processes.
    - [ ] Add tests verifying multiprocessing execution and data consistency.
+       - [ ] Run pipeline across multiple workers on CPU.
+       - [ ] Repeat tests on GPU-enabled machines.
    - [ ] Document multi-process setup and troubleshooting in README and TUTORIAL.
+       - [ ] Provide setup instructions and environment variables.
+       - [ ] Include guidance for debugging deadlocks or hangs.
 177. [ ] Add pre and post hooks for each step enabling custom behaviour.
    - [ ] Define hook interfaces for actions before and after steps.
+       - [ ] Specify function signatures for pre and post hooks.
+       - [ ] Describe available context passed to hooks.
    - [ ] Implement registration and ordered invocation of hooks in pipeline core.
+       - [ ] Provide API to register multiple hooks per step.
+       - [ ] Ensure hooks execute in deterministic order.
    - [ ] Guarantee hooks operate correctly on CPU and GPU paths.
+       - [ ] Test hooks manipulating CPU tensors.
+       - [ ] Test hooks handling GPU tensors without leaks.
    - [ ] Add tests covering hook execution and interaction with steps.
+       - [ ] Unit test hook registration and removal.
+       - [ ] Integration test hooks altering step behaviour.
    - [ ] Document hook patterns with code samples in README and TUTORIAL.
+       - [ ] Include example demonstrating pre-processing hook.
+       - [ ] Highlight best practices for side-effect management.
 178. [ ] Provide templates to quickly generate common workflows.
    - [ ] Catalogue common workflow patterns for template generation.
+       - [ ] Gather representative pipelines from existing projects.
+       - [ ] Identify configurable parameters for each pattern.
    - [ ] Implement template generator producing starter pipeline code.
+       - [ ] Create code scaffolding with placeholders.
+       - [ ] Provide command-line interface to select templates.
    - [ ] Include CPU and GPU configuration options within templates.
+       - [ ] Detect available hardware and set defaults accordingly.
+       - [ ] Offer flags to override device selection.
    - [ ] Add tests ensuring generated templates run end-to-end.
+       - [ ] Generate templates and execute on CPU.
+       - [ ] Repeat execution on GPU if available.
    - [ ] Document available templates and usage instructions in README and TUTORIAL.
+       - [ ] Write step-by-step guide for using generator.
+       - [ ] Include troubleshooting for common template issues.
 179. [ ] Automatically build training loops for Neuronenblitz when dataset steps are present.
    - [ ] Outline design for Automatically build training loops for Neuronenblitz when dataset steps are present.
    - [ ] Implement Automatically build training loops for Neuronenblitz when dataset steps are present with CPU/GPU support.
