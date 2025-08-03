@@ -1265,9 +1265,10 @@ class Neuronenblitz:
         path_len = len(path)
         for syn in path:
             n_type = self.core.neurons[syn.target].neuron_type
-            score = abs(error) / max(path_len, 1)
+            mem_factor = 1.0 + self.memory_gates.get(syn, 0.0)
+            score = abs(error) / max(path_len, 1) * mem_factor
             self.type_attention[n_type] += score
-            speed_score = 1.0 / max(path_len, 1)
+            speed_score = mem_factor / max(path_len, 1)
             self.type_speed_attention[n_type] += speed_score
 
     def get_preferred_neuron_type(self):
@@ -1352,7 +1353,8 @@ class Neuronenblitz:
                 syn.weight = self._weight_limit
             elif syn.weight < -self._weight_limit:
                 syn.weight = -self._weight_limit
-            score = abs(error) * abs(syn.weight) / max(path_length, 1)
+            mem_factor = 1.0 + self.memory_gates.get(syn, 0.0)
+            score = abs(error) * abs(syn.weight) / max(path_length, 1) * mem_factor
             self.core.neurons[syn.target].attention_score += score
         self._accum_step += 1
         if self._accum_step >= self.gradient_accumulation_steps:
@@ -1372,8 +1374,10 @@ class Neuronenblitz:
             self.step_lr_scheduler()
             self.step_epsilon_scheduler()
         if path:
-            last_neuron = self.core.neurons[path[-1].target]
-            last_neuron.attention_score += abs(error)
+            last_syn = path[-1]
+            last_neuron = self.core.neurons[last_syn.target]
+            mem_factor = 1.0 + self.memory_gates.get(last_syn, 0.0)
+            last_neuron.attention_score += abs(error) * mem_factor
             self.update_attention(path, error)
             self.update_synapse_type_attentions(
                 path,
