@@ -15,10 +15,18 @@ from tests.test_core_functions import minimal_params
 
 def test_add_neuron_group_activation():
     core = Core(minimal_params(), formula="0", formula_num_neurons=0)
-    ids = add_neuron_group(core, 3, activation="relu")
+    ids = add_neuron_group(core, 3, activation="relu", activation_flag=True)
     assert len(ids) == 3
     for nid in ids:
         assert core.neurons[nid].params["activation"] == "relu"
+        assert core.neurons[nid].params["activation_flag"] is True
+
+
+def test_activation_flag_default():
+    core = Core(minimal_params(), formula="0", formula_num_neurons=0)
+    ids = add_neuron_group(core, 2)
+    for nid in ids:
+        assert core.neurons[nid].params["activation_flag"] is False
 
 
 def test_add_fully_connected_layer_bias_weights():

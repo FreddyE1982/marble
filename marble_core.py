@@ -509,6 +509,9 @@ class Neuron:
             raise InvalidNeuronParamsError("rep_size must be positive")
         self.representation = np.zeros(rep_size, dtype=float)
         self.params = {}
+        # Flag used during message passing to indicate active neurons.
+        # Stored in params so converters and builders can toggle it.
+        self.params["activation_flag"] = False
         self.value_history = []
         self.initialize_params()
         self.validate_params()

@@ -206,7 +206,8 @@ The lightweight ``DatasetCacheServer`` shares preprocessed dataset files between
 nodes to avoid repeated downloads. Memory usage during these workflows can be
 tracked using ``memory_manager.MemoryManager`` while
 ``metrics_dashboard.MetricsDashboard`` provides live charts of loss, VRAM
-consumption and other metrics.
+consumption and other metrics. When the Global Workspace plugin is active, the
+dashboard also visualises the workspace queue length to monitor cognitive load.
 
 ### Remote Inference API
 
@@ -536,7 +537,13 @@ For a quick overview without producing an output file you can use ``--summary``
 to print the neuron and synapse counts. ``--summary-output`` writes the same
 information to a JSON file. The ``--summary-plot`` option saves a bar chart of
 neuron and synapse counts per layer, and ``--summary-csv`` exports the counts
-to a CSV file for further analysis.
+to a CSV file for further analysis. ``--summary-graph`` exports an interactive
+HTML visualisation of the converted graph using Plotly.
+
+Neurons created via the converter or the low-level graph builder now expose an
+``activation_flag`` in their ``params`` dictionary. Runtime evaluators can set
+or inspect this boolean flag to enable conditional message passing, allowing
+modules to skip expensive activations for neurons marked as inactive.
 
 ```python
 from pytorch_to_marble import convert_model

@@ -20,9 +20,10 @@ class BroadcastMessage:
 class GlobalWorkspace:
     """Central message queue shared between plugins and components."""
 
-    def __init__(self, capacity: int = 100) -> None:
+    def __init__(self, capacity: int = 100, metrics: Any | None = None) -> None:
         self.queue: Deque[BroadcastMessage] = deque(maxlen=capacity)
         self.subscribers: List[Callable[[BroadcastMessage], None]] = []
+        self.metrics = metrics
 
     def publish(self, source: str, content: Any) -> None:
         """Add a message and notify all subscribers.
@@ -33,6 +34,9 @@ class GlobalWorkspace:
         """
         msg = BroadcastMessage(source, content)
         self.queue.append(msg)
+        if self.metrics is not None:
+            # Track queue length for dashboard visualisation
+            self.metrics.update({"workspace_queue": len(self.queue)})
         for cb in list(self.subscribers):
             cb(msg)
 
@@ -49,7 +53,7 @@ class GlobalWorkspace:
 workspace: GlobalWorkspace | None = None
 
 
-def activate(nb: object | None = None, capacity: int = 100) -> GlobalWorkspace:
+def activate(nb: object | None = None, capacity: int = 100, metrics: Any | None = None) -> GlobalWorkspace:
     """Initialise the global workspace and optionally attach it to ``nb``.
 
     Args:
@@ -62,7 +66,7 @@ def activate(nb: object | None = None, capacity: int = 100) -> GlobalWorkspace:
     """
     global workspace
     if workspace is None or workspace.queue.maxlen != capacity:
-        workspace = GlobalWorkspace(capacity)
+        workspace = GlobalWorkspace(capacity, metrics=metrics)
     if nb is not None:
         setattr(nb, "global_workspace", workspace)
     return workspace

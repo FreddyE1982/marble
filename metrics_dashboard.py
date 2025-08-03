@@ -110,6 +110,12 @@ class MetricsDashboard:
             fig.add_scatter(
                 y=self.smooth(metrics["cache_miss"]), mode="lines", name="Cache Miss"
             )
+        if "workspace_queue" in selected and metrics.get("workspace_queue"):
+            fig.add_scatter(
+                y=self.smooth(metrics["workspace_queue"]),
+                mode="lines",
+                name="WorkspaceQueue",
+            )
         fig.update_layout(xaxis_title="Updates", yaxis_title="Value")
         return fig
 
