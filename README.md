@@ -507,7 +507,8 @@ file. You can also call ``convert_model`` directly:
 For a quick overview without producing an output file you can use ``--summary``
 to print the neuron and synapse counts. ``--summary-output`` writes the same
 information to a JSON file. The ``--summary-plot`` option saves a bar chart of
-neuron and synapse counts per layer to an image file for visual inspection.
+neuron and synapse counts per layer, and ``--summary-csv`` exports the counts
+to a CSV file for further analysis.
 
 ```python
 from pytorch_to_marble import convert_model
