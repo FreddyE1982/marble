@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+from typing import Dict
 
 from pytorch_to_marble import convert_model
 from marble_interface import MARBLE, save_marble_system
@@ -29,17 +30,23 @@ def main() -> None:
         "--summary-output",
         help="Path to save dry-run summary JSON",
     )
+    parser.add_argument(
+        "--summary-plot",
+        help="Path to save bar chart of neurons and synapses per layer",
+    )
     args = parser.parse_args()
 
     if not args.output and not (
-        args.dry_run or args.summary or args.summary_output
+        args.dry_run or args.summary or args.summary_output or args.summary_plot
     ):
-        parser.error("--output is required unless running in dry-run or summary mode")
+        parser.error(
+            "--output is required unless running in dry-run or summary mode"
+        )
 
     from torch_model_io import load_model_auto
     model = load_model_auto(args.pytorch)
 
-    if args.summary or args.summary_output:
+    if args.summary or args.summary_output or args.summary_plot:
         core, summary = convert_model(
             model, dry_run=True, return_summary=True
         )
@@ -48,6 +55,8 @@ def main() -> None:
 
             with open(args.summary_output, "w", encoding="utf-8") as f:
                 json.dump(summary, f, indent=2)
+        if args.summary_plot:
+            _plot_summary(summary, args.summary_plot)
         return
 
     core = convert_model(model, dry_run=args.dry_run)
@@ -68,6 +77,26 @@ def main() -> None:
         save_marble_system(marble, str(out_path))
     else:
         raise ValueError("Output extension must be .json or .marble")
+
+
+def _plot_summary(summary: Dict[str, Dict], path: str) -> None:
+    import matplotlib.pyplot as plt
+
+    layers = list(summary["layers"].keys())
+    neuron_counts = [info["neurons"] for info in summary["layers"].values()]
+    synapse_counts = [info["synapses"] for info in summary["layers"].values()]
+    x = range(len(layers))
+    width = 0.35
+    plt.figure()
+    plt.bar(x, neuron_counts, width, label="neurons")
+    plt.bar([i + width for i in x], synapse_counts, width, label="synapses")
+    plt.xticks([i + width / 2 for i in x], layers, rotation=45, ha="right")
+    plt.ylabel("Count")
+    plt.title("Neurons and Synapses per Layer")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.close()
 
 
 if __name__ == "__main__":
