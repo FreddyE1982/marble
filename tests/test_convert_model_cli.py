@@ -1,9 +1,10 @@
-import sys
 import subprocess
-
+import sys
 from pathlib import Path
 
 import torch
+import yaml
+
 from marble_interface import load_marble_system
 
 
@@ -24,7 +25,14 @@ def test_convert_model_marble(tmp_path):
     out_path = tmp_path / "model.marble"
     script = Path(__file__).resolve().parent.parent / "convert_model.py"
     result = subprocess.run(
-        [sys.executable, str(script), "--pytorch", str(model_path), "--output", str(out_path)],
+        [
+            sys.executable,
+            str(script),
+            "--pytorch",
+            str(model_path),
+            "--output",
+            str(out_path),
+        ],
         capture_output=True,
     )
     assert result.returncode == 0
@@ -69,3 +77,20 @@ def test_convert_model_summary_output(tmp_path):
     )
     assert result.returncode == 0
     assert summary_path.exists()
+
+
+def test_convert_model_config(tmp_path):
+    model = SmallModel()
+    model_path = tmp_path / "model.pt"
+    torch.save(model, model_path)
+
+    cfg = {"pytorch": str(model_path), "dry_run": True}
+    cfg_path = tmp_path / "cfg.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(cfg, f)
+
+    script = Path(__file__).resolve().parent.parent / "convert_model.py"
+    result = subprocess.run(
+        [sys.executable, str(script), "--config", str(cfg_path)], capture_output=True
+    )
+    assert result.returncode == 0

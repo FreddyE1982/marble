@@ -41,7 +41,7 @@
   - [x] Support arbitrary input/output channels
   - [x] Unit test multi-channel conversion
   - [x] Error message for unsupported configuration
-- [ ] Pooling layers
+- [x] Pooling layers
   - [x] MaxPool2d and AvgPool2d
   - [x] GlobalAvgPool2d converter
   - [x] Adaptive pooling layers
@@ -51,7 +51,7 @@
   - [x] Handle torch.nn.Sequential recursion
   - [x] Support ModuleList iteration
   - [x] Unit tests for container handling
-- [ ] Embedding layers
+- [x] Embedding layers
   - [x] Basic ``Embedding`` converter
   - [x] ``EmbeddingBag`` support
   - [x] Unit tests for embeddings
@@ -80,7 +80,7 @@
 - [x] Parameterized wrappers for linear and convolutional layers
   - [x] ``linear_layer`` wrapper
   - [x] ``conv2d_layer`` wrapper
-- [ ] Documentation for graph builder utilities
+- [x] Documentation for graph builder utilities
 - [ ] Examples demonstrating dynamic message passing setup
 
 ### 3. Weight and activation handling
@@ -112,9 +112,9 @@
 ### 7. Additional tooling
 - [x] Support converting `.pt` files directly into `.marble` snapshots
 - [x] Provide auto-inference mode summarizing created graph without saving
-- [ ] Command line interface for one-step conversion
-- [ ] Programmatic API returning a `Core` object
-- [ ] YAML configuration for converter options
+- [x] Command line interface for one-step conversion
+- [x] Programmatic API returning a `Core` object
+- [x] YAML configuration for converter options
 
 ### 8. Model loader interface
 - [x] CLI supports `--pytorch`, `--output` and `--dry-run`
