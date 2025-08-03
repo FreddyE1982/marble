@@ -565,14 +565,17 @@ def _get_method_converter(name: str) -> LayerConverter:
     raise UnsupportedLayerError(f"{name} is not supported for conversion")
 
 
-def _print_dry_run_summary(core: Core, node_outputs: Dict[str, List[int]]) -> None:
+def _print_dry_run_summary(
+    core: Core, node_outputs: Dict[str, List[int]], layer_synapses: Dict[str, int]
+) -> None:
     """Print summary statistics for a dry-run conversion."""
     print(
         f"[DRY RUN] created {len(core.neurons)} neurons and {len(core.synapses)} synapses"
     )
     for name, ids in node_outputs.items():
         if name != "output":
-            print(f"[DRY RUN] {name}: {len(ids)} neurons")
+            syns = layer_synapses.get(name, 0)
+            print(f"[DRY RUN] {name}: {len(ids)} neurons, {syns} synapses")
 
 
 def convert_model(
@@ -604,6 +607,7 @@ def convert_model(
     logger.info("Tracing succeeded with %d nodes", len(traced.graph.nodes))
     core = Core(core_params, formula="0", formula_num_neurons=0)
     node_outputs: Dict[str, List[int]] = {}
+    layer_synapses: Dict[str, int] = {}
     for node in traced.graph.nodes:
         if node.op == "placeholder":
             input_tensor = node.meta.get("tensor_meta")
@@ -629,7 +633,9 @@ def convert_model(
             )
             converter = _get_converter(layer)
             inp = node_outputs[node.args[0].name]
+            pre_syn = len(core.synapses)
             out = converter(layer, core, inp)
+            layer_synapses[node.name] = len(core.synapses) - pre_syn
             node_outputs[node.name] = out
         elif node.op == "call_function":
             logger.info(
@@ -639,7 +645,9 @@ def convert_model(
             converter = _get_function_converter(node.target)
             inp = node_outputs[node.args[0].name]
             extra_args = [a for a in node.args[1:]]
+            pre_syn = len(core.synapses)
             out = converter(node.target, core, inp, *extra_args, **node.kwargs)
+            layer_synapses[node.name] = len(core.synapses) - pre_syn
             node_outputs[node.name] = out
         elif node.op == "get_attr":
             # Attributes such as parameters are accessed directly by subsequent modules.
@@ -649,7 +657,9 @@ def convert_model(
             converter = _get_method_converter(node.target)
             inp = node_outputs[node.args[0].name]
             extra_args = [a for a in node.args[1:]]
+            pre_syn = len(core.synapses)
             out = converter(node.target, core, inp, *extra_args, **node.kwargs)
+            layer_synapses[node.name] = len(core.synapses) - pre_syn
             node_outputs[node.name] = out
         elif node.op == "output":
             pass
@@ -660,10 +670,17 @@ def convert_model(
     summary = {
         "neurons": len(core.neurons),
         "synapses": len(core.synapses),
-        "layers": {name: len(ids) for name, ids in node_outputs.items() if name != "output"},
+        "layers": {
+            name: {
+                "neurons": len(ids),
+                "synapses": layer_synapses.get(name, 0),
+            }
+            for name, ids in node_outputs.items()
+            if name != "output"
+        },
     }
     if dry_run or return_summary:
-        _print_dry_run_summary(core, node_outputs)
+        _print_dry_run_summary(core, node_outputs, layer_synapses)
     if return_summary:
         return core, summary
     return core

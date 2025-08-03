@@ -98,7 +98,7 @@
 ### 5. Dry-run improvements
 - [x] Number of neurons and synapses created
 - [x] Per-layer mapping information
-- [ ] Visualize neuron and synapse counts
+- [x] Visualize neuron and synapse counts
 
 - [x] Add `--summary` CLI flag to print dry-run stats
 - [x] Support saving summary to JSON via `--summary-output`
