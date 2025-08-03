@@ -834,6 +834,66 @@ def test_experience_replay_buffer_fills_and_replays():
     assert len(nb.replay_buffer) >= prev_len
 
 
+def test_replay_importance_weights():
+    random.seed(0)
+    np.random.seed(0)
+    core, _ = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        use_experience_replay=True,
+        replay_buffer_size=10,
+        replay_alpha=1.0,
+        replay_beta=1.0,
+    )
+    nb.replay_buffer.extend([(0.0, 0.0, [], [], {}) for _ in range(2)])
+    nb.replay_priorities.extend([1.0, 3.0])
+    samples = nb.sample_replay_batch(2)
+    samples.sort(key=lambda x: x[0])
+    weights = [w for _, w in samples]
+    pri = np.array([1.0, 3.0])
+    probs = pri / pri.sum()
+    expected = (1 / (len(pri) * probs)) ** 1.0
+    expected = expected / expected.max()
+    assert np.allclose(weights, expected)
+
+
+def test_train_example_uses_sample_weight():
+    random.seed(0)
+    np.random.seed(0)
+    core1, syn1 = create_simple_core()
+    nb1 = Neuronenblitz(
+        core1,
+        consolidation_probability=0.0,
+        weight_decay=0.0,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        synaptic_fatigue_enabled=False,
+        plasticity_threshold=100.0,
+    )
+    nb1.learning_rate = 1.0
+    core1.neurons[0].value = 1.0
+    nb1.train_example(1.0, 0.0, sample_weight=1.0)
+    base_update = syn1.weight - 1.0
+
+    random.seed(0)
+    np.random.seed(0)
+    core2, syn2 = create_simple_core()
+    nb2 = Neuronenblitz(
+        core2,
+        consolidation_probability=0.0,
+        weight_decay=0.0,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        synaptic_fatigue_enabled=False,
+        plasticity_threshold=100.0,
+    )
+    nb2.learning_rate = 1.0
+    core2.neurons[0].value = 1.0
+    nb2.train_example(1.0, 0.0, sample_weight=2.0)
+    weighted_update = syn2.weight - 1.0
+    assert np.isclose(weighted_update, 2 * base_update, rtol=1e-2)
+
+
 def test_memory_gate_biases_selection():
     random.seed(0)
     np.random.seed(0)
