@@ -9,6 +9,7 @@ dataset:
   shard_index: 0      # Index of this shard for multi-node setups
   offline: false      # Disable remote dataset downloads
   encryption_key: null  # Optional key for dataset encryption
+  cache_url: null      # Optional URL of DatasetCacheServer
 logging:
   structured: false   # Output logs in JSON format when true
   log_file: "marble.log"  # Path of the main log file

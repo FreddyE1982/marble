@@ -30,6 +30,9 @@ This document lists the main classes and functions intended for external use.
 - `dataset_cache_server.DatasetCacheServer`
 - `remote_offload.RemoteBrainServer`
 - `remote_offload.RemoteBrainClient`
+- `event_bus.global_event_bus`
+- `remote_hardware.base.RemoteTier`
+- `remote_hardware.plugin_loader.load_plugin`
 - `metrics_dashboard.MetricsDashboard`
 - `memory_manager.MemoryManager`
 - `config_sync_service.ConfigSyncService`
@@ -50,3 +53,29 @@ This document lists the main classes and functions intended for external use.
 - `web_api.InferenceServer`
 
 These APIs are kept stable across minor versions. Internal helpers not listed here may change without notice.
+
+## Event bus debugging
+
+`event_bus.global_event_bus` exposes low-level access to MARBLE's internal
+event stream. Developers can subscribe with callbacks that accept an event name
+and payload dictionary:
+
+```python
+from event_bus import global_event_bus
+
+def hook(name, data):
+    print(name, data)
+
+global_event_bus.subscribe(hook, events=["dataset_load_start"], rate_limit_hz=1)
+```
+
+The optional `events` argument filters by name while `rate_limit_hz` limits the
+number of callbacks per second to minimise overhead.
+
+## Remote hardware plugins
+
+Remote tiers allow offloading heavy computations to external hardware. Create a
+module exposing ``get_remote_tier(cfg)`` and set its import path in
+``remote_hardware.tier_plugin``. The helper ``remote_hardware.plugin_loader.load_plugin``
+returns an instance implementing the ``RemoteTier`` interface with
+``run_lobe`` and ``close`` methods.

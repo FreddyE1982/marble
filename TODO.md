@@ -1005,21 +1005,21 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [ ] Add background sync service coordinating devices.
     - [ ] Tune synchronization interval via configuration.
     - [ ] Add tests measuring latency reduction.
-316. [ ] Expose a low-level API to monitor event bus traffic for debugging.
-    - [ ] Add debug hooks to subscribe to raw events.
-    - [ ] Provide filtering and rate limiting options.
-    - [ ] Document usage in developer guide.
-    - [ ] Add tests ensuring hooks have minimal overhead.
-317. [ ] Review all documentation for completeness regarding new features such as DatasetCacheServer and remote hardware plugins.
-    - [ ] Audit existing docs for missing references.
-    - [ ] Add sections for DatasetCacheServer.
-    - [ ] Document remote hardware plugin API usage.
-    - [ ] Ensure tutorial and README mention new features.
-318. [ ] Update remaining markdown files to reference the remote hardware plugin API where relevant.
-    - [ ] Search repository for outdated plugin references.
-    - [ ] Update examples and configuration docs.
-    - [ ] Cross-link plugin API from relevant guides.
-    - [ ] Run lint checks to ensure markdown consistency.
+316. [x] Expose a low-level API to monitor event bus traffic for debugging.
+    - [x] Add debug hooks to subscribe to raw events.
+    - [x] Provide filtering and rate limiting options.
+    - [x] Document usage in developer guide.
+    - [x] Add tests ensuring hooks have minimal overhead.
+317. [x] Review all documentation for completeness regarding new features such as DatasetCacheServer and remote hardware plugins.
+    - [x] Audit existing docs for missing references.
+    - [x] Add sections for DatasetCacheServer.
+    - [x] Document remote hardware plugin API usage.
+    - [x] Ensure tutorial and README mention new features.
+318. [x] Update remaining markdown files to reference the remote hardware plugin API where relevant.
+    - [x] Search repository for outdated plugin references.
+    - [x] Update examples and configuration docs.
+    - [x] Cross-link plugin API from relevant guides.
+    - [x] Run lint checks to ensure markdown consistency.
 319. [ ] Integrate JAX backend for differentiability.
     - [ ] Create backend abstraction layer (`tensor_backend.py`) with functions like `matmul`, `sigmoid`, and `relu`.
     - [ ] Implement NumPy and JAX backend versions.
