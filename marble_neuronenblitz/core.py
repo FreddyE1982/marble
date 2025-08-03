@@ -116,6 +116,7 @@ class Neuronenblitz:
         max_learning_rate=0.1,
         top_k_paths=5,
         parallel_wanderers=1,
+        parallel_update_strategy="best",
         beam_width=1,
         synaptic_fatigue_enabled=True,
         fatigue_increase=0.05,
@@ -232,6 +233,7 @@ class Neuronenblitz:
         self.max_learning_rate = max_learning_rate
         self.top_k_paths = top_k_paths
         self.parallel_wanderers = parallel_wanderers
+        self.parallel_update_strategy = parallel_update_strategy
         self.beam_width = max(1, int(beam_width))
         self.synaptic_fatigue_enabled = synaptic_fatigue_enabled
         self.fatigue_increase = fatigue_increase
@@ -1465,44 +1467,70 @@ class Neuronenblitz:
                 results = self.dynamic_wander_parallel(
                     input_value, num_processes=self.parallel_wanderers
                 )
-                metrics = []
-                for _, seed in results:
-                    random.seed(seed)
-                    np.random.seed(seed % (2**32 - 1))
-                    out_val, path = self.dynamic_wander(
-                        input_value, apply_plasticity=False
-                    )
-                    err = self._compute_loss(target_value, out_val)
-                    pred_size = len(self.core.synapses) + sum(
-                        1 for syn in path if syn.potential >= self.plasticity_threshold
-                    )
-                    metrics.append(
-                        (
-                            abs(err),
-                            len(path),
-                            pred_size,
-                            seed,
+                if self.parallel_update_strategy == "average":
+                    outputs: list[float] = []
+                    errors: list[float] = []
+                    paths: list[list] = []
+                    for _, seed in results:
+                        random.seed(seed)
+                        np.random.seed(seed % (2**32 - 1))
+                        out_val, path = self.dynamic_wander(
+                            input_value, apply_plasticity=False
                         )
-                    )
-                best = min(metrics, key=lambda m: (m[0], m[1], m[2]))
-                best_seed = best[3]
-                random.seed(best_seed)
-                np.random.seed(best_seed % (2**32 - 1))
-                if self.use_mixed_precision and torch.cuda.is_available():
-                    device = "cuda"
-                    with torch.autocast(device_type=device):
+                        err = self._compute_loss(target_value, out_val)
+                        if self.dataloader is not None:
+                            err += self.dataloader.round_trip_penalty_for(input_value)
+                        outputs.append(out_val)
+                        errors.append(err)
+                        paths.append(path)
+                    for err, path in zip(errors, paths):
+                        weighted_error = err * sample_weight / len(paths)
+                        self.apply_weight_updates_and_attention(path, weighted_error)
+                    output_value = sum(outputs) / len(outputs)
+                    error = sum(errors) / len(errors)
+                    path = min(
+                        zip(errors, paths), key=lambda t: (abs(t[0]), len(t[1]))
+                    )[1]
+                    path_length = len(path)
+                else:
+                    metrics = []
+                    for _, seed in results:
+                        random.seed(seed)
+                        np.random.seed(seed % (2**32 - 1))
+                        out_val, path = self.dynamic_wander(
+                            input_value, apply_plasticity=False
+                        )
+                        err = self._compute_loss(target_value, out_val)
+                        pred_size = len(self.core.synapses) + sum(
+                            1 for syn in path if syn.potential >= self.plasticity_threshold
+                        )
+                        metrics.append(
+                            (
+                                abs(err),
+                                len(path),
+                                pred_size,
+                                seed,
+                            )
+                        )
+                    best = min(metrics, key=lambda m: (m[0], m[1], m[2]))
+                    best_seed = best[3]
+                    random.seed(best_seed)
+                    np.random.seed(best_seed % (2**32 - 1))
+                    if self.use_mixed_precision and torch.cuda.is_available():
+                        device = "cuda"
+                        with torch.autocast(device_type=device):
+                            output_value, path = self.dynamic_wander(input_value)
+                            raw_error = self._compute_loss(target_value, output_value)
+                    else:
                         output_value, path = self.dynamic_wander(input_value)
                         raw_error = self._compute_loss(target_value, output_value)
-                else:
-                    output_value, path = self.dynamic_wander(input_value)
-                    raw_error = self._compute_loss(target_value, output_value)
-                    if self.dataloader is not None:
-                        raw_error += self.dataloader.round_trip_penalty_for(input_value)
-                weighted_error = raw_error * sample_weight
-                path_length = self.apply_weight_updates_and_attention(
-                    path, weighted_error
-                )
-                error = raw_error
+                        if self.dataloader is not None:
+                            raw_error += self.dataloader.round_trip_penalty_for(input_value)
+                    weighted_error = raw_error * sample_weight
+                    path_length = self.apply_weight_updates_and_attention(
+                        path, weighted_error
+                    )
+                    error = raw_error
             else:
                 if self.use_mixed_precision and torch.cuda.is_available():
                     device = "cuda"

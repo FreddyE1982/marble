@@ -141,6 +141,7 @@ Each entry is listed under its section heading.
 - max_learning_rate
 - top_k_paths
 - parallel_wanderers
+- parallel_update_strategy
 - beam_width
 - wander_cache_ttl
 - wander_anomaly_threshold

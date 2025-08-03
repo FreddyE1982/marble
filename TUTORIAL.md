@@ -178,13 +178,14 @@ URL or loading routine changes.
 4. **Run inference concurrently** with `marble.brain.dynamic_wander(sample)` to test the partially trained network while training is still running.
 5. **Tune caching** using the ``wander_cache_ttl`` parameter in ``config.yaml`` to control how long ``dynamic_wander`` results remain valid. Increasing the value reuses paths more aggressively while ``0`` disables expiry.
 6. **Speed up wandering** by enabling ``subpath_cache_size`` and ``subpath_cache_ttl`` under ``neuronenblitz``. This stores frequently used path prefixes so subsequent runs can recombine them without recomputing every step.
-7. **Bias exploration** toward informative routes by adjusting ``gradient_path_score_scale``. Set ``use_gradient_path_scoring: true`` to factor gradient magnitude into path selection. Enabling ``rms_gradient_path_scoring`` switches the metric from the sum of absolute last gradients to the root-mean-square of RMSProp statistics, favoring paths that consistently produce strong updates.
-8. **Experiment with evolutionary functions** to mutate or prune synapses:
+7. **Average parallel wanderers** by setting ``parallel_wanderers`` above ``1`` and ``parallel_update_strategy: average`` in ``config.yaml``. Each wanderer explores independently and their weight updates are averaged, producing smoother training dynamics.
+8. **Bias exploration** toward informative routes by adjusting ``gradient_path_score_scale``. Set ``use_gradient_path_scoring: true`` to factor gradient magnitude into path selection. Enabling ``rms_gradient_path_scoring`` switches the metric from the sum of absolute last gradients to the root-mean-square of RMSProp statistics, favoring paths that consistently produce strong updates.
+9. **Experiment with evolutionary functions** to mutate or prune synapses:
    ```python
    mutated, pruned = marble.brain.evolve(mutation_rate=0.02, prune_threshold=0.05)
    ```
    Mutations add noise to synapses while pruning removes the least useful ones.
-7. **Enable dreaming** by setting `dream_enabled: true` in `config.yaml`. Parameters like `dream_num_cycles` and `dream_interval` determine how often memory consolidation happens in the background.
+10. **Enable dreaming** by setting `dream_enabled: true` in `config.yaml`. Parameters like `dream_num_cycles` and `dream_interval` determine how often memory consolidation happens in the background.
 
 **Complete Example**
 ```python

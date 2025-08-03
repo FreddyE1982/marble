@@ -333,10 +333,14 @@ neuronenblitz:
   parallel_wanderers: How many ``dynamic_wander`` processes to run in parallel
     for each training example. Setting this above ``1`` launches multiple
     temporary Neuronenblitz copies that explore the graph concurrently in
-    separate OS processes.  After all processes finish, only the wanderer that
-    achieves the greatest loss reduction, path speed improvement and model size
-    decrease is replayed in the main process to apply its weight updates and
-    structural plasticity.
+    separate OS processes. After all processes finish, their results are
+    combined according to ``parallel_update_strategy``.
+  parallel_update_strategy: Method for merging results from parallel wanderers.
+    ``best`` (default) replays only the wanderer that achieves the greatest
+    loss reduction, shortest path and smallest predicted model size. ``average``
+    averages the errors from all wanderers and applies each path's weight
+    updates scaled by ``1 / parallel_wanderers``. Use ``average`` to smooth
+    learning when running many wanderers.
   beam_width: Number of candidate paths retained at each depth during the
     beam search variant of ``dynamic_wander``. Wider beams explore more options
     but increase computation time. A value of ``1`` disables beam search and
