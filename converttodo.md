@@ -153,10 +153,10 @@
 - [x] Support `.json` or `.marble` output based on extension
 
 ### 9. Graph visualization and inspection
-- [ ] Visualize generated MARBLE graph structure
-  - [ ] Integrate graph visualization library (e.g., pyvis or plotly).
-  - [ ] Save rendered graphs to HTML for inspection.
-  - [ ] Add tests verifying graph export.
+- [x] Visualize generated MARBLE graph structure
+  - [x] Integrate graph visualization library (e.g., pyvis or plotly).
+  - [x] Save rendered graphs to HTML for inspection.
+  - [x] Add tests verifying graph export.
 - [x] Display neuron and synapse counts per layer
   - [x] Implement summarizer that tallies counts per layer.
   - [x] Provide CLI option to print or save counts.
@@ -195,11 +195,11 @@
 - [ ] Graph construction utilities bridging to dynamic message passing
   - [x] Helper to spawn neurons for input/output dimensions
   - [x] Helper to connect neurons with weighted synapses
-    - [ ] Activation flag storage for message passing
-      - [ ] Add boolean flag field to neuron metadata.
-      - [ ] Propagate activation flags through graph builder.
-      - [ ] Document usage for runtime evaluators.
-      - [ ] Add tests verifying flag presence.
+    - [x] Activation flag storage for message passing
+      - [x] Add boolean flag field to neuron metadata.
+      - [x] Propagate activation flags through graph builder.
+      - [x] Document usage for runtime evaluators.
+      - [x] Add tests verifying flag presence.
 - [ ] torch.fx integration for arbitrary models
   - [ ] Trace custom layers and call registered converters
   - [ ] Allow decorators to register new converters

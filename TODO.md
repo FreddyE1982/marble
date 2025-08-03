@@ -996,10 +996,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [ ] Integrate version info with pipeline loader.
     - [ ] Add tests for version switching.
 314. [ ] Integrate with the Global Workspace to monitor overall system state.
-    - [ ] Expose pipeline metrics to Global Workspace.
-    - [ ] Add callbacks pushing state updates.
-    - [ ] Visualize workspace status in metrics dashboard.
-    - [ ] Test Global Workspace integration path.
+    - [x] Expose pipeline metrics to Global Workspace.
+    - [x] Add callbacks pushing state updates.
+    - [x] Visualize workspace status in metrics dashboard.
+    - [x] Test Global Workspace integration path.
 315. [ ] Provide cross-device tensor synchronization to minimize latency during distributed training.
     - [ ] Implement diff-based synchronization protocol.
     - [ ] Add background sync service coordinating devices.

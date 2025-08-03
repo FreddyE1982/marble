@@ -43,6 +43,10 @@ def main() -> None:
         "--summary-csv",
         help="Path to save dry-run summary CSV",
     )
+    parser.add_argument(
+        "--summary-graph",
+        help="Path to save dry-run graph HTML",
+    )
     args = parser.parse_args()
 
     if args.config:
@@ -61,6 +65,7 @@ def main() -> None:
         or args.summary_output
         or args.summary_plot
         or args.summary_csv
+        or args.summary_graph
     ):
         parser.error("--output is required unless running in dry-run or summary mode")
 
@@ -84,6 +89,8 @@ def main() -> None:
             _plot_summary(summary, args.summary_plot)
         if args.summary_csv:
             _summary_to_csv(summary, args.summary_csv)
+        if args.summary_graph:
+            _graph_to_html(core, args.summary_graph)
         return
 
     core = convert_model(model, dry_run=args.dry_run)
@@ -134,6 +141,36 @@ def _summary_to_csv(summary: Dict[str, Dict], path: str) -> None:
         writer.writerow(["layer", "neurons", "synapses"])
         for layer, info in summary["layers"].items():
             writer.writerow([layer, info["neurons"], info["synapses"]])
+
+
+def _graph_to_html(core, path: str) -> None:
+    """Render ``core`` to an interactive HTML graph."""
+    import networkx as nx
+    import plotly.graph_objs as go
+    from networkx_interop import core_to_networkx
+
+    graph = core_to_networkx(core)
+    pos = nx.spring_layout(graph, seed=42)
+    edge_x = []
+    edge_y = []
+    for src, tgt in graph.edges():
+        x0, y0 = pos[src]
+        x1, y1 = pos[tgt]
+        edge_x += [x0, x1, None]
+        edge_y += [y0, y1, None]
+    edge_trace = go.Scatter(x=edge_x, y=edge_y, mode="lines", line=dict(width=1))
+    node_x = [pos[n][0] for n in graph.nodes()]
+    node_y = [pos[n][1] for n in graph.nodes()]
+    node_trace = go.Scatter(
+        x=node_x,
+        y=node_y,
+        mode="markers",
+        marker=dict(size=5, color="#1f77b4"),
+        text=list(graph.nodes()),
+    )
+    fig = go.Figure(data=[edge_trace, node_trace])
+    fig.update_layout(showlegend=False, xaxis=dict(visible=False), yaxis=dict(visible=False))
+    fig.write_html(path)
 
 
 if __name__ == "__main__":

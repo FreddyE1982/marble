@@ -5,7 +5,9 @@ from typing import List, Iterable, Optional, Sequence
 from marble_core import Core, Neuron, Synapse
 
 
-def add_neuron_group(core: Core, count: int, activation: Optional[str] = None) -> List[int]:
+def add_neuron_group(
+    core: Core, count: int, activation: Optional[str] = None, activation_flag: bool = False
+) -> List[int]:
     """Add ``count`` neurons to ``core``.
 
     Parameters
@@ -16,6 +18,8 @@ def add_neuron_group(core: Core, count: int, activation: Optional[str] = None) -
         Number of neurons to create.
     activation : Optional[str]
         Optional activation type to store in neuron metadata.
+    activation_flag : bool
+        Whether to mark neurons as active for message passing.
 
     Returns
     -------
@@ -28,6 +32,7 @@ def add_neuron_group(core: Core, count: int, activation: Optional[str] = None) -
         neuron = Neuron(nid, value=0.0, tier="vram")
         if activation is not None:
             neuron.params["activation"] = activation
+        neuron.params["activation_flag"] = activation_flag
         core.neurons.append(neuron)
         ids.append(nid)
     return ids
@@ -40,6 +45,7 @@ def add_fully_connected_layer(
     weights: Optional[Sequence[Sequence[float]]] = None,
     bias: Optional[Sequence[float]] = None,
     activation: Optional[str] = None,
+    activation_flag: bool = False,
 ) -> List[int]:
     """Create a fully connected layer.
 
@@ -57,13 +63,17 @@ def add_fully_connected_layer(
         Bias values for each output neuron.
     activation : Optional[str]
         Optional activation flag to assign to output neurons.
+    activation_flag : bool
+        Whether to mark output neurons as active.
 
     Returns
     -------
     List[int]
         IDs of output neurons.
     """
-    out_ids = add_neuron_group(core, out_dim, activation=activation)
+    out_ids = add_neuron_group(
+        core, out_dim, activation=activation, activation_flag=activation_flag
+    )
 
     if weights is None:
         weights = [[0.0 for _ in inputs] for _ in range(out_dim)]
@@ -94,6 +104,7 @@ def linear_layer(
     weights: Optional[Sequence[Sequence[float]]] = None,
     bias: Optional[Sequence[float]] = None,
     activation: Optional[str] = None,
+    activation_flag: bool = False,
 ) -> tuple[List[int], List[int]]:
     """Create a fully connected layer with freshly allocated neurons.
 
@@ -119,7 +130,13 @@ def linear_layer(
     """
     inputs = add_neuron_group(core, in_dim)
     outputs = add_fully_connected_layer(
-        core, inputs, out_dim, weights=weights, bias=bias, activation=activation
+        core,
+        inputs,
+        out_dim,
+        weights=weights,
+        bias=bias,
+        activation=activation,
+        activation_flag=activation_flag,
     )
     return inputs, outputs
 
