@@ -1117,6 +1117,9 @@ class Neuronenblitz:
                     ),
                 )
             )
+            entry_neuron, initial_path, depth_limit = _memory.bias_with_episodic_memory(
+                self, entry_neuron, initial_path, depth_limit
+            )
             if self.beam_width > 1:
                 final_neuron, final_path = self._beam_wander(entry_neuron, depth_limit)
             else:

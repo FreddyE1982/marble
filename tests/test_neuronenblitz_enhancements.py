@@ -974,6 +974,24 @@ def test_curiosity_strength_biases_toward_novel_synapse():
     assert choices.count(syn_new) > choices.count(syn_old)
 
 
+def test_episodic_memory_biases_wandering():
+    random.seed(0)
+    np.random.seed(0)
+    core, syn = create_simple_core()
+    nb = Neuronenblitz(
+        core,
+        episodic_memory_prob=1.0,
+        episodic_sim_length=1,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        backtrack_probability=0.0,
+        backtrack_enabled=False,
+    )
+    nb.episodic_memory.append([syn])
+    _, path = nb.dynamic_wander(1.0)
+    assert path[0] == syn
+
+
 def test_depth_clip_scaling_reduces_update_for_deep_paths():
     random.seed(0)
     core, syn = create_simple_core()
