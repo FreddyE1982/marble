@@ -147,6 +147,7 @@ neuronenblitz:
   max_learning_rate: 0.1
   top_k_paths: 5
   parallel_wanderers: 1
+  parallel_update_strategy: best
   beam_width: 1
   wander_cache_ttl: 300
   wander_anomaly_threshold: 3.0
