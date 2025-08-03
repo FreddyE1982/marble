@@ -297,10 +297,10 @@
       - [ ] Register decorated functions at import time.
       - [ ] Provide examples demonstrating decorator usage.
 - [ ] Weight and bias extraction helpers
-  - [ ] Handle GPU tensors transparently
-      - [ ] Detect tensor device during extraction.
-      - [ ] Move GPU tensors to CPU when necessary.
-      - [ ] Preserve original device information for reconstruction.
+  - [x] Handle GPU tensors transparently
+      - [x] Detect tensor device during extraction.
+      - [x] Move GPU tensors to CPU when necessary.
+      - [x] Preserve original device information for reconstruction.
   - [ ] Inject bias neurons with correct values
       - [ ] Create bias neuron nodes within graph builder.
       - [ ] Populate bias nodes with corresponding weights.
