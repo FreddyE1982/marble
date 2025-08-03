@@ -15,6 +15,10 @@ logging:
   log_file: "marble.log"  # Path of the main log file
 plugins: []           # Additional plugin modules to load
 
+pipeline:
+  async_enabled: false  # Execute HighLevelPipeline steps asynchronously when true
+  cache_dir: null       # Directory for cached step outputs; defaults to pipeline_cache_gpu or pipeline_cache_cpu
+
 
 # =====
 # Core

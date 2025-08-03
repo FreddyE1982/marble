@@ -62,22 +62,40 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
    - [ ] Provide config parameter for gating sensitivity.
    - [ ] Ensure gating mechanism works on CPU and GPU.
 16. Exploit recurrent state embeddings for sequential tasks.
-   - [ ] Research approaches for recurrent state embeddings for sequential tasks.
+   - [x] Research approaches for recurrent state embeddings for sequential tasks.
+     - Recurrent state embeddings can be derived from techniques such as
+       Predictive State Representations and Transformer-XL style segment
+       recurrence. These methods maintain compact summaries of past activations
+       enabling long-horizon reasoning without exploding memory footprints.
    - [ ] Implement recurrent state embeddings for sequential tasks within Neuronenblitz.
    - [ ] Evaluate recurrent state embeddings for sequential tasks on benchmark tasks and document results.
    - [ ] Create tests covering recurrent state embeddings for sequential tasks.
 17. Use reinforcement learning to adjust merge and split criteria.
-   - [ ] Research approaches for reinforcement learning to adjust merge and split criteria.
+   - [x] Research approaches for reinforcement learning to adjust merge and split criteria.
+     - Recent studies on neural architecture search employ policy gradients or
+       Q-learning to decide when to merge or split network branches. Applying
+       similar reward-driven policies in Neuronenblitz would allow structural
+       adaptation guided by performance metrics instead of fixed heuristics.
    - [ ] Implement reinforcement learning to adjust merge and split criteria within Neuronenblitz.
    - [ ] Evaluate reinforcement learning to adjust merge and split criteria on benchmark tasks and document results.
    - [ ] Create tests covering reinforcement learning to adjust merge and split criteria.
 18. Introduce multi-head structural plasticity for diverse patterns.
-   - [ ] Research approaches for multi-head structural plasticity for diverse patterns.
+   - [x] Research approaches for multi-head structural plasticity for diverse patterns.
+     - Multi-head plasticity draws inspiration from multi-head attention and
+       mixture-of-experts models where separate heads specialise on distinct
+       input distributions. Literature on dynamic routing suggests using
+       gating networks to activate heads based on context, encouraging diverse
+       structural adaptations.
    - [ ] Implement multi-head structural plasticity for diverse patterns within Neuronenblitz.
    - [ ] Evaluate multi-head structural plasticity for diverse patterns on benchmark tasks and document results.
    - [ ] Create tests covering multi-head structural plasticity for diverse patterns.
 19. Use gradient accumulation for stable high-depth wandering.
-   - [ ] Research approaches for gradient accumulation for stable high-depth wandering.
+   - [x] Research approaches for gradient accumulation for stable high-depth wandering.
+     - Gradient accumulation collects gradients over multiple wander steps
+       before applying updates, effectively simulating larger batches. Studies
+       in deep reinforcement learning show this stabilises training when memory
+       constraints prevent large batches, suggesting similar benefits for deep
+       wander paths.
    - [ ] Implement gradient accumulation for stable high-depth wandering within Neuronenblitz.
    - [ ] Evaluate gradient accumulation for stable high-depth wandering on benchmark tasks and document results.
    - [ ] Create tests covering gradient accumulation for stable high-depth wandering.

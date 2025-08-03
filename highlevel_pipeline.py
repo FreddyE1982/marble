@@ -9,8 +9,10 @@ import asyncio
 import os
 import pickle
 
+import torch
 from dotdict import DotDict
 from config_loader import load_config
+from marble_base import MetricsVisualizer
 
 from torch.utils.data import Dataset
 
@@ -98,6 +100,7 @@ class HighLevelPipeline:
         config_path: str | None = None,
         cache_dir: str | None = None,
         dataset_version: str | None = None,
+        async_enabled: bool | None = None,
     ) -> None:
         self.steps: list[dict] = []
         for step in steps or []:
@@ -110,8 +113,20 @@ class HighLevelPipeline:
         self.config = DotDict(load_config(config_path))
         if bit_dataset_params:
             self.bit_dataset_params.update(bit_dataset_params)
+        pipeline_cfg = self.config.get("pipeline", {})
+        if cache_dir is None:
+            cfg_cache = pipeline_cfg.get("cache_dir")
+            if cfg_cache is None:
+                cache_dir = (
+                    "pipeline_cache_gpu" if torch.cuda.is_available() else "pipeline_cache_cpu"
+                )
+            else:
+                cache_dir = cfg_cache
         self.cache_dir = cache_dir
         self.dataset_version = dataset_version
+        self.async_enabled = (
+            async_enabled if async_enabled is not None else pipeline_cfg.get("async_enabled", False)
+        )
 
     def set_bit_dataset_params(self, **params: Any) -> None:
         """Update default parameters for :class:`BitTensorDataset`."""
@@ -226,6 +241,9 @@ class HighLevelPipeline:
             use_bit_dataset=self.use_bit_dataset,
             bit_dataset_params=self.bit_dataset_params.copy(),
             data_args=self.data_args.copy(),
+            cache_dir=self.cache_dir,
+            dataset_version=self.dataset_version,
+            async_enabled=self.async_enabled,
         )
 
     def get_step(self, index: int) -> dict:
@@ -248,7 +266,10 @@ class HighLevelPipeline:
         return names
 
     def _execute_steps(
-        self, steps: list[dict], marble: Any | None
+        self,
+        steps: list[dict],
+        marble: Any | None,
+        metrics_visualizer: MetricsVisualizer | None = None,
     ) -> tuple[Any | None, list[Any]]:
         """Internal helper executing ``steps`` sequentially."""
         current_marble = marble
@@ -268,6 +289,8 @@ class HighLevelPipeline:
                     results.append(result)
                     cache_hit = True
             if cache_hit:
+                if metrics_visualizer:
+                    metrics_visualizer.update({"cache_hit": 1})
                 continue
             if "callable" in step:
                 func = step["callable"]
@@ -303,6 +326,8 @@ class HighLevelPipeline:
                 else:
                     raise ValueError(f"Missing parameter: {name}")
             result = func(**kwargs)
+            if metrics_visualizer:
+                metrics_visualizer.update({"cache_miss": 1})
             if self.cache_dir and cache_path:
                 os.makedirs(self.cache_dir, exist_ok=True)
                 with open(cache_path, "wb") as f:
@@ -314,7 +339,10 @@ class HighLevelPipeline:
         return current_marble, results
 
     async def _execute_steps_async(
-        self, steps: list[dict], marble: Any | None
+        self,
+        steps: list[dict],
+        marble: Any | None,
+        metrics_visualizer: MetricsVisualizer | None = None,
     ) -> tuple[Any | None, list[Any]]:
         current_marble = marble
         results: list[Any] = []
@@ -334,6 +362,8 @@ class HighLevelPipeline:
                     results.append(result)
                     cache_hit = True
             if cache_hit:
+                if metrics_visualizer:
+                    metrics_visualizer.update({"cache_hit": 1})
                 continue
             if "callable" in step:
                 func = step["callable"]
@@ -372,6 +402,8 @@ class HighLevelPipeline:
                 result = await func(**kwargs)
             else:
                 result = await loop.run_in_executor(None, lambda: func(**kwargs))
+            if metrics_visualizer:
+                metrics_visualizer.update({"cache_miss": 1})
             if self.cache_dir and cache_path:
                 os.makedirs(self.cache_dir, exist_ok=True)
                 with open(cache_path, "wb") as f:
@@ -447,13 +479,25 @@ class HighLevelPipeline:
                     return m
         return None
 
-    def execute(self, marble: Any | None = None) -> tuple[Any | None, list[Any]]:
-        return self._execute_steps(self.steps, marble)
+    def execute(
+        self,
+        marble: Any | None = None,
+        *,
+        metrics_visualizer: MetricsVisualizer | None = None,
+    ) -> tuple[Any | None, list[Any]]:
+        if self.async_enabled:
+            return asyncio.run(
+                self._execute_steps_async(self.steps, marble, metrics_visualizer)
+            )
+        return self._execute_steps(self.steps, marble, metrics_visualizer)
 
     async def execute_async(
-        self, marble: Any | None = None
+        self,
+        marble: Any | None = None,
+        *,
+        metrics_visualizer: MetricsVisualizer | None = None,
     ) -> tuple[Any | None, list[Any]]:
-        return await self._execute_steps_async(self.steps, marble)
+        return await self._execute_steps_async(self.steps, marble, metrics_visualizer)
 
     def execute_stream(self, marble: Any | None = None):
         """Yield ``(marble, result)`` tuples after each step executes."""

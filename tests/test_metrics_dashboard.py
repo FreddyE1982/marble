@@ -31,3 +31,12 @@ def test_build_figure_select_metrics():
     fig = dashboard._build_figure(["loss"])
     assert len(fig.data) == 1
     assert fig.data[0].name == "Loss"
+
+
+def test_cache_metrics_plot():
+    mv = MetricsVisualizer()
+    mv.metrics["cache_hit"] = [1, 2]
+    dashboard = MetricsDashboard(mv, port=8063, update_interval=200)
+    fig = dashboard._build_figure(["cache_hit"])
+    assert len(fig.data) == 1
+    assert fig.data[0].name == "Cache Hit"
