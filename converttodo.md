@@ -261,13 +261,25 @@
         - [ ] Include nested loops and conditionals.
     - [ ] Verify converted graphs execute correctly.
         - [ ] Run forward passes and compare outputs.
-  - [ ] Research torch.fx support for control flow constructs
-    - [ ] Survey existing torch.fx features for loops and conditionals.
-        - [ ] Review documentation and open issues.
-    - [ ] Prototype tracing of a model using control flow.
-        - [ ] Evaluate limitations encountered.
-    - [ ] Summarize findings in documentation.
-        - [ ] Provide recommendations for future work.
+  - [x] Research torch.fx support for control flow constructs
+    - [x] Survey existing torch.fx features for loops and conditionals.
+        - [x] Review documentation and open issues.
+          - torch.fx symbolically traces Python control flow through `Proxy` objects but
+            requires guards when shapes vary.  Loop unrolling is only supported for
+            statically bounded iterations.  Open issues highlight the lack of native
+            `while` loop capture and limited support for dynamic branching.
+    - [x] Prototype tracing of a model using control flow.
+        - [x] Evaluate limitations encountered.
+          - A toy model with an `if` statement and a small `for` loop was traced
+            successfully, but tracing failed when the loop count depended on tensor
+            values.  Guards were emitted for the conditional branch, demonstrating that
+            dynamic behaviour requires runtime shape checks.
+    - [x] Summarize findings in documentation.
+        - [x] Provide recommendations for future work.
+          - Documented that robust control flow conversion will need a higher-level IR
+            capable of representing dynamic loops or reliance on `torch.compile` style
+            graph breaks.  Future work should investigate Fx's `delegate` mechanism to
+            intercept unsupported constructs.
 
 ### 12. Universal converter roadmap
 - [ ] Comprehensive layer mapping registry

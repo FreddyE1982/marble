@@ -779,9 +779,17 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
        - [ ] Unit test meta-learner parameter updates.
        - [ ] Integration test training loop with meta-optimization.
 92. Add differentiable priority queues for wander candidate storage.
-   - [ ] Research approaches for differentiable priority queues for wander candidate storage.
-       - [ ] Explore differentiable data structures for priority queues.
-       - [ ] Analyze complexity and memory cost.
+   - [x] Research approaches for differentiable priority queues for wander candidate storage.
+       - [x] Explore differentiable data structures for priority queues.
+         - Differentiable heaps based on softmax weighting and NeuralPriorityQueues allow
+           gradient flow through enqueue and dequeue operations.  Alternatives include
+           Gumbel-Softmax based sorted lists which provide smooth approximations of the
+           top-k operation.
+       - [x] Analyze complexity and memory cost.
+         - NeuralPriorityQueues require \(O(n)\) memory and maintain \(O(\log n)\)
+           expected insertion cost when implemented with balanced trees.  Softmax-based
+           approaches trade accuracy for \(O(n)\) per-step computation and are better
+           suited for small candidate sets.
    - [ ] Implement differentiable priority queues for wander candidate storage within Neuronenblitz.
        - [ ] Implement priority queue with differentiable scoring.
        - [ ] Replace existing candidate storage with new structure.
@@ -792,9 +800,15 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
        - [ ] Unit test enqueue and dequeue gradients.
        - [ ] Stress test queue with large candidate sets.
 93. Integrate gradient-based structural pruning for efficiency.
-   - [ ] Research approaches for gradient-based structural pruning for efficiency.
-       - [ ] Study gradient-based pruning algorithms.
-       - [ ] Identify criteria for removing neurons or edges.
+   - [x] Research approaches for gradient-based structural pruning for efficiency.
+       - [x] Study gradient-based pruning algorithms.
+         - Techniques such as magnitude-based pruning, SNIP, and movement pruning score
+           parameters using gradient information.  These methods allow one-shot or
+           iterative pruning during training.
+       - [x] Identify criteria for removing neurons or edges.
+         - Common criteria include small weight magnitude, low gradient saliency, and
+           minimal contribution to loss reduction.  Combining these signals yields
+           robust pruning masks while preserving network accuracy.
    - [ ] Implement gradient-based structural pruning for efficiency within Neuronenblitz.
        - [ ] Compute pruning masks from gradient magnitudes.
        - [ ] Apply masks during training cycles.

@@ -516,10 +516,26 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
        - [ ] Describe automatic loop creation mechanism in README.
        - [ ] Provide tutorial example demonstrating dataset-driven loop generation.
 180. [ ] Offer a specialised step that consumes the new streaming `BitTensorDataset`.
-   - [ ] Outline design for Offer a specialised step that consumes the new streaming `BitTensorDataset`.
-       - [ ] Define step interface for streaming dataset consumption.
-       - [ ] Plan buffering and backpressure handling for continuous data.
-       - [ ] Detail CPU and GPU tensor flow requirements.
+   - [x] Outline design for Offer a specialised step that consumes the new streaming `BitTensorDataset`.
+       - [x] Define step interface for streaming dataset consumption.
+         - Introduce an `StreamingDatasetStep` abstraction implementing `next_batch()` and
+           `is_finished()` methods.  `next_batch()` yields a dictionary of tensors while
+           `is_finished()` allows the pipeline to detect natural termination.  The step
+           accepts a `BitTensorDataset` instance and exposes configuration fields for
+           batch size and prefetch depth so it can be tuned through YAML and CLI.
+       - [x] Plan buffering and backpressure handling for continuous data.
+         - Employ an asyncio powered producer/consumer ring buffer.  The producer pulls
+           from the dataset iterator and fills a bounded `asyncio.Queue`.  When the
+           queue reaches capacity the dataset iterator is paused, providing natural
+           backpressure.  Consumers await batches from the queue, ensuring smooth flow
+           without overwhelming memory.  Overflow policies drop the oldest batch and log
+           a warning to maintain forward progress.
+       - [x] Detail CPU and GPU tensor flow requirements.
+         - Batches emitted by the step carry device metadata.  When running on GPUs, the
+           producer pins memory and performs asynchronous `to(device)` transfers before
+           enqueueing.  On CPU-only systems the tensors are yielded directly.  This
+           uniform interface lets downstream steps simply call `.to(current_device)` to
+           guarantee correct placement while minimising unnecessary copies.
    - [ ] Implement Offer a specialised step that consumes the new streaming `BitTensorDataset` with CPU/GPU support.
        - [ ] Create step class wrapping BitTensorDataset iterator.
        - [ ] Implement asynchronous data fetching compatible with CPU and GPU tensors.
