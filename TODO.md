@@ -1034,32 +1034,82 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Create backend abstraction layer (`tensor_backend.py`) with functions like `matmul`, `sigmoid`, and `relu`.
     - [x] Implement NumPy and JAX backend versions.
     - [ ] Refactor Mandelbrot seed generation (`core/init_seed.py`) to use backend functions.
+        - [ ] Replace direct NumPy operations with backend wrappers.
+        - [ ] Ensure random seeds are produced via the selected backend.
+        - [ ] Add unit tests confirming identical seeds across backends.
     - [ ] Update message passing (`core/message_passing.py`) to rely on the abstraction.
+        - [ ] Swap low-level tensor ops for backend calls.
+        - [ ] Enable runtime selection of NumPy or JAX paths.
+        - [ ] Verify message delivery equivalence with tests.
     - [x] Add `core.backend` to `config.yaml` with fallback to NumPy and document in `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
     - [x] Test Mandelbrot output consistency across backends.
 
 320. [ ] Introduce parallel Neuronenblitz workers.
     - [ ] Refactor `Neuronenblitz.train_example()` to be stateless and reentrant.
+        - [ ] Remove global state dependencies.
+        - [ ] Guard internal structures for thread safety.
+        - [ ] Document reentrant assumptions in docstrings.
     - [ ] Implement `train_in_parallel()` using `concurrent.futures.ThreadPoolExecutor`.
+        - [ ] Create worker wrapper around `train_example`.
+        - [ ] Manage executor lifecycle and exception handling.
+        - [ ] Aggregate gradients and metrics from workers.
     - [ ] Add `neuronenblitz.parallel_wanderers` to config with default 1 and document it.
+        - [ ] Add parameter to `config.yaml` and CLI.
+        - [ ] Describe usage in `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
+        - [ ] Provide defaults and edge-case guidance.
     - [ ] Log worker-level metrics like average path length and divergence.
+        - [ ] Record metrics within each worker loop.
+        - [ ] Aggregate and report per-worker summaries.
     - [ ] Benchmark speedup on multi-core CPUs.
+        - [ ] Design benchmark comparing single vs multi-worker.
+        - [ ] Capture wall-clock time and throughput.
+        - [ ] Summarize findings in docs.
     - [ ] Write tests for parallel wanderers.
+        - [ ] Ensure deterministic results with one worker.
+        - [ ] Validate scaling behavior with multiple workers.
 
 321. [ ] Add quantization and sparse tensor support.
     - [ ] Implement `QuantizedTensor` class with `.to_dense()` and `.to_bits()`.
+        - [ ] Define bit-packing strategy for tensors.
+        - [ ] Implement conversion methods for CPU and GPU.
+        - [ ] Provide serialization helpers.
     - [ ] Add optional quantization in `DataCompressor` using `core.quantization_bits` and document parameter.
+        - [ ] Integrate `QuantizedTensor` into compression pipeline.
+        - [ ] Add configuration option for bit width.
+        - [ ] Update docs outlining trade-offs.
     - [ ] Use `scipy.sparse` for large synapse matrices.
+        - [ ] Convert eligible matrices to sparse format.
+        - [ ] Provide utilities to switch between dense and sparse.
+        - [ ] Benchmark memory savings.
     - [ ] Validate lossless forward pass for common operations.
+        - [ ] Compare quantized and dense outputs on sample layers.
+        - [ ] Track numerical error and performance.
     - [ ] Add CLI flag `--quantize` for toggling quantization.
+        - [ ] Parse flag and map to configuration value.
+        - [ ] Document usage in CLI help and README.
     - [ ] Write unit tests verifying quantization correctness.
+        - [ ] Test bit conversion round-trips.
+        - [ ] Validate sparse and dense paths produce same results.
 
 322. [ ] Implement causal attention and gating.
     - [ ] Add `core.attention_causal` to configuration and document it.
+        - [ ] Insert parameter into `config.yaml` with default setting.
+        - [ ] Extend `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
+        - [ ] Provide CLI flag to toggle causal attention.
     - [ ] Modify attention mechanism to mask future tokens (`mask[i, j] = j > i`).
+        - [ ] Implement mask generation routine.
+        - [ ] Ensure masking works on CPU and GPU backends.
+        - [ ] Benchmark overhead introduced by masking.
     - [ ] Implement `gating_layer` using sine or chaotic modulation.
+        - [ ] Prototype gating function and parameter ranges.
+        - [ ] Integrate gating into attention pipeline.
+        - [ ] Expose gating parameters in configuration.
     - [ ] Visualize mask and gate effects on message propagation.
+        - [ ] Create plotting utilities for masks and gates.
+        - [ ] Add Streamlit view to display visuals.
     - [ ] Add tests for causal attention and gating behavior.
+        - [ ] Verify masks prevent future token access.
+        - [ ] Check gating outputs remain within expected bounds.
 
 323. [x] Build streaming tokenizer and data loader.
     - [x] Refactor tokenizer interface to yield `tokenize(line)` instead of whole corpus.
@@ -1070,62 +1120,147 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 
 324. [ ] Enhance Theory of Mind module.
     - [ ] Add `agent_id` and `belief_state` fields to input.
+        - [ ] Extend input schemas and validation.
+        - [ ] Update serialization/deserialization logic.
     - [ ] Encode beliefs as key-value memory slots in a new `ToMModule`.
+        - [ ] Define memory slot structure and capacity.
+        - [ ] Integrate module into existing pipeline.
     - [ ] Add multi-hop attention over belief states.
+        - [ ] Implement attention layers supporting multiple hops.
+        - [ ] Tune hop count for efficiency.
     - [ ] Log belief mismatches during evaluation.
+        - [ ] Define mismatch metric and thresholds.
+        - [ ] Store mismatches for post-run analysis.
     - [ ] Write tests for belief encoding and attention.
+        - [ ] Unit test memory slot creation and retrieval.
+        - [ ] Validate attention selects correct belief states.
 
 325. [ ] Implement self-distillation over time.
     - [ ] Save `logits.pkl` after each epoch.
+        - [ ] Hook training loop to capture logits.
+        - [ ] Serialize logits with epoch metadata.
     - [ ] Add `self_distill_loss = KL(current_logits, previous_logits)` to the loss function with weight `meta_learning.distill_alpha`.
+        - [ ] Implement KL divergence term.
+        - [ ] Introduce `distill_alpha` parameter in config and docs.
     - [ ] Visualize alignment of predictions over time.
+        - [ ] Plot KL divergence per epoch.
+        - [ ] Display visualization in Streamlit dashboard.
     - [ ] Document distillation parameter in YAML manual and tutorial.
+        - [ ] Describe purpose and recommended ranges.
+        - [ ] Add tutorial section with example usage.
     - [ ] Add tests for self-distillation loss.
+        - [ ] Unit test loss calculation with synthetic logits.
+        - [ ] Ensure training uses previous epoch logits when available.
 
 326. [ ] Create in-context learning prompt system.
     - [ ] Add `PromptMemory` to cache recent `(input, output)` pairs.
+        - [ ] Implement bounded queue with eviction policy.
+        - [ ] Provide serialization for stored pairs.
     - [ ] Modify inference to use `prompt + input` as composite query.
+        - [ ] Concatenate prompts with new inputs before inference.
+        - [ ] Handle empty or oversized prompt caches gracefully.
     - [ ] Add GUI control for toggling prompt injection.
+        - [ ] Create Streamlit toggle linked to inference pipeline.
+        - [ ] Persist user preference between sessions.
     - [ ] Store prompts persistently with timestamps.
+        - [ ] Save prompt memory to disk on shutdown.
+        - [ ] Include timestamps for chronological retrieval.
     - [ ] Write tests for prompt cache behavior.
+        - [ ] Verify FIFO eviction policy.
+        - [ ] Test inference output when prompts are applied.
 
 327. [ ] Add YAML config editor in Streamlit.
     - [ ] Add new "Config Editor" tab using `st_ace` with YAML syntax.
+        - [ ] Preload existing configuration into editor.
+        - [ ] Provide syntax highlighting and line numbers.
     - [ ] Validate YAML with schema on submit and save edits to `config.yaml` with backup timestamp.
+        - [ ] Run schema validation and surface errors in UI.
+        - [ ] Save validated YAML and create timestamped backup file.
     - [ ] Update GUI tests for the editor tab.
+        - [ ] Simulate editing and saving a valid config.
+        - [ ] Confirm invalid YAML triggers error messages.
 
 328. [ ] Integrate hyperparameter optimisation via Optuna.
     - [ ] Add `scripts/optimize.py` with Optuna study and objective function training one epoch.
+        - [ ] Define search space and objective returning validation loss.
+        - [ ] Allow resuming existing studies.
     - [ ] Log trials to `optuna_db.sqlite3`.
+        - [ ] Configure SQLite storage backend.
+        - [ ] Expose path via CLI option.
     - [ ] Add Streamlit tab to visualize optimization history and best config.
+        - [ ] Plot trial scores and parameter importances.
+        - [ ] Provide download of best config.
     - [ ] Document usage in tutorials and manuals.
+        - [ ] Include setup and run instructions.
+        - [ ] Describe interpretation of optimization charts.
     - [ ] Add tests for optimization script.
+        - [ ] Use tiny dataset to run a short study.
+        - [ ] Assert database and result files are created.
 
 329. [ ] Implement live neuron graph visualisation.
     - [ ] Export graph as `{"nodes": [...], "edges": [...]}` in core.
+        - [ ] Gather neuron and synapse metadata into structured dicts.
+        - [ ] Support incremental updates for dynamic graphs.
     - [ ] Add `/graph` API endpoint.
+        - [ ] Implement endpoint returning serialized graph JSON.
+        - [ ] Secure endpoint with optional authentication.
     - [ ] Render graph with `plotly.graph_objects.Sankey` or `pyvis.network` and add sliders for filtering.
+        - [ ] Build reusable visualization component.
+        - [ ] Provide sliders for weight and degree thresholds.
     - [ ] Update GUI tests for graph visualization.
+        - [ ] Confirm endpoint availability in tests.
+        - [ ] Validate sliders adjust visible graph elements.
 
 330. [ ] Introduce multi-agent MARBLE.
     - [ ] Define `MARBLEAgent` wrapper with its own config and brain.
+        - [ ] Encapsulate brain initialization and lifecycle methods.
+        - [ ] Allow per-agent configuration loading.
     - [ ] Implement `MessageBus` for agent-to-agent communication.
+        - [ ] Design protocol for broadcasting and direct messages.
+        - [ ] Ensure thread-safe message queues.
     - [ ] Simulate cooperative or competitive RL environments.
+        - [ ] Provide sample environment harnesses.
+        - [ ] Support reward sharing and competition modes.
     - [ ] Log inter-agent influence and conversation.
+        - [ ] Record message histories and effect metrics.
+        - [ ] Visualize interactions in dashboard.
     - [ ] Add tests for multi-agent interactions.
+        - [ ] Unit test message exchange between two agents.
+        - [ ] Validate environment simulations run without deadlocks.
 
 331. [ ] Add evolutionary learning module.
     - [ ] Create `EvolutionTrainer` class.
+        - [ ] Implement mutation, evaluation, and selection hooks.
+        - [ ] Support parallel evaluation of candidates.
     - [ ] Generate `N` config mutations, train each for a few steps, and evaluate fitness.
+        - [ ] Define mutation operators for numeric and categorical params.
+        - [ ] Collect fitness metrics after partial training.
     - [ ] Select top `M` configurations and mutate again.
+        - [ ] Rank configurations by fitness.
+        - [ ] Produce next-generation configs via mutation.
     - [ ] Log evolution tree and best lineage.
+        - [ ] Track parent-child relationships.
+        - [ ] Serialize lineage to JSON and graphs.
     - [ ] Add tests for evolutionary training.
+        - [ ] Unit test mutation and selection logic.
+        - [ ] Integration test over multiple generations.
 
 332. [ ] Document new configuration parameters and tutorials.
     - [ ] Update `yaml-manual.txt` with detailed explanations and examples.
+        - [ ] Describe new parameters and their ranges.
+        - [ ] Include practical usage examples.
     - [ ] Add entries to `CONFIGURABLE_PARAMETERS.md`.
+        - [ ] List default values and descriptions.
+        - [ ] Cross-reference related parameters.
     - [ ] Extend `TUTORIAL.md` with projects for new features (e.g., self-distillation).
+        - [ ] Create step-by-step project showcasing feature.
+        - [ ] Link to dataset download and preparation code.
 
 333. [ ] Add unit tests and verify CUDA fallbacks.
     - [ ] Write tests for quantization correctness, parallel wanderers, and prompt cache behavior.
+        - [ ] Cover QuantizedTensor round-trip accuracy.
+        - [ ] Ensure parallel wanderers yield consistent results.
+        - [ ] Test prompt cache operations under load.
     - [ ] Verify CUDA fallbacks for all new modules.
+        - [ ] Run tests forcing CPU execution.
+        - [ ] Document any GPU-only limitations.
