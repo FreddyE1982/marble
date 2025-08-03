@@ -305,19 +305,37 @@
       - [ ] Create bias neuron nodes within graph builder.
       - [ ] Populate bias nodes with corresponding weights.
       - [ ] Validate bias application through unit tests.
-- [ ] Conversion CLI and API enhancements
-  - [ ] Option to produce .marble snapshot directly
-      - [ ] Add CLI flag enabling snapshot output.
-      - [ ] Serialise converted graph into `.marble` format.
-      - [ ] Ensure snapshot includes required metadata.
-  - [ ] Auto-inference mode printing neuron/synapse counts
-      - [ ] Implement flag triggering automatic inference.
-      - [ ] Compute neuron and synapse counts after conversion.
-      - [ ] Display counts in CLI output.
-  - [ ] Validation mode comparing outputs with PyTorch
-      - [ ] Run forward pass on original PyTorch model.
-      - [ ] Run same inputs through converted MARBLE model.
-      - [ ] Report differences and fail on large deviations.
+  - [ ] Conversion CLI and API enhancements
+   - [ ] Option to produce .marble snapshot directly
+       - [ ] Add CLI flag enabling snapshot output.
+           - [ ] Update argparse to include `--snapshot` option.
+           - [ ] Document flag usage in converter README.
+       - [ ] Serialise converted graph into `.marble` format.
+           - [ ] Implement serializer for graph object to `.marble`.
+           - [ ] Validate snapshot loads correctly in MARBLE runtime.
+       - [ ] Ensure snapshot includes required metadata.
+           - [ ] Embed version and converter information.
+           - [ ] Add integrity checksum to snapshot.
+   - [ ] Auto-inference mode printing neuron/synapse counts
+       - [ ] Implement flag triggering automatic inference.
+           - [ ] Add CLI option and parse value.
+           - [ ] Provide help text explaining behaviour.
+       - [ ] Compute neuron and synapse counts after conversion.
+           - [ ] Traverse graph nodes to tally counts.
+           - [ ] Output counts to logger or stdout.
+       - [ ] Display counts in CLI output.
+           - [ ] Format table for counts.
+           - [ ] Include CPU/GPU differentiation if available.
+   - [ ] Validation mode comparing outputs with PyTorch
+       - [ ] Run forward pass on original PyTorch model.
+           - [ ] Load sample inputs for evaluation.
+           - [ ] Capture outputs for comparison.
+       - [ ] Run same inputs through converted MARBLE model.
+           - [ ] Execute converted graph with identical inputs.
+           - [ ] Collect outputs for each layer.
+       - [ ] Report differences and fail on large deviations.
+           - [ ] Compute error metrics between frameworks.
+           - [ ] Raise exception when error exceeds tolerance.
 - [ ] Validation suite comparing PyTorch and MARBLE outputs
   - [ ] Per-layer unit tests
       - [ ] Select representative layers for testing.
@@ -364,14 +382,28 @@
   - [x] Implement exporter writing counts to CSV.
   - [x] Add CLI argument for output path.
   - [x] Test CSV output formatting.
-- [ ] Interactive viewer to inspect weights
-  - [ ] Develop Streamlit app to browse layer weights.
-    - [ ] Set up dedicated Streamlit page with CPU/GPU selection.
-    - [ ] Load converted weight tensors and render them as heatmaps.
-    - [ ] Display layer metadata alongside visualisations.
-  - [ ] Provide search and filtering capabilities.
-    - [ ] Add text search to locate layers by name.
-    - [ ] Include sliders to filter by weight magnitude or index range.
-  - [ ] Write GUI tests ensuring viewer loads converted weights.
-    - [ ] Test loading of weights from a sample converted model.
-    - [ ] Validate search and filter controls update the view.
+  - [ ] Interactive viewer to inspect weights
+    - [ ] Develop Streamlit app to browse layer weights.
+      - [ ] Set up dedicated Streamlit page with CPU/GPU selection.
+        - [ ] Detect available devices at runtime.
+        - [ ] Provide dropdown to choose execution device.
+      - [ ] Load converted weight tensors and render them as heatmaps.
+        - [ ] Add file uploader to select snapshot.
+        - [ ] Use matplotlib or plotly for heatmap rendering.
+      - [ ] Display layer metadata alongside visualisations.
+        - [ ] Show neuron counts and tensor shapes.
+        - [ ] Include activation types and layer names.
+    - [ ] Provide search and filtering capabilities.
+      - [ ] Add text search to locate layers by name.
+        - [ ] Implement case-insensitive search box.
+        - [ ] Highlight matching layers in results.
+      - [ ] Include sliders to filter by weight magnitude or index range.
+        - [ ] Add slider for minimum and maximum weight values.
+        - [ ] Filter layer indices based on selection.
+    - [ ] Write GUI tests ensuring viewer loads converted weights.
+      - [ ] Test loading of weights from a sample converted model.
+        - [ ] Create fixture converting a simple model.
+        - [ ] Assert viewer renders first layer heatmap.
+      - [ ] Validate search and filter controls update the view.
+        - [ ] Simulate user interactions in tests.
+        - [ ] Check heatmap updates after applying filters.
