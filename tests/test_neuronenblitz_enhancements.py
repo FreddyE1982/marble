@@ -168,6 +168,27 @@ def test_prune_low_potential_synapses():
     assert syn_main in core.synapses
 
 
+def test_freeze_low_impact_synapses():
+    random.seed(0)
+    np.random.seed(0)
+    core, syn_a = create_simple_core()
+    syn_b = core.add_synapse(0, 1, weight=1.0)
+    nb = Neuronenblitz(
+        core,
+        split_probability=0.0,
+        alternative_connection_prob=0.0,
+        backtrack_probability=0.0,
+        backtrack_enabled=False,
+    )
+    nb._prev_gradients[syn_a] = 1.0
+    nb._prev_gradients[syn_b] = 0.0
+    syn_a.visit_count = 10
+    syn_b.visit_count = 0
+    nb.freeze_low_impact_synapses()
+    assert syn_b.frozen
+    assert not syn_a.frozen
+
+
 def test_update_and_get_context():
     core, _ = create_simple_core()
     nb = Neuronenblitz(core)
