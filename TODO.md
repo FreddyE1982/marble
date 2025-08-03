@@ -1320,8 +1320,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 
 326. [ ] Create in-context learning prompt system.
     - [ ] Add `PromptMemory` to cache recent `(input, output)` pairs.
-        - [ ] Implement bounded queue with eviction policy.
-        - [ ] Provide serialization for stored pairs.
+        - [x] Define `PromptMemory` class skeleton.
+        - [x] Implement bounded queue with eviction policy.
+        - [x] Add methods for retrieval and composite prompt generation.
+        - [x] Provide serialization for stored pairs.
     - [ ] Modify inference to use `prompt + input` as composite query.
         - [ ] Concatenate prompts with new inputs before inference.
         - [ ] Handle empty or oversized prompt caches gracefully.
@@ -1330,9 +1332,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [ ] Persist user preference between sessions.
     - [ ] Store prompts persistently with timestamps.
         - [ ] Save prompt memory to disk on shutdown.
-        - [ ] Include timestamps for chronological retrieval.
+        - [x] Include timestamps for chronological retrieval.
     - [ ] Write tests for prompt cache behavior.
-        - [ ] Verify FIFO eviction policy.
+        - [x] Verify FIFO eviction policy.
         - [ ] Test inference output when prompts are applied.
 
 327. [ ] Add YAML config editor in Streamlit.
