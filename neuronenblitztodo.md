@@ -7,7 +7,7 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
 3. Integrate gradient-based path scoring to accelerate learning. (Completed with optional RMS gradient scoring)
 4. Employ soft actor-critic for reinforcement-driven wandering.
 5. Add memory-gated attention to modulate path selection.
-6. Use episodic memory to bias wandering toward past successes.
+6. Use episodic memory to bias wandering toward past successes. (Completed with episodic replay bias)
 7. Apply meta-learning to adjust plasticity thresholds dynamically.
 8. Integrate unsupervised contrastive losses into wander updates.
 9. Add hierarchical wandering to explore coarse-to-fine routes.
