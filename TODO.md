@@ -304,17 +304,33 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Add `_execute_steps_async` helper handling coroutine functions and thread offloading.
     - [x] Implement `execute_async` public method executing the entire pipeline asynchronously.
     - [x] Unit tests verifying asynchronous execution with mixed coroutine and blocking steps.
+    - [ ] Expose `pipeline.async_enabled` configuration option with CPU and GPU support.
+    - [ ] Benchmark asynchronous execution on CPU and GPU to quantify speedup.
+    - [ ] Document asynchronous pipeline usage in README and TUTORIAL.
+    - [ ] Add integration tests for asynchronous execution in multi-node environments.
 168. [ ] Cache intermediate results so iterative experiments run faster.
     - [x] Create file based cache storing step outputs keyed by index and function name.
     - [x] Add `clear_cache` method to remove cached files when needed.
     - [x] Unit tests demonstrating that repeated runs reuse cached results.
+    - [ ] Make cache directory configurable via `pipeline.cache_dir` with CPU/GPU aware paths.
+    - [ ] Track and display cache hit/miss statistics in the metrics dashboard.
+    - [ ] Document caching workflow and disk space considerations.
+    - [ ] Stress-test cache performance on large datasets for CPU and GPU runs.
 169. [ ] Support checkpointing and resuming pipelines with dataset version tracking.
     - [x] Track `dataset_version` within `HighLevelPipeline` instances.
     - [x] Implement `save_checkpoint` and `load_checkpoint` methods.
     - [x] Test saving and loading pipelines with version metadata.
+    - [ ] Provide CLI commands to create and resume checkpoints.
+    - [ ] Validate checkpoints across CPU and GPU environments.
+    - [ ] Document versioned checkpoint workflow in README and TUTORIAL.
+    - [ ] Add integration tests simulating interrupted runs and resume behaviour.
 170. [ ] Provide interactive step visualisation in the Streamlit GUI using dataset introspection.
     - [x] Add a "Step Visualisation" expander showing step parameters and dataset info.
     - [x] Unit tests ensuring the new expander appears in the Pipeline tab.
+    - [ ] Render real-time metrics within each step visualisation for CPU and GPU runs.
+    - [ ] Allow exporting step details as JSON or CSV from the GUI.
+    - [ ] Document visualisation features in README and TUTORIAL.
+    - [ ] Add GUI tests verifying export functionality and mobile layout.
 171. [ ] Offer a plugin system so users can register custom pipeline steps easily.
    - [ ] Outline design for Offer a plugin system so users can register custom pipeline steps easily.
    - [ ] Implement Offer a plugin system so users can register custom pipeline steps easily with CPU/GPU support.
