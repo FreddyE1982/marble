@@ -472,3 +472,102 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 316. [ ] Expose a low-level API to monitor event bus traffic for debugging.
 317. [ ] Review all documentation for completeness regarding new features such as DatasetCacheServer and remote hardware plugins.
 318. [ ] Update remaining markdown files to reference the remote hardware plugin API where relevant.
+319. [ ] Integrate JAX backend for differentiability.
+    - [ ] Create backend abstraction layer (`tensor_backend.py`) with functions like `matmul`, `sigmoid`, and `relu`.
+    - [ ] Implement NumPy and JAX backend versions.
+    - [ ] Refactor Mandelbrot seed generation (`core/init_seed.py`) to use backend functions.
+    - [ ] Update message passing (`core/message_passing.py`) to rely on the abstraction.
+    - [ ] Add `core.backend` to `config.yaml` with fallback to NumPy and document in `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
+    - [ ] Test Mandelbrot output consistency across backends.
+
+320. [ ] Introduce parallel Neuronenblitz workers.
+    - [ ] Refactor `Neuronenblitz.train_example()` to be stateless and reentrant.
+    - [ ] Implement `train_in_parallel()` using `concurrent.futures.ThreadPoolExecutor`.
+    - [ ] Add `neuronenblitz.parallel_wanderers` to config with default 1 and document it.
+    - [ ] Log worker-level metrics like average path length and divergence.
+    - [ ] Benchmark speedup on multi-core CPUs.
+    - [ ] Write tests for parallel wanderers.
+
+321. [ ] Add quantization and sparse tensor support.
+    - [ ] Implement `QuantizedTensor` class with `.to_dense()` and `.to_bits()`.
+    - [ ] Add optional quantization in `DataCompressor` using `core.quantization_bits` and document parameter.
+    - [ ] Use `scipy.sparse` for large synapse matrices.
+    - [ ] Validate lossless forward pass for common operations.
+    - [ ] Add CLI flag `--quantize` for toggling quantization.
+    - [ ] Write unit tests verifying quantization correctness.
+
+322. [ ] Implement causal attention and gating.
+    - [ ] Add `core.attention_causal` to configuration and document it.
+    - [ ] Modify attention mechanism to mask future tokens (`mask[i, j] = j > i`).
+    - [ ] Implement `gating_layer` using sine or chaotic modulation.
+    - [ ] Visualize mask and gate effects on message propagation.
+    - [ ] Add tests for causal attention and gating behavior.
+
+323. [ ] Build streaming tokenizer and data loader.
+    - [ ] Refactor tokenizer interface to yield `tokenize(line)` instead of whole corpus.
+    - [ ] Implement `StreamingCSVLoader` in `dataset_loader.py`.
+    - [ ] Add resume token to track current byte offset and store metadata in `.meta.json`.
+    - [ ] Document streaming loader in tutorials and config manuals.
+    - [ ] Add tests for streaming tokenization and loader functionality.
+
+324. [ ] Enhance Theory of Mind module.
+    - [ ] Add `agent_id` and `belief_state` fields to input.
+    - [ ] Encode beliefs as key-value memory slots in a new `ToMModule`.
+    - [ ] Add multi-hop attention over belief states.
+    - [ ] Log belief mismatches during evaluation.
+    - [ ] Write tests for belief encoding and attention.
+
+325. [ ] Implement self-distillation over time.
+    - [ ] Save `logits.pkl` after each epoch.
+    - [ ] Add `self_distill_loss = KL(current_logits, previous_logits)` to the loss function with weight `meta_learning.distill_alpha`.
+    - [ ] Visualize alignment of predictions over time.
+    - [ ] Document distillation parameter in YAML manual and tutorial.
+    - [ ] Add tests for self-distillation loss.
+
+326. [ ] Create in-context learning prompt system.
+    - [ ] Add `PromptMemory` to cache recent `(input, output)` pairs.
+    - [ ] Modify inference to use `prompt + input` as composite query.
+    - [ ] Add GUI control for toggling prompt injection.
+    - [ ] Store prompts persistently with timestamps.
+    - [ ] Write tests for prompt cache behavior.
+
+327. [ ] Add YAML config editor in Streamlit.
+    - [ ] Add new "Config Editor" tab using `st_ace` with YAML syntax.
+    - [ ] Validate YAML with schema on submit and save edits to `config.yaml` with backup timestamp.
+    - [ ] Update GUI tests for the editor tab.
+
+328. [ ] Integrate hyperparameter optimisation via Optuna.
+    - [ ] Add `scripts/optimize.py` with Optuna study and objective function training one epoch.
+    - [ ] Log trials to `optuna_db.sqlite3`.
+    - [ ] Add Streamlit tab to visualize optimization history and best config.
+    - [ ] Document usage in tutorials and manuals.
+    - [ ] Add tests for optimization script.
+
+329. [ ] Implement live neuron graph visualisation.
+    - [ ] Export graph as `{"nodes": [...], "edges": [...]}` in core.
+    - [ ] Add `/graph` API endpoint.
+    - [ ] Render graph with `plotly.graph_objects.Sankey` or `pyvis.network` and add sliders for filtering.
+    - [ ] Update GUI tests for graph visualization.
+
+330. [ ] Introduce multi-agent MARBLE.
+    - [ ] Define `MARBLEAgent` wrapper with its own config and brain.
+    - [ ] Implement `MessageBus` for agent-to-agent communication.
+    - [ ] Simulate cooperative or competitive RL environments.
+    - [ ] Log inter-agent influence and conversation.
+    - [ ] Add tests for multi-agent interactions.
+
+331. [ ] Add evolutionary learning module.
+    - [ ] Create `EvolutionTrainer` class.
+    - [ ] Generate `N` config mutations, train each for a few steps, and evaluate fitness.
+    - [ ] Select top `M` configurations and mutate again.
+    - [ ] Log evolution tree and best lineage.
+    - [ ] Add tests for evolutionary training.
+
+332. [ ] Document new configuration parameters and tutorials.
+    - [ ] Update `yaml-manual.txt` with detailed explanations and examples.
+    - [ ] Add entries to `CONFIGURABLE_PARAMETERS.md`.
+    - [ ] Extend `TUTORIAL.md` with projects for new features (e.g., self-distillation).
+
+333. [ ] Add unit tests and verify CUDA fallbacks.
+    - [ ] Write tests for quantization correctness, parallel wanderers, and prompt cache behavior.
+    - [ ] Verify CUDA fallbacks for all new modules.
