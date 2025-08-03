@@ -170,6 +170,7 @@ class Neuronenblitz:
         structural_dropout_prob=0.0,
         gradient_path_score_scale=1.0,
         use_gradient_path_scoring=True,
+        rms_gradient_path_scoring=False,
         activity_gate_exponent=1.0,
         subpath_cache_size=100,
         gradient_accumulation_steps=1,
@@ -341,6 +342,7 @@ class Neuronenblitz:
         self.structural_dropout_prob = float(structural_dropout_prob)
         self.gradient_path_score_scale = float(gradient_path_score_scale)
         self.use_gradient_path_scoring = bool(use_gradient_path_scoring)
+        self.rms_gradient_path_scoring = bool(rms_gradient_path_scoring)
         self.activity_gate_exponent = float(activity_gate_exponent)
         self.subpath_cache = {}
         self._subpath_order = deque()
@@ -574,13 +576,39 @@ class Neuronenblitz:
         return entropy
 
     def compute_path_gradient_score(self, path) -> float:
-        """Return cumulative absolute gradient magnitude for ``path``."""
-        score = 0.0
+        """Return gradient-based score for ``path``.
+
+        When :attr:`rms_gradient_path_scoring` is ``True`` the score is the
+        root-mean-square of the running RMSProp statistics stored in
+        :attr:`_grad_sq` with a fallback to the last gradient in
+        :attr:`_prev_gradients`.  This favors paths that have
+        consistently produced large updates.  When the flag is ``False`` the
+        score is simply the sum of absolute values from ``_prev_gradients``,
+        matching the original behaviour.
+        """
+
+        if not self.rms_gradient_path_scoring:
+            score = 0.0
+            for _, syn in path:
+                if syn is None:
+                    continue
+                score += abs(self._prev_gradients.get(syn, 0.0))
+            return score
+
+        total_sq = 0.0
+        count = 0
         for _, syn in path:
             if syn is None:
                 continue
-            score += abs(self._prev_gradients.get(syn, 0.0))
-        return score
+            g_sq = self._grad_sq.get(syn)
+            if g_sq is None:
+                prev = self._prev_gradients.get(syn, 0.0)
+                g_sq = prev * prev
+            total_sq += g_sq
+            count += 1
+        if count == 0:
+            return 0.0
+        return math.sqrt(total_sq / count)
 
     def update_exploration_schedule(self) -> None:
         """Adapt exploration settings based on synapse-visit entropy."""

@@ -489,13 +489,23 @@ neuronenblitz:
   structural_dropout_prob: Probability that a qualified synapse is skipped
     during structural plasticity. Increasing this value reduces the frequency
     of structural changes.
-  gradient_path_score_scale: Multiplier applied to the cumulative gradient
-    magnitude of a wander path when selecting the best result. Higher values
-    bias exploration toward routes that recently produced strong weight
-    updates.
+  gradient_path_score_scale: Multiplier applied to the gradient magnitude of
+    a wander path when selecting the best result. When
+    ``rms_gradient_path_scoring`` is ``false`` the magnitude is computed as the
+    sum of absolute recent gradients stored in ``_prev_gradients``; when set to
+    ``true`` it becomes the root-mean-square of the RMSProp statistics in
+    ``_grad_sq``. Larger values bias exploration toward routes that have
+    produced strong updates.
   use_gradient_path_scoring: Set to ``true`` to enable gradient-based path
-    scoring in ``dynamic_wander``. When disabled only the final neuron value
+    scoring in ``dynamic_wander``. When ``false`` only the final neuron value
     determines which path is chosen.
+  rms_gradient_path_scoring: Chooses the statistic used for
+    ``compute_path_gradient_score``. The default ``false`` sums absolute values
+    of the most recent gradients, favoring paths with a single high spike. When
+    ``true`` the score uses the root-mean-square of the running squared
+    gradients from the RMSProp optimizer, emphasizing paths that maintain large
+    gradients over time. Toggle this to ``true`` when noisy gradients cause the
+    simple magnitude to be unstable.
   activity_gate_exponent: Exponent controlling how strongly synapse visit
     counts gate subsequent weight updates. ``1.0`` scales updates by
     ``1/(1+visits)`` while larger values produce steeper decay.
