@@ -1235,10 +1235,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [ ] Validate scaling behavior with multiple workers.
 
 321. [ ] Add quantization and sparse tensor support.
-    - [ ] Implement `QuantizedTensor` class with `.to_dense()` and `.to_bits()`.
-        - [ ] Define bit-packing strategy for tensors.
-        - [ ] Implement conversion methods for CPU and GPU.
-        - [ ] Provide serialization helpers.
+    - [x] Implement `QuantizedTensor` class with `.to_dense()` and `.to_bits()`.
+        - [x] Define bit-packing strategy for tensors.
+        - [x] Implement conversion methods for CPU and GPU.
+        - [x] Provide serialization helpers.
     - [ ] Add optional quantization in `DataCompressor` using `core.quantization_bits` and document parameter.
         - [ ] Integrate `QuantizedTensor` into compression pipeline.
         - [ ] Add configuration option for bit width.
