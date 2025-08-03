@@ -31,3 +31,12 @@ ensure process groups are dismantled cleanly and resources are released.
 Monitor resource usage on each node with `system_metrics.profile_resource_usage`
 or run a long‑term `usage_profiler.UsageProfiler` instance to capture CPU, RAM
 and GPU trends while distributed jobs execute.
+
+### Remote hardware plugins
+
+For heterogeneous clusters, a remote hardware plugin can expose accelerators or
+specialised hardware. Set ``remote_hardware.tier_plugin`` in ``config.yaml`` to
+an import path that returns a remote tier object. The built-in
+``GrpcRemoteTier`` communicates with a gRPC service and serves as a reference
+implementation. See [public_api.md](public_api.md#remote-hardware-plugins) for
+API details.

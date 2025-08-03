@@ -8,6 +8,7 @@ Each entry is listed under its section heading.
 - shard_index
 - offline
 - encryption_key
+- cache_url: Base URL of ``DatasetCacheServer`` to fetch cached files from.
 
 ## logging
 - structured
@@ -318,8 +319,10 @@ Each entry is listed under its section heading.
 - compression_level
 - compression_enabled
 ## remote_hardware
-- tier_plugin
-- grpc.address
+- tier_plugin: Import path of a module exposing ``get_remote_tier`` used to
+  instantiate a custom remote hardware tier.
+- grpc.address: Host and port for the default ``GrpcRemoteTier``
+  implementation.
 - delta_encoding
 - compression_algorithm
 
@@ -355,8 +358,8 @@ Each entry is listed under its section heading.
 - compression_level
 - compression_enabled
 ## remote_hardware
-- tier_plugin
-- grpc.address
+- tier_plugin: Module path implementing the remote hardware API.
+- grpc.address: gRPC service location when using ``GrpcRemoteTier``.
 
 ## metrics_visualizer
 - fig_width

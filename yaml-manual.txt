@@ -21,6 +21,9 @@ dataset:
     When provided all objects are encrypted before being written to disk and
     automatically decrypted when loaded. This should be the same key on every
     machine processing the dataset.
+  cache_url: Base URL of a running ``DatasetCacheServer``. When set, files are
+    fetched from the cache first and only downloaded from the original source if
+    missing. This keeps datasets synchronised across multiple machines.
   hf_token: Path to a file containing your Hugging Face API token. When the
     file exists Marble automatically logs in before downloading datasets or
     models. The default location is ``~/.cache/marble/hf_token``.
@@ -856,10 +859,12 @@ experiment_tracker:
     compression_enabled: Set to ``false`` to disable compression entirely. When
       disabled the server expects plain JSON payloads.
 remote_hardware:
-  tier_plugin: Path to a Python module implementing
-    ``get_remote_tier``. Set to ``null`` to disable.
+  tier_plugin: Import path of a module exposing ``get_remote_tier(cfg)``. When
+    provided, MARBLE delegates heavy operations to the returned remote tier.
+    Set to ``null`` to disable remote execution.
   grpc:
-    address: Address of the gRPC service handling remote computation.
+    address: Address of the gRPC service handling remote computation for the
+      built-in ``GrpcRemoteTier`` implementation.
 
 metrics_visualizer:
   # Configure the live metrics plot size. These values are passed directly to

@@ -10,6 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 import json
 from experiment_tracker import ExperimentTracker
 from backup_utils import BackupScheduler
+from event_bus import global_event_bus
 
 
 def clear_output(wait: bool = True) -> None:
@@ -227,8 +228,10 @@ class MetricsVisualizer:
         self.plot_metrics()
 
     def log_event(self, name: str, data: dict | None = None) -> None:
-        """Record a training event with optional details."""
-        self.events.append((name, data or {}))
+        """Record a training event and broadcast it on the global event bus."""
+        payload = data or {}
+        self.events.append((name, payload))
+        global_event_bus.publish(name, payload)
 
     def plot_metrics(self):
         self.ax.clear()

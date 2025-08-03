@@ -1,0 +1,5 @@
+# Example configuration for enabling a remote hardware plugin
+remote_hardware:
+  tier_plugin: myproject.remote.hw_plugin
+  grpc:
+    address: "localhost:50051"

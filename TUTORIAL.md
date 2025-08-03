@@ -147,6 +147,13 @@ marble.brain.train(train_examples, epochs=10, validation_examples=val_examples)
 ```
 Run this script with `python project1_numeric_regression.py` to reproduce the first project end-to-end.
 
+### Sharing datasets across machines
+
+For multi-node experiments, start ``DatasetCacheServer`` on one machine and set
+``dataset.cache_url`` in ``config.yaml`` so that other nodes download files from
+the cache before accessing the internet. This dramatically reduces duplicated
+traffic and keeps datasets consistent across workers.
+
 This project introduces the **Core**, **Neuronenblitz** and **Brain** objects along with the data compression pipeline.
 
 All following project scripts assume a ``dataloader`` created as in
@@ -285,6 +292,15 @@ marble.brain.offload_high_attention(threshold=0.5)
 Execute the file on each machine as indicated to experiment with remote offloading.
 
 Remote offloading demonstrates **RemoteBrainServer**, **RemoteBrainClient** and the optional torrent‑based distribution.
+
+### Custom remote hardware tiers
+
+For specialised accelerators, implement a remote hardware plugin exposing a
+``get_remote_tier`` factory. Set its import path under
+``remote_hardware.tier_plugin`` in ``config.yaml``. During training the core
+will delegate heavy computations to the custom tier, enabling seamless use of
+non‑standard devices. Refer to [public_api.md](docs/public_api.md#remote-hardware-plugins)
+for the programming interface.
 
 ## Project 3b – Remote Inference API (Medium)
 
