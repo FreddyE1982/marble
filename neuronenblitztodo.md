@@ -629,101 +629,261 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
        - [ ] Confirm skipped paths do not affect gradients.
 81. Incorporate learnable metrics for synapse pruning decisions.
    - [ ] Research approaches for learnable metrics for synapse pruning decisions.
+       - [ ] Survey academic methods for differentiable pruning criteria.
+       - [ ] Summarize candidate metrics with complexity analysis.
    - [ ] Implement learnable metrics for synapse pruning decisions within Neuronenblitz.
+       - [ ] Design trainable metric layer computing pruning scores.
+       - [ ] Integrate metric updates into pruning pass.
    - [ ] Evaluate learnable metrics for synapse pruning decisions on benchmark tasks and document results.
+       - [ ] Run pruning experiments measuring accuracy and sparsity.
+       - [ ] Compare performance against static threshold baselines.
    - [ ] Create tests covering learnable metrics for synapse pruning decisions.
+       - [ ] Unit test metric gradient flow on synthetic graphs.
+       - [ ] Integration test pruning behaviour on CPU and GPU.
 82. Apply cross-modal self-supervision to fuse data types.
    - [ ] Research approaches for cross-modal self-supervision to fuse data types.
+       - [ ] Review multimodal self-supervised frameworks.
+       - [ ] Identify alignment objectives suitable for wander data.
    - [ ] Implement cross-modal self-supervision to fuse data types within Neuronenblitz.
+       - [ ] Build shared encoder handling multiple modalities.
+       - [ ] Add contrastive loss linking modalities.
    - [ ] Evaluate cross-modal self-supervision to fuse data types on benchmark tasks and document results.
+       - [ ] Train on dataset containing paired modalities.
+       - [ ] Report gains in cross-modal retrieval accuracy.
    - [ ] Create tests covering cross-modal self-supervision to fuse data types.
+       - [ ] Verify encoder handles missing modality inputs.
+       - [ ] Test loss computation with synthetic multimodal samples.
 83. Introduce reinforcement-driven dynamic route consolidation.
    - [ ] Research approaches for reinforcement-driven dynamic route consolidation.
+       - [ ] Survey RL techniques for path consolidation.
+       - [ ] Derive reward shaping strategies for route merging.
    - [ ] Implement reinforcement-driven dynamic route consolidation within Neuronenblitz.
+       - [ ] Implement policy deciding when to merge wander paths.
+       - [ ] Ensure consolidation preserves critical state.
    - [ ] Evaluate reinforcement-driven dynamic route consolidation on benchmark tasks and document results.
+       - [ ] Run ablation comparing with and without consolidation.
+       - [ ] Analyze impact on learning speed.
    - [ ] Create tests covering reinforcement-driven dynamic route consolidation.
+       - [ ] Unit test merge decision logic.
+       - [ ] Simulate consolidation in small graph scenario.
 84. Use learned embeddings for phase-driven chaotic gating.
    - [ ] Research approaches for learned embeddings for phase-driven chaotic gating.
+       - [ ] Study literature on chaotic neural gating mechanisms.
+       - [ ] Identify embedding architectures that capture phase information.
    - [ ] Implement learned embeddings for phase-driven chaotic gating within Neuronenblitz.
+       - [ ] Create embedding module producing phase-conditioned gates.
+       - [ ] Hook gating outputs into wander activation flow.
    - [ ] Evaluate learned embeddings for phase-driven chaotic gating on benchmark tasks and document results.
+       - [ ] Benchmark gating against standard attention mechanisms.
+       - [ ] Record stability and convergence metrics.
    - [ ] Create tests covering learned embeddings for phase-driven chaotic gating.
+       - [ ] Unit test embedding output ranges.
+       - [ ] Integration test gating on CPU and GPU.
 85. Implement layer normalization on path representation vectors.
    - [ ] Research approaches for layer normalization on path representation vectors.
+       - [ ] Review normalization techniques for sequence representations.
+       - [ ] Determine placement relative to activation functions.
    - [ ] Implement layer normalization on path representation vectors within Neuronenblitz.
+       - [ ] Add normalization module to path encoder.
+       - [ ] Ensure parameters update during training.
    - [ ] Evaluate layer normalization on path representation vectors on benchmark tasks and document results.
+       - [ ] Measure effect on training stability.
+       - [ ] Compare performance with and without normalization.
    - [ ] Create tests covering layer normalization on path representation vectors.
+       - [ ] Validate normalization statistics on sample data.
+       - [ ] Check forward and backward pass on CPU and GPU.
 86. Apply unsupervised clustering to discover concept hierarchies.
    - [ ] Research approaches for unsupervised clustering to discover concept hierarchies.
+       - [ ] Review clustering algorithms suitable for latent concepts.
+       - [ ] Outline evaluation metrics for hierarchy discovery.
    - [ ] Implement unsupervised clustering to discover concept hierarchies within Neuronenblitz.
+       - [ ] Integrate clustering stage into representation learner.
+       - [ ] Store discovered clusters with hierarchy metadata.
    - [ ] Evaluate unsupervised clustering to discover concept hierarchies on benchmark tasks and document results.
+       - [ ] Run clustering on benchmark datasets.
+       - [ ] Compare discovered hierarchies against known labels.
    - [ ] Create tests covering unsupervised clustering to discover concept hierarchies.
+       - [ ] Unit test clustering output format.
+       - [ ] Integration test ensures hierarchy persistence.
 87. Integrate generative replay for continual learning support.
    - [ ] Research approaches for generative replay for continual learning support.
+       - [ ] Survey generative replay methods such as GANs and VAEs.
+       - [ ] Determine memory budget trade-offs.
    - [ ] Implement generative replay for continual learning support within Neuronenblitz.
+       - [ ] Add generator producing synthetic past samples.
+       - [ ] Incorporate replay into training schedule.
    - [ ] Evaluate generative replay for continual learning support on benchmark tasks and document results.
+       - [ ] Perform continual learning experiment with replay.
+       - [ ] Measure forgetting versus baseline.
    - [ ] Create tests covering generative replay for continual learning support.
+       - [ ] Unit test generator sampling interface.
+       - [ ] Integration test replay path on CPU and GPU.
 88. Use spatiotemporal memory structures for sequential tasks.
    - [ ] Research approaches for spatiotemporal memory structures for sequential tasks.
+       - [ ] Review models combining spatial and temporal memory.
+       - [ ] Identify representations suited for wander paths.
    - [ ] Implement spatiotemporal memory structures for sequential tasks within Neuronenblitz.
+       - [ ] Design memory module capturing sequence and position.
+       - [ ] Connect module to wandering state updates.
    - [ ] Evaluate spatiotemporal memory structures for sequential tasks on benchmark tasks and document results.
+       - [ ] Test on sequential reasoning benchmarks.
+       - [ ] Analyze memory retention over long horizons.
    - [ ] Create tests covering spatiotemporal memory structures for sequential tasks.
+       - [ ] Unit test memory read and write operations.
+       - [ ] Integration test sequential execution.
 89. Introduce pointer networks for efficient context retrieval.
    - [ ] Research approaches for pointer networks for efficient context retrieval.
+       - [ ] Study pointer network architectures.
+       - [ ] Assess compatibility with current attention blocks.
    - [ ] Implement pointer networks for efficient context retrieval within Neuronenblitz.
+       - [ ] Embed pointer mechanism for selecting past states.
+       - [ ] Ensure differentiability of pointer selections.
    - [ ] Evaluate pointer networks for efficient context retrieval on benchmark tasks and document results.
+       - [ ] Benchmark retrieval latency and accuracy.
+       - [ ] Compare to standard attention retrieval.
    - [ ] Create tests covering pointer networks for efficient context retrieval.
+       - [ ] Unit test pointer selection probabilities.
+       - [ ] Integration test retrieval in inference loop.
 90. Apply pairwise consistency regularization across wander paths.
    - [ ] Research approaches for pairwise consistency regularization across wander paths.
+       - [ ] Investigate consistency losses used in semi-supervised learning.
+       - [ ] Determine metrics suitable for path similarity.
    - [ ] Implement pairwise consistency regularization across wander paths within Neuronenblitz.
+       - [ ] Compute consistency loss for paired wander outputs.
+       - [ ] Backpropagate penalty during joint training.
    - [ ] Evaluate pairwise consistency regularization across wander paths on benchmark tasks and document results.
+       - [ ] Run experiments measuring path agreement.
+       - [ ] Report effect on generalization.
    - [ ] Create tests covering pairwise consistency regularization across wander paths.
+       - [ ] Unit test loss calculation on synthetic pairs.
+       - [ ] Integration test ensuring penalty scales with discrepancy.
 91. Use meta-learning to adapt optimizer hyperparameters.
    - [ ] Research approaches for meta-learning to adapt optimizer hyperparameters.
+       - [ ] Review meta-optimization techniques such as learning to learn.
+       - [ ] Identify adjustable optimizer parameters.
    - [ ] Implement meta-learning to adapt optimizer hyperparameters within Neuronenblitz.
+       - [ ] Build meta-learner predicting hyperparameters.
+       - [ ] Integrate updates into optimizer step.
    - [ ] Evaluate meta-learning to adapt optimizer hyperparameters on benchmark tasks and document results.
+       - [ ] Train on tasks with varying hyperparameter optima.
+       - [ ] Compare to fixed-parameter baseline.
    - [ ] Create tests covering meta-learning to adapt optimizer hyperparameters.
+       - [ ] Unit test meta-learner parameter updates.
+       - [ ] Integration test training loop with meta-optimization.
 92. Add differentiable priority queues for wander candidate storage.
    - [ ] Research approaches for differentiable priority queues for wander candidate storage.
+       - [ ] Explore differentiable data structures for priority queues.
+       - [ ] Analyze complexity and memory cost.
    - [ ] Implement differentiable priority queues for wander candidate storage within Neuronenblitz.
+       - [ ] Implement priority queue with differentiable scoring.
+       - [ ] Replace existing candidate storage with new structure.
    - [ ] Evaluate differentiable priority queues for wander candidate storage on benchmark tasks and document results.
+       - [ ] Benchmark retrieval speed and learning impact.
+       - [ ] Compare against non-differentiable queue.
    - [ ] Create tests covering differentiable priority queues for wander candidate storage.
+       - [ ] Unit test enqueue and dequeue gradients.
+       - [ ] Stress test queue with large candidate sets.
 93. Integrate gradient-based structural pruning for efficiency.
    - [ ] Research approaches for gradient-based structural pruning for efficiency.
+       - [ ] Study gradient-based pruning algorithms.
+       - [ ] Identify criteria for removing neurons or edges.
    - [ ] Implement gradient-based structural pruning for efficiency within Neuronenblitz.
+       - [ ] Compute pruning masks from gradient magnitudes.
+       - [ ] Apply masks during training cycles.
    - [ ] Evaluate gradient-based structural pruning for efficiency on benchmark tasks and document results.
+       - [ ] Measure speed and accuracy after pruning.
+       - [ ] Track sparsity over training.
    - [ ] Create tests covering gradient-based structural pruning for efficiency.
+       - [ ] Unit test mask generation.
+       - [ ] Integration test ensures no shape mismatches.
 94. Apply dynamic attention spans for context-sensitive wandering.
    - [ ] Research approaches for dynamic attention spans for context-sensitive wandering.
+       - [ ] Review adaptive attention span techniques.
+       - [ ] Determine signals for span adjustment.
    - [ ] Implement dynamic attention spans for context-sensitive wandering within Neuronenblitz.
+       - [ ] Add module calculating attention span per step.
+       - [ ] Integrate span selection into attention layer.
    - [ ] Evaluate dynamic attention spans for context-sensitive wandering on benchmark tasks and document results.
+       - [ ] Benchmark on tasks requiring varying context lengths.
+       - [ ] Report computational savings.
    - [ ] Create tests covering dynamic attention spans for context-sensitive wandering.
+       - [ ] Unit test span computation logic.
+       - [ ] Integration test dynamic span on GPU.
 95. Introduce continual exploration strategies during long runs.
    - [ ] Research approaches for continual exploration strategies during long runs.
+       - [ ] Explore exploration strategies resilient to stagnation.
+       - [ ] Identify metrics to detect exploration fatigue.
    - [ ] Implement continual exploration strategies during long runs within Neuronenblitz.
+       - [ ] Add scheduler switching strategies over time.
+       - [ ] Persist exploration state across sessions.
    - [ ] Evaluate continual exploration strategies during long runs on benchmark tasks and document results.
+       - [ ] Run long-duration training to monitor exploration.
+       - [ ] Compare coverage against static strategy.
    - [ ] Create tests covering continual exploration strategies during long runs.
+       - [ ] Unit test scheduler transitions.
+       - [ ] Integration test long-run stability.
 96. Use differentiable top-k filtering in result aggregation.
    - [ ] Research approaches for differentiable top-k filtering in result aggregation.
+       - [ ] Survey differentiable top-k operators.
+       - [ ] Evaluate trade-offs between accuracy and smoothness.
    - [ ] Implement differentiable top-k filtering in result aggregation within Neuronenblitz.
+       - [ ] Replace hard top-k selection with differentiable variant.
+       - [ ] Ensure gradients propagate through ranking.
    - [ ] Evaluate differentiable top-k filtering in result aggregation on benchmark tasks and document results.
+       - [ ] Test filtering on varied datasets.
+       - [ ] Analyze effect on aggregation accuracy.
    - [ ] Create tests covering differentiable top-k filtering in result aggregation.
+       - [ ] Unit test gradient flow through filter.
+       - [ ] Integration test on CPU and GPU paths.
 97. Employ symmetrical weight updates for mirrored structures.
    - [ ] Research approaches for symmetrical weight updates for mirrored structures.
+       - [ ] Research symmetry-enforcing training methods.
+       - [ ] Document cases where mirrored structures appear.
    - [ ] Implement symmetrical weight updates for mirrored structures within Neuronenblitz.
+       - [ ] Apply shared parameters across mirrored layers.
+       - [ ] Enforce symmetry during optimizer step.
    - [ ] Evaluate symmetrical weight updates for mirrored structures on benchmark tasks and document results.
+       - [ ] Measure parameter divergence over epochs.
+       - [ ] Compare performance to non-symmetric baseline.
    - [ ] Create tests covering symmetrical weight updates for mirrored structures.
+       - [ ] Unit test parameter sharing mechanism.
+       - [ ] Integration test mirrored forward pass.
 98. Add automatic sensitivity analysis to adjust exploration focus.
    - [ ] Research approaches for automatic sensitivity analysis to adjust exploration focus.
+       - [ ] Review sensitivity analysis techniques.
+       - [ ] Determine metrics indicating exploration value.
    - [ ] Implement automatic sensitivity analysis to adjust exploration focus within Neuronenblitz.
+       - [ ] Compute sensitivity scores for active regions.
+       - [ ] Adjust exploration weights based on scores.
    - [ ] Evaluate automatic sensitivity analysis to adjust exploration focus on benchmark tasks and document results.
+       - [ ] Run experiments adjusting focus dynamically.
+       - [ ] Compare resource usage versus fixed strategies.
    - [ ] Create tests covering automatic sensitivity analysis to adjust exploration focus.
+       - [ ] Unit test sensitivity score computation.
+       - [ ] Integration test exploration adjustments on GPU.
 99. Implement graph-based neural ODEs for smooth path evolution.
    - [ ] Research approaches for graph-based neural ODEs for smooth path evolution.
+       - [ ] Study neural ODE formulations on graphs.
+       - [ ] Identify solver libraries compatible with MARBLE.
    - [ ] Implement graph-based neural ODEs for smooth path evolution within Neuronenblitz.
+       - [ ] Develop ODE module operating on graph structures.
+       - [ ] Connect module to existing wander update step.
    - [ ] Evaluate graph-based neural ODEs for smooth path evolution on benchmark tasks and document results.
+       - [ ] Simulate path evolution with ODE and baseline.
+       - [ ] Document stability and accuracy differences.
    - [ ] Create tests covering graph-based neural ODEs for smooth path evolution.
+       - [ ] Unit test ODE solver integration.
+       - [ ] Integration test on small synthetic graph.
 100. Utilize reinforcement-guided parameter noise for better search.
    - [ ] Research approaches for reinforcement-guided parameter noise for better search.
+       - [ ] Review parameter noise techniques in reinforcement learning.
+       - [ ] Assess how noise interacts with wander policies.
    - [ ] Implement reinforcement-guided parameter noise for better search within Neuronenblitz.
+       - [ ] Inject adaptive noise into policy parameters.
+       - [ ] Schedule noise magnitude based on rewards.
    - [ ] Evaluate reinforcement-guided parameter noise for better search on benchmark tasks and document results.
+       - [ ] Compare exploration efficiency with and without noise.
+       - [ ] Track reward variance across runs.
    - [ ] Create tests covering reinforcement-guided parameter noise for better search.
+       - [ ] Unit test noise injection routines.
+       - [ ] Integration test ensuring reproducibility with seeds.

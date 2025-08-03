@@ -1387,8 +1387,18 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 333. [ ] Add unit tests and verify CUDA fallbacks.
     - [ ] Write tests for quantization correctness, parallel wanderers, and prompt cache behavior.
         - [ ] Cover QuantizedTensor round-trip accuracy.
+            - [ ] Create quantized tensors with known values.
+            - [ ] Convert to float and back and assert equality.
         - [ ] Ensure parallel wanderers yield consistent results.
+            - [ ] Set up small world simulation with multiple wanderers.
+            - [ ] Compare outputs and convergence metrics.
         - [ ] Test prompt cache operations under load.
+            - [ ] Fill cache with synthetic prompts.
+            - [ ] Measure latency and eviction behaviour.
     - [ ] Verify CUDA fallbacks for all new modules.
         - [ ] Run tests forcing CPU execution.
+            - [ ] Set environment variable to disable CUDA.
+            - [ ] Execute each module's test suite.
         - [ ] Document any GPU-only limitations.
+            - [ ] Record modules lacking CPU implementation.
+            - [ ] Update README with limitation notes.
