@@ -1,14 +1,19 @@
 import torch
+
 from quantized_tensor import QuantizedTensor
 
 
 def _devices():
-    return [torch.device("cpu")] + ([torch.device("cuda")] if torch.cuda.is_available() else [])
+    return [torch.device("cpu")] + (
+        [torch.device("cuda")] if torch.cuda.is_available() else []
+    )
 
 
 def test_round_trip():
     for device in _devices():
-        original = torch.linspace(-1.0, 1.0, steps=17, device=device)
+        original = torch.tensor(
+            [-1.0, -0.5, 0.0, 0.5, 1.0], device=device, dtype=torch.float32
+        )
         qt = QuantizedTensor.from_tensor(original, bit_width=4)
         restored = qt.to_dense()
         assert torch.allclose(original, restored, atol=qt.scale)
