@@ -1503,6 +1503,7 @@ class Neuronenblitz:
                     self.replay_priorities[i] = abs(err) + 1e-6
             self.update_exploration_schedule()
             self.adjust_dropout_rate(avg_error)
+            self.freeze_low_impact_synapses()
 
     def get_training_history(self):
         return self.training_history
@@ -1584,6 +1585,35 @@ class Neuronenblitz:
             else:
                 to_keep.append(syn)
         self.core.synapses = to_keep
+
+    def freeze_low_impact_synapses(self) -> None:
+        """Freeze synapses with negligible gradient and activity.
+
+        The method computes dynamic thresholds based on recent gradient
+        magnitudes and visitation statistics. Synapses whose stored gradient
+        falls below ``10%`` of the average gradient magnitude and whose visit
+        count is less than half of the average visit count are marked as
+        frozen. Frozen synapses are skipped during subsequent weight updates,
+        preserving computation for more influential connections.
+        """
+
+        if not self._prev_gradients:
+            return
+
+        grad_mags = np.array([abs(g) for g in self._prev_gradients.values()], dtype=float)
+        avg_grad = float(grad_mags.mean())
+        grad_thresh = avg_grad * 0.1
+
+        visit_counts = np.array([s.visit_count for s in self.core.synapses], dtype=float)
+        avg_visit = float(visit_counts.mean()) if visit_counts.size else 0.0
+        visit_thresh = avg_visit * 0.5
+
+        for syn in self.core.synapses:
+            if syn.frozen:
+                continue
+            grad = abs(self._prev_gradients.get(syn, 0.0))
+            if grad < grad_thresh and syn.visit_count <= visit_thresh:
+                syn.frozen = True
 
     def _record_path_usage(self, path):
         """Increment usage counter for ``path`` and create shortcuts if needed."""
@@ -1822,3 +1852,5 @@ class Neuronenblitz:
             self.replay_buffer.clear()
             self.replay_priorities.clear()
             self._grad_sq.clear()
+            for syn in self.core.synapses:
+                syn.frozen = False
