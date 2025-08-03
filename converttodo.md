@@ -62,35 +62,71 @@
   - [x] Converter for ``LSTM``
   - [x] Converter for ``GRU``
   - [x] Unit tests with tiny sequences
-  - [ ] Bidirectional and multi-layer support
-    - [ ] Map forward and backward weights for bidirectional RNNs.
-    - [ ] Handle stacked layers with appropriate parameter naming.
-    - [ ] Add tests converting multi-layer bidirectional models.
-  - [ ] Persistent hidden state mapping
-    - [ ] Serialize initial hidden states with layer metadata.
-    - [ ] Restore hidden states during MARBLE execution.
-    - [ ] Provide tests verifying state persistence across runs.
+    - [ ] Bidirectional and multi-layer support
+      - [ ] Map forward and backward weights for bidirectional RNNs.
+        - [ ] Align parameter ordering between PyTorch and MARBLE.
+        - [ ] Validate hidden state concatenation.
+      - [ ] Handle stacked layers with appropriate parameter naming.
+        - [ ] Prefix layer indices consistently.
+        - [ ] Ensure loading preserves original hierarchy.
+      - [ ] Add tests converting multi-layer bidirectional models.
+        - [ ] Build example network with two bidirectional layers.
+        - [ ] Compare outputs against PyTorch reference.
+    - [ ] Persistent hidden state mapping
+      - [ ] Serialize initial hidden states with layer metadata.
+        - [ ] Embed state tensors into converter output.
+        - [ ] Record correspondence to layer identifiers.
+      - [ ] Restore hidden states during MARBLE execution.
+        - [ ] Load serialized states into runtime structures.
+        - [ ] Verify shapes match original expectations.
+      - [ ] Provide tests verifying state persistence across runs.
+        - [ ] Save model, reload, and compare hidden states.
+        - [ ] Ensure no drift after multiple executions.
 - [x] Normalization layers (LayerNorm, GroupNorm)
   - [x] ``LayerNorm`` converter
   - [x] ``GroupNorm`` converter
   - [x] Unit tests for normalization
- - [ ] Transformer blocks
-  - [ ] Self-attention conversion
-    - [ ] Translate query, key, and value projections.
-    - [ ] Support multi-head attention weight splitting.
-    - [ ] Add unit tests for attention weight parity.
-  - [ ] Feed-forward sublayers
-    - [ ] Convert linear1 and linear2 layers with activation.
-    - [ ] Handle dropout placement within sublayer.
-    - [ ] Verify output numerically against PyTorch.
-  - [ ] Positional encoding handling
-    - [ ] Map sinusoidal and learned positional embeddings.
-    - [ ] Expose positional encoding choice via config.
-    - [ ] Add tests ensuring positions align after conversion.
-  - [ ] Integration tests on a small transformer
-    - [ ] Convert a tiny transformer model end-to-end.
-    - [ ] Compare MARBLE and PyTorch outputs for sample inputs.
-    - [ ] Document transformer conversion workflow.
+   - [ ] Transformer blocks
+    - [ ] Self-attention conversion
+      - [ ] Translate query, key, and value projections.
+        - [ ] Map weight matrices and biases separately.
+        - [ ] Ensure projection shapes align with head count.
+      - [ ] Support multi-head attention weight splitting.
+        - [ ] Split combined matrices into per-head chunks.
+        - [ ] Recombine outputs after attention.
+      - [ ] Add unit tests for attention weight parity.
+        - [ ] Verify numerical parity for single-head case.
+        - [ ] Extend tests to multi-head scenarios.
+    - [ ] Feed-forward sublayers
+      - [ ] Convert linear1 and linear2 layers with activation.
+        - [ ] Preserve activation type and placement.
+        - [ ] Translate weight and bias tensors.
+      - [ ] Handle dropout placement within sublayer.
+        - [ ] Detect dropout modules during tracing.
+        - [ ] Insert dropout nodes into MARBLE graph.
+      - [ ] Verify output numerically against PyTorch.
+        - [ ] Run random inputs through both models.
+        - [ ] Check differences within tolerance.
+    - [ ] Positional encoding handling
+      - [ ] Map sinusoidal and learned positional embeddings.
+        - [ ] Convert embedding tensors and scaling factors.
+        - [ ] Support optional padding tokens.
+      - [ ] Expose positional encoding choice via config.
+        - [ ] Add config parameter and CLI option.
+        - [ ] Document when to use each encoding type.
+      - [ ] Add tests ensuring positions align after conversion.
+        - [ ] Compare embedding indices between models.
+        - [ ] Validate sequence lengths remain unchanged.
+    - [ ] Integration tests on a small transformer
+      - [ ] Convert a tiny transformer model end-to-end.
+        - [ ] Trace model and run through converter.
+        - [ ] Load converted model into MARBLE runtime.
+      - [ ] Compare MARBLE and PyTorch outputs for sample inputs.
+        - [ ] Generate deterministic test inputs.
+        - [ ] Assert outputs differ within tolerance.
+      - [ ] Document transformer conversion workflow.
+        - [ ] Provide step-by-step guide in README.
+        - [ ] Include troubleshooting section.
 
 ### 2. High-level graph construction API
 - [x] Helper to add neuron groups with activations
@@ -99,10 +135,16 @@
   - [x] ``linear_layer`` wrapper
   - [x] ``conv2d_layer`` wrapper
 - [x] Documentation for graph builder utilities
- - [ ] Examples demonstrating dynamic message passing setup
-  - [ ] Create example script building a dynamic message passing graph.
-  - [ ] Document example usage in README.
-  - [ ] Add unit test covering dynamic example conversion.
+   - [ ] Examples demonstrating dynamic message passing setup
+    - [ ] Create example script building a dynamic message passing graph.
+        - [ ] Showcase runtime addition and removal of edges.
+        - [ ] Include comments explaining each step.
+    - [ ] Document example usage in README.
+        - [ ] Provide command to run the example.
+        - [ ] Explain expected output and graph behavior.
+    - [ ] Add unit test covering dynamic example conversion.
+        - [ ] Verify script executes without errors.
+        - [ ] Assert generated graph matches expected structure.
 
 ### 3. Weight and activation handling
 - [x] Extract weights and biases from PyTorch layers
@@ -124,19 +166,31 @@
 - [x] Add `--summary` CLI flag to print dry-run stats
 - [x] Support saving summary to JSON via `--summary-output`
 ### 6. Validation utilities
-- [ ] Validate converted models by comparing PyTorch and MARBLE outputs
-    - [ ] Unit tests for small networks
-    - [ ] Integration test for a custom model
-    - [ ] CLI option to run validation automatically
-        - [ ] Add `--validate` flag to `convert_model.py`.
-        - [ ] Execute PyTorch vs MARBLE comparison when the flag is provided.
-        - [ ] Output a validation report highlighting layer mismatches.
-        - [ ] Document the validation flag in README and CLI help.
-- [ ] Numerical tolerances for output comparison
-    - [ ] Define default tolerance thresholds for floating point comparisons.
-    - [ ] Allow overriding tolerance via CLI and configuration.
-    - [ ] Document tolerance settings in README.
-    - [ ] Add tests covering tolerance edge cases.
+  - [ ] Validate converted models by comparing PyTorch and MARBLE outputs
+      - [ ] Unit tests for small networks
+        - [ ] Compare single-layer models across frameworks.
+        - [ ] Check parameter copying correctness.
+      - [ ] Integration test for a custom model
+        - [ ] Convert a moderate-size model end-to-end.
+        - [ ] Validate numerical equivalence on sample data.
+      - [ ] CLI option to run validation automatically
+          - [ ] Add `--validate` flag to `convert_model.py`.
+          - [ ] Execute PyTorch vs MARBLE comparison when the flag is provided.
+          - [ ] Output a validation report highlighting layer mismatches.
+          - [ ] Document the validation flag in README and CLI help.
+  - [ ] Numerical tolerances for output comparison
+      - [ ] Define default tolerance thresholds for floating point comparisons.
+        - [ ] Determine separate tolerances for CPU and GPU.
+        - [ ] Justify chosen defaults in docs.
+      - [ ] Allow overriding tolerance via CLI and configuration.
+        - [ ] Add `--tolerance` flag and config entry.
+        - [ ] Validate user-provided values.
+      - [ ] Document tolerance settings in README.
+        - [ ] Include examples illustrating effects of tolerance.
+        - [ ] Warn about overly strict values causing failures.
+      - [ ] Add tests covering tolerance edge cases.
+        - [ ] Test near-threshold differences.
+        - [ ] Confirm override works via CLI and config.
 
 ### 7. Additional tooling
 - [x] Support converting `.pt` files directly into `.marble` snapshots
@@ -161,10 +215,16 @@
   - [x] Implement summarizer that tallies counts per layer.
   - [x] Provide CLI option to print or save counts.
   - [x] Write unit tests for summarizer accuracy.
-- [ ] Interactive tool to inspect neuron parameters
-  - [ ] Build Streamlit viewer with filtering and search.
-  - [ ] Support selecting neurons to show detailed parameters.
-  - [ ] Add GUI tests for viewer components.
+  - [ ] Interactive tool to inspect neuron parameters
+    - [ ] Build Streamlit viewer with filtering and search.
+        - [ ] Implement sidebar controls for filtering by layer or type.
+        - [ ] Provide search box for neuron IDs.
+    - [ ] Support selecting neurons to show detailed parameters.
+        - [ ] Display weights, biases, and activation info.
+        - [ ] Allow exporting selected neuron data.
+    - [ ] Add GUI tests for viewer components.
+        - [ ] Simulate user interaction with filters and search.
+        - [ ] Ensure detail view renders without errors.
 
 ### 10. Error handling and logging
 - [x] Unsupported layers raise `"[layer type name] is not supported for conversion"`
@@ -172,21 +232,38 @@
   - [x] Consistent error message for invalid Conv2d parameters
 
 ### 11. Dynamic graph support
-- [ ] Map PyTorch control flow to MARBLE dynamic topology
-  - [ ] Parse torch.fx conditional and loop nodes.
-  - [ ] Generate dynamic neuron groups for branches.
-  - [ ] Document limitations and edge cases.
-- [ ] Handle evolving neuron and synapse creation during inference
-  - [ ] Implement runtime graph mutation utilities.
-  - [ ] Ensure thread safety during dynamic updates.
-  - [ ] Add tests exercising dynamic growth.
-- [ ] Unit tests covering dynamic model conversion paths
-  - [ ] Create mock models with branching control flow.
-  - [ ] Verify converted graphs execute correctly.
-- [ ] Research torch.fx support for control flow constructs
-  - [ ] Survey existing torch.fx features for loops and conditionals.
-  - [ ] Prototype tracing of a model using control flow.
-  - [ ] Summarize findings in documentation.
+  - [ ] Map PyTorch control flow to MARBLE dynamic topology
+    - [ ] Parse torch.fx conditional and loop nodes.
+        - [ ] Identify node types representing branches and loops.
+        - [ ] Convert nodes into intermediate representation.
+    - [ ] Generate dynamic neuron groups for branches.
+        - [ ] Create separate groups for each branch path.
+        - [ ] Merge outputs using switch-like connections.
+    - [ ] Document limitations and edge cases.
+        - [ ] Note unsupported control-flow patterns.
+        - [ ] Provide workarounds where possible.
+  - [ ] Handle evolving neuron and synapse creation during inference
+    - [ ] Implement runtime graph mutation utilities.
+        - [ ] Support adding and removing nodes on the fly.
+        - [ ] Maintain consistency of references and indices.
+    - [ ] Ensure thread safety during dynamic updates.
+        - [ ] Guard mutations with locks or queues.
+        - [ ] Add checks for concurrent modification.
+    - [ ] Add tests exercising dynamic growth.
+        - [ ] Simulate incremental graph expansion during inference.
+        - [ ] Verify outputs remain stable.
+  - [ ] Unit tests covering dynamic model conversion paths
+    - [ ] Create mock models with branching control flow.
+        - [ ] Include nested loops and conditionals.
+    - [ ] Verify converted graphs execute correctly.
+        - [ ] Run forward passes and compare outputs.
+  - [ ] Research torch.fx support for control flow constructs
+    - [ ] Survey existing torch.fx features for loops and conditionals.
+        - [ ] Review documentation and open issues.
+    - [ ] Prototype tracing of a model using control flow.
+        - [ ] Evaluate limitations encountered.
+    - [ ] Summarize findings in documentation.
+        - [ ] Provide recommendations for future work.
 
 ### 12. Universal converter roadmap
 - [ ] Comprehensive layer mapping registry

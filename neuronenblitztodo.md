@@ -7,60 +7,150 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
 3. Integrate gradient-based path scoring to accelerate learning. (Completed with optional RMS gradient scoring)
 4. Employ soft actor-critic for reinforcement-driven wandering.
    - [ ] Implement actor and critic networks within wander policy.
+       - [ ] Define neural architectures for actor and critic.
+       - [ ] Integrate networks with wander policy update loop.
+       - [ ] Validate forward and backward passes on toy data.
    - [ ] Integrate entropy regularization into loss.
+       - [ ] Add entropy term to objective function.
+       - [ ] Tune regularization weight for stability.
+       - [ ] Document impact on exploration.
    - [ ] Add temperature parameter to config and docs.
+       - [ ] Introduce `sac.temperature` in configuration files.
+       - [ ] Explain parameter in YAML manual and tutorial.
    - [ ] Test wandering with SAC on small environment.
+       - [ ] Build minimal environment for SAC evaluation.
+       - [ ] Compare performance against baseline wanderer.
 5. Add memory-gated attention to modulate path selection.
    - [ ] Design gating mechanism using episodic memory cues.
+       - [ ] Specify features retrieved from episodic memory.
+       - [ ] Formulate gating equation blending memory and context.
    - [ ] Inject gating weights into attention calculations.
+       - [ ] Modify attention module to accept gate values.
+       - [ ] Ensure gradients propagate through gating path.
    - [ ] Expose gate strength hyperparameter in config.
+       - [ ] Add `memory.gate_strength` to configs and docs.
+       - [ ] Provide reasonable default and tuning guidance.
    - [ ] Validate with ablation studies.
+       - [ ] Run experiments with and without gating.
+       - [ ] Report effects on path diversity and accuracy.
 6. Use episodic memory to bias wandering toward past successes. (Completed with episodic replay bias)
 7. Apply meta-learning to adjust plasticity thresholds dynamically.
    - [ ] Record plasticity outcomes over recent steps.
+       - [ ] Log success metrics for each plasticity event.
+       - [ ] Maintain rolling history buffer.
    - [ ] Train meta-learner to propose threshold updates.
+       - [ ] Choose lightweight model for meta-learning.
+       - [ ] Fit model on recorded outcomes to predict new thresholds.
    - [ ] Add config options for meta-learning rate and window size.
+       - [ ] Introduce parameters `meta.rate` and `meta.window`.
+       - [ ] Document recommended ranges and defaults.
    - [ ] Add tests verifying threshold adapts.
+       - [ ] Simulate scenarios where thresholds should change.
+       - [ ] Assert meta-learner adjusts values accordingly.
 8. Integrate unsupervised contrastive losses into wander updates.
    - [ ] Generate positive and negative wander path pairs.
+       - [ ] Sample similar paths as positives and random paths as negatives.
+       - [ ] Cache pairs for reuse during training.
    - [ ] Compute contrastive loss (e.g., NT-Xent).
+       - [ ] Implement loss function leveraging cosine similarity.
+       - [ ] Normalize embeddings before comparison.
    - [ ] Combine loss with existing wander objectives.
+       - [ ] Weight contrastive term relative to primary loss.
+       - [ ] Provide config knob for contrastive weight.
    - [ ] Evaluate improvement on representation quality.
+       - [ ] Measure embedding clustering metrics.
+       - [ ] Compare against baseline without contrastive loss.
 9. Add hierarchical wandering to explore coarse-to-fine routes.
    - [ ] Implement high-level planner producing subgoals.
+       - [ ] Define planner interface and data structures.
+       - [ ] Generate subgoals based on current graph state.
    - [ ] Enable low-level wanderers for each subgoal.
+       - [ ] Spawn dedicated wanderers conditioned on subgoal.
+       - [ ] Merge results back into global context.
    - [ ] Track hierarchy in metrics and logs.
+       - [ ] Record subgoal transitions and outcomes.
+       - [ ] Visualize hierarchical progress over time.
    - [ ] Test on tasks requiring multi-stage reasoning.
+       - [ ] Create multi-step benchmark task.
+       - [ ] Compare to flat wandering baseline.
 10. Use graph attention networks for context-aware message passing.
-   - [ ] Integrate GAT layers into core message propagation.
-   - [ ] Allow optional use via configuration.
-   - [ ] Benchmark against baseline propagation.
-   - [ ] Add tests for attention weights.
+    - [ ] Integrate GAT layers into core message propagation.
+        - [ ] Implement graph attention layer compatible with existing tensors.
+        - [ ] Replace or augment current message passing modules.
+    - [ ] Allow optional use via configuration.
+        - [ ] Add flag to enable or disable GAT usage.
+        - [ ] Document performance considerations.
+    - [ ] Benchmark against baseline propagation.
+        - [ ] Measure throughput and accuracy differences.
+        - [ ] Report results in documentation.
+    - [ ] Add tests for attention weights.
+        - [ ] Check weight normalization per node.
+        - [ ] Validate gradient flow through attention coefficients.
 11. Optimize wandering via Monte Carlo tree search strategies.
-   - [ ] Implement tree node structure for wander states.
-   - [ ] Apply UCT formula to select expansions.
-   - [ ] Integrate with existing wander loop.
-   - [ ] Compare performance to random wandering.
+    - [ ] Implement tree node structure for wander states.
+        - [ ] Define node fields for state, visits, and rewards.
+        - [ ] Manage expansion and backpropagation steps.
+    - [ ] Apply UCT formula to select expansions.
+        - [ ] Implement selection policy using UCT.
+        - [ ] Tune exploration constant.
+    - [ ] Integrate with existing wander loop.
+        - [ ] Insert MCTS selection into wander cycle.
+        - [ ] Handle node recycling to limit memory.
+    - [ ] Compare performance to random wandering.
+        - [ ] Benchmark on standard tasks.
+        - [ ] Analyze improvement in discovery rate.
 12. Leverage curiosity-driven exploration for unseen regions.
-   - [ ] Define intrinsic reward based on prediction error.
-   - [ ] Add curiosity module producing exploration bonuses.
-   - [ ] Expose bonus weight in config.
-   - [ ] Measure coverage improvement.
+    - [ ] Define intrinsic reward based on prediction error.
+        - [ ] Compute error between predicted and actual activations.
+        - [ ] Normalize reward to avoid scale issues.
+    - [ ] Add curiosity module producing exploration bonuses.
+        - [ ] Implement module that outputs bonus per state.
+        - [ ] Integrate bonus into wander reward function.
+    - [ ] Expose bonus weight in config.
+        - [ ] Add `curiosity.weight` parameter with docs.
+        - [ ] Provide tuning examples.
+    - [ ] Measure coverage improvement.
+        - [ ] Track number of novel states visited.
+        - [ ] Compare exploration metrics with baseline.
 13. Implement evolutionary algorithms to evolve wander heuristics.
-   - [ ] Represent heuristic parameters as genome.
-   - [ ] Implement selection, crossover, mutation.
-   - [ ] Evaluate population over wander tasks.
-   - [ ] Persist best heuristics to disk.
+    - [ ] Represent heuristic parameters as genome.
+        - [ ] Encode parameters into fixed-length vector.
+        - [ ] Define decoding back to heuristic settings.
+    - [ ] Implement selection, crossover, mutation.
+        - [ ] Choose selection strategy (e.g., tournament).
+        - [ ] Implement crossover and mutation operators.
+    - [ ] Evaluate population over wander tasks.
+        - [ ] Run each genome on set of tasks to compute fitness.
+        - [ ] Parallelize evaluations when possible.
+    - [ ] Persist best heuristics to disk.
+        - [ ] Save genome and metadata for top performers.
+        - [ ] Provide loader to reuse saved heuristics.
 14. Incorporate self-supervised prediction tasks during wandering.
-   - [ ] Predict future neuron activations as auxiliary task.
-   - [ ] Backpropagate prediction loss alongside main objective.
-   - [ ] Configure prediction horizon.
-   - [ ] Test improvement in model accuracy.
+    - [ ] Predict future neuron activations as auxiliary task.
+        - [ ] Add module to forecast next-step activations.
+        - [ ] Select loss function for prediction error.
+    - [ ] Backpropagate prediction loss alongside main objective.
+        - [ ] Combine losses with weighting factor.
+        - [ ] Ensure gradients do not dominate main objective.
+    - [ ] Configure prediction horizon.
+        - [ ] Add parameter controlling steps ahead to predict.
+        - [ ] Document trade-offs between horizon and accuracy.
+    - [ ] Test improvement in model accuracy.
+        - [ ] Compare with baseline without auxiliary task.
+        - [ ] Report metrics showing benefit.
 15. Add dynamic gating of synapse updates based on activity levels.
-   - [ ] Track synapse activation statistics.
-   - [ ] Apply gating function to scale weight updates.
-   - [ ] Provide config parameter for gating sensitivity.
-   - [ ] Ensure gating mechanism works on CPU and GPU.
+    - [ ] Track synapse activation statistics.
+        - [ ] Maintain moving averages of activations per synapse.
+        - [ ] Store statistics efficiently for large networks.
+    - [ ] Apply gating function to scale weight updates.
+        - [ ] Define gating formula using activation stats.
+        - [ ] Integrate gating into weight update routine.
+    - [ ] Provide config parameter for gating sensitivity.
+        - [ ] Introduce `gating.sensitivity` parameter with docs.
+        - [ ] Offer guidance on tuning ranges.
+    - [ ] Ensure gating mechanism works on CPU and GPU.
+        - [ ] Implement device-agnostic operations.
+        - [ ] Add tests for both execution paths.
 16. Exploit recurrent state embeddings for sequential tasks.
    - [x] Research approaches for recurrent state embeddings for sequential tasks.
      - Recurrent state embeddings can be derived from techniques such as
