@@ -36,6 +36,29 @@ class PromptMemory:
             segments.append(f"Input: {pair['input']}\nOutput: {pair['output']}")
         return "\n".join(segments)
 
+    def composite_with(self, new_input: str, max_chars: int = 2048) -> str:
+        """Return ``prompt + new_input`` truncated to ``max_chars`` characters.
+
+        Oldest records are dropped until the composite fits within the limit.
+        If no records are stored, ``new_input`` is returned unchanged.
+        """
+        pairs = list(self._data)
+        composite = new_input
+        if pairs:
+            prompt = self.get_prompt()
+            composite = f"{prompt}\nInput: {new_input}" if prompt else new_input
+            # Drop oldest pairs until within size limit
+            while len(composite) > max_chars and pairs:
+                pairs.pop(0)
+                prompt = "\n".join(
+                    f"Input: {p['input']}\nOutput: {p['output']}" for p in pairs
+                )
+                composite = f"{prompt}\nInput: {new_input}" if prompt else new_input
+        # Ensure final string is not longer than max_chars
+        if len(composite) > max_chars:
+            composite = composite[-max_chars:]
+        return composite
+
     def serialize(self, path: str) -> None:
         """Save stored pairs to ``path`` in JSON format."""
         with open(path, "w", encoding="utf-8") as f:
