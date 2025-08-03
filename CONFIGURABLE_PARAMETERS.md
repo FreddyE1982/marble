@@ -49,6 +49,7 @@ Each entry is listed under its section heading.
 - init_noise_std
 - default_growth_tier
 - random_seed
+- backend
 - message_passing_dropout
 - synapse_dropout_prob
 - synapse_batchnorm_momentum

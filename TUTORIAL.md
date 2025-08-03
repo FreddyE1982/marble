@@ -48,6 +48,24 @@ wrap your ``(input, target)`` pairs in :class:`BitTensorDataset`. This converts
 each object into a tensor of bits and optionally compresses repeated patterns
 through a shared vocabulary.
 
+### Streaming large CSV files
+
+MARBLE can process massive datasets without loading them entirely into memory
+using :class:`StreamingCSVLoader`. This iterator reads one line at a time and
+records its byte offset in ``data.csv.meta.json`` so subsequent runs resume
+where the previous one stopped.
+
+```python
+from dataset_loader import StreamingCSVLoader
+from tokenizer_utils import built_in_tokenizer
+
+tok = built_in_tokenizer("char_bpe")
+tok.train_from_iterator(["hello", "world"], vocab_size=10)
+
+for row in StreamingCSVLoader("data.csv", tokenizer=tok):
+    print(row["input_ids"], row["target"])
+```
+
 If you set ``dataset.encryption_key`` in ``config.yaml`` the loader encrypts all
 objects before writing them to disk and automatically decrypts them when
 loading. Use the same key on every machine that processes the dataset to handle
