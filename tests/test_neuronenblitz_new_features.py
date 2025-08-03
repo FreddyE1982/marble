@@ -17,11 +17,12 @@ def simple_core_two_synapses():
     return core, s1, s2
 
 
-def test_gradient_path_scoring_prefers_higher_gradient():
+def test_gradient_path_scoring_prefers_higher_last_gradient():
     random.seed(0)
     np.random.seed(0)
     core, s1, s2 = simple_core_two_synapses()
-    nb = Neuronenblitz(core, use_gradient_path_scoring=True, gradient_path_score_scale=10.0,
+    nb = Neuronenblitz(core, use_gradient_path_scoring=True,
+                        gradient_path_score_scale=10.0,
                         split_probability=0.0, alternative_connection_prob=0.0,
                         backtrack_probability=0.0, backtrack_enabled=False)
     nb._prev_gradients[s1] = 0.1
@@ -29,7 +30,23 @@ def test_gradient_path_scoring_prefers_higher_gradient():
     res = [(core.neurons[1], [(core.neurons[0], s1), (core.neurons[1], None)]),
            (core.neurons[1], [(core.neurons[0], s2), (core.neurons[1], None)])]
     neuron, path = nb._merge_results(res)
-    # Path orientation now keeps the chosen synapse in the first tuple
+    assert path[0][1] is s2
+
+
+def test_rms_gradient_path_scoring_prefers_higher_rms():
+    random.seed(0)
+    np.random.seed(0)
+    core, s1, s2 = simple_core_two_synapses()
+    nb = Neuronenblitz(core, use_gradient_path_scoring=True,
+                        rms_gradient_path_scoring=True,
+                        gradient_path_score_scale=10.0,
+                        split_probability=0.0, alternative_connection_prob=0.0,
+                        backtrack_probability=0.0, backtrack_enabled=False)
+    nb._grad_sq[s1] = 0.1 ** 2
+    nb._grad_sq[s2] = 1.0 ** 2
+    res = [(core.neurons[1], [(core.neurons[0], s1), (core.neurons[1], None)]),
+           (core.neurons[1], [(core.neurons[0], s2), (core.neurons[1], None)])]
+    neuron, path = nb._merge_results(res)
     assert path[0][1] is s2
 
 

@@ -4,7 +4,7 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
 
 1. Implement prioritized experience replay for wander results. (Completed with importance-sampling weights)
 2. Introduce adaptive exploration schedules based on entropy. (Completed with entropy-driven epsilon adjustment)
-3. Integrate gradient-based path scoring to accelerate learning.
+3. Integrate gradient-based path scoring to accelerate learning. (Completed with optional RMS gradient scoring)
 4. Employ soft actor-critic for reinforcement-driven wandering.
 5. Add memory-gated attention to modulate path selection.
 6. Use episodic memory to bias wandering toward past successes.
