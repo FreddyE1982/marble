@@ -14,12 +14,20 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
        - [ ] Add entropy term to objective function.
        - [ ] Tune regularization weight for stability.
        - [ ] Document impact on exploration.
+           - [ ] Summarize entropy metrics before and after regularization.
+           - [ ] Include visualization of policy entropy over training.
    - [ ] Add temperature parameter to config and docs.
        - [ ] Introduce `sac.temperature` in configuration files.
        - [ ] Explain parameter in YAML manual and tutorial.
    - [ ] Test wandering with SAC on small environment.
        - [ ] Build minimal environment for SAC evaluation.
+           - [ ] Define state and action spaces for toy environment.
+           - [ ] Implement reward function and termination criteria.
+           - [ ] Write reset and step methods with unit tests.
        - [ ] Compare performance against baseline wanderer.
+           - [ ] Run baseline wanderer on environment and record metrics.
+           - [ ] Execute SAC-enhanced wanderer and gather same metrics.
+           - [ ] Analyze convergence speed differences.
 5. Add memory-gated attention to modulate path selection.
    - [ ] Design gating mechanism using episodic memory cues.
        - [ ] Specify features retrieved from episodic memory.

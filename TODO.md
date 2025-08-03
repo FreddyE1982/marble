@@ -501,14 +501,36 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
        - [ ] Include troubleshooting for common template issues.
 179. [ ] Automatically build training loops for Neuronenblitz when dataset steps are present.
    - [ ] Outline design for Automatically build training loops for Neuronenblitz when dataset steps are present.
+       - [ ] Identify dataset step types that trigger training loop creation.
+       - [ ] Specify how loops detect CPU vs GPU execution paths.
+       - [ ] Draft flowchart illustrating automatic loop insertion points.
    - [ ] Implement Automatically build training loops for Neuronenblitz when dataset steps are present with CPU/GPU support.
+       - [ ] Detect dataset steps during pipeline compilation.
+       - [ ] Instantiate training loop objects bound to detected datasets.
+       - [ ] Ensure created loops respect available hardware and switch between CPU and GPU.
    - [ ] Add tests validating Automatically build training loops for Neuronenblitz when dataset steps are present.
+       - [ ] Unit test dataset step detection logic.
+       - [ ] Integration test auto-generated loop running on sample CPU dataset.
+       - [ ] Integration test loop operating on GPU when available.
    - [ ] Document Automatically build training loops for Neuronenblitz when dataset steps are present in README and TUTORIAL.
+       - [ ] Describe automatic loop creation mechanism in README.
+       - [ ] Provide tutorial example demonstrating dataset-driven loop generation.
 180. [ ] Offer a specialised step that consumes the new streaming `BitTensorDataset`.
    - [ ] Outline design for Offer a specialised step that consumes the new streaming `BitTensorDataset`.
+       - [ ] Define step interface for streaming dataset consumption.
+       - [ ] Plan buffering and backpressure handling for continuous data.
+       - [ ] Detail CPU and GPU tensor flow requirements.
    - [ ] Implement Offer a specialised step that consumes the new streaming `BitTensorDataset` with CPU/GPU support.
+       - [ ] Create step class wrapping BitTensorDataset iterator.
+       - [ ] Implement asynchronous data fetching compatible with CPU and GPU tensors.
+       - [ ] Integrate step into pipeline execution engine.
    - [ ] Add tests validating Offer a specialised step that consumes the new streaming `BitTensorDataset`.
+       - [ ] Unit test streaming step with synthetic dataset.
+       - [ ] Stress test behaviour under variable stream rates.
+       - [ ] Verify GPU execution matches CPU results.
    - [ ] Document Offer a specialised step that consumes the new streaming `BitTensorDataset` in README and TUTORIAL.
+       - [ ] Explain configuration and usage in README.
+       - [ ] Add tutorial section showing streaming dataset pipeline.
 181. [ ] Persist step results to disk for quick re-runs.
    - [ ] Outline design for Persist step results to disk for quick re-runs.
    - [ ] Implement Persist step results to disk for quick re-runs with CPU/GPU support.
