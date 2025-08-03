@@ -540,6 +540,27 @@ class Neuronenblitz:
         idx = np.random.choice(len(pri), size=batch_size, p=probs)
         return list(map(int, idx))
 
+    def sample_replay_batch(self, batch_size: int) -> list[tuple[int, float]]:
+        """Return ``(index, weight)`` pairs sampled by priority.
+
+        Importance-sampling weights are computed according to
+        ``replay_beta`` and normalised so the maximum weight is ``1``.
+        """
+        pri = np.array(self.replay_priorities, dtype=float)
+        if len(pri) == 0:
+            return []
+        if pri.sum() == 0:
+            probs = np.ones_like(pri) / len(pri)
+        else:
+            probs = pri**self.replay_alpha
+            probs = probs / probs.sum()
+        size = min(batch_size, len(pri))
+        idx = np.random.choice(len(pri), size=size, replace=False, p=probs)
+        weights = (len(pri) * probs[idx]) ** (-self.replay_beta)
+        if weights.size > 0:
+            weights = weights / weights.max()
+        return list(zip(map(int, idx), map(float, weights)))
+
     def compute_path_entropy(self) -> float:
         """Compute entropy of synapse visit distribution."""
         counts = np.array([s.visit_count for s in self.core.synapses], dtype=float)
@@ -1400,7 +1421,7 @@ class Neuronenblitz:
                 syn.weight *= 1.0 - self.weight_decay
         return path_length
 
-    def train_example(self, input_value, target_value):
+    def train_example(self, input_value, target_value, sample_weight: float = 1.0):
         with self.lock:
             if self.parallel_wanderers > 1:
                 results = self.dynamic_wander_parallel(
@@ -1433,25 +1454,33 @@ class Neuronenblitz:
                     device = "cuda"
                     with torch.autocast(device_type=device):
                         output_value, path = self.dynamic_wander(input_value)
-                        error = self._compute_loss(target_value, output_value)
+                        raw_error = self._compute_loss(target_value, output_value)
                 else:
                     output_value, path = self.dynamic_wander(input_value)
-                    error = self._compute_loss(target_value, output_value)
+                    raw_error = self._compute_loss(target_value, output_value)
                     if self.dataloader is not None:
-                        error += self.dataloader.round_trip_penalty_for(input_value)
-                path_length = self.apply_weight_updates_and_attention(path, error)
+                        raw_error += self.dataloader.round_trip_penalty_for(input_value)
+                weighted_error = raw_error * sample_weight
+                path_length = self.apply_weight_updates_and_attention(
+                    path, weighted_error
+                )
+                error = raw_error
             else:
                 if self.use_mixed_precision and torch.cuda.is_available():
                     device = "cuda"
                     with torch.autocast(device_type=device):
                         output_value, path = self.dynamic_wander(input_value)
-                        error = self._compute_loss(target_value, output_value)
+                        raw_error = self._compute_loss(target_value, output_value)
                 else:
                     output_value, path = self.dynamic_wander(input_value)
-                    error = self._compute_loss(target_value, output_value)
+                    raw_error = self._compute_loss(target_value, output_value)
                     if self.dataloader is not None:
-                        error += self.dataloader.round_trip_penalty_for(input_value)
-                path_length = self.apply_weight_updates_and_attention(path, error)
+                        raw_error += self.dataloader.round_trip_penalty_for(input_value)
+                weighted_error = raw_error * sample_weight
+                path_length = self.apply_weight_updates_and_attention(
+                    path, weighted_error
+                )
+                error = raw_error
             self.add_to_replay(input_value, target_value, error)
             self.error_history.append(abs(error))
             self.training_history.append(
@@ -1496,10 +1525,10 @@ class Neuronenblitz:
                 self.use_experience_replay
                 and len(self.replay_buffer) >= self.replay_batch_size
             ):
-                idxs = self.sample_replay_indices(self.replay_batch_size)
-                for i in idxs:
+                samples = self.sample_replay_batch(self.replay_batch_size)
+                for i, w in samples:
                     inp, tgt, *_ = self.replay_buffer[i]
-                    _, err, _ = self.train_example(inp, tgt)
+                    _, err, _ = self.train_example(inp, tgt, sample_weight=w)
                     self.replay_priorities[i] = abs(err) + 1e-6
             self.update_exploration_schedule()
             self.adjust_dropout_rate(avg_error)
@@ -1600,11 +1629,15 @@ class Neuronenblitz:
         if not self._prev_gradients:
             return
 
-        grad_mags = np.array([abs(g) for g in self._prev_gradients.values()], dtype=float)
+        grad_mags = np.array(
+            [abs(g) for g in self._prev_gradients.values()], dtype=float
+        )
         avg_grad = float(grad_mags.mean())
         grad_thresh = avg_grad * 0.1
 
-        visit_counts = np.array([s.visit_count for s in self.core.synapses], dtype=float)
+        visit_counts = np.array(
+            [s.visit_count for s in self.core.synapses], dtype=float
+        )
         avg_visit = float(visit_counts.mean()) if visit_counts.size else 0.0
         visit_thresh = avg_visit * 0.5
 
