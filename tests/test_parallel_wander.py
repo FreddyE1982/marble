@@ -58,3 +58,25 @@ def test_parallel_average_applies_updates(monkeypatch):
     assert isinstance(out, float)
     assert isinstance(err, float)
     assert path
+
+
+def test_parallel_wander_consistency():
+    random.seed(0)
+    np.random.seed(0)
+    params_a = minimal_params()
+    params_a["plasticity_threshold"] = 0.0
+    core_a = Core(params_a)
+    nb_a = Neuronenblitz(core_a, parallel_wanderers=2, plasticity_threshold=0.0)
+    out_a, err_a, path_a = nb_a.train_example(0.5, 0.2)
+
+    random.seed(0)
+    np.random.seed(0)
+    params_b = minimal_params()
+    params_b["plasticity_threshold"] = 0.0
+    core_b = Core(params_b)
+    nb_b = Neuronenblitz(core_b, parallel_wanderers=2, plasticity_threshold=0.0)
+    out_b, err_b, path_b = nb_b.train_example(0.5, 0.2)
+
+    assert np.isclose(err_a, err_b)
+    assert np.isclose(out_a, out_b)
+    assert len(path_a) == len(path_b)
