@@ -308,7 +308,10 @@ pipe.execute(cache_dir="cache")  # second run loads from disk
    Streamlit GUI subscribes to these events and renders live updates—a progress
    bar on desktop layouts and textual percentages on mobile. If no updates
    appear, ensure JavaScript is enabled and the page URL includes the
-   ``device`` query parameter.
+   ``device`` query parameter.  These progress events can also be sent to a
+   remote experiment tracker by calling ``attach_tracker_to_events`` with a
+   tracker instance.  Each pipeline step is validated against a JSON schema when
+   added or loaded so configuration errors are surfaced early.
 9. **Export the trained model automatically** by providing `export_path` when executing a pipeline. The final step serializes the core to disk on the currently active device (CPU or GPU):
    ```python
    from pipeline import Pipeline

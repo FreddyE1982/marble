@@ -504,6 +504,12 @@ Each ``pipeline_progress`` event includes ``step``, ``index``, ``total``,
 hardware. The Streamlit Playground subscribes to these events and renders live
 updates: a progress bar on desktop layouts and textual percentages on mobile
 devices.
+The same events can be forwarded to a remote experiment tracker by calling
+``attach_tracker_to_events`` with an :class:`experiment_tracker.ExperimentTracker`
+instance. Events contain the executing device so runs on CPU and GPU can be
+correlated in external dashboards.
+Each pipeline step is validated against a JSON schema when added or executed,
+ensuring malformed configurations are caught before runtime.
 The pipeline accepts custom callables and automatically tracks the active
 ``MARBLE`` instance whenever a step returns one, even if nested inside tuples or
 dicts.
@@ -660,6 +666,9 @@ to external services. The included `WandbTracker` sends results to
 [Weights & Biases](https://wandb.ai) and can be extended for other backends.
 Call `tracker.log_metrics({"loss": value}, step)` during training and invoke
 `tracker.finish()` once the run ends.
+Pipeline events such as `pipeline_progress` can be forwarded automatically by
+calling `attach_tracker_to_events(tracker, events=[PROGRESS_EVENT])`, enabling
+remote dashboards to display real-time step updates alongside metrics.
 
 ## Dataset Versioning and Replication
 

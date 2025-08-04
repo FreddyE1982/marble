@@ -21,6 +21,7 @@ from dataset_loader import wait_for_prefetch
 from marble_base import MetricsVisualizer
 from marble_core import benchmark_message_passing
 from marble_neuronenblitz import Neuronenblitz
+from pipeline_schema import validate_step_schema
 
 
 class PreStepHook(Protocol):
@@ -151,6 +152,7 @@ class Pipeline:
             step["plugin"] = plugin
         if depends_on:
             step["depends_on"] = list(depends_on)
+        validate_step_schema(step)
         self.steps.append(step)
 
     def add_branch(
@@ -177,6 +179,10 @@ class Pipeline:
             step["merge"] = merge
         if depends_on:
             step["depends_on"] = list(depends_on)
+        for branch in branches:
+            for s in branch:
+                validate_step_schema(s)
+        validate_step_schema(step)
         self.steps.append(step)
 
     def remove_step(self, index: int) -> None:
@@ -377,6 +383,7 @@ class Pipeline:
         from event_bus import PROGRESS_EVENT, ProgressEvent, global_event_bus
 
         for idx, step in enumerate(self.steps):
+            validate_step_schema(step)
             if step.get("frozen"):
                 continue
             step_name = (

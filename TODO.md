@@ -580,16 +580,16 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Implement Export trained models automatically as a final pipeline step with CPU/GPU support.
    - [x] Add tests validating Export trained models automatically as a final pipeline step.
    - [x] Document Export trained models automatically as a final pipeline step in README and TUTORIAL.
-186. [ ] Log pipeline events to the remote experiment tracker.
-   - [ ] Outline design for Log pipeline events to the remote experiment tracker.
-   - [ ] Implement Log pipeline events to the remote experiment tracker with CPU/GPU support.
-   - [ ] Add tests validating Log pipeline events to the remote experiment tracker.
-   - [ ] Document Log pipeline events to the remote experiment tracker in README and TUTORIAL.
-187. [ ] Validate configuration of each step using marble core schemas.
-   - [ ] Outline design for Validate configuration of each step using marble core schemas.
-   - [ ] Implement Validate configuration of each step using marble core schemas with CPU/GPU support.
-   - [ ] Add tests validating Validate configuration of each step using marble core schemas.
-   - [ ] Document Validate configuration of each step using marble core schemas in README and TUTORIAL.
+186. [x] Log pipeline events to the remote experiment tracker.
+   - [x] Outline design for Log pipeline events to the remote experiment tracker.
+   - [x] Implement Log pipeline events to the remote experiment tracker with CPU/GPU support.
+   - [x] Add tests validating Log pipeline events to the remote experiment tracker.
+   - [x] Document Log pipeline events to the remote experiment tracker in README and TUTORIAL.
+187. [x] Validate configuration of each step using marble core schemas.
+   - [x] Outline design for Validate configuration of each step using marble core schemas.
+   - [x] Implement Validate configuration of each step using marble core schemas with CPU/GPU support.
+   - [x] Add tests validating Validate configuration of each step using marble core schemas.
+   - [x] Document Validate configuration of each step using marble core schemas in README and TUTORIAL.
 188. [ ] Group multiple operations into macro steps for convenience.
    - [ ] Outline design for Group multiple operations into macro steps for convenience.
    - [ ] Implement Group multiple operations into macro steps for convenience with CPU/GPU support.
