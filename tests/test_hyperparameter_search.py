@@ -2,6 +2,7 @@ import sys, os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+import torch
 from hyperparameter_search import grid_search, random_search
 from pipeline import Pipeline
 
@@ -62,3 +63,17 @@ def test_pipeline_hyperparameter_search_random():
         num_samples=2,
     )
     assert len(results) == 2
+
+
+def test_pipeline_hyperparameter_search_respects_device():
+    pipe = Pipeline()
+    pipe.add_step("get_device", module="tests.dummy_pipeline_module", name="dev")
+    captured: dict[str, str] = {}
+
+    def score(results):
+        captured["device"] = results[0]
+        return 0.0
+
+    pipe.hyperparameter_search({}, score)
+    expected = "cuda" if torch.cuda.is_available() else "cpu"
+    assert captured["device"] == expected

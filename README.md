@@ -689,6 +689,7 @@ When tuning a new task consider the following workflow:
 
 1. Start with the default configuration and run a short training job to verify that the loss decreases.
 2. Perform a coarse grid search over `learning_rate` and `lr_scheduler` settings using `Pipeline.hyperparameter_search` to evaluate each combination through the pipeline.
+   The search runner transfers all intermediate tensors to CPU for scoring and frees GPU memory between trials, letting studies scale even on smaller cards.
 3. Once a stable range is found, explore `representation_size` and `message_passing_alpha` which strongly influence capacity and convergence speed.
 4. Monitor GPU and CPU usage using the metrics dashboard to ensure batch size and dimensionality fit your hardware budget.
 5. Keep `gradient_clip_value` low (around `1.0`) when experimenting with very large learning rates or aggressive neurogenesis.
