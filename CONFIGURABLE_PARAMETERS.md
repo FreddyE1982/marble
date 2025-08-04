@@ -401,6 +401,9 @@ Each entry is listed under its section heading.
 - loss_growth_threshold
 - auto_neurogenesis_prob
 - dream_cycle_sleep
+- dream_replay_buffer_size
+- dream_replay_batch_size
+- dream_replay_weighting
 - super_evolution_mode
 
 ## autograd

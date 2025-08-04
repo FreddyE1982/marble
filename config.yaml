@@ -280,6 +280,9 @@ brain:
   loss_growth_threshold: 0.1
   auto_neurogenesis_prob: 0.0
   dream_cycle_sleep: 0.1
+  dream_replay_buffer_size: 100
+  dream_replay_batch_size: 8
+  dream_replay_weighting: "linear"
   tier_decision_params:
     vram_usage_threshold: 0.9
     ram_usage_threshold: 0.9

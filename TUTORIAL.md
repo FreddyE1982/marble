@@ -409,7 +409,7 @@ URL or loading routine changes.
    mutated, pruned = marble.brain.evolve(mutation_rate=0.02, prune_threshold=0.05)
    ```
    Mutations add noise to synapses while pruning removes the least useful ones.
-10. **Enable dreaming** by setting `dream_enabled: true` in `config.yaml`. Parameters like `dream_num_cycles` and `dream_interval` determine how often memory consolidation happens in the background.
+10. **Enable dreaming** by setting `dream_enabled: true` in `config.yaml`. Parameters like `dream_num_cycles`, `dream_interval`, and the new `dream_replay_buffer_size` and `dream_replay_batch_size` control how frequently dream cycles run and how many past experiences they consolidate.
 
 **Complete Example**
 ```python
@@ -2565,6 +2565,61 @@ the tensors to CUDA for zero-copy processing.
 
 Run `python project41_chat_training.py` to experiment with live conversation fine-tuning.
 
+
+## Project 42 – Dream Replay Buffer Consolidation
+
+**Goal:** Use the dream replay buffer to consolidate memories from a small dataset.**
+
+1. **Download a dataset** such as MNIST and prepare numeric examples:
+   ```python
+   from datasets import load_dataset
+   from marble import DataLoader
+
+   ds = load_dataset("mnist", split="train[:100]")
+   dl = DataLoader()
+   examples = [
+       (dl.encode(x["image"].reshape(-1) / 255.0), dl.encode(x["label"]))
+       for x in ds
+   ]
+   ```
+2. **Enable dream replay** in the configuration:
+   ```yaml
+   dream_enabled: true
+   dream_replay_buffer_size: 50
+   dream_replay_batch_size: 8
+   ```
+3. **Train and trigger dreaming** to observe consolidation:
+   ```python
+   from config_loader import load_config
+   from marble_main import MARBLE
+
+   cfg = load_config()
+   marble = MARBLE(cfg["core"])
+   brain = marble.brain
+   brain.train(examples, epochs=1)
+   brain.start_dreaming(num_cycles=3, interval=2)
+   ```
+
+**Complete Example**
+```python
+# project42_dream_replay.py
+from config_loader import load_config
+from marble_main import MARBLE
+from marble import DataLoader
+from datasets import load_dataset
+
+cfg = load_config()
+marble = MARBLE(cfg["core"])
+dl = DataLoader()
+ds = load_dataset("mnist", split="train[:100]")
+examples = [
+    (dl.encode(x["image"].reshape(-1) / 255.0), dl.encode(x["label"]))
+    for x in ds
+]
+brain = marble.brain
+brain.train(examples, epochs=1)
+brain.start_dreaming(num_cycles=3, interval=2)
+```
 
 ### Project: Interactive Ollama Training Pipeline
 
