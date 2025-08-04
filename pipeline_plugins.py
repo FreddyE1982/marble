@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """Pipeline step plugin system.
 
 This module defines the public interface for pipeline step plugins and
@@ -24,7 +22,9 @@ Python file located in a configured directory.  ``load_pipeline_plugins`` will
 locate these modules and populate the registry mapping identifiers to classes.
 """
 
-from importlib import util, metadata
+from __future__ import annotations
+
+from importlib import metadata, util
 from pathlib import Path
 from typing import Dict, Iterable, Type
 
@@ -114,3 +114,59 @@ def load_pipeline_plugins(dirs: Iterable[str] | str | None = None) -> None:
                 spec.loader.exec_module(module)
                 if hasattr(module, "register"):
                     module.register(register_plugin)
+
+
+class ExportModelPlugin(PipelinePlugin):
+    """Pipeline plugin that exports a trained model to disk.
+
+    Parameters
+    ----------
+    path:
+        Destination file path. The directory is created if necessary.
+    fmt:
+        Export format. ``"json"`` writes the core as JSON while ``"onnx"``
+        uses :func:`marble_utils.export_core_to_onnx` and requires the
+        :mod:`onnx` package. Both options operate on CPU or GPU depending on
+        the currently selected device.
+    """
+
+    def __init__(self, path: str, fmt: str = "json") -> None:
+        super().__init__(path=path, fmt=fmt)
+        self.path = Path(path)
+        self.fmt = fmt
+
+    def initialise(
+        self, device: torch.device, marble=None
+    ) -> None:  # pragma: no cover - simple
+        self.device = device
+        self.marble = marble
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+
+    def execute(self, device: torch.device, marble=None):
+        if marble is None:
+            raise ValueError("No model available for export")
+        if hasattr(marble, "get_core"):
+            core = marble.get_core()
+        elif hasattr(marble, "core"):
+            core = marble.core
+        else:
+            core = marble
+        if self.fmt == "json":
+            from marble_utils import core_to_json
+
+            js = core_to_json(core)
+            self.path.write_text(js, encoding="utf-8")
+        elif self.fmt == "onnx":
+            from marble_utils import export_core_to_onnx
+
+            export_core_to_onnx(core, str(self.path))
+        else:  # pragma: no cover - defensive
+            raise ValueError(f"Unsupported format: {self.fmt}")
+        return str(self.path)
+
+    def teardown(self) -> None:  # pragma: no cover - nothing to release
+        pass
+
+
+# Register built-in plugins
+register_plugin("export_model", ExportModelPlugin)

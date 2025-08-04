@@ -569,11 +569,11 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [ ] Implement Debug steps interactively by inspecting their inputs and outputs with CPU/GPU support.
    - [ ] Add tests validating Debug steps interactively by inspecting their inputs and outputs.
    - [ ] Document Debug steps interactively by inspecting their inputs and outputs in README and TUTORIAL.
-185. [ ] Export trained models automatically as a final pipeline step.
-   - [ ] Outline design for Export trained models automatically as a final pipeline step.
-   - [ ] Implement Export trained models automatically as a final pipeline step with CPU/GPU support.
-   - [ ] Add tests validating Export trained models automatically as a final pipeline step.
-   - [ ] Document Export trained models automatically as a final pipeline step in README and TUTORIAL.
+185. [x] Export trained models automatically as a final pipeline step.
+   - [x] Outline design for Export trained models automatically as a final pipeline step.
+   - [x] Implement Export trained models automatically as a final pipeline step with CPU/GPU support.
+   - [x] Add tests validating Export trained models automatically as a final pipeline step.
+   - [x] Document Export trained models automatically as a final pipeline step in README and TUTORIAL.
 186. [ ] Log pipeline events to the remote experiment tracker.
    - [ ] Outline design for Log pipeline events to the remote experiment tracker.
    - [ ] Implement Log pipeline events to the remote experiment tracker with CPU/GPU support.
