@@ -558,6 +558,31 @@ Plugins may freely interact with the active MARBLE instance passed to the
 pipeline.  After execution ``teardown`` is called to release resources,
 ensuring clean shutdown across CPU and GPU contexts.
 
+### Branching pipelines
+
+Complex experiments often require exploring multiple processing strategies in
+parallel.  ``Pipeline.add_branch`` accepts a list of sub-pipelines that execute
+concurrently and optionally a merge specification that combines their results
+once all branches finish:
+
+```python
+from pipeline import Pipeline
+
+pipe = Pipeline()
+pipe.add_branch(
+    branches=[
+        [{"func": "branch_a", "module": "my_steps"}],
+        [{"func": "branch_b", "module": "my_steps"}],
+    ],
+    merge={"func": "merge_branches", "module": "my_steps"},
+)
+pipe.execute()
+```
+
+Branching is advantageous when comparing alternative preprocessing chains or
+model variants.  Each branch receives an independent execution context and the
+merge function decides how to reconcile their outputs.
+
 ## PyTorch to MARBLE Conversion
 The project ships with a converter that maps PyTorch models into the MARBLE
 format. Run the CLI to transform a saved ``.pt`` file into JSON:

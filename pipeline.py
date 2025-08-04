@@ -14,6 +14,7 @@ import torch
 import global_workspace
 import marble_interface
 import pipeline_plugins
+from branch_container import BranchContainer
 from dataset_loader import wait_for_prefetch
 from marble_base import MetricsVisualizer
 from marble_core import benchmark_message_passing
@@ -58,6 +59,32 @@ class Pipeline:
             step["module"] = module
         if plugin is not None:
             step["plugin"] = plugin
+        if depends_on:
+            step["depends_on"] = list(depends_on)
+        self.steps.append(step)
+
+    def add_branch(
+        self,
+        branches: list[list[dict]],
+        *,
+        merge: dict | None = None,
+        name: str | None = None,
+        depends_on: list[str] | None = None,
+    ) -> None:
+        """Add a branching node to the pipeline.
+
+        ``branches`` is a list of sub-pipelines, each itself a list of step
+        dictionaries.  ``merge`` optionally describes a merge function or
+        plugin invoked after all branches finish.  The merge specification
+        mirrors :meth:`add_step` with ``func``/``module`` or ``plugin`` and an
+        optional ``params`` mapping passed to the merge callable.
+        """
+
+        if name is None:
+            name = f"branch_{len(self.steps)}"
+        step: dict = {"name": name, "branches": branches}
+        if merge is not None:
+            step["merge"] = merge
         if depends_on:
             step["depends_on"] = list(depends_on)
         self.steps.append(step)
@@ -166,22 +193,61 @@ class Pipeline:
             if step.get("frozen"):
                 continue
             wait_for_prefetch()
-            module_name = step.get("module")
-            func_name = step.get("func")
-            params = step.get("params", {})
             start = time.perf_counter()
-            if "plugin" in step:
-                plugin_name = step["plugin"]
-                plugin_cls = pipeline_plugins.get_plugin(plugin_name)
-                plugin: pipeline_plugins.PipelinePlugin = plugin_cls(**params)
-                plugin.initialise(device=device, marble=marble)
-                result = plugin.execute(device=device, marble=marble)
-                plugin.teardown()
-                func_name = plugin_name
+            if "branches" in step:
+                container = BranchContainer(step["branches"])
+                branch_outputs = asyncio.run(
+                    container.run(
+                        marble,
+                        metrics_visualizer=metrics_visualizer,
+                        benchmark_iterations=benchmark_iterations,
+                        log_callback=log_callback,
+                        debug_hook=debug_hook,
+                    )
+                )
+                merge_spec = step.get("merge")
+                if merge_spec:
+                    merge_params = dict(merge_spec.get("params", {}))
+                    merge_params["branches"] = branch_outputs
+                    if "plugin" in merge_spec:
+                        plugin_name = merge_spec["plugin"]
+                        plugin_cls = pipeline_plugins.get_plugin(plugin_name)
+                        plugin: pipeline_plugins.PipelinePlugin = plugin_cls(
+                            **merge_params
+                        )
+                        plugin.initialise(device=device, marble=marble)
+                        result = plugin.execute(device=device, marble=marble)
+                        plugin.teardown()
+                        func_name = plugin_name
+                    else:
+                        func_name = merge_spec.get("func")
+                        module_name = merge_spec.get("module")
+                        if func_name is None:
+                            raise ValueError("Merge step missing 'func' or 'plugin'")
+                        result = self._execute_function(
+                            module_name, func_name, marble, merge_params
+                        )
+                else:
+                    func_name = "branch"
+                    result = branch_outputs
             else:
-                if func_name is None:
-                    raise ValueError("Step missing 'func' or 'plugin'")
-                result = self._execute_function(module_name, func_name, marble, params)
+                module_name = step.get("module")
+                func_name = step.get("func")
+                params = step.get("params", {})
+                if "plugin" in step:
+                    plugin_name = step["plugin"]
+                    plugin_cls = pipeline_plugins.get_plugin(plugin_name)
+                    plugin: pipeline_plugins.PipelinePlugin = plugin_cls(**params)
+                    plugin.initialise(device=device, marble=marble)
+                    result = plugin.execute(device=device, marble=marble)
+                    plugin.teardown()
+                    func_name = plugin_name
+                else:
+                    if func_name is None:
+                        raise ValueError("Step missing 'func' or 'plugin'")
+                    result = self._execute_function(
+                        module_name, func_name, marble, params
+                    )
             if hasattr(result, "next_batch") and hasattr(result, "is_finished"):
 
                 async def _drain(step):
