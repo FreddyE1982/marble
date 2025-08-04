@@ -315,6 +315,32 @@ pipe.register_pre_hook("n", pre_scale)
 pipe.execute()
 ```
 
+### Interactive Step Debugging
+
+For exploratory development you can inspect the inputs and outputs of every
+pipeline step interactively. Call
+``Pipeline.enable_interactive_debugging`` to register hooks that capture step
+parameters and result summaries including tensor shapes, dtypes and the CPU/GPU
+device in use. When ``interactive=True`` (the default) the debugger drops into
+``pdb`` before and after each step so you can examine state and experiment
+interactively. Passing ``interactive=False`` records the information without
+halting execution which is ideal for automated scripts and tests.
+
+```python
+import torch
+from pipeline import Pipeline
+
+def add_value(tensor: torch.Tensor, value: float, device: str) -> torch.Tensor:
+    return tensor.to(device) + value
+
+pipe = Pipeline()
+pipe.add_step("add_value", module="__main__", params={"tensor": torch.ones(2), "value": 5})
+debugger = pipe.enable_interactive_debugging()  # set interactive=False to avoid pdb
+pipe.execute()
+print(debugger.inputs)
+print(debugger.outputs)
+```
+
 ### Caching Step Results
 
 ``Pipeline.execute`` accepts a ``cache_dir`` argument that persists each step's

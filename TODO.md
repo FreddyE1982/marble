@@ -564,11 +564,17 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [ ] Implement Limit GPU memory usage per step through concurrency controls with CPU/GPU support.
    - [ ] Add tests validating Limit GPU memory usage per step through concurrency controls.
    - [ ] Document Limit GPU memory usage per step through concurrency controls in README and TUTORIAL.
-184. [ ] Debug steps interactively by inspecting their inputs and outputs.
-   - [ ] Outline design for Debug steps interactively by inspecting their inputs and outputs.
-   - [ ] Implement Debug steps interactively by inspecting their inputs and outputs with CPU/GPU support.
-   - [ ] Add tests validating Debug steps interactively by inspecting their inputs and outputs.
-   - [ ] Document Debug steps interactively by inspecting their inputs and outputs in README and TUTORIAL.
+184. [x] Debug steps interactively by inspecting their inputs and outputs.
+   - [x] Outline design for Debug steps interactively by inspecting their inputs and outputs.
+       - Introduce an ``InteractiveDebugger`` using pre and post hooks to capture
+         step parameters and result summaries.
+       - Summaries report tensor shape, dtype and CPU/GPU device without moving
+         data between devices.
+       - Expose ``Pipeline.enable_interactive_debugging`` helper registering the
+         hooks and optionally dropping into ``pdb`` before and after each step.
+   - [x] Implement Debug steps interactively by inspecting their inputs and outputs with CPU/GPU support.
+   - [x] Add tests validating Debug steps interactively by inspecting their inputs and outputs.
+   - [x] Document Debug steps interactively by inspecting their inputs and outputs in README and TUTORIAL.
 185. [x] Export trained models automatically as a final pipeline step.
    - [x] Outline design for Export trained models automatically as a final pipeline step.
    - [x] Implement Export trained models automatically as a final pipeline step with CPU/GPU support.
