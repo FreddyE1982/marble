@@ -112,6 +112,57 @@ Set ``dataloader.tokenizer_type: bert_wordpiece`` or ``tokenizer_json`` in
 project example assumes a ``dataloader`` prepared this way and passes it to
 ``load_dataset``.
 
+### Project: Streaming Dataset Pipeline
+
+This project demonstrates how to process a streaming dataset through a pipeline.
+
+1. **Download a dataset** from the Hugging Face Hub using its streaming API:
+
+   ```python
+   from datasets import load_dataset
+
+   raw = load_dataset("ag_news", split="train", streaming=True)
+   ```
+
+2. **Encode records into a BitTensorDataset** so that the pipeline receives
+   tensors:
+
+   ```python
+   from tokenizer_utils import built_in_tokenizer
+   from marble import DataLoader
+   from bit_tensor_dataset import BitTensorDataset
+
+   tok = built_in_tokenizer("bert_wordpiece")
+   dataloader = DataLoader(tokenizer=tok)
+   pairs = []
+   for rec in raw.take(200):
+       inp = dataloader.encode(rec["text"])
+       tgt = dataloader.encode(str(rec["label"]))
+       pairs.append((inp, tgt))
+   dataset = BitTensorDataset(pairs, device="cpu")
+   ```
+
+3. **Create a pipeline with the streaming step and run it**:
+
+   ```python
+   from pipeline import Pipeline
+   import marble_interface
+
+   pipe = Pipeline([
+       {
+           "func": "streaming_dataset_step",
+           "module": "marble_interface",
+           "params": {"dataset": dataset, "batch_size": 16, "prefetch": 4, "device": "cuda"},
+       }
+   ])
+   batches = pipe.execute()[0]
+   print("First batch shape:", batches[0]["inputs"].shape)
+   ```
+
+The background producer moves tensors to the target device and the pipeline
+automatically consumes the stream, yielding a list of batches for further
+processing.
+
 ### Customising Steps with Hooks
 
 The :class:`pipeline.Pipeline` supports registering callables that run before
