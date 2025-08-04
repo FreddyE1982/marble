@@ -224,6 +224,36 @@ tracked using ``memory_manager.MemoryManager`` while
 consumption and other metrics. When the Global Workspace plugin is active, the
 dashboard also visualises the workspace queue length to monitor cognitive load.
 
+### Multiprocessing Pipeline Execution
+
+MARBLE can execute step functions across multiple processes while sharing a
+single in-memory dataset. The :class:`process_manager.ProcessManager` spawns a
+pool of workers (defaulting to ``MARBLE_WORKERS`` or the CPU count) and feeds
+items from a :class:`process_manager.SharedDataset` through a shared memory
+queue. CPU tensors are placed in a memory map via ``tensor.share_memory_`` so
+workers read them without copies. GPU tensors are moved to the selected CUDA
+device once and are then accessed through CUDA's interprocess handles.
+
+```python
+import torch
+from process_manager import ProcessManager, SharedDataset
+
+# prepare shared tensors
+data = [torch.randn(8) for _ in range(64)]
+dataset = SharedDataset.from_tensors(data)
+
+def norm(x: torch.Tensor) -> torch.Tensor:
+    return x / x.norm()
+
+manager = ProcessManager(dataset, num_workers=4)
+results = manager.run(norm)
+```
+
+Debugging hangs: ensure the ``spawn`` start method is used (the manager handles
+this) and enable fault handlers via ``PYTHONFAULTHANDLER=1`` to capture traces
+from stuck workers. Deadlocks often arise from forgetting to consume all items
+from queues—``ProcessManager`` guarantees this by design.
+
 ### Remote Inference API
 
 MARBLE can be exposed through a lightweight HTTP API. Launch the server with:

@@ -2265,3 +2265,36 @@ Run ``python project38_dataset_tools.py`` to reproduce and distribute the datase
 
 Run ``python project39_monitor.py`` to experiment with these helpers.
 
+## Project 40 – Multiprocessing Dataset Sharing
+
+This project demonstrates executing a pipeline step on multiple processes while
+sharing a dataset between them.
+
+1. **Set the worker count** via environment variable (optional):
+   ```bash
+   export MARBLE_WORKERS=4
+   ```
+2. **Prepare a dataset and manager**:
+   ```python
+   import torch
+   from process_manager import SharedDataset, ProcessManager
+
+   data = [torch.arange(8, dtype=torch.float32) for _ in range(16)]
+   shared = SharedDataset.from_tensors(data)
+   manager = ProcessManager(shared)
+   ```
+3. **Define and run a step**:
+   ```python
+   def normalise(x: torch.Tensor) -> torch.Tensor:
+       return x / x.sum()
+
+   out = manager.run(normalise)
+   ```
+4. **Debugging tips:** Enable fault handlers with ``PYTHONFAULTHANDLER=1`` and
+   ensure the start method is ``spawn`` (handled automatically). If a worker
+   appears hung, check that all queues are consumed and that no tensor is left on
+   a closed device.
+
+Executing the snippet above on a GPU-equipped machine automatically transfers
+the tensors to CUDA for zero-copy processing.
+
