@@ -549,11 +549,11 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Document Offer a specialised step that consumes the new streaming `BitTensorDataset` in README and TUTORIAL.
        - [x] Explain configuration and usage in README.
        - [x] Add tutorial section showing streaming dataset pipeline.
-181. [ ] Persist step results to disk for quick re-runs.
-   - [ ] Outline design for Persist step results to disk for quick re-runs.
-   - [ ] Implement Persist step results to disk for quick re-runs with CPU/GPU support.
-   - [ ] Add tests validating Persist step results to disk for quick re-runs.
-   - [ ] Document Persist step results to disk for quick re-runs in README and TUTORIAL.
+181. [x] Persist step results to disk for quick re-runs.
+   - [x] Outline design for Persist step results to disk for quick re-runs.
+   - [x] Implement Persist step results to disk for quick re-runs with CPU/GPU support.
+   - [x] Add tests validating Persist step results to disk for quick re-runs.
+   - [x] Document Persist step results to disk for quick re-runs in README and TUTORIAL.
 182. [ ] Visualise pipelines as graphs using the marble graph builder.
    - [ ] Outline design for Visualise pipelines as graphs using the marble graph builder.
    - [ ] Implement Visualise pipelines as graphs using the marble graph builder with CPU/GPU support.

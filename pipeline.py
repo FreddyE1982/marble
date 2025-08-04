@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import difflib
+import hashlib
 import importlib
 import inspect
 import json
 import time
+from pathlib import Path
 from typing import Any, Callable, Protocol
 
 import networkx as nx
@@ -14,11 +16,11 @@ import torch
 import global_workspace
 import marble_interface
 import pipeline_plugins
-from marble_neuronenblitz import Neuronenblitz
 from branch_container import BranchContainer
 from dataset_loader import wait_for_prefetch
 from marble_base import MetricsVisualizer
 from marble_core import benchmark_message_passing
+from marble_neuronenblitz import Neuronenblitz
 
 
 class PreStepHook(Protocol):
@@ -34,7 +36,9 @@ class PreStepHook(Protocol):
         Torch device on which the step will run.
     """
 
-    def __call__(self, step: dict, marble: Any | None, device: torch.device) -> None: ...
+    def __call__(
+        self, step: dict, marble: Any | None, device: torch.device
+    ) -> None: ...
 
 
 class PostStepHook(Protocol):
@@ -266,6 +270,7 @@ class Pipeline:
         preallocate_synapses: int = 0,
         log_callback: Callable[[str], None] | None = None,
         debug_hook: Callable[[int, Any], None] | None = None,
+        cache_dir: str | Path | None = None,
     ) -> list[Any]:
         results: list[Any] = []
         self._summaries = []
@@ -274,6 +279,9 @@ class Pipeline:
         if log_callback is not None:
             log_callback(f"GPU available: {torch.cuda.is_available()}")
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        cache_path: Path | None = Path(cache_dir) if cache_dir is not None else None
+        if cache_path:
+            cache_path.mkdir(parents=True, exist_ok=True)
         if marble is not None and hasattr(marble, "get_core"):
             core = marble.get_core()
             if preallocate_neurons:
@@ -311,60 +319,77 @@ class Pipeline:
             for hook in self._pre_hooks.get(step_name, []):
                 hook(step, marble, device)
             start = time.perf_counter()
-            if "branches" in step:
-                container = BranchContainer(step["branches"])
-                branch_outputs = asyncio.run(
-                    container.run(
-                        marble,
-                        metrics_visualizer=metrics_visualizer,
-                        benchmark_iterations=benchmark_iterations,
-                        log_callback=log_callback,
-                        debug_hook=debug_hook,
-                    )
-                )
-                merge_spec = step.get("merge")
-                if merge_spec:
-                    merge_params = dict(merge_spec.get("params", {}))
-                    merge_params["branches"] = branch_outputs
-                    if "plugin" in merge_spec:
-                        plugin_name = merge_spec["plugin"]
-                        plugin_cls = pipeline_plugins.get_plugin(plugin_name)
-                        plugin: pipeline_plugins.PipelinePlugin = plugin_cls(
-                            **merge_params
+            result = None
+            executed = True
+            cache_file = None
+            if cache_path:
+                spec_bytes = json.dumps(step, sort_keys=True).encode("utf-8")
+                digest = hashlib.sha256(spec_bytes).hexdigest()
+                cache_file = cache_path / f"{idx}_{step_name}_{digest}.pt"
+                if cache_file.exists():
+                    if log_callback is not None:
+                        log_callback(f"Loading cached result for {step_name}")
+                    result = torch.load(cache_file, map_location=device)
+                    executed = False
+            if executed:
+                if "branches" in step:
+                    container = BranchContainer(step["branches"])
+                    branch_outputs = asyncio.run(
+                        container.run(
+                            marble,
+                            metrics_visualizer=metrics_visualizer,
+                            benchmark_iterations=benchmark_iterations,
+                            log_callback=log_callback,
+                            debug_hook=debug_hook,
                         )
+                    )
+                    merge_spec = step.get("merge")
+                    if merge_spec:
+                        merge_params = dict(merge_spec.get("params", {}))
+                        merge_params["branches"] = branch_outputs
+                        if "plugin" in merge_spec:
+                            plugin_name = merge_spec["plugin"]
+                            plugin_cls = pipeline_plugins.get_plugin(plugin_name)
+                            plugin: pipeline_plugins.PipelinePlugin = plugin_cls(
+                                **merge_params
+                            )
+                            plugin.initialise(device=device, marble=marble)
+                            result = plugin.execute(device=device, marble=marble)
+                            plugin.teardown()
+                            func_name = plugin_name
+                        else:
+                            func_name = merge_spec.get("func")
+                            module_name = merge_spec.get("module")
+                            if func_name is None:
+                                raise ValueError(
+                                    "Merge step missing 'func' or 'plugin'"
+                                )
+                            result = self._execute_function(
+                                module_name, func_name, marble, merge_params
+                            )
+                    else:
+                        func_name = "branch"
+                        result = branch_outputs
+                else:
+                    module_name = step.get("module")
+                    func_name = step.get("func")
+                    params = step.get("params", {})
+                    if "plugin" in step:
+                        plugin_name = step["plugin"]
+                        plugin_cls = pipeline_plugins.get_plugin(plugin_name)
+                        plugin: pipeline_plugins.PipelinePlugin = plugin_cls(**params)
                         plugin.initialise(device=device, marble=marble)
                         result = plugin.execute(device=device, marble=marble)
                         plugin.teardown()
                         func_name = plugin_name
                     else:
-                        func_name = merge_spec.get("func")
-                        module_name = merge_spec.get("module")
                         if func_name is None:
-                            raise ValueError("Merge step missing 'func' or 'plugin'")
+                            raise ValueError("Step missing 'func' or 'plugin'")
                         result = self._execute_function(
-                            module_name, func_name, marble, merge_params
+                            module_name, func_name, marble, params
                         )
-                else:
-                    func_name = "branch"
-                    result = branch_outputs
-            else:
-                module_name = step.get("module")
-                func_name = step.get("func")
-                params = step.get("params", {})
-                if "plugin" in step:
-                    plugin_name = step["plugin"]
-                    plugin_cls = pipeline_plugins.get_plugin(plugin_name)
-                    plugin: pipeline_plugins.PipelinePlugin = plugin_cls(**params)
-                    plugin.initialise(device=device, marble=marble)
-                    result = plugin.execute(device=device, marble=marble)
-                    plugin.teardown()
-                    func_name = plugin_name
-                else:
-                    if func_name is None:
-                        raise ValueError("Step missing 'func' or 'plugin'")
-                    result = self._execute_function(
-                        module_name, func_name, marble, params
-                    )
+                if cache_file:
+                    torch.save(result, cache_file)
             if hasattr(result, "next_batch") and hasattr(result, "is_finished"):
 
                 async def _drain(step):
@@ -384,7 +409,7 @@ class Pipeline:
                 self._train_neuronenblitz(marble, result, device, epochs=epochs)
             for hook in self._post_hooks.get(step_name, []):
                 result = hook(step, result, marble, device)
-            runtime = time.perf_counter() - start
+            runtime = time.perf_counter() - start if executed else 0.0
             results.append(result)
             global_event_bus.publish(
                 PROGRESS_EVENT,
