@@ -11,6 +11,8 @@ import pandas as pd
 import torch
 from datasets import load_dataset
 
+from bit_tensor_dataset import BitTensorDataset
+from streaming_dataset_step import StreamingDatasetStep
 from huggingface_utils import hf_login
 from marble import DataLoader
 
@@ -312,6 +314,32 @@ def load_hf_dataset(
         if limit is not None and len(examples) >= limit:
             break
     return examples
+
+
+def streaming_dataset_step(
+    dataset: BitTensorDataset,
+    *,
+    batch_size: int = 1,
+    prefetch: int = 2,
+    device: str | torch.device | None = None,
+) -> StreamingDatasetStep:
+    """Return a :class:`StreamingDatasetStep` consuming ``dataset``.
+
+    Parameters
+    ----------
+    dataset:
+        Source :class:`BitTensorDataset` to stream.
+    batch_size:
+        Number of samples per emitted batch.
+    prefetch:
+        Maximum number of prefetched batches in the internal queue.
+    device:
+        Target device. ``None`` selects ``"cuda"`` when available otherwise ``"cpu"``.
+    """
+
+    return StreamingDatasetStep(
+        dataset, batch_size=batch_size, prefetch=prefetch, device=device
+    )
 
 
 def train_from_dataframe(marble: MARBLE, df: pd.DataFrame, epochs: int = 1) -> None:
