@@ -280,6 +280,29 @@ pipe.register_pre_hook("n", pre_scale)
 pipe.execute()
 ```
 
+### Automatic Neuronenblitz training loops
+
+When a pipeline step produces a dataset, MARBLE automatically constructs a
+training loop for an attached `Neuronenblitz` instance. Any step whose function
+or plugin name contains `dataset` is treated as a dataset producer. During
+execution the dataset is detected and a training loop runs without requiring an
+explicit training step.
+
+The loop selects the appropriate device and moves tensor inputs before invoking
+`Neuronenblitz.train`. CPU-only systems use the `cpu` device while GPU-enabled
+machines switch to `cuda`.
+
+```mermaid
+flowchart TD
+    A[Pipeline Step] -->|dataset step| B{Dataset?}
+    B -->|no| C[Next Step]
+    B -->|yes| D[Auto Train Loop]
+    D --> C
+```
+
+To customise epochs for a dataset step, supply `{"epochs": N}` in the step's
+`params` mapping.
+
 **Best practices:** keep hooks side-effect free and release references to large
 GPU tensors once finished to avoid memory leaks. When mutating ``step`` ensure
 subsequent runs account for the modified parameters.
