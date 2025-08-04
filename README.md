@@ -303,6 +303,13 @@ can be added directly as methods while any repository module can be accessed via
 attribute notation, for example ``HighLevelPipeline().plugin_system.load_plugins``
 which appends a call to ``plugin_system.load_plugins``.
 Nested modules are automatically resolved so ``HighLevelPipeline().marble_neuronenblitz.learning.enable_rl`` works as expected.
+
+Pipeline execution emits structured progress events on the global message bus.
+Each ``pipeline_progress`` event includes ``step``, ``index``, ``total``,
+``device`` and ``status`` fields describing which step is running and on which
+hardware. The Streamlit Playground subscribes to these events and renders live
+updates: a progress bar on desktop layouts and textual percentages on mobile
+devices.
 The pipeline accepts custom callables and automatically tracks the active
 ``MARBLE`` instance whenever a step returns one, even if nested inside tuples or
 dicts.
@@ -487,6 +494,9 @@ If training diverges or produces NaNs:
 2. Lower `learning_rate` and check that `gradient_clip_value` is set.
 3. Ensure message passing dropout is not too high for small graphs.
 4. Use the metrics dashboard to watch memory usage spikes which may indicate a bug.
+5. If the Streamlit GUI does not display progress updates, ensure the browser has
+   JavaScript enabled so the `device` query parameter is set and verify that
+   `pipeline_progress` events are being published.
 
 For CUDA related errors confirm that your GPU drivers and PyTorch build match.
 

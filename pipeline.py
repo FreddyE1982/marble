@@ -189,9 +189,24 @@ class Pipeline:
                 core.synapse_pool.preallocate(preallocate_synapses)
         # Resolve dependencies before execution
         self.steps = self._topological_sort(self.steps)
+        total_steps = sum(1 for s in self.steps if not s.get("frozen"))
+        exec_idx = 0
+        from event_bus import PROGRESS_EVENT, ProgressEvent, global_event_bus
+
         for idx, step in enumerate(self.steps):
             if step.get("frozen"):
                 continue
+            label = step.get("name") or step.get("func") or step.get("plugin") or f"step_{idx}"
+            global_event_bus.publish(
+                PROGRESS_EVENT,
+                ProgressEvent(
+                    step=label,
+                    index=exec_idx,
+                    total=total_steps,
+                    device=device.type,
+                    status="started",
+                ).as_dict(),
+            )
             wait_for_prefetch()
             start = time.perf_counter()
             if "branches" in step:
@@ -260,6 +275,17 @@ class Pipeline:
                 result = asyncio.run(_drain(result))
             runtime = time.perf_counter() - start
             results.append(result)
+            global_event_bus.publish(
+                PROGRESS_EVENT,
+                ProgressEvent(
+                    step=label,
+                    index=exec_idx,
+                    total=total_steps,
+                    device=device.type,
+                    status="completed",
+                ).as_dict(),
+            )
+            exec_idx += 1
             if log_callback is not None:
                 log_callback(f"Step {idx}: {func_name} finished in {runtime:.3f}s")
             if debug_hook is not None:
