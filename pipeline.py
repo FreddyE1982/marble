@@ -1,22 +1,22 @@
 from __future__ import annotations
 
+import asyncio
+import difflib
 import importlib
 import inspect
 import json
-import difflib
 import time
-import asyncio
 from typing import Any, Callable
+
+import networkx as nx
 import torch
 
 import global_workspace
-from marble_core import benchmark_message_passing
-from marble_base import MetricsVisualizer
-
-from dataset_loader import wait_for_prefetch
-
 import marble_interface
 import pipeline_plugins
+from dataset_loader import wait_for_prefetch
+from marble_base import MetricsVisualizer
+from marble_core import benchmark_message_passing
 
 
 class Pipeline:
@@ -27,8 +27,40 @@ class Pipeline:
         self._summaries: list[dict] = []
         self._benchmarks: list[dict] = []
 
-    def add_step(self, func: str, *, module: str | None = None, params: dict | None = None) -> None:
-        self.steps.append({"func": func, "module": module, "params": params or {}})
+    def add_step(
+        self,
+        func: str | None,
+        *,
+        module: str | None = None,
+        params: dict | None = None,
+        name: str | None = None,
+        depends_on: list[str] | None = None,
+        plugin: str | None = None,
+    ) -> None:
+        """Add a step to the pipeline.
+
+        Each step can declare a unique ``name`` used by other steps to express
+        dependencies via ``depends_on``.  Steps are automatically reordered
+        according to these dependencies when the pipeline executes.  If ``name``
+        is omitted it defaults to ``func``/``plugin`` with an index suffix.
+        """
+
+        if name is None:
+            base = plugin or func or "step"
+            name = f"{base}_{len(self.steps)}"
+        step: dict = {
+            "name": name,
+            "params": params or {},
+        }
+        if func is not None:
+            step["func"] = func
+        if module is not None:
+            step["module"] = module
+        if plugin is not None:
+            step["plugin"] = plugin
+        if depends_on:
+            step["depends_on"] = list(depends_on)
+        self.steps.append(step)
 
     def remove_step(self, index: int) -> None:
         if index < 0 or index >= len(self.steps):
@@ -55,6 +87,55 @@ class Pipeline:
             raise IndexError("index out of range")
         self.steps[index]["frozen"] = False
 
+    # Dependency resolution -------------------------------------------------
+
+    def _build_dependency_graph(
+        self, steps: list[dict]
+    ) -> tuple[nx.DiGraph, dict[str, dict]]:
+        """Return a directed graph representing step dependencies.
+
+        Parameters
+        ----------
+        steps:
+            Sequence of step dictionaries. Each must include a ``name`` field and
+            may list dependency names in ``depends_on``.
+
+        Returns
+        -------
+        graph, name_to_step:
+            ``networkx.DiGraph`` with edges from dependencies to dependents and a
+            mapping from step name to the original step dictionary.
+        """
+
+        graph = nx.DiGraph()
+        name_to_step: dict[str, dict] = {}
+        for idx, step in enumerate(steps):
+            name = step.get("name") or f"step_{idx}"
+            if name in name_to_step:
+                raise ValueError(f"Duplicate step name '{name}'")
+            step["name"] = name
+            graph.add_node(name)
+            name_to_step[name] = step
+        for step in steps:
+            for dep in step.get("depends_on", []):
+                if dep not in name_to_step:
+                    raise ValueError(
+                        f"Step '{step['name']}' depends on unknown step '{dep}'"
+                    )
+                graph.add_edge(dep, step["name"])
+        return graph, name_to_step
+
+    def _topological_sort(self, steps: list[dict]) -> list[dict]:
+        graph, name_to_step = self._build_dependency_graph(steps)
+        try:
+            order = list(nx.topological_sort(graph))
+        except nx.NetworkXUnfeasible:
+            cycle = nx.find_cycle(graph)
+            chain = " -> ".join(n for n, _ in cycle)
+            chain += f" -> {cycle[0][0]}"
+            raise ValueError(f"Dependency cycle detected: {chain}")
+        return [name_to_step[name] for name in order]
+
     def execute(
         self,
         marble: Any | None = None,
@@ -79,6 +160,8 @@ class Pipeline:
                 core.neuron_pool.preallocate(preallocate_neurons)
             if preallocate_synapses:
                 core.synapse_pool.preallocate(preallocate_synapses)
+        # Resolve dependencies before execution
+        self.steps = self._topological_sort(self.steps)
         for idx, step in enumerate(self.steps):
             if step.get("frozen"):
                 continue
@@ -100,6 +183,7 @@ class Pipeline:
                     raise ValueError("Step missing 'func' or 'plugin'")
                 result = self._execute_function(module_name, func_name, marble, params)
             if hasattr(result, "next_batch") and hasattr(result, "is_finished"):
+
                 async def _drain(step):
                     batches = []
                     async for batch in step:
@@ -115,7 +199,9 @@ class Pipeline:
             if debug_hook is not None:
                 debug_hook(idx, result)
             if metrics_visualizer is not None:
-                metrics_visualizer.update({"pipeline_step": idx, "step_runtime": runtime})
+                metrics_visualizer.update(
+                    {"pipeline_step": idx, "step_runtime": runtime}
+                )
             if global_workspace.workspace is not None:
                 global_workspace.workspace.publish(
                     "pipeline", {"index": idx, "step": func_name}
@@ -140,8 +226,12 @@ class Pipeline:
                 self._summaries.append(summary)
         return results
 
-    def _execute_function(self, module_name: str | None, func_name: str, marble: Any, params: dict) -> Any:
-        module = importlib.import_module(module_name) if module_name else marble_interface
+    def _execute_function(
+        self, module_name: str | None, func_name: str, marble: Any, params: dict
+    ) -> Any:
+        module = (
+            importlib.import_module(module_name) if module_name else marble_interface
+        )
         if not hasattr(module, func_name):
             raise ValueError(f"Unknown function: {func_name}")
         func = getattr(module, func_name)
@@ -184,4 +274,3 @@ class Pipeline:
         a = json.dumps(other_steps, indent=2, sort_keys=True).splitlines(keepends=True)
         b = json.dumps(self.steps, indent=2, sort_keys=True).splitlines(keepends=True)
         return "".join(difflib.unified_diff(a, b, fromfile="before", tofile="after"))
-

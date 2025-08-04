@@ -1726,13 +1726,31 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    needed. Custom callables may be added as steps and any MARBLE instance returned
    (even inside tuples or dictionaries) becomes the active system for the
    following operations.
-   - Set ``pipeline.async_enabled: true`` in ``config.yaml`` or pass
-     ``async_enabled=True`` to ``HighLevelPipeline`` to overlap data loading and
-     computation using ``asyncio``.
-   - Provide ``pipeline.cache_dir`` to enable on-disk caching of step outputs.
-     The metrics dashboard tracks ``cache_hit`` and ``cache_miss`` so you can
-     verify reuse. Clear the cache with ``HighLevelPipeline.clear_cache()`` when
-     disk space runs low.
+    - Set ``pipeline.async_enabled: true`` in ``config.yaml`` or pass
+      ``async_enabled=True`` to ``HighLevelPipeline`` to overlap data loading and
+      computation using ``asyncio``.
+    - Provide ``pipeline.cache_dir`` to enable on-disk caching of step outputs.
+      The metrics dashboard tracks ``cache_hit`` and ``cache_miss`` so you can
+      verify reuse. Clear the cache with ``HighLevelPipeline.clear_cache()`` when
+      disk space runs low.
+    - Assign each step a unique ``name`` and declare prerequisites with
+      ``depends_on``. MARBLE resolves the ordering automatically using a
+      topological sort. Cycles produce a ``ValueError`` describing the loop.
+
+      ```python
+      from pipeline import Pipeline
+
+      pipe = Pipeline()
+      pipe.add_step("load_data", module="marble_interface", name="load")
+      pipe.add_step("train", module="marble_interface", name="train", depends_on=["load"])
+      pipe.execute()
+      ```
+
+      Troubleshooting:
+
+      - ``Dependency cycle detected`` indicates a loop in the graph.
+      - ``depends on unknown step`` means a dependency name was misspelled or
+        the referenced step lacks a ``name``.
 12. **View the core graph** on the *Visualization* tab. Press **Generate Graph**
    to see an interactive display of neurons and synapses.
 13. **Inspect synaptic weights** on the *Weight Heatmap* tab. Set a maximum
