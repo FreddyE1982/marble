@@ -391,3 +391,20 @@ PY
 
 These examples provide starting points for building your own workflows with
 `HighLevelPipeline`. Adjust epochs, learning rates and parameters as needed.
+
+## Saving and Resuming Pipelines
+
+Long running experiments can be checkpointed and later resumed without
+rebuilding the entire workflow. The `highlevel_pipeline_cli.py` script
+provides two commands:
+
+```bash
+# Execute pipeline JSON and create a checkpoint
+python highlevel_pipeline_cli.py checkpoint pipeline.json pipeline.chk --config config.yaml --device cpu
+
+# Resume from a saved checkpoint
+python highlevel_pipeline_cli.py resume pipeline.chk --config config.yaml --device cpu
+```
+
+Checkpoints store the pipeline steps and the `dataset_version` metadata so
+repeated runs continue with the exact same dataset revision.
