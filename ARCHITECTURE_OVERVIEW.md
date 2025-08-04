@@ -108,6 +108,22 @@ for the pipeline, seamlessly handling CPU or GPU execution and creating the
 target directory if needed. The destination file path is returned as the
 last pipeline result so subsequent tooling can consume it.
 
+## Pipeline Event Logging
+
+The global :mod:`event_bus` broadcasts ``pipeline_progress`` events whenever a
+step begins or completes. Remote experiment trackers integrate by calling
+``attach_tracker_to_events`` which subscribes them to the bus and forwards each
+event. The event payload includes the executing device so dashboards can
+correlate CPU and GPU runs.
+
+## Step Configuration Validation
+
+Each pipeline step is validated against a JSON schema defined in
+``pipeline_schema.STEP_SCHEMA``. Validation happens when steps are added and
+again during execution, recursively checking branch contents. Malformed steps
+raise ``jsonschema.ValidationError`` before any computation, providing early
+feedback regardless of the underlying hardware.
+
 ## Future Extensions
 Future work could extend the compression layer to support streaming
 data sources, integrate JAX based automatic differentiation for
