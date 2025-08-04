@@ -387,22 +387,22 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Document plugin architecture and example workflow in README and TUTORIAL.
        - [x] Add architecture overview section to README.
        - [x] Extend tutorial with step-by-step plugin creation guide.
-172. [ ] Manage dependencies between steps automatically to maintain correct order.
-   - [ ] Design dependency graph representation for pipeline steps.
-       - [ ] Choose data structure to model nodes and edges.
-       - [ ] Document semantics of dependencies and allowed patterns.
-   - [ ] Implement topological sorting with cycle detection and clear errors.
-       - [ ] Implement sorting algorithm with cycle checks.
-       - [ ] Raise descriptive error messages when cycles are found.
-   - [ ] Ensure resolved ordering executes correctly on CPU and GPU.
-       - [ ] Run sample pipelines on CPU and validate outputs.
-       - [ ] Run sample pipelines on GPU to confirm parity.
-   - [ ] Add unit and integration tests for dependency management.
-       - [ ] Test graph construction and sorting logic in isolation.
-       - [ ] Create integration tests covering complex dependency chains.
-   - [ ] Document dependency configuration and troubleshooting in README and TUTORIAL.
-       - [ ] Provide examples of declaring step dependencies.
-       - [ ] Include troubleshooting tips for cycle and ordering issues.
+172. [x] Manage dependencies between steps automatically to maintain correct order.
+   - [x] Design dependency graph representation for pipeline steps.
+       - [x] Choose data structure to model nodes and edges.
+       - [x] Document semantics of dependencies and allowed patterns.
+   - [x] Implement topological sorting with cycle detection and clear errors.
+       - [x] Implement sorting algorithm with cycle checks.
+       - [x] Raise descriptive error messages when cycles are found.
+   - [x] Ensure resolved ordering executes correctly on CPU and GPU.
+       - [x] Run sample pipelines on CPU and validate outputs.
+       - [x] Run sample pipelines on GPU to confirm parity.
+   - [x] Add unit and integration tests for dependency management.
+       - [x] Test graph construction and sorting logic in isolation.
+       - [x] Create integration tests covering complex dependency chains.
+   - [x] Document dependency configuration and troubleshooting in README and TUTORIAL.
+       - [x] Provide examples of declaring step dependencies.
+       - [x] Include troubleshooting tips for cycle and ordering issues.
 173. [ ] Allow branching paths in a pipeline to explore alternative experiment flows.
    - [ ] Design branch step abstraction and merge semantics.
        - [ ] Define API for creating branch and merge nodes.

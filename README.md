@@ -316,6 +316,24 @@ registered with ``HighLevelPipeline.register_data_args`` to support custom
 features. Arbitrary steps from any module may be chained without limitation,
 allowing any number or combination of MARBLE features and options to be expressed
 through a single ``HighLevelPipeline`` instance.
+### Step dependencies
+
+Steps may include a unique ``name`` and a list of dependencies in
+``depends_on``. MARBLE constructs a directed graph and orders steps with a
+topological sort. Cycles raise a ``ValueError`` describing the loop.
+
+```python
+from pipeline import Pipeline
+
+p = Pipeline()
+p.add_step("prepare_data", module="marble_interface", name="prep")
+p.add_step("train_model", module="marble_interface", name="train", depends_on=["prep"])
+p.execute()
+```
+
+Here ``train_model`` runs after ``prepare_data`` regardless of insertion
+order. Unknown-step errors typically indicate a misspelled dependency or
+missing ``name``.
 Multiple MARBLE systems can be created in one session. Use the *Active Instance*
 selector in the sidebar to switch between them, duplicate a system for
 comparison or delete instances you no longer need.
