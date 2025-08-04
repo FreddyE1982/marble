@@ -195,6 +195,32 @@ print(pipe.execute()[0])  # tensor([7., 13.])
 Avoid side effects inside hooks and promptly release any GPU tensors to prevent
 memory leaks.
 
+### Interactive Step Debugging
+
+During experimentation it can be helpful to pause after each pipeline step and
+inspect what was passed in and what came out. ``Pipeline.enable_interactive_debugging``
+registers hooks that capture this information and, by default, drop you into
+``pdb`` before and after every step so you can explore the state interactively.
+
+```python
+import torch
+from pipeline import Pipeline
+
+def add_value(tensor: torch.Tensor, value: float, device: str) -> torch.Tensor:
+    return tensor.to(device) + value
+
+pipe = Pipeline()
+pipe.add_step(
+    "add_value",
+    module="__main__",
+    params={"tensor": torch.ones(2), "value": 5},
+)
+debugger = pipe.enable_interactive_debugging(interactive=False)  # set True for pdb
+pipe.execute()
+print(debugger.inputs[pipe.steps[0]["name"]])
+print(debugger.outputs[pipe.steps[0]["name"]])
+```
+
 ### Caching Step Results
 
 When experimenting it is useful to skip recomputation. Supply a directory via

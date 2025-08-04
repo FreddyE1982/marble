@@ -55,6 +55,57 @@ class PostStepHook(Protocol):
     ) -> Any: ...
 
 
+class InteractiveDebugger:
+    """Hook-based helper capturing step inputs and outputs.
+
+    The debugger registers as both a pre and post hook on pipeline steps. It
+    records the parameters supplied to each step and a summary of the produced
+    result including tensor device information. When ``interactive`` is ``True``
+    the debugger drops into :mod:`pdb` before and after every step allowing live
+    inspection of the execution state.  Setting ``interactive=False`` records
+    information without pausing which is useful for automated tests.
+    """
+
+    def __init__(self, interactive: bool = True) -> None:
+        self.interactive = interactive
+        self.inputs: dict[str, Any] = {}
+        self.outputs: dict[str, Any] = {}
+
+    def _summarize(self, obj: Any) -> Any:
+        if isinstance(obj, torch.Tensor):
+            return {
+                "type": "tensor",
+                "shape": list(obj.shape),
+                "device": obj.device.type,
+                "dtype": str(obj.dtype),
+            }
+        if isinstance(obj, dict):
+            return {k: self._summarize(v) for k, v in obj.items()}
+        if isinstance(obj, (list, tuple)):
+            return [self._summarize(v) for v in obj]
+        return obj
+
+    def pre_hook(self, step: dict, marble: Any | None, device: torch.device) -> None:
+        name = step.get("name") or step.get("func") or step.get("plugin") or "step"
+        params = step.get("params", {})
+        self.inputs[name] = {"params": self._summarize(params), "device": device.type}
+        if self.interactive:
+            import pdb
+
+            pdb.set_trace()
+
+    def post_hook(
+        self, step: dict, result: Any, marble: Any | None, device: torch.device
+    ) -> Any:
+        name = step.get("name") or step.get("func") or step.get("plugin") or "step"
+        self.outputs[name] = self._summarize(result)
+        if self.interactive:
+            import pdb
+
+            pdb.set_trace()
+        return result
+
+
 class Pipeline:
     """Sequence of function calls executable with an optional MARBLE instance."""
 
@@ -174,6 +225,34 @@ class Pipeline:
         hooks = self._post_hooks.get(step_name)
         if hooks and hook in hooks:
             hooks.remove(hook)
+
+    def enable_interactive_debugging(
+        self, *, interactive: bool = True
+    ) -> InteractiveDebugger:
+        """Register hooks capturing inputs and outputs for all steps.
+
+        Parameters
+        ----------
+        interactive:
+            When ``True`` the debugger invokes :func:`pdb.set_trace` before and
+            after each step allowing manual inspection.  ``False`` records data
+            without pausing.
+
+        Returns
+        -------
+        InteractiveDebugger
+            The debugger instance storing captured inputs and outputs.
+        """
+
+        debugger = InteractiveDebugger(interactive=interactive)
+        for i, step in enumerate(self.steps):
+            name = step.get("name") or step.get("func") or step.get("plugin")
+            if name is None:
+                name = f"step_{i}"
+                step["name"] = name
+            self.register_pre_hook(name, debugger.pre_hook)
+            self.register_post_hook(name, debugger.post_hook)
+        return debugger
 
     # Dataset detection ---------------------------------------------------
 
