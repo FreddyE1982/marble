@@ -536,14 +536,16 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
            enqueueing.  On CPU-only systems the tensors are yielded directly.  This
            uniform interface lets downstream steps simply call `.to(current_device)` to
            guarantee correct placement while minimising unnecessary copies.
-   - [ ] Implement Offer a specialised step that consumes the new streaming `BitTensorDataset` with CPU/GPU support.
-       - [ ] Create step class wrapping BitTensorDataset iterator.
-       - [ ] Implement asynchronous data fetching compatible with CPU and GPU tensors.
-       - [ ] Integrate step into pipeline execution engine.
-   - [ ] Add tests validating Offer a specialised step that consumes the new streaming `BitTensorDataset`.
-       - [ ] Unit test streaming step with synthetic dataset.
-       - [ ] Stress test behaviour under variable stream rates.
-       - [ ] Verify GPU execution matches CPU results.
+  - [ ] Implement Offer a specialised step that consumes the new streaming `BitTensorDataset` with CPU/GPU support.
+      - [x] Create step class wrapping BitTensorDataset iterator.
+      - [x] Implement asynchronous data fetching compatible with CPU and GPU tensors.
+      - [ ] Integrate step into pipeline execution engine.
+          - [ ] Expose factory function in `marble_interface`.
+          - [ ] Auto-consume streams in `Pipeline.execute`.
+  - [ ] Add tests validating Offer a specialised step that consumes the new streaming `BitTensorDataset`.
+      - [x] Unit test streaming step with synthetic dataset.
+      - [ ] Stress test behaviour under variable stream rates.
+      - [ ] Verify GPU execution matches CPU results.
    - [ ] Document Offer a specialised step that consumes the new streaming `BitTensorDataset` in README and TUTORIAL.
        - [ ] Explain configuration and usage in README.
        - [ ] Add tutorial section showing streaming dataset pipeline.
