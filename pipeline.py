@@ -271,6 +271,8 @@ class Pipeline:
         log_callback: Callable[[str], None] | None = None,
         debug_hook: Callable[[int, Any], None] | None = None,
         cache_dir: str | Path | None = None,
+        export_path: str | Path | None = None,
+        export_format: str = "json",
     ) -> list[Any]:
         results: list[Any] = []
         self._summaries = []
@@ -452,6 +454,13 @@ class Pipeline:
                     pass
             if summary:
                 self._summaries.append(summary)
+        if export_path is not None and marble is not None:
+            plugin_cls = pipeline_plugins.get_plugin("export_model")
+            exporter = plugin_cls(path=str(export_path), fmt=export_format)
+            exporter.initialise(device=device, marble=marble)
+            export_result = exporter.execute(device=device, marble=marble)
+            exporter.teardown()
+            results.append(export_result)
         return results
 
     def _execute_function(

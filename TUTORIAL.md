@@ -283,9 +283,22 @@ pipe.execute(cache_dir="cache")  # second run loads from disk
    bar on desktop layouts and textual percentages on mobile. If no updates
    appear, ensure JavaScript is enabled and the page URL includes the
    ``device`` query parameter.
-9. **View metrics in your browser** by enabling `metrics_dashboard.enabled`. Set `window_size` to control the moving-average smoothing of the curves.
-10. **Gradually reduce regularization** by setting `dropout_probability` and `dropout_decay_rate` under `neuronenblitz`. A decay rate below `1.0` multiplies the current dropout value after each epoch.
-11. **Search hyperparameters** using `hyperparameter_search.grid_search` to try different learning rates or scheduler options:
+9. **Export the trained model automatically** by providing `export_path` when executing a pipeline. The final step serializes the core to disk:
+   ```python
+   from pipeline import Pipeline
+   from marble_core import Core
+   from marble_neuronenblitz import Neuronenblitz
+   from tests.test_core_functions import minimal_params
+
+   core = Core(minimal_params())
+   nb = Neuronenblitz(core)
+   pipe = Pipeline()
+   pipe.execute(marble=nb, export_path="core.json")
+   ```
+   Use `export_format="onnx"` to emit an ONNX graph instead of JSON.
+10. **View metrics in your browser** by enabling `metrics_dashboard.enabled`. Set `window_size` to control the moving-average smoothing of the curves.
+11. **Gradually reduce regularization** by setting `dropout_probability` and `dropout_decay_rate` under `neuronenblitz`. A decay rate below `1.0` multiplies the current dropout value after each epoch.
+12. **Search hyperparameters** using `hyperparameter_search.grid_search` to try different learning rates or scheduler options:
    ```python
    from hyperparameter_search import grid_search
 

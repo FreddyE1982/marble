@@ -330,6 +330,25 @@ pipe.execute(cache_dir="cache")  # stores result
 pipe.execute(cache_dir="cache")  # loads from disk
 ```
 
+### Automatic Model Export
+
+`Pipeline.execute` can persist the trained model as a final step by supplying
+the `export_path` argument. The pipeline appends an `export_model` step that
+writes the MARBLE core to the given location in JSON format by default. Set
+`export_format="onnx"` to export an ONNX graph instead. Both modes operate on
+CPU and GPU transparently.
+
+```python
+from pipeline import Pipeline
+from marble_core import Core
+from marble_neuronenblitz import Neuronenblitz
+from tests.test_core_functions import minimal_params
+
+pipe = Pipeline()
+nb = Neuronenblitz(Core(minimal_params()))
+pipe.execute(marble=nb, export_path="core.json")
+```
+
 ### Automatic Neuronenblitz training loops
 
 When a pipeline step produces a dataset, MARBLE automatically constructs a
