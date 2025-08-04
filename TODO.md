@@ -451,22 +451,22 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Document recovery scenarios and configuration in README and TUTORIAL.
        - [x] Provide examples of tuning retry parameters.
        - [x] Explain differences between transient and fatal failures.
-176. [ ] Execute steps on multiple processes while sharing datasets through the core.
-   - [ ] Design multiprocessing architecture and shared dataset mechanism.
-       - [ ] Decide between multiprocessing or thread pools.
-       - [ ] Plan shared memory or IPC for dataset access.
-   - [ ] Implement process manager coordinating step execution across workers.
-       - [ ] Spawn worker processes with configured tasks.
-       - [ ] Aggregate results and handle worker lifecycle.
-   - [ ] Ensure dataset sharing works seamlessly for CPU and GPU tensors.
-       - [ ] Share CPU tensors via memory maps.
-       - [ ] Transfer GPU tensors efficiently between processes.
-   - [ ] Add tests verifying multiprocessing execution and data consistency.
-       - [ ] Run pipeline across multiple workers on CPU.
-       - [ ] Repeat tests on GPU-enabled machines.
-   - [ ] Document multi-process setup and troubleshooting in README and TUTORIAL.
-       - [ ] Provide setup instructions and environment variables.
-       - [ ] Include guidance for debugging deadlocks or hangs.
+176. [x] Execute steps on multiple processes while sharing datasets through the core.
+   - [x] Design multiprocessing architecture and shared dataset mechanism.
+       - [x] Decide between multiprocessing or thread pools.
+       - [x] Plan shared memory or IPC for dataset access.
+   - [x] Implement process manager coordinating step execution across workers.
+       - [x] Spawn worker processes with configured tasks.
+       - [x] Aggregate results and handle worker lifecycle.
+   - [x] Ensure dataset sharing works seamlessly for CPU and GPU tensors.
+       - [x] Share CPU tensors via memory maps.
+       - [x] Transfer GPU tensors efficiently between processes.
+   - [x] Add tests verifying multiprocessing execution and data consistency.
+       - [x] Run pipeline across multiple workers on CPU.
+       - [x] Repeat tests on GPU-enabled machines.
+   - [x] Document multi-process setup and troubleshooting in README and TUTORIAL.
+       - [x] Provide setup instructions and environment variables.
+       - [x] Include guidance for debugging deadlocks or hangs.
 177. [ ] Add pre and post hooks for each step enabling custom behaviour.
    - [ ] Define hook interfaces for actions before and after steps.
        - [ ] Specify function signatures for pre and post hooks.
