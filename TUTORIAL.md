@@ -24,6 +24,42 @@ This tutorial demonstrates every major component of MARBLE through a series of p
    Replace the dataset path with your own CSV or JSON file. The optional
    `--validate` flag specifies a validation dataset.
 
+## Project: Generating a Workflow Template
+
+This project demonstrates the template generator that creates starter
+pipeline code.  The generator detects available hardware and embeds CPU
+or GPU defaults into the produced script.
+
+1. **List available templates** to see the patterns that can be
+   generated:
+
+   ```bash
+   python workflow_template_generator.py --list
+   ```
+
+2. **Generate a classification template** and save it to a file:
+
+   ```bash
+   python workflow_template_generator.py classification demo_pipeline.py
+   ```
+
+   Use `--device cpu` or `--device cuda` to override the automatic
+   hardware detection.
+
+3. **Run the generated pipeline**.  It contains a synthetic training
+   loop that executes end-to-end:
+
+   ```bash
+   python demo_pipeline.py
+   ```
+
+### Troubleshooting
+
+- ``ValueError: Unknown template`` – ensure the template name matches one
+  listed by the ``--list`` command.
+- ``RuntimeError: CUDA error`` – if your system lacks a GPU, regenerate
+  the template with ``--device cpu``.
+
 ### Data Loading and Tokenization
 
 All examples below rely on the **new** :class:`DataLoader` and the

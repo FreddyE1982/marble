@@ -483,22 +483,22 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Document hook patterns with code samples in README and TUTORIAL.
        - [x] Include example demonstrating pre-processing hook.
        - [x] Highlight best practices for side-effect management.
-178. [ ] Provide templates to quickly generate common workflows.
-   - [ ] Catalogue common workflow patterns for template generation.
-       - [ ] Gather representative pipelines from existing projects.
-       - [ ] Identify configurable parameters for each pattern.
-   - [ ] Implement template generator producing starter pipeline code.
-       - [ ] Create code scaffolding with placeholders.
-       - [ ] Provide command-line interface to select templates.
-   - [ ] Include CPU and GPU configuration options within templates.
-       - [ ] Detect available hardware and set defaults accordingly.
-       - [ ] Offer flags to override device selection.
-   - [ ] Add tests ensuring generated templates run end-to-end.
-       - [ ] Generate templates and execute on CPU.
-       - [ ] Repeat execution on GPU if available.
-   - [ ] Document available templates and usage instructions in README and TUTORIAL.
-       - [ ] Write step-by-step guide for using generator.
-       - [ ] Include troubleshooting for common template issues.
+178. [x] Provide templates to quickly generate common workflows.
+   - [x] Catalogue common workflow patterns for template generation.
+       - [x] Gather representative pipelines from existing projects.
+       - [x] Identify configurable parameters for each pattern.
+   - [x] Implement template generator producing starter pipeline code.
+       - [x] Create code scaffolding with placeholders.
+       - [x] Provide command-line interface to select templates.
+   - [x] Include CPU and GPU configuration options within templates.
+       - [x] Detect available hardware and set defaults accordingly.
+       - [x] Offer flags to override device selection.
+   - [x] Add tests ensuring generated templates run end-to-end.
+       - [x] Generate templates and execute on CPU.
+       - [x] Repeat execution on GPU if available.
+   - [x] Document available templates and usage instructions in README and TUTORIAL.
+       - [x] Write step-by-step guide for using generator.
+       - [x] Include troubleshooting for common template issues.
 179. [ ] Automatically build training loops for Neuronenblitz when dataset steps are present.
    - [ ] Outline design for Automatically build training loops for Neuronenblitz when dataset steps are present.
        - [ ] Identify dataset step types that trigger training loop creation.
