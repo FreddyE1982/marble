@@ -38,6 +38,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 import torch
 import yaml
+from bit_tensor_dataset import BitTensorDataset
 from PIL import Image
 
 from huggingface_utils import (
@@ -2158,8 +2159,20 @@ def run_playground() -> None:
                 st.plotly_chart(fig, use_container_width=True)
             with st.expander("Step Visualisation"):
                 for i, step in enumerate(st.session_state["pipeline"]):
-                    st.markdown(f"**Step {i+1}:**")
-                    st.json(step)
+                    module = step.get("module") or "marble_interface"
+                    st.markdown(
+                        f"**Step {i+1}:** `{module}.{step['func']}`"
+                    )
+                    params = step.get("params", {})
+                    if params:
+                        st.write("Parameters:")
+                        st.json(params)
+                        for name, value in params.items():
+                            if isinstance(value, BitTensorDataset):
+                                st.write(f"Dataset `{name}` summary:")
+                                st.json(value.summary())
+                    else:
+                        st.write("Parameters: none")
             if st.button("Run Pipeline") and st.session_state["pipeline"]:
                 res = execute_function_sequence(st.session_state["pipeline"], marble)
                 for out in res:
