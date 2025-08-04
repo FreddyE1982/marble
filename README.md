@@ -254,6 +254,36 @@ this) and enable fault handlers via ``PYTHONFAULTHANDLER=1`` to capture traces
 from stuck workers. Deadlocks often arise from forgetting to consume all items
 from queues—``ProcessManager`` guarantees this by design.
 
+### Step Hooks
+
+Each pipeline step can expose *pre* and *post* hooks that run immediately before
+or after the step's function or plugin. Hooks receive a mutable ``step``
+dictionary, the optional MARBLE instance and the ``torch.device`` in use so they
+can operate correctly on CPU or GPU. Post hooks additionally receive the
+produced ``result`` and may return a replacement object. Multiple hooks may be
+registered for a single step and they execute in the order they were added.
+
+```python
+import torch
+from pipeline import Pipeline
+
+def normalise(t: torch.Tensor) -> torch.Tensor:
+    return t / t.norm()
+
+pipe = Pipeline()
+pipe.add_step("normalise", module="__main__", params={"t": torch.randn(4)}, name="n")
+
+def pre_scale(step, marble, device):
+    step["params"]["t"] = step["params"]["t"].to(device) * 0.1
+
+pipe.register_pre_hook("n", pre_scale)
+pipe.execute()
+```
+
+**Best practices:** keep hooks side-effect free and release references to large
+GPU tensors once finished to avoid memory leaks. When mutating ``step`` ensure
+subsequent runs account for the modified parameters.
+
 ### Remote Inference API
 
 MARBLE can be exposed through a lightweight HTTP API. Launch the server with:
