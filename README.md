@@ -202,6 +202,21 @@ For heterogeneous hardware, ``remote_offload.RemoteBrainServer`` and
 are compressed with ``DataCompressor`` and transmitted over HTTP with optional
 authentication.
 
+Both the HTTP client and the gRPC-based ``GrpcRemoteTier`` include retry
+handlers that automatically recover from transient network or hardware glitches.
+Requests are retried three times by default, waiting ``0.5 * 2^n`` seconds
+between attempts. Custom policies can be set in ``config.yaml`` via
+``network.remote_client.max_retries`` and ``network.remote_client.backoff_factor``
+or on the command line:
+
+```
+python cli.py --train data.csv --remote-retries 5 --remote-backoff 1.0
+```
+
+Persistent failures propagate the original exception after the retry budget is
+exhausted, ensuring fatal errors surface clearly while transient problems are
+handled gracefully.
+
 The lightweight ``DatasetCacheServer`` shares preprocessed dataset files between
 nodes to avoid repeated downloads. Memory usage during these workflows can be
 tracked using ``memory_manager.MemoryManager`` while

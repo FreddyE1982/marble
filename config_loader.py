@@ -170,6 +170,7 @@ def create_marble_from_config(
             timeout=remote_cfg.get("timeout", 5.0),
             max_retries=remote_cfg.get("max_retries", 3),
             auth_token=remote_cfg.get("auth_token"),
+            backoff_factor=remote_cfg.get("backoff_factor", 0.5),
         )
 
     remote_server = None

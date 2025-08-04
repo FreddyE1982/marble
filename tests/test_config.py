@@ -41,6 +41,9 @@ def test_load_config_defaults():
     assert cfg["network"]["remote_client"]["url"] == "http://localhost:8001"
     assert cfg["network"]["remote_client"]["timeout"] == 5.0
     assert cfg["network"]["remote_client"]["max_retries"] == 3
+    assert cfg["network"]["remote_client"]["backoff_factor"] == 0.5
+    assert cfg["remote_hardware"]["grpc"]["max_retries"] == 3
+    assert cfg["remote_hardware"]["grpc"]["backoff_factor"] == 0.5
     assert cfg["network"]["torrent_client"]["client_id"] == "main"
     assert cfg["network"]["torrent_client"]["buffer_size"] == 10
     assert cfg["sync"]["interval_ms"] == 1000

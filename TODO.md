@@ -435,22 +435,22 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Document progress event workflow in README and TUTORIAL.
        - [x] Describe event flow from pipeline to GUI.
        - [x] Add troubleshooting section for missing updates.
-175. [ ] Recover gracefully from remote failures with retry logic.
-   - [ ] Specify retry policies and backoff strategies for remote calls.
-       - [ ] Define default retry counts and delay schedules.
-       - [ ] Allow customization per step or endpoint.
-   - [ ] Implement failure detection and retry handler compatible with CPU/GPU steps.
-       - [ ] Detect transient errors and trigger retries.
-       - [ ] Ensure retries release GPU resources properly.
-   - [ ] Expose configurable retry parameters via YAML and CLI.
-       - [ ] Add YAML fields for retry count and backoff.
-       - [ ] Support equivalent CLI flags.
-   - [ ] Add tests simulating transient and persistent remote failures.
-       - [ ] Simulate recoverable failures and confirm retries.
-       - [ ] Verify persistent failures surface clear errors.
-   - [ ] Document recovery scenarios and configuration in README and TUTORIAL.
-       - [ ] Provide examples of tuning retry parameters.
-       - [ ] Explain differences between transient and fatal failures.
+175. [x] Recover gracefully from remote failures with retry logic.
+   - [x] Specify retry policies and backoff strategies for remote calls.
+       - [x] Define default retry counts and delay schedules.
+       - [x] Allow customization per step or endpoint.
+   - [x] Implement failure detection and retry handler compatible with CPU/GPU steps.
+       - [x] Detect transient errors and trigger retries.
+       - [x] Ensure retries release GPU resources properly.
+   - [x] Expose configurable retry parameters via YAML and CLI.
+       - [x] Add YAML fields for retry count and backoff.
+       - [x] Support equivalent CLI flags.
+   - [x] Add tests simulating transient and persistent remote failures.
+       - [x] Simulate recoverable failures and confirm retries.
+       - [x] Verify persistent failures surface clear errors.
+   - [x] Document recovery scenarios and configuration in README and TUTORIAL.
+       - [x] Provide examples of tuning retry parameters.
+       - [x] Explain differences between transient and fatal failures.
 176. [ ] Execute steps on multiple processes while sharing datasets through the core.
    - [ ] Design multiprocessing architecture and shared dataset mechanism.
        - [ ] Decide between multiprocessing or thread pools.

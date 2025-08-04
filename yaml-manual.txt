@@ -778,6 +778,11 @@ network:
     timeout: Seconds to wait for remote requests before they are aborted. Values
       between 5 and 30 are typical depending on network latency.
     max_retries: Number of times a remote operation is retried upon failure.
+    backoff_factor: Base delay in seconds used for exponential backoff between
+      retries. The actual wait time grows as ``backoff_factor * 2^n`` where
+      ``n`` is the retry attempt index. With the default ``0.5`` the client waits
+      0.5, 1.0, 2.0 … seconds between attempts. Increase this when interacting
+      with slow or congested networks.
     track_latency: When true the client records the time taken for each
       request so average latency can be inspected through the API.
     auth_token: Optional token sent as an ``Authorization`` header on each
@@ -885,6 +890,11 @@ remote_hardware:
   grpc:
     address: Address of the gRPC service handling remote computation for the
       built-in ``GrpcRemoteTier`` implementation.
+    max_retries: Maximum number of times failed gRPC calls are retried. This
+      helps recover from transient disconnects or temporary GPU unavailability.
+    backoff_factor: Base delay in seconds for exponential backoff between
+      retries. Each failure waits ``backoff_factor * 2^n`` seconds before
+      reconnecting, ensuring GPUs are released and network pressure is reduced.
 
 metrics_visualizer:
   # Configure the live metrics plot size. These values are passed directly to
