@@ -2533,3 +2533,35 @@ sharing a dataset between them.
 Executing the snippet above on a GPU-equipped machine automatically transfers
 the tensors to CUDA for zero-copy processing.
 
+## Project 41 – Online Chat Training with Ollama
+
+**Goal:** Continuously fine-tune a MARBLE core using recent chat exchanges served by Ollama.**
+
+1. **Download a seed conversation dataset** to initialise history:
+   ```python
+   from datasets import load_dataset
+   ds = load_dataset("OpenAssistant/oasst1", split="train[:5]")
+   history = [
+       {"role": m["role"], "content": m["content"]}
+       for m in ds[0]["messages"]
+   ]
+   ```
+2. **Instantiate MARBLE and connect to Ollama**:
+   ```python
+   from config_loader import load_config
+   from marble_main import MARBLE
+   from ollama_interop import chat_with_history
+
+   cfg = load_config()
+   marble = MARBLE(cfg["core"])
+   response, history = chat_with_history(
+       marble.core, "marble-chat", "Hello there!", history, history_limit=8
+   )
+   print(response["message"]["content"])
+   ```
+3. **Train on updated history** by converting the collected messages into
+   token sequences and feeding them to your learner (see projects above for
+   dataset preparation techniques).
+
+Run `python project41_chat_training.py` to experiment with live conversation fine-tuning.
+

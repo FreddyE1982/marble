@@ -14,7 +14,7 @@ Ollama installations.
 from __future__ import annotations
 
 import textwrap
-from typing import Any, Dict
+from typing import Any, Dict, List, Tuple
 
 from marble_core import Core
 from marble_utils import core_to_json
@@ -128,3 +128,59 @@ def generate(
     _require_ollama()
     register_core(core, model, config)
     return ollama.generate(model=model, prompt=prompt, **options)
+
+
+def chat_with_history(
+    core: Core,
+    model: str,
+    user_message: str,
+    history: List[Dict[str, str]],
+    history_limit: int,
+    config: Dict[str, Any] | None = None,
+    **options: Any,
+) -> Tuple[Dict[str, Any], List[Dict[str, str]]]:
+    """Exchange a chat message with Ollama while maintaining history.
+
+    The function registers ``core`` if necessary and forwards the most
+    recent ``history_limit`` messages together with ``user_message`` to
+    ``ollama.chat``.  The assistant's reply is appended to the history
+    which is returned alongside the raw response.
+
+    Parameters
+    ----------
+    core:
+        MARBLE ``Core`` used for inference.
+    model:
+        Name under which the model is (or will be) registered in Ollama.
+    user_message:
+        Latest message from the user.
+    history:
+        Existing conversation history as a list of ``{"role", "content"}``
+        dictionaries.
+    history_limit:
+        Maximum number of previous messages (including both user and
+        assistant) to retain when calling Ollama.
+    config:
+        Optional configuration dictionary forwarded to
+        :func:`register_core`.
+    **options:
+        Additional keyword arguments forwarded to ``ollama.chat``.
+
+    Returns
+    -------
+    Tuple[dict, List[dict]]
+        The raw response from ``ollama.chat`` and the updated history
+        including the assistant's reply.
+    """
+
+    _require_ollama()
+    register_core(core, model, config)
+
+    history = history[-history_limit:]
+    history.append({"role": "user", "content": user_message})
+
+    response = ollama.chat(model=model, messages=history, **options)
+    assistant_content = response.get("message", {}).get("content")
+    if assistant_content:
+        history.append({"role": "assistant", "content": assistant_content})
+    return response, history
