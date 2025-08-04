@@ -1436,9 +1436,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [x] Fill cache with synthetic prompts.
             - [x] Measure latency and eviction behaviour.
     - [ ] Verify CUDA fallbacks for all new modules.
-        - [ ] QuantizedTensor CPU path.
-            - [ ] Force CPU execution for quantized tensor tests.
-            - [ ] Confirm outputs match GPU path.
+        - [x] QuantizedTensor CPU path.
+            - [x] Force CPU execution for quantized tensor tests.
+            - [x] Confirm outputs match GPU path.
         - [ ] Parallel wanderers CPU fallback.
             - [ ] Disable CUDA and run wanderer tests.
             - [ ] Document any discrepancies.
