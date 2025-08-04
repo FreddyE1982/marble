@@ -163,7 +163,26 @@ memory leaks.
    train_examples = generate_sine_wave_dataset(200, noise_std=0.05, seed=0)
    ```
    This produces `(input, target)` pairs following a noisy sine wave.
-3. **Prepare the dataset** using the unified loader so objects are encoded
+3. **Run the dataset through a pipeline for automatic training.** Any step
+   whose name contains `dataset` triggers a training loop for an attached
+   `Neuronenblitz` instance:
+   ```python
+   from pipeline import Pipeline
+   from marble_core import Core
+   from marble_neuronenblitz import Neuronenblitz
+   from tests.test_core_functions import minimal_params
+
+   core = Core(minimal_params())
+   nb = Neuronenblitz(core)
+   pipe = Pipeline([
+       {"module": "synthetic_dataset", "func": "generate_sine_wave_dataset"}
+   ])
+   pipe.execute(marble=nb)
+   print(f"trained on {len(nb.get_training_history())} examples")
+   ```
+   The pipeline detects the dataset step and inserts a training loop
+   automatically, moving tensors to GPU when available.
+4. **Prepare the dataset** using the unified loader so objects are encoded
    consistently:
    ```python
    from dataset_loader import load_dataset
@@ -175,13 +194,13 @@ memory leaks.
    from sklearn.model_selection import train_test_split
    train_examples, val_examples = train_test_split(pairs, test_size=0.1, random_state=42)
    ```
-4. **Edit configuration**. Open `config.yaml` and modify the values under `core` to adjust the representation size and other parameters. Save the file after your edits.
+5. **Edit configuration**. Open `config.yaml` and modify the values under `core` to adjust the representation size and other parameters. Save the file after your edits.
    To experiment with sparser communication set `attention_dropout` to a value between `0.0` and `1.0`. Higher values randomly ignore more incoming messages during attention-based updates.
    You can also introduce oscillatory gating of synaptic weights by setting `global_phase_rate` to a value above `0.0`. Each call to `run_message_passing` then advances the internal `global_phase`, modulating every synapse via a cosine of its individual `phase`.
    You may also provide a *partial* YAML file containing only the settings you
    wish to override. `load_config` merges it with the defaults from
    `config.yaml` automatically.
-5. **Create a MARBLE instance** from the configuration:
+6. **Create a MARBLE instance** from the configuration:
    ```python
    from marble_main import MARBLE
    from config_loader import load_config
@@ -189,21 +208,21 @@ memory leaks.
    cfg = load_config()
    marble = MARBLE(cfg['core'])
    ```
-6. **Train the model** on the prepared data:
+7. **Train the model** on the prepared data:
    ```python
    marble.brain.train(train_examples, epochs=10, validation_examples=val_examples)
    ```
    Training progress is visualised with a sidebar progress bar in the Streamlit GUI.
-7. **Monitor progress** with `MetricsVisualizer` which plots loss and memory usage. Adjust the `fig_width` and `color_scheme` options under `metrics_visualizer` in `config.yaml` to change the appearance.
+8. **Monitor progress** with `MetricsVisualizer` which plots loss and memory usage. Adjust the `fig_width` and `color_scheme` options under `metrics_visualizer` in `config.yaml` to change the appearance.
    The pipeline core also broadcasts ``pipeline_progress`` events containing
    ``step``, ``index``, ``total``, ``device`` and ``status`` fields. The
    Streamlit GUI subscribes to these events and renders live updates—a progress
    bar on desktop layouts and textual percentages on mobile. If no updates
    appear, ensure JavaScript is enabled and the page URL includes the
    ``device`` query parameter.
-8. **View metrics in your browser** by enabling `metrics_dashboard.enabled`. Set `window_size` to control the moving-average smoothing of the curves.
-9. **Gradually reduce regularization** by setting `dropout_probability` and `dropout_decay_rate` under `neuronenblitz`. A decay rate below `1.0` multiplies the current dropout value after each epoch.
-10. **Search hyperparameters** using `hyperparameter_search.grid_search` to try different learning rates or scheduler options:
+9. **View metrics in your browser** by enabling `metrics_dashboard.enabled`. Set `window_size` to control the moving-average smoothing of the curves.
+10. **Gradually reduce regularization** by setting `dropout_probability` and `dropout_decay_rate` under `neuronenblitz`. A decay rate below `1.0` multiplies the current dropout value after each epoch.
+11. **Search hyperparameters** using `hyperparameter_search.grid_search` to try different learning rates or scheduler options:
    ```python
    from hyperparameter_search import grid_search
 

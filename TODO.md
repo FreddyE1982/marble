@@ -499,22 +499,22 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Document available templates and usage instructions in README and TUTORIAL.
        - [x] Write step-by-step guide for using generator.
        - [x] Include troubleshooting for common template issues.
-179. [ ] Automatically build training loops for Neuronenblitz when dataset steps are present.
-   - [ ] Outline design for Automatically build training loops for Neuronenblitz when dataset steps are present.
-       - [ ] Identify dataset step types that trigger training loop creation.
-       - [ ] Specify how loops detect CPU vs GPU execution paths.
-       - [ ] Draft flowchart illustrating automatic loop insertion points.
-   - [ ] Implement Automatically build training loops for Neuronenblitz when dataset steps are present with CPU/GPU support.
-       - [ ] Detect dataset steps during pipeline compilation.
-       - [ ] Instantiate training loop objects bound to detected datasets.
-       - [ ] Ensure created loops respect available hardware and switch between CPU and GPU.
-   - [ ] Add tests validating Automatically build training loops for Neuronenblitz when dataset steps are present.
-       - [ ] Unit test dataset step detection logic.
-       - [ ] Integration test auto-generated loop running on sample CPU dataset.
-       - [ ] Integration test loop operating on GPU when available.
-   - [ ] Document Automatically build training loops for Neuronenblitz when dataset steps are present in README and TUTORIAL.
-       - [ ] Describe automatic loop creation mechanism in README.
-       - [ ] Provide tutorial example demonstrating dataset-driven loop generation.
+179. [x] Automatically build training loops for Neuronenblitz when dataset steps are present.
+   - [x] Outline design for Automatically build training loops for Neuronenblitz when dataset steps are present.
+       - [x] Identify dataset step types that trigger training loop creation.
+       - [x] Specify how loops detect CPU vs GPU execution paths.
+       - [x] Draft flowchart illustrating automatic loop insertion points.
+   - [x] Implement Automatically build training loops for Neuronenblitz when dataset steps are present with CPU/GPU support.
+       - [x] Detect dataset steps during pipeline compilation.
+       - [x] Instantiate training loop objects bound to detected datasets.
+       - [x] Ensure created loops respect available hardware and switch between CPU and GPU.
+   - [x] Add tests validating Automatically build training loops for Neuronenblitz when dataset steps are present.
+       - [x] Unit test dataset step detection logic.
+       - [x] Integration test auto-generated loop running on sample CPU dataset.
+       - [x] Integration test loop operating on GPU when available.
+   - [x] Document Automatically build training loops for Neuronenblitz when dataset steps are present in README and TUTORIAL.
+       - [x] Describe automatic loop creation mechanism in README.
+       - [x] Provide tutorial example demonstrating dataset-driven loop generation.
 180. [ ] Offer a specialised step that consumes the new streaming `BitTensorDataset`.
    - [x] Outline design for Offer a specialised step that consumes the new streaming `BitTensorDataset`.
        - [x] Define step interface for streaming dataset consumption.

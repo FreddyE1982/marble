@@ -14,6 +14,7 @@ import torch
 import global_workspace
 import marble_interface
 import pipeline_plugins
+from marble_neuronenblitz import Neuronenblitz
 from branch_container import BranchContainer
 from dataset_loader import wait_for_prefetch
 from marble_base import MetricsVisualizer
@@ -170,6 +171,42 @@ class Pipeline:
         if hooks and hook in hooks:
             hooks.remove(hook)
 
+    # Dataset detection ---------------------------------------------------
+
+    def _dataset_step_indices(self) -> list[int]:
+        """Return indices of steps that produce datasets.
+
+        A step is considered a dataset producer if its ``func`` or ``plugin``
+        name contains the word ``"dataset"``.  This heuristic keeps the
+        pipeline flexible while allowing automatic training loop insertion for
+        common dataset loaders and streaming dataset plugins.
+        """
+
+        indices: list[int] = []
+        for i, step in enumerate(self.steps):
+            name = (step.get("func") or step.get("plugin") or "").lower()
+            if "dataset" in name:
+                indices.append(i)
+        return indices
+
+    def _train_neuronenblitz(
+        self, nb: Neuronenblitz, dataset, device: torch.device, epochs: int = 1
+    ) -> None:
+        """Train ``nb`` on ``dataset`` ensuring tensors reside on ``device``."""
+
+        prepared = []
+        for item in dataset:
+            if not isinstance(item, (list, tuple)) or len(item) < 2:
+                continue
+            inp, tgt = item[0], item[1]
+            if isinstance(inp, torch.Tensor):
+                inp = inp.to(device)
+            if isinstance(tgt, torch.Tensor):
+                tgt = tgt.to(device)
+            prepared.append((inp, tgt))
+        if prepared:
+            nb.train(prepared, epochs=epochs)
+
     # Dependency resolution -------------------------------------------------
 
     def _build_dependency_graph(
@@ -245,6 +282,7 @@ class Pipeline:
                 core.synapse_pool.preallocate(preallocate_synapses)
         # Resolve dependencies before execution
         self.steps = self._topological_sort(self.steps)
+        dataset_indices = self._dataset_step_indices()
         total_steps = sum(1 for s in self.steps if not s.get("frozen"))
         exec_idx = 0
         from event_bus import PROGRESS_EVENT, ProgressEvent, global_event_bus
@@ -337,6 +375,13 @@ class Pipeline:
                     return batches
 
                 result = asyncio.run(_drain(result))
+            if (
+                isinstance(marble, Neuronenblitz)
+                and idx in dataset_indices
+                and isinstance(result, list)
+            ):
+                epochs = int(step.get("params", {}).get("epochs", 1))
+                self._train_neuronenblitz(marble, result, device, epochs=epochs)
             for hook in self._post_hooks.get(step_name, []):
                 result = hook(step, result, marble, device)
             runtime = time.perf_counter() - start
