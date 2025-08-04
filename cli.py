@@ -75,6 +75,16 @@ def main() -> None:
         "--sync-src",
         help="Source config to synchronise (defaults to --config)",
     )
+    parser.add_argument(
+        "--remote-retries",
+        type=int,
+        help="Maximum number of retries for remote calls",
+    )
+    parser.add_argument(
+        "--remote-backoff",
+        type=float,
+        help="Backoff factor for remote call retries",
+    )
     args = parser.parse_args()
 
     if args.sync_config:
@@ -86,7 +96,12 @@ def main() -> None:
         sync_config(src, args.sync_config)
         return
 
-    overrides: dict[str, dict] = {"neuronenblitz": {}, "brain": {}, "sync": {}}
+    overrides: dict[str, dict] = {
+        "neuronenblitz": {},
+        "brain": {},
+        "sync": {},
+        "network": {"remote_client": {}},
+    }
     if args.lr_scheduler:
         overrides["neuronenblitz"]["lr_scheduler"] = args.lr_scheduler
     if args.scheduler_steps is not None:
@@ -103,6 +118,10 @@ def main() -> None:
         overrides["brain"]["early_stopping_patience"] = args.early_stopping_patience
     if args.early_stopping_delta is not None:
         overrides["brain"]["early_stopping_delta"] = args.early_stopping_delta
+    if args.remote_retries is not None:
+        overrides["network"]["remote_client"]["max_retries"] = args.remote_retries
+    if args.remote_backoff is not None:
+        overrides["network"]["remote_client"]["backoff_factor"] = args.remote_backoff
     marble = create_marble_from_config(args.config, overrides=overrides)
     if args.grid_search:
         import yaml

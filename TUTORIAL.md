@@ -269,9 +269,15 @@ This project makes use of **asynchronous training**, **dreaming**, and the **evo
 2. **Create a remote client** on your training machine and pass it when constructing MARBLE:
    ```python
    from remote_offload import RemoteBrainClient
-   client = RemoteBrainClient('http://remote_host:8000')
+    client = RemoteBrainClient('http://remote_host:8000', max_retries=5,
+                               backoff_factor=1.0)
    marble = MARBLE(cfg['core'], remote_client=client)
    ```
+   The client automatically retries transient failures using an exponential
+   backoff (0.5, 1.0, 2.0 … seconds by default). Adjust ``max_retries`` and
+   ``backoff_factor`` here or via the CLI flags ``--remote-retries`` and
+   ``--remote-backoff``. If all retries fail the original error is raised so
+   fatal issues are not hidden.
 3. **Download a dataset** such as digits using `sklearn.datasets.load_digits()` for offloaded training:
    ```python
    from sklearn.datasets import load_digits

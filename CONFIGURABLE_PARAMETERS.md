@@ -311,6 +311,7 @@ Each entry is listed under its section heading.
 - url
 - timeout
 - max_retries
+- backoff_factor
 - track_latency
 - auth_token
 - ssl_verify
@@ -331,6 +332,8 @@ Each entry is listed under its section heading.
   instantiate a custom remote hardware tier.
 - grpc.address: Host and port for the default ``GrpcRemoteTier``
   implementation.
+- grpc.max_retries: Number of times to retry gRPC calls on failure.
+- grpc.backoff_factor: Multiplier for exponential backoff between retries.
 - delta_encoding
 - compression_algorithm
 

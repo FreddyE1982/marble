@@ -174,9 +174,36 @@ class RemoteBrainClient:
         self.bytes_received = 0
         self._bandwidth_start = time.monotonic()
 
-    def _post(self, path: str, payload: dict, timeout: float) -> requests.Response:
-        """POST ``payload`` to ``path`` with retries."""
-        for attempt in range(self.max_retries):
+    def _post(
+        self,
+        path: str,
+        payload: dict,
+        timeout: float,
+        *,
+        retries: int | None = None,
+        backoff: float | None = None,
+    ) -> requests.Response:
+        """POST ``payload`` to ``path`` with retries.
+
+        Parameters
+        ----------
+        path:
+            Endpoint path (``/offload`` or ``/process``).
+        payload:
+            JSON-serialisable payload.
+        timeout:
+            Request timeout in seconds.
+        retries:
+            Optional override for retry count. Defaults to ``self.max_retries``.
+        backoff:
+            Optional override for backoff multiplier. Defaults to
+            ``self.backoff_factor``.
+        """
+
+        max_retries = retries if retries is not None else self.max_retries
+        backoff_factor = backoff if backoff is not None else self.backoff_factor
+
+        for attempt in range(max_retries):
             try:
                 payload_bytes = json.dumps(payload).encode()
                 start = time.monotonic()
@@ -196,20 +223,33 @@ class RemoteBrainClient:
                     self.latencies.append(latency)
                 return resp
             except requests.RequestException:
-                if attempt == self.max_retries - 1:
+                if attempt == max_retries - 1:
                     raise
-                time.sleep(self.backoff_factor * (2**attempt))
+                time.sleep(backoff_factor * (2**attempt))
 
-    def offload(self, core) -> None:
+    def offload(
+        self,
+        core,
+        *,
+        retries: int | None = None,
+        backoff: float | None = None,
+    ) -> None:
         if self.use_compression:
             core_json = core_to_json(core).encode()
             comp = self.compressor.compress(core_json)
             payload = {"core": base64.b64encode(comp).decode()}
         else:
             payload = {"core": json.loads(core_to_json(core))}
-        self._post("/offload", payload, self.timeout)
+        self._post("/offload", payload, self.timeout, retries=retries, backoff=backoff)
 
-    def process(self, value: float, timeout: float | None = None) -> float:
+    def process(
+        self,
+        value: float,
+        timeout: float | None = None,
+        *,
+        retries: int | None = None,
+        backoff: float | None = None,
+    ) -> float:
         if self.use_compression:
             val_bytes = json.dumps(value).encode()
             comp = self.compressor.compress(val_bytes)
@@ -217,7 +257,13 @@ class RemoteBrainClient:
         else:
             payload = {'value': value}
         req_timeout = timeout if timeout is not None else self.timeout
-        resp = self._post("/process", payload, req_timeout)
+        resp = self._post(
+            "/process",
+            payload,
+            req_timeout,
+            retries=retries,
+            backoff=backoff,
+        )
         data = resp.json()
         if self.use_compression:
             comp_out = base64.b64decode(data['output'].encode())

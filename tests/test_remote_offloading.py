@@ -1,5 +1,6 @@
 import os, sys, time
 import requests
+import pytest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from marble_core import Core, DataLoader
@@ -125,6 +126,18 @@ def test_remote_client_retries(monkeypatch):
     val = client.process(0.2)
     assert val == 1.0
     assert attempts["n"] == 2
+
+
+def test_remote_client_persistent_failure(monkeypatch):
+    def fail_post(url, json=None, timeout=0, **kwargs):
+        raise requests.RequestException("boom")
+
+    monkeypatch.setattr(requests, "post", fail_post)
+    client = RemoteBrainClient(
+        "http://localhost", max_retries=1, compression_enabled=False
+    )
+    with pytest.raises(requests.RequestException):
+        client.process(0.2, retries=2, backoff=0.0)
 
 
 def test_bandwidth_and_route(monkeypatch):

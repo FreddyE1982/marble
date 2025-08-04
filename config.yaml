@@ -351,6 +351,7 @@ network:
     url: "http://localhost:8001"
     timeout: 5.0
     max_retries: 3
+    backoff_factor: 0.5
     track_latency: true
     auth_token: null
     ssl_verify: true
@@ -377,6 +378,8 @@ remote_hardware:
   tier_plugin: null
   grpc:
     address: "localhost:50051"
+    max_retries: 3
+    backoff_factor: 0.5
 metrics_visualizer:
   fig_width: 10
   fig_height: 6
