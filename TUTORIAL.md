@@ -1835,6 +1835,50 @@ The new *Global Workspace* plugin is loaded in the same way. Add
 `n_plugin.activate("global_workspace")` to share broadcast messages between
 plugins and components.
 
+### Project 31 – Pipeline Step Plugin
+
+**Goal:** Create a custom pipeline step using the plugin architecture.
+
+1. **Write the plugin class** in ``plugins/double_step.py``:
+   ```python
+   from pipeline_plugins import PipelinePlugin, register_plugin
+   import torch
+
+   class DoubleStep(PipelinePlugin):
+       def __init__(self, factor: float = 2.0):
+           self.factor = factor
+
+       def initialise(self, device, marble=None):
+           self.device = device
+
+       def execute(self, device, marble=None):
+           return torch.ones(1, device=device) * self.factor
+
+       def teardown(self):
+           pass
+
+   def register(reg):
+       reg("double_step", DoubleStep)
+   ```
+2. **Load the plugin** before running a pipeline:
+   ```python
+   from pipeline_plugins import load_pipeline_plugins
+
+   load_pipeline_plugins("plugins")
+   ```
+3. **Add a pipeline step** referencing the plugin:
+   ```python
+   from pipeline import Pipeline
+
+   pipe = Pipeline([
+       {"plugin": "double_step", "params": {"factor": 4}}
+   ])
+   print(pipe.execute()[0])  # tensor([4.])
+   ```
+4. **GPU support** is automatic.  If CUDA is available the ``device`` passed to
+   ``initialise`` and ``execute`` will be ``"cuda"``; otherwise it defaults to
+   ``"cpu"``.
+
 ### Using Attention Codelets
 
 1. Define a codelet that returns an ``AttentionProposal``:

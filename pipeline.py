@@ -16,6 +16,7 @@ from marble_base import MetricsVisualizer
 from dataset_loader import wait_for_prefetch
 
 import marble_interface
+import pipeline_plugins
 
 
 class Pipeline:
@@ -71,6 +72,7 @@ class Pipeline:
         core = None
         if log_callback is not None:
             log_callback(f"GPU available: {torch.cuda.is_available()}")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if marble is not None and hasattr(marble, "get_core"):
             core = marble.get_core()
             if preallocate_neurons:
@@ -82,10 +84,21 @@ class Pipeline:
                 continue
             wait_for_prefetch()
             module_name = step.get("module")
-            func_name = step["func"]
+            func_name = step.get("func")
             params = step.get("params", {})
             start = time.perf_counter()
-            result = self._execute_function(module_name, func_name, marble, params)
+            if "plugin" in step:
+                plugin_name = step["plugin"]
+                plugin_cls = pipeline_plugins.get_plugin(plugin_name)
+                plugin: pipeline_plugins.PipelinePlugin = plugin_cls(**params)
+                plugin.initialise(device=device, marble=marble)
+                result = plugin.execute(device=device, marble=marble)
+                plugin.teardown()
+                func_name = plugin_name
+            else:
+                if func_name is None:
+                    raise ValueError("Step missing 'func' or 'plugin'")
+                result = self._execute_function(module_name, func_name, marble, params)
             if hasattr(result, "next_batch") and hasattr(result, "is_finished"):
                 async def _drain(step):
                     batches = []

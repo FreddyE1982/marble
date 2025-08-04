@@ -505,6 +505,41 @@ another machine. Local clients interact with it transparently through
 `RemoteBrainClient`, enabling lightweight control nodes with powerful remote
 workers.
 
+### Pipeline step plugins
+
+MARBLE's pipeline can be extended without modifying the core by registering
+*pipeline step* plugins.  A plugin is a class implementing three lifecycle
+methods – ``initialise``, ``execute`` and ``teardown`` – and is registered under
+an identifier.  At runtime the pipeline instantiates the class, selects the
+appropriate execution device (CPU or GPU) and routes all tensor operations to
+that device.
+
+Third‑party packages may expose entry points under
+``marble.pipeline_plugins`` or provide standalone Python files containing a
+``register`` function.  ``pipeline_plugins.load_pipeline_plugins`` scans these
+locations and populates a registry mapping plugin names to classes.
+
+The repository includes ``examples/plugins/double_step.py`` demonstrating a
+minimal plugin.  Load it and invoke the step inside a pipeline:
+
+```python
+from pipeline_plugins import load_pipeline_plugins
+from pipeline import Pipeline
+
+load_pipeline_plugins("examples/plugins")
+
+pipe = Pipeline([
+    {"plugin": "double_step", "params": {"factor": 4}}
+])
+
+result = pipe.execute()[0]
+print(result)  # tensor([4.]) on the selected device
+```
+
+Plugins may freely interact with the active MARBLE instance passed to the
+pipeline.  After execution ``teardown`` is called to release resources,
+ensuring clean shutdown across CPU and GPU contexts.
+
 ## PyTorch to MARBLE Conversion
 The project ships with a converter that maps PyTorch models into the MARBLE
 format. Run the CLI to transform a saved ``.pt`` file into JSON:

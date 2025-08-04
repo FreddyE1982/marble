@@ -1,0 +1,116 @@
+from __future__ import annotations
+
+"""Pipeline step plugin system.
+
+This module defines the public interface for pipeline step plugins and
+provides utilities to register and dynamically load third‑party plugins.
+Plugins are normal Python classes implementing the :class:`PipelinePlugin`
+interface which contains three lifecycle methods:
+
+``initialise``
+    Called once before execution.  Plugins may allocate resources here.  The
+    selected ``device`` (CPU or GPU) is supplied so tensors can be moved to the
+    appropriate target.
+``execute``
+    Run the step.  Results are returned to the pipeline and become the input to
+    subsequent steps.  ``execute`` may accept the active MARBLE instance if
+    required.
+``teardown``
+    Invoked after execution allowing plugins to release resources.
+
+Third‑party packages may expose entry points under
+``"marble.pipeline_plugins"`` or provide a ``register`` function inside a
+Python file located in a configured directory.  ``load_pipeline_plugins`` will
+locate these modules and populate the registry mapping identifiers to classes.
+"""
+
+from importlib import util, metadata
+from pathlib import Path
+from typing import Dict, Iterable, Type
+
+import torch
+
+
+class PipelinePlugin:
+    """Base class for pipeline step plugins.
+
+    Subclasses may override :meth:`initialise`, :meth:`execute` and
+    :meth:`teardown`.  ``initialise`` and ``execute`` receive the selected
+    :class:`torch.device` so implementations can route tensors and operations to
+    the proper hardware.  The active MARBLE instance is passed when available.
+    """
+
+    def __init__(self, **kwargs) -> None:  # pragma: no cover - simple storage
+        self.params = kwargs
+
+    def initialise(self, device: torch.device, marble=None) -> None:
+        """Prepare the plugin for execution."""
+
+    def execute(self, device: torch.device, marble=None):  # pragma: no cover - abstract
+        """Perform the plugin's action and return the result."""
+        raise NotImplementedError
+
+    def teardown(self) -> None:
+        """Release any held resources."""
+
+
+# Registry of available plugin classes keyed by identifier
+PLUGIN_REGISTRY: Dict[str, Type[PipelinePlugin]] = {}
+
+
+def register_plugin(name: str, plugin_cls: Type[PipelinePlugin]) -> None:
+    """Register ``plugin_cls`` under ``name``.
+
+    Existing registrations are overwritten, allowing users to replace default
+    implementations.
+    """
+
+    PLUGIN_REGISTRY[name] = plugin_cls
+
+
+def get_plugin(name: str) -> Type[PipelinePlugin]:
+    """Return the plugin class registered as ``name``."""
+
+    return PLUGIN_REGISTRY[name]
+
+
+def load_pipeline_plugins(dirs: Iterable[str] | str | None = None) -> None:
+    """Discover pipeline plugins from entry points or directories.
+
+    Parameters
+    ----------
+    dirs:
+        A path or iterable of paths to scan for modules defining a ``register``
+        function.  Each ``register`` function receives :func:`register_plugin` as
+        its argument.  If ``None`` no directories are scanned.
+
+    Entry points exposed via the ``marble.pipeline_plugins`` group are loaded as
+    well.  Each entry point should resolve to a class implementing
+    :class:`PipelinePlugin` and will be registered under the entry point's name.
+    """
+
+    # Load entry points provided by installed packages
+    try:
+        entry_points = metadata.entry_points(group="marble.pipeline_plugins")
+    except Exception:  # pragma: no cover - metadata behaviour varies
+        entry_points = []
+    for ep in entry_points:
+        cls = ep.load()
+        register_plugin(ep.name, cls)
+
+    if dirs is None:
+        return
+    if isinstance(dirs, str):
+        dirs = [dirs]
+
+    for d in dirs:
+        path = Path(d)
+        if not path.is_dir():
+            continue
+        for file in path.glob("*.py"):
+            spec = util.spec_from_file_location(file.stem, file)
+            if spec and spec.loader:
+                module = util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                if hasattr(module, "register"):
+                    module.register(register_plugin)

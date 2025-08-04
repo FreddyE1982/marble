@@ -368,25 +368,25 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [ ] Test export features on desktop layout.
         - [ ] Test export features on mobile layout.
         - [ ] Assert metric panels render correctly in both views.
-171. [ ] Offer a plugin system so users can register custom pipeline steps easily.
-   - [ ] Draft plugin interface and lifecycle expectations.
-       - [ ] Outline core lifecycle phases (initialise, execute, teardown).
-       - [ ] Specify required methods and expected inputs/outputs.
-   - [ ] Implement registry and dynamic loader for third-party plugins.
-       - [ ] Create registry mapping identifiers to plugin classes.
-       - [ ] Implement loader scanning entry points or directories.
-   - [ ] Support CPU and GPU execution contexts within plugins.
-       - [ ] Detect available device and select execution target.
-       - [ ] Route tensors and operations to the appropriate device.
-   - [ ] Ship an example plugin demonstrating registration and usage.
-       - [ ] Build minimal plugin exercising the interface.
-       - [ ] Provide instructions to register and invoke the sample.
-   - [ ] Add unit and integration tests for plugin discovery and execution.
-       - [ ] Test registry registration and lookup behaviour.
-       - [ ] Execute example plugin on CPU and GPU to verify paths.
-   - [ ] Document plugin architecture and example workflow in README and TUTORIAL.
-       - [ ] Add architecture overview section to README.
-       - [ ] Extend tutorial with step-by-step plugin creation guide.
+171. [x] Offer a plugin system so users can register custom pipeline steps easily.
+   - [x] Draft plugin interface and lifecycle expectations.
+       - [x] Outline core lifecycle phases (initialise, execute, teardown).
+       - [x] Specify required methods and expected inputs/outputs.
+   - [x] Implement registry and dynamic loader for third-party plugins.
+       - [x] Create registry mapping identifiers to plugin classes.
+       - [x] Implement loader scanning entry points or directories.
+   - [x] Support CPU and GPU execution contexts within plugins.
+       - [x] Detect available device and select execution target.
+       - [x] Route tensors and operations to the appropriate device.
+   - [x] Ship an example plugin demonstrating registration and usage.
+       - [x] Build minimal plugin exercising the interface.
+       - [x] Provide instructions to register and invoke the sample.
+   - [x] Add unit and integration tests for plugin discovery and execution.
+       - [x] Test registry registration and lookup behaviour.
+       - [x] Execute example plugin on CPU and GPU to verify paths.
+   - [x] Document plugin architecture and example workflow in README and TUTORIAL.
+       - [x] Add architecture overview section to README.
+       - [x] Extend tutorial with step-by-step plugin creation guide.
 172. [ ] Manage dependencies between steps automatically to maintain correct order.
    - [ ] Design dependency graph representation for pipeline steps.
        - [ ] Choose data structure to model nodes and edges.
