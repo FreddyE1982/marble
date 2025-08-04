@@ -76,6 +76,38 @@ Set ``dataloader.tokenizer_type: bert_wordpiece`` or ``tokenizer_json`` in
 project example assumes a ``dataloader`` prepared this way and passes it to
 ``load_dataset``.
 
+### Customising Steps with Hooks
+
+The :class:`pipeline.Pipeline` supports registering callables that run before
+and after individual steps. Hooks receive the step specification, an optional
+MARBLE instance and the ``torch.device`` in use. Post hooks also receive the
+step's result and may replace it. Hooks execute in the order they were
+registered, allowing deterministic composition.
+
+```python
+import torch
+from pipeline import Pipeline
+
+def double(x: torch.Tensor) -> torch.Tensor:
+    return x * 2
+
+pipe = Pipeline()
+pipe.add_step("double", module="__main__", params={"x": torch.tensor([1., 2.])}, name="d")
+
+def pre_scale(step, marble, device):
+    step["params"]["x"] = step["params"]["x"].to(device) * 3
+
+def post_add(step, result, marble, device):
+    return result + 1
+
+pipe.register_pre_hook("d", pre_scale)
+pipe.register_post_hook("d", post_add)
+print(pipe.execute()[0])  # tensor([7., 13.])
+```
+
+Avoid side effects inside hooks and promptly release any GPU tensors to prevent
+memory leaks.
+
 ## Project 1 – Numeric Regression (Easy)
 
 **Goal:** Train MARBLE on a simple numeric dataset.

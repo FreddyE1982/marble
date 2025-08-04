@@ -467,22 +467,22 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Document multi-process setup and troubleshooting in README and TUTORIAL.
        - [x] Provide setup instructions and environment variables.
        - [x] Include guidance for debugging deadlocks or hangs.
-177. [ ] Add pre and post hooks for each step enabling custom behaviour.
-   - [ ] Define hook interfaces for actions before and after steps.
-       - [ ] Specify function signatures for pre and post hooks.
-       - [ ] Describe available context passed to hooks.
-   - [ ] Implement registration and ordered invocation of hooks in pipeline core.
-       - [ ] Provide API to register multiple hooks per step.
-       - [ ] Ensure hooks execute in deterministic order.
-   - [ ] Guarantee hooks operate correctly on CPU and GPU paths.
-       - [ ] Test hooks manipulating CPU tensors.
-       - [ ] Test hooks handling GPU tensors without leaks.
-   - [ ] Add tests covering hook execution and interaction with steps.
-       - [ ] Unit test hook registration and removal.
-       - [ ] Integration test hooks altering step behaviour.
-   - [ ] Document hook patterns with code samples in README and TUTORIAL.
-       - [ ] Include example demonstrating pre-processing hook.
-       - [ ] Highlight best practices for side-effect management.
+177. [x] Add pre and post hooks for each step enabling custom behaviour.
+   - [x] Define hook interfaces for actions before and after steps.
+       - [x] Specify function signatures for pre and post hooks.
+       - [x] Describe available context passed to hooks.
+   - [x] Implement registration and ordered invocation of hooks in pipeline core.
+       - [x] Provide API to register multiple hooks per step.
+       - [x] Ensure hooks execute in deterministic order.
+   - [x] Guarantee hooks operate correctly on CPU and GPU paths.
+       - [x] Test hooks manipulating CPU tensors.
+       - [x] Test hooks handling GPU tensors without leaks.
+   - [x] Add tests covering hook execution and interaction with steps.
+       - [x] Unit test hook registration and removal.
+       - [x] Integration test hooks altering step behaviour.
+   - [x] Document hook patterns with code samples in README and TUTORIAL.
+       - [x] Include example demonstrating pre-processing hook.
+       - [x] Highlight best practices for side-effect management.
 178. [ ] Provide templates to quickly generate common workflows.
    - [ ] Catalogue common workflow patterns for template generation.
        - [ ] Gather representative pipelines from existing projects.

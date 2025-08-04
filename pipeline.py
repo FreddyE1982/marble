@@ -6,7 +6,7 @@ import importlib
 import inspect
 import json
 import time
-from typing import Any, Callable
+from typing import Any, Callable, Protocol
 
 import networkx as nx
 import torch
@@ -20,6 +20,36 @@ from marble_base import MetricsVisualizer
 from marble_core import benchmark_message_passing
 
 
+class PreStepHook(Protocol):
+    """Callable executed before a pipeline step.
+
+    Parameters
+    ----------
+    step:
+        Mutable step specification dictionary.
+    marble:
+        Optional MARBLE instance supplied to :meth:`Pipeline.execute`.
+    device:
+        Torch device on which the step will run.
+    """
+
+    def __call__(self, step: dict, marble: Any | None, device: torch.device) -> None: ...
+
+
+class PostStepHook(Protocol):
+    """Callable executed after a pipeline step.
+
+    Parameters are identical to :class:`PreStepHook` with an additional
+    ``result`` argument representing the output of the step.  The hook may
+    return a replacement result which will be passed to subsequent hooks and
+    ultimately returned to the caller.
+    """
+
+    def __call__(
+        self, step: dict, result: Any, marble: Any | None, device: torch.device
+    ) -> Any: ...
+
+
 class Pipeline:
     """Sequence of function calls executable with an optional MARBLE instance."""
 
@@ -27,6 +57,10 @@ class Pipeline:
         self.steps: list[dict] = steps or []
         self._summaries: list[dict] = []
         self._benchmarks: list[dict] = []
+        # Registered hooks keyed by step name. Order of insertion is preserved
+        # to guarantee deterministic execution.
+        self._pre_hooks: dict[str, list[PreStepHook]] = {}
+        self._post_hooks: dict[str, list[PostStepHook]] = {}
 
     def add_step(
         self,
@@ -114,6 +148,28 @@ class Pipeline:
             raise IndexError("index out of range")
         self.steps[index]["frozen"] = False
 
+    # Hook management -----------------------------------------------------
+
+    def register_pre_hook(self, step_name: str, hook: PreStepHook) -> None:
+        """Register ``hook`` to run before ``step_name`` executes."""
+        self._pre_hooks.setdefault(step_name, []).append(hook)
+
+    def register_post_hook(self, step_name: str, hook: PostStepHook) -> None:
+        """Register ``hook`` to run after ``step_name`` completes."""
+        self._post_hooks.setdefault(step_name, []).append(hook)
+
+    def remove_pre_hook(self, step_name: str, hook: PreStepHook) -> None:
+        """Remove a previously registered pre-hook."""
+        hooks = self._pre_hooks.get(step_name)
+        if hooks and hook in hooks:
+            hooks.remove(hook)
+
+    def remove_post_hook(self, step_name: str, hook: PostStepHook) -> None:
+        """Remove a previously registered post-hook."""
+        hooks = self._post_hooks.get(step_name)
+        if hooks and hook in hooks:
+            hooks.remove(hook)
+
     # Dependency resolution -------------------------------------------------
 
     def _build_dependency_graph(
@@ -196,7 +252,13 @@ class Pipeline:
         for idx, step in enumerate(self.steps):
             if step.get("frozen"):
                 continue
-            label = step.get("name") or step.get("func") or step.get("plugin") or f"step_{idx}"
+            step_name = (
+                step.get("name")
+                or step.get("func")
+                or step.get("plugin")
+                or f"step_{idx}"
+            )
+            label = step_name
             global_event_bus.publish(
                 PROGRESS_EVENT,
                 ProgressEvent(
@@ -208,6 +270,8 @@ class Pipeline:
                 ).as_dict(),
             )
             wait_for_prefetch()
+            for hook in self._pre_hooks.get(step_name, []):
+                hook(step, marble, device)
             start = time.perf_counter()
             if "branches" in step:
                 container = BranchContainer(step["branches"])
@@ -273,6 +337,8 @@ class Pipeline:
                     return batches
 
                 result = asyncio.run(_drain(result))
+            for hook in self._post_hooks.get(step_name, []):
+                result = hook(step, result, marble, device)
             runtime = time.perf_counter() - start
             results.append(result)
             global_event_bus.publish(
