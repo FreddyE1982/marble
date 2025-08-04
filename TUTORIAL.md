@@ -195,6 +195,18 @@ print(pipe.execute()[0])  # tensor([7., 13.])
 Avoid side effects inside hooks and promptly release any GPU tensors to prevent
 memory leaks.
 
+### Caching Step Results
+
+When experimenting it is useful to skip recomputation. Supply a directory via
+``cache_dir`` to ``Pipeline.execute`` to persist each step's output. On later
+runs, unchanged steps load their cached result directly from disk and tensors
+are automatically restored to the active CPU or GPU device.
+
+```python
+pipe.execute(cache_dir="cache")  # first run stores results
+pipe.execute(cache_dir="cache")  # second run loads from disk
+```
+
 ## Project 1 – Numeric Regression (Easy)
 
 **Goal:** Train MARBLE on a simple numeric dataset.

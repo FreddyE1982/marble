@@ -315,6 +315,21 @@ pipe.register_pre_hook("n", pre_scale)
 pipe.execute()
 ```
 
+### Caching Step Results
+
+``Pipeline.execute`` accepts a ``cache_dir`` argument that persists each step's
+output to disk. Subsequent executions with the same step configuration load
+cached results instead of recomputing them. Cached tensors are restored to the
+current device (CPU or GPU) automatically.
+
+```python
+pipe = Pipeline()
+pipe.add_step("normalise", module="__main__", params={"t": torch.randn(4)}, name="n")
+
+pipe.execute(cache_dir="cache")  # stores result
+pipe.execute(cache_dir="cache")  # loads from disk
+```
+
 ### Automatic Neuronenblitz training loops
 
 When a pipeline step produces a dataset, MARBLE automatically constructs a
