@@ -23,13 +23,14 @@ def main() -> None:
     client = RemoteBrainClient("http://localhost:8005")
     cfg = load_config()
     marble = MARBLE(cfg["core"], remote_client=client)
+    marble.neuronenblitz.remote_timeout = 10.0
     brain = marble.brain
     brain.offload_enabled = True
     brain.lobe_manager.genesis(range(len(marble.core.neurons)))
     brain.offload_high_attention(threshold=-1.0)
     brain.train(train, epochs=1, validation_examples=val)
-    server.stop()
     print("Validation loss:", brain.validate(val))
+    server.stop()
 
 
 if __name__ == "__main__":
