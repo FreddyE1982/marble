@@ -327,17 +327,17 @@ pipe.execute(cache_dir="cache")  # second run loads from disk
    Use `export_format="onnx"` to emit an ONNX graph instead of JSON.
 10. **View metrics in your browser** by enabling `metrics_dashboard.enabled`. Set `window_size` to control the moving-average smoothing of the curves.
 11. **Gradually reduce regularization** by setting `dropout_probability` and `dropout_decay_rate` under `neuronenblitz`. A decay rate below `1.0` multiplies the current dropout value after each epoch.
-12. **Search hyperparameters** using `hyperparameter_search.grid_search` to try different learning rates or scheduler options:
+12. **Search hyperparameters** directly through the pipeline using `Pipeline.hyperparameter_search`:
    ```python
-   from hyperparameter_search import grid_search
+   from pipeline import Pipeline
 
-   def train_with_params(params):
-       cfg['neuronenblitz'].update(params)
-       marble = MARBLE(cfg['core'])
-       marble.brain.train(train_examples, epochs=3, validation_examples=val_examples)
-       return marble.brain.validate(val_examples)
+   pipe = Pipeline()
+   pipe.add_step('train_step', params={'epochs': 3}, name='train')
+   def score(outputs):
+       return outputs[-1]  # assume last step returns validation loss
 
-   results = grid_search({'learning_rate': [0.001, 0.01], 'lr_scheduler': ['none', 'cyclic']}, train_with_params)
+   grid = {'train.epochs': [1, 2]}
+   results = pipe.hyperparameter_search(grid, score, marble=marble)
    print('Best params:', results[0])
    ```
 
