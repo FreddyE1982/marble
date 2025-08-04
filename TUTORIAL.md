@@ -1972,6 +1972,48 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
       its own execution context and the merge step combines outputs once every
       branch completes.
 
+## Project: Macro Steps and Rollback
+
+This project shows how to group several operations into a macro step and how to
+roll back to a previous output when an experiment fails.
+
+1. **Create a pipeline with a macro step.** The macro groups two steps that run
+   sequentially on the available device (CPU or GPU).
+
+   ```python
+   from pipeline import Pipeline
+
+   pipe = Pipeline()
+   pipe.add_step("step_a", module="tests.dependency_steps", name="a")
+   pipe.add_macro(
+       "macro_bc",
+       [
+           {"func": "step_b", "module": "tests.dependency_steps", "name": "b"},
+           {"func": "step_c", "module": "tests.dependency_steps", "name": "c"},
+       ],
+   )
+   pipe.execute(cache_dir="cache")
+   ```
+
+2. **Simulate a failing experiment and roll back.** Modify a step so that it
+   raises an error, then restore the previous output of step ``a`` and rerun the
+   pipeline.
+
+   ```python
+   pipe.steps[1]["func"] = "failing_step"
+   pipe.steps[1]["module"] = "tests.branching_steps"
+   try:
+       pipe.execute(cache_dir="cache")
+   except RuntimeError:
+       pipe.rollback("a", "cache")
+       pipe.steps[1]["func"] = "step_b"
+       pipe.steps[1]["module"] = "tests.dependency_steps"
+   pipe.execute(cache_dir="cache")
+   ```
+
+The rollback removes any cached results after step ``a`` so the pipeline
+re-executes from that point, preserving the previous computation.
+
       Troubleshooting:
 
       - ``Dependency cycle detected`` indicates a loop in the graph.

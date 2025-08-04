@@ -48,6 +48,11 @@ pipeline:
     is chosen automatically: ``pipeline_cache_gpu`` when a CUDA device is
     available or ``pipeline_cache_cpu`` otherwise. Use ``HighLevelPipeline.clear_cache()``
     to remove cached files when space is needed.
+  macro: A step may include a ``macro`` field containing a list of sub-step
+    dictionaries. These sub-steps execute sequentially and return a list of
+    results, allowing complex workflows to be bundled into a single step within
+    the YAML description. Macros honour dependencies, hooks and caching on both
+    CPU and GPU devices.
 
 sync:
   interval_ms: Number of milliseconds between background tensor synchronization cycles

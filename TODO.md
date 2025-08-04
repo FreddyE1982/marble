@@ -590,16 +590,16 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Implement Validate configuration of each step using marble core schemas with CPU/GPU support.
    - [x] Add tests validating Validate configuration of each step using marble core schemas.
    - [x] Document Validate configuration of each step using marble core schemas in README and TUTORIAL.
-188. [ ] Group multiple operations into macro steps for convenience.
-   - [ ] Outline design for Group multiple operations into macro steps for convenience.
-   - [ ] Implement Group multiple operations into macro steps for convenience with CPU/GPU support.
-   - [ ] Add tests validating Group multiple operations into macro steps for convenience.
-   - [ ] Document Group multiple operations into macro steps for convenience in README and TUTORIAL.
-189. [ ] Roll back to earlier step outputs when experiments go wrong.
-   - [ ] Outline design for Roll back to earlier step outputs when experiments go wrong.
-   - [ ] Implement Roll back to earlier step outputs when experiments go wrong with CPU/GPU support.
-   - [ ] Add tests validating Roll back to earlier step outputs when experiments go wrong.
-   - [ ] Document Roll back to earlier step outputs when experiments go wrong in README and TUTORIAL.
+188. [x] Group multiple operations into macro steps for convenience.
+   - [x] Outline design for Group multiple operations into macro steps for convenience.
+   - [x] Implement Group multiple operations into macro steps for convenience with CPU/GPU support.
+   - [x] Add tests validating Group multiple operations into macro steps for convenience.
+   - [x] Document Group multiple operations into macro steps for convenience in README and TUTORIAL.
+189. [x] Roll back to earlier step outputs when experiments go wrong.
+   - [x] Outline design for Roll back to earlier step outputs when experiments go wrong.
+   - [x] Implement Roll back to earlier step outputs when experiments go wrong with CPU/GPU support.
+   - [x] Add tests validating Roll back to earlier step outputs when experiments go wrong.
+   - [x] Document Roll back to earlier step outputs when experiments go wrong in README and TUTORIAL.
 190. [ ] Integrate hyperparameter search that plugs directly into the pipeline engine.
    - [ ] Outline design for Integrate hyperparameter search that plugs directly into the pipeline engine.
    - [ ] Implement Integrate hyperparameter search that plugs directly into the pipeline engine with CPU/GPU support.

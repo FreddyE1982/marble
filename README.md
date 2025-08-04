@@ -356,6 +356,42 @@ pipe.execute(cache_dir="cache")  # stores result
 pipe.execute(cache_dir="cache")  # loads from disk
 ```
 
+### Macro Steps
+
+Multiple operations can be grouped into a single *macro* step for convenience.
+Macros execute a list of regular steps sequentially and return the collected
+results.  They honour dependencies, pre/post hooks and on-disk caching just
+like standalone steps.
+
+```python
+from pipeline import Pipeline
+
+pipe = Pipeline()
+pipe.add_step("step_a", module="tests.dependency_steps", name="a")
+pipe.add_macro(
+    "macro_bc",
+    [
+        {"func": "step_b", "module": "tests.dependency_steps", "name": "b"},
+        {"func": "step_c", "module": "tests.dependency_steps", "name": "c"},
+    ],
+)
+pipe.execute()
+```
+
+### Rolling Back to Earlier Outputs
+
+When experimentation goes wrong, ``Pipeline.rollback`` restores the cached
+result of a previous step and discards later outputs so that the pipeline can be
+re-run from that point.
+
+```python
+pipe.execute(cache_dir="cache")
+# ...modify steps and run again, producing undesirable results...
+previous = pipe.rollback("a", "cache")
+print(previous)  # cached output of step "a"
+pipe.execute(cache_dir="cache")  # reruns steps after "a"
+```
+
 ### Automatic Model Export
 
 `Pipeline.execute` can persist the trained model as a final step by supplying
