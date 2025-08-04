@@ -475,8 +475,15 @@ def test_pipeline_tab_graph_and_clear():
 def test_pipeline_step_visualisation():
     at = _setup_advanced_playground()
     pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
-    expanders = [e.label for e in pipe_tab.expander]
-    assert "Step Visualisation" in expanders
+
+    add_expander = pipe_tab.expander[1]
+    add_expander.selectbox[0].set_value("increase_marble_representation")
+    add_expander.number_input[0].set_value(2)
+    at = add_expander.button[0].click().run(timeout=20)
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+
+    vis_exp = next(e for e in pipe_tab.expander if e.label == "Step Visualisation")
+    assert any("delta" in j.value for j in vis_exp.json)
 
 
 def test_lobe_manager_actions():
