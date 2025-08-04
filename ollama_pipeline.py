@@ -12,9 +12,10 @@ four high level steps:
    :func:`pytorch_to_marble.convert_model`.
 3. Register the resulting core with an Ollama server so that prompts can be
    served through the standard ``ollama`` API.
-4. Train the core on user supplied ``(prompt, response)`` pairs using the
-   :class:`UnifiedPairsPipeline` and finally generate replies for the provided
-   prompts via :func:`ollama_interop.chat_with_history`.
+4. Provide an interactive console allowing users to converse with the model
+   while continually fine‑tuning it on the conversation history.  Training
+   pairs are constructed from the last ``history_limit`` messages (user and
+   assistant) ensuring that the model learns from recent context.
 
 The plugin automatically utilises GPU acceleration when ``cuda`` is
 available, falling back to CPU otherwise.  All heavyweight external
@@ -39,19 +40,33 @@ from unified_pairs_pipeline import UnifiedPairsPipeline
 from autoencoder_learning import AutoencoderLearner
 
 
+def _format_history(history: List[dict[str, str]]) -> str:
+    """Return ``history`` formatted as ``"role: content"`` lines."""
+
+    return "\n".join(f"{m['role']}: {m['content']}" for m in history)
+
+
 class OllamaInteractiveTrainingPlugin(PipelinePlugin):
     """Pipeline plugin that fine-tunes an Ollama model based on user pairs."""
 
     def __init__(
         self,
         model: str,
-        interactions: Iterable[Tuple[str, str]],
+        interactions: Iterable[Tuple[str, str]] | None = None,
         epochs: int = 1,
+        history_limit: int = 10,
     ) -> None:
-        super().__init__(model=model, interactions=list(interactions), epochs=int(epochs))
+        interactions = [] if interactions is None else list(interactions)
+        super().__init__(
+            model=model,
+            interactions=interactions,
+            epochs=int(epochs),
+            history_limit=int(history_limit),
+        )
         self.model_name = model
-        self.interactions = list(interactions)
+        self.interactions = interactions
         self.epochs = int(epochs)
+        self.history_limit = int(history_limit)
         self.history: List[dict[str, str]] = []
 
     def initialise(self, device: torch.device, marble: Core | None = None) -> None:
@@ -67,22 +82,48 @@ class OllamaInteractiveTrainingPlugin(PipelinePlugin):
         register_core(self.core, self.model_name)
 
     def execute(self, device: torch.device, marble: Core | None = None):
-        # Train the core on the provided (prompt, response) interactions.
         pipeline = UnifiedPairsPipeline(
             self.core,
             {"autoencoder": AutoencoderLearner(self.core, self.nb)},
             tokenizer=None,
             use_vocab=False,
         )
-        pipeline.train(self.interactions, epochs=self.epochs)
-        # After training, generate responses for the prompts to verify that the
-        # model has been registered correctly with Ollama.
+
+        if self.interactions:
+            pipeline.train(self.interactions, epochs=self.epochs)
+            for prompt, _expected in self.interactions:
+                resp, self.history = chat_with_history(
+                    self.core,
+                    self.model_name,
+                    prompt,
+                    self.history,
+                    history_limit=self.history_limit,
+                )
+
         outputs = []
-        for prompt, _expected in self.interactions:
+        while True:
+            try:
+                user_message = input("user> ")
+            except (EOFError, KeyboardInterrupt):
+                print()
+                break
+            if user_message.strip().lower() in {"quit", "exit"}:
+                break
+
             resp, self.history = chat_with_history(
-                self.core, self.model_name, prompt, self.history, history_limit=10
+                self.core,
+                self.model_name,
+                user_message,
+                self.history,
+                history_limit=self.history_limit,
             )
+            assistant_msg = resp.get("message", {}).get("content", "")
+            print(f"assistant> {assistant_msg}")
+            context_history = self.history[:-1][-self.history_limit:]
+            context_text = _format_history(context_history)
+            pipeline.train([(context_text, assistant_msg)], epochs=self.epochs)
             outputs.append(resp)
+
         return {"core": self.core, "responses": outputs, "history": self.history}
 
 
