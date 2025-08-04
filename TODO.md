@@ -1432,13 +1432,19 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Ensure parallel wanderers yield consistent results.
             - [x] Set up small world simulation with multiple wanderers.
             - [x] Compare outputs and convergence metrics.
-        - [ ] Test prompt cache operations under load.
-            - [ ] Fill cache with synthetic prompts.
-            - [ ] Measure latency and eviction behaviour.
+        - [x] Test prompt cache operations under load.
+            - [x] Fill cache with synthetic prompts.
+            - [x] Measure latency and eviction behaviour.
     - [ ] Verify CUDA fallbacks for all new modules.
-        - [ ] Run tests forcing CPU execution.
-            - [ ] Set environment variable to disable CUDA.
-            - [ ] Execute each module's test suite.
+        - [ ] QuantizedTensor CPU path.
+            - [ ] Force CPU execution for quantized tensor tests.
+            - [ ] Confirm outputs match GPU path.
+        - [ ] Parallel wanderers CPU fallback.
+            - [ ] Disable CUDA and run wanderer tests.
+            - [ ] Document any discrepancies.
+        - [ ] PromptMemory CPU performance baseline.
+            - [ ] Run load tests with CUDA disabled.
+            - [ ] Compare timings with GPU-enabled runs.
         - [ ] Document any GPU-only limitations.
             - [ ] Record modules lacking CPU implementation.
             - [ ] Update README with limitation notes.

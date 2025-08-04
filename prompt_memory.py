@@ -17,6 +17,10 @@ class PromptMemory:
         self.max_size = max_size
         self._data: Deque[Dict[str, str]] = deque(maxlen=max_size)
 
+    def __len__(self) -> int:
+        """Return the number of stored records."""
+        return len(self._data)
+
     def add(self, inp: str, out: str) -> None:
         """Add a new `(input, output)` pair to the memory."""
         self._data.append({"input": inp, "output": out, "timestamp": time()})
