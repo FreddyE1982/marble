@@ -113,6 +113,41 @@ pipeline. Invalid or corrupted pairs can be removed at any time with
 ``BitTensorDataset.prune_invalid`` which accepts a callback to check decoded
 objects.
 
+### Streaming Dataset Step
+
+``StreamingDatasetStep`` wraps a ``BitTensorDataset`` iterator and prefetches
+batches in an asynchronous background task. Tensors are moved to the requested
+device (CPU or GPU) before emission so downstream steps receive ready-to-use
+batches. When executed inside a ``Pipeline`` the step is automatically drained
+and returns a list of batch dictionaries with ``"inputs"`` and ``"targets"``
+tensors.
+
+```python
+from datasets import load_dataset
+from bit_tensor_dataset import BitTensorDataset
+from pipeline import Pipeline
+import marble_interface
+
+# Download a real dataset and take a small streaming subset
+raw = load_dataset("ag_news", split="train", streaming=True)
+pairs = [(rec["text"], str(rec["label"])) for rec in raw.take(200)]
+dataset = BitTensorDataset(pairs, device="cpu")
+
+pipe = Pipeline([
+    {
+        "func": "streaming_dataset_step",
+        "module": "marble_interface",
+        "params": {"dataset": dataset, "batch_size": 32, "prefetch": 4, "device": "cuda"},
+    }
+])
+batches = pipe.execute()[0]
+print(f"Streamed {len(batches)} batches")
+```
+
+This example uses Hugging Face's ``datasets`` library to stream the AG News data
+without storing it locally. The step transparently pins memory for efficient
+CPU→GPU transfers and supports mixed CPU/GPU pipelines.
+
 Datasets can now be cached on disk using ``BitTensorDataset.cached`` to avoid
 re-encoding pairs on subsequent runs. Deterministic splitting into training,
 validation and test sets is available via ``split_deterministic`` which hashes

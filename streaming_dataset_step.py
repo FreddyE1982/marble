@@ -67,9 +67,12 @@ class StreamingDatasetStep:
                 try:
                     for _ in range(self.batch_size):
                         inp, tgt = next(iterator)
-                        if self.device.type != inp.device.type:
-                            inp = inp.to(self.device, non_blocking=True)
-                            tgt = tgt.to(self.device, non_blocking=True)
+                        if self.device.type == "cuda" and inp.device.type == "cpu":
+                            inp = inp.pin_memory().to(self.device, non_blocking=True)
+                            tgt = tgt.pin_memory().to(self.device, non_blocking=True)
+                        elif self.device.type != inp.device.type:
+                            inp = inp.to(self.device)
+                            tgt = tgt.to(self.device)
                         inputs.append(inp)
                         targets.append(tgt)
                 except StopIteration:
