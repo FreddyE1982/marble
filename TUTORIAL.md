@@ -2565,3 +2565,39 @@ the tensors to CUDA for zero-copy processing.
 
 Run `python project41_chat_training.py` to experiment with live conversation fine-tuning.
 
+
+### Project: Interactive Ollama Training Pipeline
+
+This project demonstrates how to convert an Ollama model into a MARBLE `Core`
+using the new `OllamaInteractiveTrainingPlugin` and fine‑tune it with
+conversation pairs.
+
+1. **Prepare a small dataset** of prompts and desired replies.  The example
+   below uses the Stanford Sentiment Treebank which can be downloaded via the
+   `datasets` library:
+   ```python
+   from datasets import load_dataset
+
+   raw = load_dataset("sst2", split="train[:10]")
+   pairs = [
+       (rec["sentence"], "positive" if rec["label"] else "negative")
+       for rec in raw
+   ]
+   ```
+2. **Create a pipeline with the plugin and execute it**.  The plugin pulls the
+   model from Ollama, converts it and trains on the provided pairs:
+   ```python
+   from pipeline import Pipeline
+   from ollama_pipeline import OllamaInteractiveTrainingPlugin
+
+   pipe = Pipeline([
+       {"plugin": "ollama_interactive_train", "params": {"model": "llama3", "interactions": pairs}}
+   ])
+   result = pipe.execute()[0]
+   print(result["responses"][0]["message"]["content"])
+   ```
+3. **Inspect the conversation history** stored in `result["history"]` to review
+   how the assistant responded to each prompt after training.
+
+The plugin uses GPU acceleration when available and falls back to CPU
+otherwise.
