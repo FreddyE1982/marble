@@ -40,6 +40,8 @@ import torch
 import yaml
 from bit_tensor_dataset import BitTensorDataset
 from PIL import Image
+from event_bus import PROGRESS_EVENT, ProgressEvent, global_event_bus
+from pipeline import Pipeline
 
 from huggingface_utils import (
     hf_load_dataset as load_hf_dataset,
@@ -79,6 +81,32 @@ from bit_tensor_dataset import (
 )
 from marble_registry import MarbleRegistry
 from metrics_dashboard import MetricsDashboard
+
+
+def _detect_device() -> str:
+    """Detect whether the UI is viewed on desktop or mobile."""
+    if "device" in st.session_state:
+        return st.session_state["device"]
+    params = st.experimental_get_query_params()
+    if "device" in params:
+        st.session_state["device"] = params["device"][0]
+        return st.session_state["device"]
+    components.html(
+        """
+        <script>
+        const device = window.innerWidth < 768 ? 'mobile' : 'desktop';
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('device') !== device) {
+            params.set('device', device);
+            window.location.search = params.toString();
+        }
+        </script>
+        """,
+        height=0,
+    )
+    params = st.experimental_get_query_params()
+    st.session_state["device"] = params.get("device", ["desktop"])[0]
+    return st.session_state["device"]
 
 
 def _auto_refresh(interval_ms: int, key: str) -> None:
@@ -1456,11 +1484,13 @@ def run_playground() -> None:
     """Launch the Streamlit MARBLE playground."""
     st.set_page_config(page_title="MARBLE Playground", layout="wide")
     _detect_client_settings()
+    _detect_device()
     params = st.experimental_get_query_params()
     theme = params.get("theme", ["light"])[0]
     mobile = params.get("mobile", ["0"])[0] == "1"
     st.session_state["theme"] = theme
     st.session_state["mobile"] = mobile
+    st.session_state.setdefault("device", "mobile" if mobile else "desktop")
     if theme == "dark":
         st.markdown(
             "<style>body{background-color:#0e1117;color:#d0d0d0;}</style>",
@@ -2174,9 +2204,29 @@ def run_playground() -> None:
                     else:
                         st.write("Parameters: none")
             if st.button("Run Pipeline") and st.session_state["pipeline"]:
-                res = execute_function_sequence(st.session_state["pipeline"], marble)
+                is_mobile = st.session_state.get("device", "desktop") == "mobile" or st.session_state.get("mobile")
+                placeholder = st.empty()
+                bar = placeholder.progress(0.0) if not is_mobile else None
+                text_box = placeholder if is_mobile else st.empty()
+
+                def _on_progress(name, data):
+                    pct = (data["index"] + (1 if data["status"] == "completed" else 0)) / data["total"]
+                    msg = f"{data['status']}: {data['step']} ({data['device']})"
+                    st.session_state["last_progress"] = msg
+                    if bar:
+                        bar.progress(pct, text=msg)
+                    else:
+                        text_box.markdown(f"{int(pct*100)}% {msg}")
+
+                global_event_bus.subscribe(_on_progress, events=[PROGRESS_EVENT])
+                pipeline_obj = Pipeline(st.session_state["pipeline"])
+                res = pipeline_obj.execute(marble)
                 for out in res:
                     st.write(out)
+                if bar:
+                    bar.progress(1.0, text="Pipeline complete")
+                else:
+                    text_box.markdown("Pipeline complete")
             if st.button("Clear Pipeline"):
                 st.session_state["pipeline"] = []
 

@@ -419,22 +419,22 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Document branching usage with illustrative examples in README and TUTORIAL.
        - [x] Provide code sample demonstrating two-branch pipeline.
        - [x] Explain when branching is advantageous.
-174. [ ] Send real-time progress events to the GUI during pipeline execution.
-   - [ ] Define event schema and integrate with existing message bus.
-       - [ ] Specify fields included in progress events.
-       - [ ] Wire schema into current message bus definitions.
-   - [ ] Implement progress emitter in pipeline core with CPU/GPU hooks.
-       - [ ] Emit events at key step boundaries.
-       - [ ] Include device information in emitted data.
-   - [ ] Update Streamlit GUI to subscribe and render live progress updates.
-       - [ ] Register listener consuming progress events.
-       - [ ] Display updates in desktop and mobile layouts.
-   - [ ] Add tests checking event emission and GUI rendering on desktop and mobile.
-       - [ ] Unit test event publishing mechanisms.
-       - [ ] GUI tests verifying updates appear in both form factors.
-   - [ ] Document progress event workflow in README and TUTORIAL.
-       - [ ] Describe event flow from pipeline to GUI.
-       - [ ] Add troubleshooting section for missing updates.
+174. [x] Send real-time progress events to the GUI during pipeline execution.
+   - [x] Define event schema and integrate with existing message bus.
+       - [x] Specify fields included in progress events.
+       - [x] Wire schema into current message bus definitions.
+   - [x] Implement progress emitter in pipeline core with CPU/GPU hooks.
+       - [x] Emit events at key step boundaries.
+       - [x] Include device information in emitted data.
+   - [x] Update Streamlit GUI to subscribe and render live progress updates.
+       - [x] Register listener consuming progress events.
+       - [x] Display updates in desktop and mobile layouts.
+   - [x] Add tests checking event emission and GUI rendering on desktop and mobile.
+       - [x] Unit test event publishing mechanisms.
+       - [x] GUI tests verifying updates appear in both form factors.
+   - [x] Document progress event workflow in README and TUTORIAL.
+       - [x] Describe event flow from pipeline to GUI.
+       - [x] Add troubleshooting section for missing updates.
 175. [ ] Recover gracefully from remote failures with retry logic.
    - [ ] Specify retry policies and backoff strategies for remote calls.
        - [ ] Define default retry counts and delay schedules.
