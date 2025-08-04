@@ -1746,6 +1746,28 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
       pipe.execute()
       ```
 
+      Branching allows running alternative steps in parallel.  Create two
+      branches and merge their results with ``add_branch``:
+
+      ```python
+      from pipeline import Pipeline
+
+      pipe = Pipeline()
+      pipe.add_branch(
+          branches=[
+              [{"func": "branch_a", "module": "my_steps"}],
+              [{"func": "branch_b", "module": "my_steps"}],
+          ],
+          merge={"func": "merge_branches", "module": "my_steps"},
+      )
+      pipe.execute()
+      ```
+
+      Use branching when you want to compare preprocessing options or model
+      architectures without running separate experiments.  Each branch receives
+      its own execution context and the merge step combines outputs once every
+      branch completes.
+
       Troubleshooting:
 
       - ``Dependency cycle detected`` indicates a loop in the graph.

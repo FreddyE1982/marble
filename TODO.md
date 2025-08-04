@@ -403,22 +403,22 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Document dependency configuration and troubleshooting in README and TUTORIAL.
        - [x] Provide examples of declaring step dependencies.
        - [x] Include troubleshooting tips for cycle and ordering issues.
-173. [ ] Allow branching paths in a pipeline to explore alternative experiment flows.
-   - [ ] Design branch step abstraction and merge semantics.
-       - [ ] Define API for creating branch and merge nodes.
-       - [ ] Specify rules for combining outputs from branches.
-   - [ ] Implement branching container enabling parallel sub-pipelines.
-       - [ ] Develop container managing branch execution contexts.
-       - [ ] Ensure synchronization points after branch completion.
-   - [ ] Handle CPU/GPU resource allocation across concurrent branches.
-       - [ ] Plan device assignment for branch workloads.
-       - [ ] Monitor memory usage to avoid overcommit.
-   - [ ] Add tests verifying branch execution, merging, and error handling.
-       - [ ] Cover normal branch merging scenarios.
-       - [ ] Simulate failures within branches to test recovery.
-   - [ ] Document branching usage with illustrative examples in README and TUTORIAL.
-       - [ ] Provide code sample demonstrating two-branch pipeline.
-       - [ ] Explain when branching is advantageous.
+173. [x] Allow branching paths in a pipeline to explore alternative experiment flows.
+   - [x] Design branch step abstraction and merge semantics.
+       - [x] Define API for creating branch and merge nodes.
+       - [x] Specify rules for combining outputs from branches.
+   - [x] Implement branching container enabling parallel sub-pipelines.
+       - [x] Develop container managing branch execution contexts.
+       - [x] Ensure synchronization points after branch completion.
+   - [x] Handle CPU/GPU resource allocation across concurrent branches.
+       - [x] Plan device assignment for branch workloads.
+       - [x] Monitor memory usage to avoid overcommit.
+   - [x] Add tests verifying branch execution, merging, and error handling.
+       - [x] Cover normal branch merging scenarios.
+       - [x] Simulate failures within branches to test recovery.
+   - [x] Document branching usage with illustrative examples in README and TUTORIAL.
+       - [x] Provide code sample demonstrating two-branch pipeline.
+       - [x] Explain when branching is advantageous.
 174. [ ] Send real-time progress events to the GUI during pipeline execution.
    - [ ] Define event schema and integrate with existing message bus.
        - [ ] Specify fields included in progress events.
