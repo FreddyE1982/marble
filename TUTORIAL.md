@@ -340,6 +340,7 @@ pipe.execute(cache_dir="cache")  # second run loads from disk
    results = pipe.hyperparameter_search(grid, score, marble=marble)
    print('Best params:', results[0])
    ```
+   The helper moves tensors back to the CPU for scoring and empties the GPU cache between trials so even long searches run reliably on limited hardware.
 
 **Complete Example**
 ```python

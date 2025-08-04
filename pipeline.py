@@ -681,6 +681,16 @@ class Pipeline:
         from copy import deepcopy
         from hyperparameter_search import grid_search, random_search
 
+        def _to_cpu(obj: Any) -> Any:
+            """Recursively move tensors in ``obj`` to CPU."""
+            if isinstance(obj, torch.Tensor):
+                return obj.detach().cpu()
+            if isinstance(obj, dict):
+                return {k: _to_cpu(v) for k, v in obj.items()}
+            if isinstance(obj, (list, tuple)):
+                return [_to_cpu(v) for v in obj]
+            return obj
+
         def run(params: dict[str, Any]) -> float:
             original = deepcopy(self.steps)
             try:
@@ -699,9 +709,12 @@ class Pipeline:
                     else:
                         raise KeyError(f"Unknown step '{step_name}'")
                 results = self.execute(marble, **execute_kwargs)
-                score = float(score_func(results))
+                score = float(score_func(_to_cpu(results)))
             finally:
                 self.steps = deepcopy(original)
+                if torch.cuda.is_available():
+                    torch.cuda.synchronize()
+                    torch.cuda.empty_cache()
             return score
 
         if search == "grid":
