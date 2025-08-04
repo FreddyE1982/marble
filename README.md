@@ -740,6 +740,34 @@ def convert_my_layer(layer, core, inputs):
 Any occurrence of `MyCustomLayer` in the PyTorch model will be converted using
 the provided function.
 
+## Workflow Templates
+
+Starter pipelines for common workflows can be generated with
+`workflow_template_generator.py`.  Available templates and their
+descriptions are listed with:
+
+```bash
+python workflow_template_generator.py --list
+```
+
+To create a new pipeline file from a template run:
+
+```bash
+python workflow_template_generator.py classification my_pipeline.py
+```
+
+The generated code automatically selects `cuda` when a GPU is
+available and otherwise falls back to CPU.  Override the default
+device via `--device`:
+
+```bash
+python workflow_template_generator.py classification my_pipeline.py --device cpu
+```
+
+Each template provides executable scaffolding with clearly marked
+sections for custom data loading and processing so projects can be
+bootstrapped quickly.
+
 ## Release Process
 To publish a new release to PyPI:
 1. Update the version number in `pyproject.toml` and `setup.py`.
