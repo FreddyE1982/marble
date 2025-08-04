@@ -9,7 +9,7 @@ import json
 import time
 import shutil
 from pathlib import Path
-from typing import Any, Callable, Protocol
+from typing import Any, Callable, Protocol, Iterable, Mapping
 
 import networkx as nx
 import torch
@@ -209,8 +209,11 @@ class Pipeline:
             step["merge"] = merge
         if depends_on:
             step["depends_on"] = list(depends_on)
-        for branch in branches:
-            for s in branch:
+        for i, branch in enumerate(branches):
+            for j, s in enumerate(branch):
+                if "name" not in s:
+                    base = s.get("plugin") or s.get("func") or "step"
+                    s["name"] = f"{base}_{i}_{j}"
                 validate_step_schema(s)
         validate_step_schema(step)
         self.steps.append(step)
@@ -640,6 +643,74 @@ class Pipeline:
     def benchmarks(self) -> list[dict]:
         """Return benchmark results collected during :meth:`execute`."""
         return list(self._benchmarks)
+
+    def hyperparameter_search(
+        self,
+        param_grid: Mapping[str, Iterable[Any]],
+        score_func: Callable[[list[Any]], float],
+        *,
+        search: str = "grid",
+        num_samples: int | None = None,
+        marble: Any | None = None,
+        **execute_kwargs,
+    ) -> list[tuple[dict[str, Any], float]]:
+        """Run a hyperparameter search over pipeline step parameters.
+
+        ``param_grid`` maps keys of the form ``"step.param"`` to iterables of
+        possible values.  For each sampled combination the pipeline is executed
+        and ``score_func`` is called with the resulting list of step outputs.
+        The function should return a numeric score where lower values are
+        considered better.
+
+        Parameters
+        ----------
+        param_grid:
+            Mapping from ``"step.param"`` keys to value options.
+        score_func:
+            Callable evaluating pipeline results and returning a numeric score.
+        search:
+            Either ``"grid"`` or ``"random"`` to select the search strategy.
+        num_samples:
+            Number of random samples when ``search="random"``.
+        marble:
+            Optional MARBLE instance forwarded to :meth:`execute`.
+        execute_kwargs:
+            Additional keyword arguments forwarded to :meth:`execute`.
+        """
+
+        from copy import deepcopy
+        from hyperparameter_search import grid_search, random_search
+
+        def run(params: dict[str, Any]) -> float:
+            original = deepcopy(self.steps)
+            try:
+                for key, value in params.items():
+                    step_name, param_name = key.split(".", 1)
+                    for s in self.steps:
+                        name = (
+                            s.get("name")
+                            or s.get("func")
+                            or s.get("plugin")
+                            or ""
+                        )
+                        if name == step_name:
+                            s.setdefault("params", {})[param_name] = value
+                            break
+                    else:
+                        raise KeyError(f"Unknown step '{step_name}'")
+                results = self.execute(marble, **execute_kwargs)
+                score = float(score_func(results))
+            finally:
+                self.steps = deepcopy(original)
+            return score
+
+        if search == "grid":
+            return grid_search(param_grid, run)
+        if search == "random":
+            if num_samples is None:
+                raise ValueError("num_samples required for random search")
+            return random_search(param_grid, run, num_samples)
+        raise ValueError("search must be 'grid' or 'random'")
 
     def rollback(
         self, step_name: str, cache_dir: str | Path, *, device: torch.device | None = None

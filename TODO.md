@@ -600,11 +600,11 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Implement Roll back to earlier step outputs when experiments go wrong with CPU/GPU support.
    - [x] Add tests validating Roll back to earlier step outputs when experiments go wrong.
    - [x] Document Roll back to earlier step outputs when experiments go wrong in README and TUTORIAL.
-190. [ ] Integrate hyperparameter search that plugs directly into the pipeline engine.
-   - [ ] Outline design for Integrate hyperparameter search that plugs directly into the pipeline engine.
-   - [ ] Implement Integrate hyperparameter search that plugs directly into the pipeline engine with CPU/GPU support.
-   - [ ] Add tests validating Integrate hyperparameter search that plugs directly into the pipeline engine.
-   - [ ] Document Integrate hyperparameter search that plugs directly into the pipeline engine in README and TUTORIAL.
+190. [x] Integrate hyperparameter search that plugs directly into the pipeline engine.
+   - [x] Outline design for Integrate hyperparameter search that plugs directly into the pipeline engine.
+   - [x] Implement Integrate hyperparameter search that plugs directly into the pipeline engine with CPU/GPU support.
+   - [x] Add tests validating Integrate hyperparameter search that plugs directly into the pipeline engine.
+   - [x] Document Integrate hyperparameter search that plugs directly into the pipeline engine in README and TUTORIAL.
 191. [ ] Schedule individual steps on remote hardware tiers seamlessly.
    - [ ] Outline design for Schedule individual steps on remote hardware tiers seamlessly.
    - [ ] Implement Schedule individual steps on remote hardware tiers seamlessly with CPU/GPU support.

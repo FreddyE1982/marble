@@ -126,12 +126,23 @@ def main() -> None:
     if args.grid_search:
         import yaml
 
-        from hyperparameter_search import grid_search
-
         with open(args.grid_search, "r", encoding="utf-8") as f:
             param_grid = yaml.safe_load(f)
+        if args.pipeline:
+            from pipeline import Pipeline
 
-        results = grid_search(param_grid, lambda p: 0.0)
+            with open(args.pipeline, "r", encoding="utf-8") as f:
+                pipe = Pipeline.load_json(f)
+
+            def score_fn(outputs):
+                last = outputs[-1]
+                return float(last) if isinstance(last, (int, float)) else 0.0
+
+            results = pipe.hyperparameter_search(param_grid, score_fn, marble=marble)
+        else:
+            from hyperparameter_search import grid_search
+
+            results = grid_search(param_grid, lambda p: 0.0)
         print(results)
         return
     if args.no_early_stop:
