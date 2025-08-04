@@ -27,12 +27,17 @@ STEP_SCHEMA: dict = {
             },
         },
         "merge": {"type": "object"},
+        "macro": {
+            "type": "array",
+            "items": {"$ref": "#"},
+        },
     },
     "required": ["name"],
     "anyOf": [
         {"required": ["func"]},
         {"required": ["plugin"]},
         {"required": ["branches"]},
+        {"required": ["macro"]},
     ],
 }
 

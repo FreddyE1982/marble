@@ -7,6 +7,7 @@ import importlib
 import inspect
 import json
 import time
+import shutil
 from pathlib import Path
 from typing import Any, Callable, Protocol
 
@@ -150,6 +151,35 @@ class Pipeline:
             step["module"] = module
         if plugin is not None:
             step["plugin"] = plugin
+        if depends_on:
+            step["depends_on"] = list(depends_on)
+        validate_step_schema(step)
+        self.steps.append(step)
+
+    def add_macro(
+        self,
+        name: str,
+        steps: list[dict],
+        *,
+        depends_on: list[str] | None = None,
+    ) -> None:
+        """Add a macro step composed of multiple sub-steps.
+
+        Parameters
+        ----------
+        name:
+            Unique name identifying the macro step.
+        steps:
+            List of step dictionaries executed sequentially when the macro
+            runs. Each sub-step is validated against the pipeline schema.
+        depends_on:
+            Optional list of step names that must complete before this macro
+            executes.
+        """
+
+        for s in steps:
+            validate_step_schema(s)
+        step: dict = {"name": name, "macro": steps}
         if depends_on:
             step["depends_on"] = list(depends_on)
         validate_step_schema(step)
@@ -420,7 +450,26 @@ class Pipeline:
                     result = torch.load(cache_file, map_location=device)
                     executed = False
             if executed:
-                if "branches" in step:
+                if "macro" in step:
+                    sub_cache = cache_path / step_name if cache_path else None
+                    sub_pipeline = Pipeline(step["macro"])
+                    # Share hooks so macros participate in global pre/post
+                    sub_pipeline._pre_hooks = self._pre_hooks
+                    sub_pipeline._post_hooks = self._post_hooks
+                    result = sub_pipeline.execute(
+                        marble,
+                        metrics_visualizer=metrics_visualizer,
+                        benchmark_iterations=benchmark_iterations,
+                        preallocate_neurons=0,
+                        preallocate_synapses=0,
+                        log_callback=log_callback,
+                        debug_hook=debug_hook,
+                        cache_dir=sub_cache,
+                    )
+                    self._summaries.extend(sub_pipeline._summaries)
+                    self._benchmarks.extend(sub_pipeline._benchmarks)
+                    func_name = "macro"
+                elif "branches" in step:
                     container = BranchContainer(step["branches"])
                     branch_outputs = asyncio.run(
                         container.run(
@@ -591,6 +640,45 @@ class Pipeline:
     def benchmarks(self) -> list[dict]:
         """Return benchmark results collected during :meth:`execute`."""
         return list(self._benchmarks)
+
+    def rollback(
+        self, step_name: str, cache_dir: str | Path, *, device: torch.device | None = None
+    ) -> Any:
+        """Load cached output of ``step_name`` and discard later results.
+
+        This utility is useful when experimentation produces undesirable
+        outcomes. By rolling back to a previous step the pipeline can be
+        re-executed from that point without recomputing earlier steps.  Cached
+        files for steps after ``step_name`` are deleted so subsequent runs start
+        fresh.  The loaded result is returned for immediate inspection.
+        """
+
+        cache_path = Path(cache_dir)
+        device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        ordered = self._topological_sort(self.steps)
+        target_file = None
+        for idx, step in enumerate(ordered):
+            name = step.get("name") or step.get("func") or step.get("plugin") or f"step_{idx}"
+            spec_bytes = json.dumps(step, sort_keys=True).encode("utf-8")
+            digest = hashlib.sha256(spec_bytes).hexdigest()
+            file = cache_path / f"{idx}_{name}_{digest}.pt"
+            if name == step_name:
+                target_file = file
+                remove_from = idx + 1
+                break
+        if target_file is None or not target_file.exists():
+            raise ValueError(f"No cached result for step '{step_name}'")
+        # Delete cached outputs of later steps
+        for j in range(remove_from, len(ordered)):
+            s = ordered[j]
+            n = s.get("name") or s.get("func") or s.get("plugin") or f"step_{j}"
+            # Remove any cached file regardless of previous digest
+            for cached in cache_path.glob(f"{j}_{n}_*.pt"):
+                cached.unlink()
+            subdir = cache_path / n
+            if subdir.exists() and subdir.is_dir():
+                shutil.rmtree(subdir)
+        return torch.load(target_file, map_location=device)
 
     def diff_config(self, other_steps: list[dict]) -> str:
         """Return unified diff between ``other_steps`` and ``self.steps``."""

@@ -20,6 +20,7 @@ Each entry is listed under its section heading.
 ## pipeline
 - async_enabled
 - cache_dir
+- macro (step field allowing a list of sub-steps)
 
 ## sync
 - interval_ms
