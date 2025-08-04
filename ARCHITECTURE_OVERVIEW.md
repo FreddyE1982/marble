@@ -98,6 +98,16 @@ Input -> DataLoader.encode -> Brain.train/dynamic_wander ->
 Core/Neuronenblitz -> DataLoader.decode -> Output
 ```
 
+## Automatic Model Export Step
+
+`Pipeline.execute` appends an `export_model` plugin after all user-defined
+steps when an ``export_path`` is supplied. This final plugin serializes the
+trained MARBLE core to disk—either as JSON or, when ``export_format="onnx"``
+is specified, as an ONNX graph. The export runs on the same device selected
+for the pipeline, seamlessly handling CPU or GPU execution and creating the
+target directory if needed. The destination file path is returned as the
+last pipeline result so subsequent tooling can consume it.
+
 ## Future Extensions
 Future work could extend the compression layer to support streaming
 data sources, integrate JAX based automatic differentiation for

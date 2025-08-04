@@ -362,7 +362,8 @@ pipe.execute(cache_dir="cache")  # loads from disk
 the `export_path` argument. The pipeline appends an `export_model` step that
 writes the MARBLE core to the given location in JSON format by default. Set
 `export_format="onnx"` to export an ONNX graph instead. Both modes operate on
-CPU and GPU transparently.
+CPU and GPU transparently, running on the same device as earlier steps and
+returning the destination path as the final pipeline result.
 
 ```python
 from pipeline import Pipeline
