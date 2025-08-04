@@ -539,13 +539,13 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
   - [ ] Implement Offer a specialised step that consumes the new streaming `BitTensorDataset` with CPU/GPU support.
       - [x] Create step class wrapping BitTensorDataset iterator.
       - [x] Implement asynchronous data fetching compatible with CPU and GPU tensors.
-      - [ ] Integrate step into pipeline execution engine.
-          - [ ] Expose factory function in `marble_interface`.
-          - [ ] Auto-consume streams in `Pipeline.execute`.
+      - [x] Integrate step into pipeline execution engine.
+          - [x] Expose factory function in `marble_interface`.
+          - [x] Auto-consume streams in `Pipeline.execute`.
   - [ ] Add tests validating Offer a specialised step that consumes the new streaming `BitTensorDataset`.
       - [x] Unit test streaming step with synthetic dataset.
-      - [ ] Stress test behaviour under variable stream rates.
-      - [ ] Verify GPU execution matches CPU results.
+      - [x] Stress test behaviour under variable stream rates.
+      - [x] Verify GPU execution matches CPU results.
    - [ ] Document Offer a specialised step that consumes the new streaming `BitTensorDataset` in README and TUTORIAL.
        - [ ] Explain configuration and usage in README.
        - [ ] Add tutorial section showing streaming dataset pipeline.

@@ -5,6 +5,7 @@ import inspect
 import json
 import difflib
 import time
+import asyncio
 from typing import Any, Callable
 import torch
 
@@ -85,6 +86,15 @@ class Pipeline:
             params = step.get("params", {})
             start = time.perf_counter()
             result = self._execute_function(module_name, func_name, marble, params)
+            if hasattr(result, "next_batch") and hasattr(result, "is_finished"):
+                async def _drain(step):
+                    batches = []
+                    async for batch in step:
+                        batches.append(batch)
+                    step.close()
+                    return batches
+
+                result = asyncio.run(_drain(result))
             runtime = time.perf_counter() - start
             results.append(result)
             if log_callback is not None:
