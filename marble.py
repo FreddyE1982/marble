@@ -1,25 +1,28 @@
-import os
-import torch
-import numpy as np
-import tarfile
-import requests
-import time
-from pathlib import Path
-from tqdm.notebook import tqdm  # For Jupyter-optimized progress bars
-from PIL import Image
-import matplotlib.pyplot as plt
-from tokenizers import Tokenizer
-import pickle
-from data_compressor import DataCompressor
-import random
-import math
-import sympy as sp
 import functools
-from marble_core import Neuron, Synapse, Core
+import math
+import os
+import pickle
+import random
+import tarfile
 import threading
+import time
 from datetime import datetime
-from marble_imports import cp
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+import requests
+import sympy as sp
+import torch
 import torch.nn as nn
+from PIL import Image
+from tokenizers import Tokenizer
+from tqdm.notebook import tqdm  # For Jupyter-optimized progress bars
+
+from data_compressor import DataCompressor
+from dream_replay_buffer import DreamExperience, DreamReplayBuffer
+from marble_core import Core, Neuron, Synapse
+from marble_imports import cp
 
 
 def clear_output(wait: bool = True) -> None:
@@ -191,7 +194,6 @@ class MetricsVisualizer:
     def log_event(self, name: str, data: dict | None = None) -> None:
         """Record a training event with optional details."""
         self.events.append((name, data or {}))
-
 
     def plot_metrics(self):
         self.ax.clear()
@@ -705,7 +707,7 @@ class Neuronenblitz:
                     f"Structural plasticity: Replaced synapse from {source.id} (tier {source.tier}) to {target.id} with new neuron {new_id} in tier {new_tier}."
                 )
 
-    def train_example(self, input_value, target_value):
+    def train_example(self, input_value, target_value, dream_buffer=None):
         output_value, path = self.dynamic_wander(input_value)
         error = self._compute_loss(target_value, output_value)
         if self.dataloader is not None:
@@ -717,6 +719,17 @@ class Neuronenblitz:
             syn.weight += delta
             if random.random() < self.consolidation_probability:
                 syn.weight *= self.consolidation_strength
+        if dream_buffer is not None:
+            reward = max(1.0 - abs(float(error)), 0.0)
+            exp = DreamExperience(
+                input_value=float(input_value),
+                target_value=float(target_value),
+                reward=reward,
+                emotion=0.5,
+                arousal=0.5,
+                stress=0.0,
+            )
+            dream_buffer.add(exp)
         self.training_history.append(
             {
                 "input": input_value,
@@ -728,11 +741,13 @@ class Neuronenblitz:
         )
         return output_value, error, path
 
-    def train(self, examples, epochs=1):
+    def train(self, examples, epochs=1, dream_buffer=None):
         for epoch in range(epochs):
             epoch_errors = []
             for input_val, target_val in examples:
-                output, error, _ = self.train_example(input_val, target_val)
+                output, error, _ = self.train_example(
+                    input_val, target_val, dream_buffer=dream_buffer
+                )
                 epoch_errors.append(
                     abs(error) if isinstance(error, (int, float)) else 0
                 )
@@ -763,6 +778,11 @@ class Brain:
         max_saved_models=5,
         save_dir="saved_models",
         firing_interval_ms=500,
+        dream_replay_buffer_size: int = 100,
+        dream_replay_batch_size: int = 8,
+        dream_replay_weighting: str = "linear",
+        dream_cycle_sleep: float = 0.1,
+        dream_synapse_decay: float = 0.995,
     ):
         self.core = core
         self.neuronenblitz = neuronenblitz
@@ -777,6 +797,13 @@ class Brain:
         self.dreaming_active = False
         self.dream_thread = None
 
+        self.dream_buffer = DreamReplayBuffer(
+            dream_replay_buffer_size, weighting=dream_replay_weighting
+        )
+        self.dream_replay_batch_size = dream_replay_batch_size
+        self.dream_cycle_sleep = dream_cycle_sleep
+        self.dream_synapse_decay = dream_synapse_decay
+
         os.makedirs(self.save_dir, exist_ok=True)
         self.best_validation_loss = float("inf")
         self.saved_model_paths = []
@@ -784,7 +811,9 @@ class Brain:
     def train(self, train_examples, epochs=1, validation_examples=None):
         pbar = tqdm(range(epochs), desc="Epochs", ncols=100)
         for epoch in pbar:
-            self.neuronenblitz.train(train_examples, epochs=1)
+            self.neuronenblitz.train(
+                train_examples, epochs=1, dream_buffer=self.dream_buffer
+            )
             if validation_examples is not None:
                 val_loss = self.validate(validation_examples)
             else:
@@ -859,14 +888,21 @@ class Brain:
     def dream(self, num_cycles=10):
         print("Dreaming started...")
         for cycle in range(num_cycles):
-            random_input = random.uniform(0.0, 1.0)
-            output, path = self.neuronenblitz.dynamic_wander(random_input)
-            for syn in path:
-                syn.weight *= 0.995
-            print(
-                f"Dream cycle {cycle+1}/{num_cycles}: output = {output:.4f}, path length = {len(path)}"
-            )
-            time.sleep(0.1)
+            batch = self.dream_buffer.sample(self.dream_replay_batch_size)
+            if batch:
+                for exp in batch:
+                    _, _, path = self.neuronenblitz.train_example(
+                        exp.input_value, exp.target_value
+                    )
+                    for syn in path:
+                        syn.weight *= self.dream_synapse_decay
+            else:
+                random_input = random.uniform(0.0, 1.0)
+                _, path = self.neuronenblitz.dynamic_wander(random_input)
+                for syn in path:
+                    syn.weight *= self.dream_synapse_decay
+            time.sleep(self.dream_cycle_sleep)
+            print(f"Dream cycle {cycle+1}/{num_cycles} completed")
         print("Dreaming completed.")
 
     def start_dreaming(self, num_cycles=10, interval=5):

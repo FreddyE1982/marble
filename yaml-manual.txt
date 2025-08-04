@@ -670,6 +670,19 @@ brain:
     probability scales with the current validation loss.
   dream_cycle_sleep: Seconds to wait between dream cycles. Increase to reduce
     CPU usage during prolonged dreaming.
+  dream_replay_buffer_size: Maximum number of past experiences stored for
+    consolidation during dreaming. When the buffer exceeds this size,
+    experiences with the lowest salience are evicted. Typical values range
+    from ``50`` to ``1000`` depending on available memory.
+  dream_replay_batch_size: Number of experiences sampled from the replay
+    buffer in each dream cycle. Batches between ``1`` and ``32`` work well for
+    small experiments. Larger batches increase consolidation speed but require
+    more computation.
+  dream_replay_weighting: Weighting strategy for sampling experiences from the
+    replay buffer. ``"linear"`` biases selection proportionally to experience
+    salience, while ``"exponential"`` applies ``exp(salience)`` giving even
+    stronger preference to high-salience memories. Other values fall back to
+    linear weighting.
   tier_decision_params:
     vram_usage_threshold: Fraction of VRAM usage that triggers migration of
       neurons to a lower tier.
