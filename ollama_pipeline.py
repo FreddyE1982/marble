@@ -30,9 +30,12 @@ import torch
 
 import ollama
 from transformers import AutoModelForCausalLM
+from pathlib import Path
 
 from marble_core import Core
 from marble_neuronenblitz import Neuronenblitz
+from marble_interface import MARBLE, save_marble_system
+from marble_utils import core_to_json
 from ollama_interop import chat_with_history, register_core
 from pipeline_plugins import PipelinePlugin, register_plugin
 from pytorch_to_marble import convert_model
@@ -124,7 +127,32 @@ class OllamaInteractiveTrainingPlugin(PipelinePlugin):
             pipeline.train([(context_text, assistant_msg)], epochs=self.epochs)
             outputs.append(resp)
 
-        return {"core": self.core, "responses": outputs, "history": self.history}
+        paths = self._save_session()
+        return {
+            "core": self.core,
+            "responses": outputs,
+            "history": self.history,
+            **paths,
+        }
+
+    def _save_session(self) -> dict[str, str]:
+        """Persist model state and topology to ``saved_models``."""
+
+        model_dir = Path("saved_models")
+        model_dir.mkdir(exist_ok=True)
+        marble = MARBLE(self.core.params)
+        marble.core = self.core
+        marble.neuronenblitz.core = self.core
+        marble.brain.core = self.core
+        state_path = model_dir / f"{self.model_name}_session.marble"
+        save_marble_system(marble, str(state_path))
+        topo_path = model_dir / f"{self.model_name}_topology.json"
+        with open(topo_path, "w", encoding="utf-8") as f:
+            f.write(core_to_json(self.core))
+        return {
+            "state_path": str(state_path),
+            "topology_path": str(topo_path),
+        }
 
 
 register_plugin("ollama_interactive_train", OllamaInteractiveTrainingPlugin)
