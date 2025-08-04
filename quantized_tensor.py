@@ -70,6 +70,28 @@ class QuantizedTensor:
         """Return the packed bit representation."""
         return self.bits
 
+    def to(self, device: torch.device | str) -> "QuantizedTensor":
+        """Return a copy of this tensor on ``device``.
+
+        Parameters
+        ----------
+        device:
+            Target device for the returned quantized tensor. Can be a string or
+            :class:`torch.device` instance.
+        """
+
+        target = torch.device(device)
+        if target == self.device:
+            return self
+        return QuantizedTensor(
+            bits=self.bits.to(target),
+            shape=self.shape,
+            scale=self.scale,
+            zero_point=self.zero_point,
+            bit_width=self.bit_width,
+            device=target,
+        )
+
     def state_dict(self) -> Dict[str, Any]:
         """Serialize tensor to a Python dict."""
         return {
