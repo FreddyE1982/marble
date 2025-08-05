@@ -1447,9 +1447,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] QuantizedTensor CPU path.
             - [x] Force CPU execution for quantized tensor tests.
             - [x] Confirm outputs match GPU path.
-        - [ ] Parallel wanderers CPU fallback.
-            - [ ] Disable CUDA and run wanderer tests.
-            - [ ] Document any discrepancies.
+        - [x] Parallel wanderers CPU fallback.
+            - [x] Disable CUDA and run wanderer tests.
+            - [x] Document any discrepancies (none observed).
         - [ ] PromptMemory CPU performance baseline.
             - [ ] Run load tests with CUDA disabled.
             - [ ] Compare timings with GPU-enabled runs.
