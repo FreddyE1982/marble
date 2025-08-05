@@ -18,6 +18,7 @@ def _load_kernel():
         name="marble_activation_cuda",
         cpp_sources="""
 #include <torch/extension.h>
+#include <algorithm>
 
 void marble_activation_launcher(const at::Tensor& x, at::Tensor& y,
                                 float threshold, float a, float b, float c);
@@ -32,13 +33,39 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
 #include <cuda_runtime.h>
 #include <torch/extension.h>
 
-__global__ void marble_activation_kernel(const float* x, float* y,
+// Optimized MARBLE activation kernel leveraging vectorized loads,
+// grid-stride loops and branchless computation for maximum throughput.
+__global__ void marble_activation_kernel(const float* __restrict__ x,
+                                         float* __restrict__ y,
                                          float threshold, float a, float b, float c,
                                          long n) {
     long idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx < n) {
-        float v = x[idx];
-        y[idx] = v > threshold ? a * v + b : c * v;
+    long stride = blockDim.x * gridDim.x;
+
+    long n4 = n / 4;
+    const float4* x4 = reinterpret_cast<const float4*>(x);
+    float4* y4 = reinterpret_cast<float4*>(y);
+
+    for (long i = idx; i < n4; i += stride) {
+        float4 xv = x4[i];
+        float4 out;
+
+        float m = xv.x > threshold;
+        out.x = __fmaf_rn(xv.x, m * a + (1.f - m) * c, m * b);
+        m = xv.y > threshold;
+        out.y = __fmaf_rn(xv.y, m * a + (1.f - m) * c, m * b);
+        m = xv.z > threshold;
+        out.z = __fmaf_rn(xv.z, m * a + (1.f - m) * c, m * b);
+        m = xv.w > threshold;
+        out.w = __fmaf_rn(xv.w, m * a + (1.f - m) * c, m * b);
+
+        y4[i] = out;
+    }
+
+    for (long i = n4 * 4 + idx; i < n; i += stride) {
+        float v = x[i];
+        float m = v > threshold;
+        y[i] = __fmaf_rn(v, m * a + (1.f - m) * c, m * b);
     }
 }
 
@@ -46,7 +73,7 @@ void marble_activation_launcher(const at::Tensor& x, at::Tensor& y,
                                 float threshold, float a, float b, float c) {
     const long n = x.numel();
     const int threads = 256;
-    const int blocks = (n + threads - 1) / threads;
+    const int blocks = std::min<int>((n + threads - 1) / threads, 65535);
     marble_activation_kernel<<<blocks, threads>>>(x.data_ptr<float>(),
                                                   y.data_ptr<float>(),
                                                   threshold, a, b, c, n);

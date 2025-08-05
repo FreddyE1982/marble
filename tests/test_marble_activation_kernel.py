@@ -27,3 +27,12 @@ def test_gpu_matches_cpu():
     y = marble_activation(x, threshold=0.1, a=1.5, b=0.2, c=0.7)
     y.sum().backward()
     assert x.grad is not None
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA is not available")
+def test_gpu_handles_non_multiple_of_four():
+    x = torch.randn(1000, device="cuda")  # deliberately not divisible by 4
+    cpu = x.cpu()
+    out_gpu = marble_activation(x, threshold=-0.3, a=0.8, b=0.1, c=1.2)
+    out_cpu = marble_activation(cpu, threshold=-0.3, a=0.8, b=0.1, c=1.2)
+    assert torch.allclose(out_gpu.cpu(), out_cpu, atol=1e-6)
