@@ -17,7 +17,8 @@ from marble_base import MetricsVisualizer
 from torch.utils.data import Dataset
 
 import marble_interface
-from bit_tensor_dataset import BitTensorDataset
+from bit_tensor_dataset import BitTensorDataset, bytes_to_object, tensors_to_bytes
+from marble_neuronenblitz import Neuronenblitz
 
 
 class _ModuleWrapper:
@@ -265,6 +266,68 @@ class HighLevelPipeline:
                 names.append(f"{mod}.{step['func']}")
         return names
 
+    def _is_dataset_step(self, step: dict) -> bool:
+        """Return ``True`` if ``step`` appears to produce a dataset."""
+
+        name = ""
+        if "func" in step:
+            name = step["func"]
+        elif "callable" in step:
+            name = step["callable"].__name__
+        return "dataset" in name.lower()
+
+    def _train_neuronenblitz(
+        self, nb: Neuronenblitz, dataset, device: torch.device, epochs: int = 1
+    ) -> None:
+        """Train ``nb`` on ``dataset`` which may be a list of batches."""
+        
+        def _decode(t: torch.Tensor):
+            if isinstance(t, torch.Tensor) and t.dtype in {torch.uint8, torch.int32, torch.int64}:
+                try:
+                    return bytes_to_object(tensors_to_bytes(t.cpu()))
+                except Exception:
+                    return t
+            return t
+
+        if (
+            isinstance(dataset, list)
+            and dataset
+            and isinstance(dataset[0], dict)
+            and "inputs" in dataset[0]
+        ):
+            for batch in dataset:
+                inputs = batch.get("inputs")
+                targets = batch.get("targets")
+                if not isinstance(inputs, torch.Tensor) or not isinstance(targets, torch.Tensor):
+                    continue
+                pairs = []
+                for inp_t, tgt_t in zip(inputs, targets):
+                    inp = _decode(inp_t)
+                    tgt = _decode(tgt_t)
+                    if isinstance(inp, torch.Tensor):
+                        inp = inp.to(device)
+                    if isinstance(tgt, torch.Tensor):
+                        tgt = tgt.to(device)
+                    pairs.append((inp, tgt))
+                if pairs:
+                    nb.train(pairs, epochs=epochs)
+            return
+
+        prepared = []
+        for item in dataset:
+            if not isinstance(item, (list, tuple)) or len(item) < 2:
+                continue
+            inp, tgt = item[0], item[1]
+            inp = _decode(inp)
+            tgt = _decode(tgt)
+            if isinstance(inp, torch.Tensor):
+                inp = inp.to(device)
+            if isinstance(tgt, torch.Tensor):
+                tgt = tgt.to(device)
+            prepared.append((inp, tgt))
+        if prepared:
+            nb.train(prepared, epochs=epochs)
+
     def _execute_steps(
         self,
         steps: list[dict],
@@ -332,9 +395,26 @@ class HighLevelPipeline:
                 os.makedirs(self.cache_dir, exist_ok=True)
                 with open(cache_path, "wb") as f:
                     pickle.dump(result, f)
+            if hasattr(result, "next_batch") and hasattr(result, "is_finished"):
+                async def _drain(step):
+                    batches = []
+                    async for batch in step:
+                        batches.append(batch)
+                    step.close()
+                    return batches
+
+                result = asyncio.run(_drain(result))
             found = self._extract_marble(result)
             if found is not None:
                 current_marble = found
+            if (
+                isinstance(current_marble, Neuronenblitz)
+                and self._is_dataset_step(step)
+                and isinstance(result, list)
+            ):
+                epochs = int(step.get("params", {}).get("epochs", 1))
+                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                self._train_neuronenblitz(current_marble, result, device, epochs=epochs)
             results.append(result)
         return current_marble, results
 
@@ -408,9 +488,28 @@ class HighLevelPipeline:
                 os.makedirs(self.cache_dir, exist_ok=True)
                 with open(cache_path, "wb") as f:
                     pickle.dump(result, f)
+            if hasattr(result, "next_batch") and hasattr(result, "is_finished"):
+                batches = []
+                async for batch in result:
+                    batches.append(batch)
+                result.close()
+                result = batches
             found = self._extract_marble(result)
             if found is not None:
                 current_marble = found
+            if (
+                isinstance(current_marble, Neuronenblitz)
+                and self._is_dataset_step(step)
+                and isinstance(result, list)
+            ):
+                epochs = int(step.get("params", {}).get("epochs", 1))
+                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                await loop.run_in_executor(
+                    None,
+                    lambda: self._train_neuronenblitz(
+                        current_marble, result, device, epochs=epochs
+                    ),
+                )
             results.append(result)
         return current_marble, results
 

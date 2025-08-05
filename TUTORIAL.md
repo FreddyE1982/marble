@@ -201,6 +201,19 @@ The background producer moves tensors to the target device and the pipeline
 automatically consumes the stream, yielding a list of batches for further
 processing.
 
+4. **Train directly from streamed shards** by passing a ``Neuronenblitz``
+   instance to ``Pipeline.execute``. Each batch is transferred to the active
+   device and used immediately for training:
+
+   ```python
+   from marble_neuronenblitz import Neuronenblitz
+   from marble_core import Core
+
+   nb = Neuronenblitz(Core({}))
+   pipe.execute(nb)
+   print("Trained on", len(nb.training_history), "batches")
+   ```
+
 ### Customising Steps with Hooks
 
 The :class:`pipeline.Pipeline` supports registering callables that run before
@@ -2072,6 +2085,10 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    needed. Custom callables may be added as steps and any MARBLE instance returned
    (even inside tuples or dictionaries) becomes the active system for the
    following operations.
+   Passing a ``Neuronenblitz`` model to ``HighLevelPipeline.execute`` automatically
+   trains it whenever a step name contains ``dataset``. Streaming shards from
+   ``streaming_dataset_step`` are consumed batch by batch so large corpora can be
+   learned without manual loops.
     - Set ``pipeline.async_enabled: true`` in ``config.yaml`` or pass
       ``async_enabled=True`` to ``HighLevelPipeline`` to overlap data loading and
       computation using ``asyncio``.

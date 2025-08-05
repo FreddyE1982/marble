@@ -152,6 +152,12 @@ This example uses Hugging Face's ``datasets`` library to stream the AG News data
 without storing it locally. The step transparently pins memory for efficient
 CPU→GPU transfers and supports mixed CPU/GPU pipelines.
 
+When a ``Pipeline`` or ``HighLevelPipeline`` is executed with a
+``Neuronenblitz`` instance, these streamed batches are fed directly into
+training. Each shard is moved to the active CPU or GPU before invoking
+``Neuronenblitz.train`` so large datasets can be learned from without keeping
+all pairs in memory.
+
 Datasets can now be cached on disk using ``BitTensorDataset.cached`` to avoid
 re-encoding pairs on subsequent runs. Deterministic splitting into training,
 validation and test sets is available via ``split_deterministic`` which hashes
@@ -636,6 +642,10 @@ can be added directly as methods while any repository module can be accessed via
 attribute notation, for example ``HighLevelPipeline().plugin_system.load_plugins``
 which appends a call to ``plugin_system.load_plugins``.
 Nested modules are automatically resolved so ``HighLevelPipeline().marble_neuronenblitz.learning.enable_rl`` works as expected.
+When a ``Neuronenblitz`` instance is passed to ``HighLevelPipeline.execute`` any
+step whose name contains "dataset" triggers immediate training. This includes
+datasets streamed in shards, allowing high level workflows to learn from large
+sources without manual training loops.
 
 Pipeline execution emits structured progress events on the global message bus.
 Each ``pipeline_progress`` event includes ``step``, ``index``, ``total``,

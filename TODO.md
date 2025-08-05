@@ -717,16 +717,16 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 212. [x] Provide a CLI wrapper so pipelines can run without writing Python code.
 213. [x] Detect GPU availability and adapt pipeline behaviour automatically.
 214. [x] Persist vocabulary mappings for reuse across multiple runs.
-215. [ ] Train directly from streamed dataset shards loaded via pipeline steps.
-   - [ ] Outline design for Train directly from streamed dataset shards loaded via pipeline steps.
-   - [ ] Implement Train directly from streamed dataset shards loaded via pipeline steps with CPU/GPU support.
-   - [ ] Add tests validating Train directly from streamed dataset shards loaded via pipeline steps.
-   - [ ] Document Train directly from streamed dataset shards loaded via pipeline steps in README and TUTORIAL.
-216. [ ] Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements.
-   - [ ] Outline design for Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements.
-   - [ ] Implement Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements with CPU/GPU support.
-   - [ ] Add tests validating Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements.
-   - [ ] Document Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements in README and TUTORIAL.
+215. [x] Train directly from streamed dataset shards loaded via pipeline steps.
+   - [x] Outline design for Train directly from streamed dataset shards loaded via pipeline steps.
+   - [x] Implement Train directly from streamed dataset shards loaded via pipeline steps with CPU/GPU support.
+   - [x] Add tests validating Train directly from streamed dataset shards loaded via pipeline steps.
+   - [x] Document Train directly from streamed dataset shards loaded via pipeline steps in README and TUTORIAL.
+216. [x] Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements.
+   - [x] Outline design for Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements.
+   - [x] Implement Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements with CPU/GPU support.
+   - [x] Add tests validating Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements.
+   - [x] Document Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements in README and TUTORIAL.
 217. [ ] Support streaming dataset shards during Neuronenblitz training to keep the model responsive.
    - [ ] Outline design for Support streaming dataset shards during Neuronenblitz training to keep the model responsive.
    - [ ] Implement Support streaming dataset shards during Neuronenblitz training to keep the model responsive with CPU/GPU support.
