@@ -54,6 +54,10 @@ shards training data:
 - `shard_index` – the shard index handled by this process.
 - `offline` – disable remote downloads for fully local operation.
 - `encryption_key` – optional key used to encrypt on-disk dataset caches.
+When pipelines use parallel branches, the framework automatically assigns each
+branch a unique ``shard_index`` so dataset shards are distributed evenly across
+branches. This keeps parallel pipelines processing disjoint data without manual
+parameter tweaks.
 
 Logging behaviour is configured under the `logging` section:
 
@@ -679,6 +683,10 @@ devices. Specify a module implementing ``get_remote_tier`` under
 ``GrpcRemoteTier`` communicates with a gRPC service for acceleration. See
 [``docs/public_api.md``](docs/public_api.md#remote-hardware-plugins) for details
 on writing custom tiers.
+Individual pipeline steps can target these tiers by adding a ``tier`` field to
+their specification. When present, the step executes on the named remote tier
+while other steps continue locally, allowing seamless mixing of local CPU/GPU
+work and specialised hardware.
 A dedicated **Metrics** tab graphs loss, memory usage and other statistics in
 real time inside the browser. A **System Stats** tab displays current CPU and
 GPU memory usage. Another **Documentation** tab provides quick access to the

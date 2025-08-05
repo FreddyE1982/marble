@@ -577,7 +577,9 @@ For specialised accelerators, implement a remote hardware plugin exposing a
 ``remote_hardware.tier_plugin`` in ``config.yaml``. During training the core
 will delegate heavy computations to the custom tier, enabling seamless use of
 non‑standard devices. Refer to [public_api.md](docs/public_api.md#remote-hardware-plugins)
-for the programming interface.
+for the programming interface. Individual pipeline steps can opt in to remote
+execution by including a ``tier`` field with the name of the registered tier.
+Steps without this field continue to run locally on CPU or GPU as usual.
 
 ## Project 3b – Remote Inference API (Medium)
 
@@ -1909,6 +1911,10 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
        dataloader=dataloader,
    )
    ```
+   When defining parallel ``branches`` in a pipeline, ``BranchContainer`` sets
+   ``num_shards`` to the number of branches and assigns each branch a unique
+   ``shard_index`` automatically. This distributes large datasets across
+   parallel pipelines with no extra configuration.
 4. **Create and train a MARBLE system** using a pandas dataframe:
    ```python
    import pandas as pd

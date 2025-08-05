@@ -612,16 +612,16 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Implement Integrate hyperparameter search that plugs directly into the pipeline engine with CPU/GPU support.
    - [x] Add tests validating Integrate hyperparameter search that plugs directly into the pipeline engine.
    - [x] Document Integrate hyperparameter search that plugs directly into the pipeline engine in README and TUTORIAL.
-191. [ ] Schedule individual steps on remote hardware tiers seamlessly.
-   - [ ] Outline design for Schedule individual steps on remote hardware tiers seamlessly.
-   - [ ] Implement Schedule individual steps on remote hardware tiers seamlessly with CPU/GPU support.
-   - [ ] Add tests validating Schedule individual steps on remote hardware tiers seamlessly.
-   - [ ] Document Schedule individual steps on remote hardware tiers seamlessly in README and TUTORIAL.
-192. [ ] Distribute dataset shards across parallel pipelines.
-   - [ ] Outline design for Distribute dataset shards across parallel pipelines.
-   - [ ] Implement Distribute dataset shards across parallel pipelines with CPU/GPU support.
-   - [ ] Add tests validating Distribute dataset shards across parallel pipelines.
-   - [ ] Document Distribute dataset shards across parallel pipelines in README and TUTORIAL.
+191. [x] Schedule individual steps on remote hardware tiers seamlessly.
+   - [x] Outline design for Schedule individual steps on remote hardware tiers seamlessly.
+   - [x] Implement Schedule individual steps on remote hardware tiers seamlessly with CPU/GPU support.
+   - [x] Add tests validating Schedule individual steps on remote hardware tiers seamlessly.
+   - [x] Document Schedule individual steps on remote hardware tiers seamlessly in README and TUTORIAL.
+192. [x] Distribute dataset shards across parallel pipelines.
+   - [x] Outline design for Distribute dataset shards across parallel pipelines.
+   - [x] Implement Distribute dataset shards across parallel pipelines with CPU/GPU support.
+   - [x] Add tests validating Distribute dataset shards across parallel pipelines.
+   - [x] Document Distribute dataset shards across parallel pipelines in README and TUTORIAL.
 193. [ ] Estimate resource needs ahead of execution to inform the memory manager.
    - [ ] Outline design for Estimate resource needs ahead of execution to inform the memory manager.
    - [ ] Implement Estimate resource needs ahead of execution to inform the memory manager with CPU/GPU support.

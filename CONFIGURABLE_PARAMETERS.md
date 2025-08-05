@@ -21,6 +21,7 @@ Each entry is listed under its section heading.
 - async_enabled
 - cache_dir
 - macro (step field allowing a list of sub-steps)
+- tier (step field selecting a remote hardware tier)
 
 ## sync
 - interval_ms

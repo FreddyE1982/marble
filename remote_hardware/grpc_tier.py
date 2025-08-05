@@ -52,6 +52,15 @@ class GrpcRemoteTier(RemoteTier):
                 time.sleep(self.backoff_factor * (2**attempt))
                 self.connect()
 
+    def run_step(self, step, marble, device):
+        """Execute a pipeline step on the remote tier.
+
+        The gRPC tier only supports core offloading and therefore does not
+        implement step execution. Subclasses targeting specific services should
+        override this method.
+        """
+        raise NotImplementedError("gRPC tier does not support run_step")
+
     def close(self) -> None:
         """Close the gRPC channel."""
         if self.channel:

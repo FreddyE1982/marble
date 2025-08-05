@@ -44,13 +44,18 @@ class BranchContainer:
         marble: Any,
         kwargs: dict,
         sem: asyncio.Semaphore | None = None,
+        *,
+        branch_idx: int,
+        num_branches: int,
     ) -> Any:
         steps_with_device: List[dict] = []
         for s in steps:
             s = dict(s)
             params = dict(s.get("params", {}))
-            # allow steps to know their device without overriding explicit params
+            # allow steps to know their device and shard without overriding explicit params
             params.setdefault("device", device.type)
+            params.setdefault("num_shards", num_branches)
+            params.setdefault("shard_index", branch_idx)
             s["params"] = params
             steps_with_device.append(s)
 
@@ -83,8 +88,16 @@ class BranchContainer:
             else None
         )
         tasks = [
-            self._run_branch(steps, dev, marble, kwargs, sem)
-            for steps, dev in zip(self.branches, devices)
+            self._run_branch(
+                steps,
+                dev,
+                marble,
+                kwargs,
+                sem,
+                branch_idx=idx,
+                num_branches=len(self.branches),
+            )
+            for idx, (steps, dev) in enumerate(zip(self.branches, devices))
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         for r in results:
