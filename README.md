@@ -831,6 +831,10 @@ When tuning a new task consider the following workflow:
 3. Once a stable range is found, explore `representation_size` and `message_passing_alpha` which strongly influence capacity and convergence speed.
 4. Monitor GPU and CPU usage using the metrics dashboard to ensure batch size and dimensionality fit your hardware budget.
 5. Keep `gradient_clip_value` low (around `1.0`) when experimenting with very large learning rates or aggressive neurogenesis.
+6. Overlap data loading and backpropagation via `AsyncGradientAccumulator`. It
+   schedules loss computation in background threads and applies optimiser steps
+   once a configurable number of micro-batches have been processed, keeping the
+   pipeline responsive on both CPU and GPU.
 
 Documenting the parameters of each run with the new experiment tracker makes it easy to compare results later.
 
