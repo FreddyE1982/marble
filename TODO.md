@@ -328,26 +328,26 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [ ] Run cache stress tests on CPU and record metrics.
         - [ ] Run cache stress tests on GPU and record metrics.
         - [ ] Compare results and document performance findings.
-169. [ ] Support checkpointing and resuming pipelines with dataset version tracking.
+169. [x] Support checkpointing and resuming pipelines with dataset version tracking.
     - [x] Track `dataset_version` within `HighLevelPipeline` instances.
     - [x] Implement `save_checkpoint` and `load_checkpoint` methods.
     - [x] Test saving and loading pipelines with version metadata.
-    - [ ] Provide CLI commands to create and resume checkpoints.
-        - [ ] Add command to generate checkpoints from running pipelines.
-        - [ ] Add command to resume pipelines from saved checkpoints.
-        - [ ] Include CPU/GPU flags and usage help.
-    - [ ] Validate checkpoints across CPU and GPU environments.
-        - [ ] Test saving and loading on CPU-only setups.
-        - [ ] Test saving and loading on GPU-enabled setups.
-        - [ ] Ensure outputs match across devices.
-    - [ ] Document versioned checkpoint workflow in README and TUTORIAL.
-        - [ ] Explain checkpoint commands in README.
-        - [ ] Add tutorial section demonstrating save and resume.
-        - [ ] Review documentation for clarity.
-    - [ ] Add integration tests simulating interrupted runs and resume behaviour.
-        - [ ] Interrupt and resume training on CPU.
-        - [ ] Interrupt and resume training on GPU.
-        - [ ] Confirm dataset versions persist across resumes.
+    - [x] Provide CLI commands to create and resume checkpoints.
+        - [x] Add command to generate checkpoints from running pipelines.
+        - [x] Add command to resume pipelines from saved checkpoints.
+        - [x] Include CPU/GPU flags and usage help.
+    - [x] Validate checkpoints across CPU and GPU environments.
+        - [x] Test saving and loading on CPU-only setups.
+        - [x] Test saving and loading on GPU-enabled setups.
+        - [x] Ensure outputs match across devices.
+    - [x] Document versioned checkpoint workflow in README and TUTORIAL.
+        - [x] Explain checkpoint commands in README.
+        - [x] Add tutorial section demonstrating save and resume.
+        - [x] Review documentation for clarity.
+    - [x] Add integration tests simulating interrupted runs and resume behaviour.
+        - [x] Interrupt and resume training on CPU.
+        - [x] Interrupt and resume training on GPU.
+        - [x] Confirm dataset versions persist across resumes.
 170. [ ] Provide interactive step visualisation in the Streamlit GUI using dataset introspection.
     - [x] Add a "Step Visualisation" expander showing step parameters and dataset info.
     - [x] Unit tests ensuring the new expander appears in the Pipeline tab.

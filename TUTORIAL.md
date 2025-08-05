@@ -60,6 +60,44 @@ or GPU defaults into the produced script.
 - ``RuntimeError: CUDA error`` – if your system lacks a GPU, regenerate
   the template with ``--device cpu``.
 
+## Project: Checkpointing and Resuming Pipelines
+
+This project shows how to persist a pipeline with an explicit dataset version
+and later resume it even on different hardware.
+
+1. **Create a simple pipeline** and write it to JSON:
+
+   ```python
+   from highlevel_pipeline import HighLevelPipeline
+
+   pipe = HighLevelPipeline()
+   with open("demo.json", "w", encoding="utf-8") as f:
+       f.write(pipe.to_json())
+   ```
+
+2. **Run the pipeline and save a checkpoint** using the CLI:
+
+   ```bash
+   python highlevel_pipeline_cli.py checkpoint demo.json demo.pkl \
+       --config config.yaml --dataset-version v1 --device cpu
+   ```
+
+3. **Resume from the checkpoint**. The command can target CPU or GPU:
+
+   ```bash
+   python highlevel_pipeline_cli.py resume demo.pkl --config config.yaml \
+       --device gpu
+   ```
+
+4. **Inspect the stored dataset version** to confirm it persisted:
+
+   ```python
+   from highlevel_pipeline import HighLevelPipeline
+
+   loaded = HighLevelPipeline.load_checkpoint("demo.pkl")
+   print(loaded.dataset_version)
+   ```
+
 ### Data Loading and Tokenization
 
 All examples below rely on the **new** :class:`DataLoader` and the
