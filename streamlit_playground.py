@@ -85,6 +85,7 @@ from metrics_dashboard import MetricsDashboard
 from streamlit_ace import st_ace
 
 from config_editor import load_config_text, save_config_text
+from neural_pathway import find_neural_pathway, pathway_figure
 
 
 def _detect_device() -> str:
@@ -2524,14 +2525,29 @@ def run_playground() -> None:
             if "config_yaml" not in st.session_state:
                 st.session_state["config_yaml"] = load_config_text()
 
-            editor_content = st_ace(
+            _ace_kwargs = dict(
                 value=st.session_state["config_yaml"],
                 language="yaml",
                 theme="tomorrow_night",
                 key="cfg_editor",
                 show_gutter=True,
-                show_line_numbers=True,
             )
+            try:
+                editor_content = st_ace(show_line_numbers=True, **_ace_kwargs)
+            except TypeError:
+                editor_content = st_ace(**_ace_kwargs)
+
+            key_path = st.text_input("Key", key="cfg_key")
+            key_val = st.text_input("Value", key="cfg_val")
+            if st.button("Update Value", key="cfg_update") and key_path:
+                try:
+                    st.session_state["config_yaml"] = set_yaml_value(
+                        editor_content, key_path, _parse_value(key_val)
+                    )
+                    st.success("Configuration updated")
+                except Exception as e:
+                    st.error(str(e))
+            st.code(st.session_state["config_yaml"], language="yaml")
 
             if st.button("Save Configuration", key="cfg_save"):
                 try:
@@ -2840,6 +2856,25 @@ def run_playground() -> None:
                     st.dataframe(pd.DataFrame(hist), use_container_width=True)
                 else:
                     st.info("No history available")
+
+            with st.expander("Neural Pathway Inspector"):
+                start = st.number_input(
+                    "Start Neuron", min_value=0, value=0, step=1, key="path_start"
+                )
+                end = st.number_input(
+                    "End Neuron", min_value=0, value=0, step=1, key="path_end"
+                )
+                if st.button("Find Pathway", key="path_find"):
+                    device = "cuda" if torch.cuda.is_available() else "cpu"
+                    path = find_neural_pathway(
+                        marble.get_core(), int(start), int(end), device=device
+                    )
+                    if path:
+                        st.write(f"Path: {path}")
+                        fig = pathway_figure(marble.get_core(), path)
+                        st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.warning("No pathway found between selected neurons")
 
         with tab_proj:
             st.write("Run example projects to explore MARBLE's capabilities.")

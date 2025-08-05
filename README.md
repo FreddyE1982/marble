@@ -614,6 +614,8 @@ or GPU. Pipelines may be saved to or loaded from JSON for reuse outside the GUI.
 The playground now also includes a **Model Conversion** tab for loading any
 pretrained model from the Hugging Face Hub and converting it into a MARBLE
 system with one click.
+The **NB Explorer** tab contains a *Neural Pathway Inspector* that computes and
+visualizes signal routes between any two neurons on CPU or GPU.
 Pipelines can be imported or exported as JSON and a **Custom Code** tab lets you
 run arbitrary Python snippets with the active MARBLE instance.
 Pipeline steps may also be reordered or removed directly from the UI. The same
