@@ -1418,9 +1418,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Export graph as `{"nodes": [...], "edges": [...]}` in core.
         - [x] Gather neuron and synapse metadata into structured dicts.
         - [ ] Support incremental updates for dynamic graphs.
-    - [ ] Add `/graph` API endpoint.
-        - [ ] Implement endpoint returning serialized graph JSON.
-        - [ ] Secure endpoint with optional authentication.
+    - [x] Add `/graph` API endpoint.
+        - [x] Implement endpoint returning serialized graph JSON.
+        - [x] Secure endpoint with optional authentication.
     - [ ] Render graph with `plotly.graph_objects.Sankey` or `pyvis.network` and add sliders for filtering.
         - [ ] Build reusable visualization component.
         - [ ] Provide sliders for weight and degree thresholds.
