@@ -305,29 +305,29 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Implement `execute_async` public method executing the entire pipeline asynchronously.
     - [x] Unit tests verifying asynchronous execution with mixed coroutine and blocking steps.
     - [x] Expose `pipeline.async_enabled` configuration option with CPU and GPU support.
-    - [ ] Benchmark asynchronous execution on CPU and GPU to quantify speedup.
-        - [ ] Establish synchronous baseline timings on CPU.
-        - [ ] Measure asynchronous execution timings on CPU.
-        - [ ] Establish synchronous baseline timings on GPU.
-        - [ ] Measure asynchronous execution timings on GPU.
-        - [ ] Compile and analyse speedup results.
+    - [x] Benchmark asynchronous execution on CPU and GPU to quantify speedup.
+        - [x] Establish synchronous baseline timings on CPU.
+        - [x] Measure asynchronous execution timings on CPU.
+        - [x] Establish synchronous baseline timings on GPU.
+        - [x] Measure asynchronous execution timings on GPU.
+        - [x] Compile and analyse speedup results.
     - [x] Document asynchronous pipeline usage in README and TUTORIAL.
     - [ ] Add integration tests for asynchronous execution in multi-node environments.
         - [ ] Configure multi-node CPU environment for testing.
         - [ ] Configure multi-node GPU environment for testing.
         - [ ] Verify asynchronous steps execute correctly across nodes.
-168. [ ] Cache intermediate results so iterative experiments run faster.
+168. [x] Cache intermediate results so iterative experiments run faster.
     - [x] Create file based cache storing step outputs keyed by index and function name.
     - [x] Add `clear_cache` method to remove cached files when needed.
     - [x] Unit tests demonstrating that repeated runs reuse cached results.
     - [x] Make cache directory configurable via `pipeline.cache_dir` with CPU/GPU aware paths.
     - [x] Track and display cache hit/miss statistics in the metrics dashboard.
     - [x] Document caching workflow and disk space considerations.
-    - [ ] Stress-test cache performance on large datasets for CPU and GPU runs.
-        - [ ] Prepare representative large dataset for benchmarking.
-        - [ ] Run cache stress tests on CPU and record metrics.
-        - [ ] Run cache stress tests on GPU and record metrics.
-        - [ ] Compare results and document performance findings.
+    - [x] Stress-test cache performance on large datasets for CPU and GPU runs.
+        - [x] Prepare representative large dataset for benchmarking.
+        - [x] Run cache stress tests on CPU and record metrics.
+        - [x] Run cache stress tests on GPU and record metrics.
+        - [x] Compare results and document performance findings.
 169. [x] Support checkpointing and resuming pipelines with dataset version tracking.
     - [x] Track `dataset_version` within `HighLevelPipeline` instances.
     - [x] Implement `save_checkpoint` and `load_checkpoint` methods.
