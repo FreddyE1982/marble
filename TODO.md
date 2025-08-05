@@ -1347,14 +1347,16 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 
 327. [ ] Add YAML config editor in Streamlit.
     - [ ] Add new "Config Editor" tab using `st_ace` with YAML syntax.
-        - [ ] Preload existing configuration into editor.
-        - [ ] Provide syntax highlighting and line numbers.
+        - [x] Extract helper functions for loading and saving config files.
+        - [x] Display `config.yaml` in `st_ace` with syntax highlighting and line numbers.
+        - [x] Add save button invoking helper functions.
     - [ ] Validate YAML with schema on submit and save edits to `config.yaml` with backup timestamp.
-        - [ ] Run schema validation and surface errors in UI.
-        - [ ] Save validated YAML and create timestamped backup file.
+        - [x] Validate YAML and create timestamped backup during save.
+        - [x] Surface validation success or errors in UI.
     - [ ] Update GUI tests for the editor tab.
+        - [x] Unit test configuration load/save helpers.
         - [ ] Simulate editing and saving a valid config.
-        - [ ] Confirm invalid YAML triggers error messages.
+        - [ ] Confirm invalid YAML triggers error messages in UI.
 
 328. [ ] Integrate hyperparameter optimisation via Optuna.
     - [ ] Add `scripts/optimize.py` with Optuna study and objective function training one epoch.

@@ -81,6 +81,9 @@ from bit_tensor_dataset import (
 )
 from marble_registry import MarbleRegistry
 from metrics_dashboard import MetricsDashboard
+from streamlit_ace import st_ace
+
+from config_editor import load_config_text, save_config_text
 
 
 def _detect_device() -> str:
@@ -2450,21 +2453,33 @@ def run_playground() -> None:
         with tab_cfg:
             st.write("Edit the active YAML configuration.")
             if "config_yaml" not in st.session_state:
-                st.info("No configuration loaded")
-            else:
-                cfg_data = yaml.safe_load(st.session_state["config_yaml"]) or {}
-                updated = render_config_editor(cfg_data)
-                if st.button("Apply Changes", key="cfg_apply"):
-                    st.session_state["config_yaml"] = yaml.safe_dump(
-                        updated, sort_keys=False
-                    )
-                    st.success("Configuration updated")
-                st.code(st.session_state["config_yaml"], language="yaml")
-                if st.button("Reinitialize", key="cfg_reinit"):
+                st.session_state["config_yaml"] = load_config_text()
+
+            editor_content = st_ace(
+                value=st.session_state["config_yaml"],
+                language="yaml",
+                theme="tomorrow_night",
+                key="cfg_editor",
+                show_gutter=True,
+                show_line_numbers=True,
+            )
+
+            if st.button("Save Configuration", key="cfg_save"):
+                try:
+                    backup = save_config_text(editor_content)
+                    st.session_state["config_yaml"] = load_config_text()
+                    st.success(f"Configuration saved (backup: {backup})")
+                except Exception as e:
+                    st.error(str(e))
+
+            if st.button("Reinitialize", key="cfg_reinit"):
+                try:
                     st.session_state["marble"] = initialize_marble(
                         None, yaml_text=st.session_state["config_yaml"]
                     )
                     st.success("Reinitialized MARBLE")
+                except Exception as e:
+                    st.error(str(e))
 
         with tab_model:
             st.write("Convert a pretrained Hugging Face model into MARBLE.")
