@@ -3065,3 +3065,47 @@ pipelines.
 
 This project verifies that the MARBLE-specific CUDA kernel operates correctly on
 real data and seamlessly integrates with the rest of the framework.
+
+## Project: Reusing tensor buffers with ArrayMemoryPool
+
+This short project demonstrates how to reuse memory when performing repeated
+tensor operations.  We will download the [MNIST dataset](https://pytorch.org/vision/stable/datasets.html#mnist),
+normalise a batch and run a matrix multiplication using a pooled buffer.
+
+1. **Download the dataset and prepare a batch:**
+
+   ```python
+   from torchvision.datasets import MNIST
+   from torchvision import transforms
+   import numpy as np
+
+   ds = MNIST("./mnist", download=True, transform=transforms.ToTensor())
+   imgs = ds.data[:32].reshape(32, -1).numpy().astype(np.float32) / 255.0
+   weights = np.ones((imgs.shape[1], 10), dtype=np.float32)
+   ```
+
+2. **Allocate a pool and run the operation repeatedly:**
+
+   ```python
+   from memory_pool import ArrayMemoryPool
+   import tensor_backend as tb
+
+   tb.set_backend("numpy")
+   pool = ArrayMemoryPool((32, 10), dtype=np.float32)
+   out = tb.matmul(imgs, weights, out_pool=pool)
+   pool.release(out)
+   ```
+
+3. **Switch to GPU acceleration when JAX is installed:**
+
+   ```python
+   try:
+       tb.set_backend("jax")
+       out = tb.matmul(imgs, weights, out_pool=pool)
+       pool.release(out)
+   except ImportError:
+       print("JAX not available, skipping GPU demo")
+   ```
+
+Reusing the same ``ArrayMemoryPool`` avoids new allocations on each call and
+works transparently across CPU and GPU backends.
