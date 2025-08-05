@@ -20,7 +20,7 @@ import pipeline_plugins
 from branch_container import BranchContainer
 from dataset_loader import wait_for_prefetch
 from marble_base import MetricsVisualizer
-from marble_core import benchmark_message_passing
+from marble_core import TIER_REGISTRY, benchmark_message_passing
 from marble_neuronenblitz import Neuronenblitz
 from pipeline_schema import validate_step_schema
 
@@ -454,7 +454,16 @@ class Pipeline:
                     result = torch.load(cache_file, map_location=device)
                     executed = False
             if executed:
-                if "macro" in step:
+                tier_name = step.get("tier")
+                if tier_name and tier_name in TIER_REGISTRY:
+                    tier = TIER_REGISTRY[tier_name]
+                    tier.connect()
+                    try:
+                        result = tier.run_step(step, marble, device)
+                    finally:
+                        tier.close()
+                    func_name = tier_name
+                elif "macro" in step:
                     sub_cache = cache_path / step_name if cache_path else None
                     sub_pipeline = Pipeline(step["macro"])
                     # Share hooks so macros participate in global pre/post

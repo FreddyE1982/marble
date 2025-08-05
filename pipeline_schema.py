@@ -19,6 +19,7 @@ STEP_SCHEMA: dict = {
         "params": {"type": "object"},
         "plugin": {"type": "string"},
         "depends_on": {"type": "array", "items": {"type": "string"}},
+        "tier": {"type": "string"},
         "branches": {
             "type": "array",
             "items": {

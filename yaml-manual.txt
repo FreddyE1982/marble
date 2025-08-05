@@ -53,6 +53,9 @@ pipeline:
     results, allowing complex workflows to be bundled into a single step within
     the YAML description. Macros honour dependencies, hooks and caching on both
     CPU and GPU devices.
+  tier: Each step may specify a ``tier`` referencing a registered remote
+    hardware backend. When provided the step runs on that tier instead of the
+    local CPU or GPU, enabling seamless offload to specialised accelerators.
 
 sync:
   interval_ms: Number of milliseconds between background tensor synchronization cycles
