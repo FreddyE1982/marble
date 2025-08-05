@@ -907,6 +907,18 @@ If training diverges or produces NaNs:
 
 For CUDA related errors confirm that your GPU drivers and PyTorch build match.
 
+## GPU Limitations
+
+Most components in MARBLE transparently select between CPU and GPU devices.
+However, the `PromptMemory` cache operates entirely on the host using a
+`collections.deque` of Python dictionaries.  Because it performs no tensor
+operations it does not benefit from GPU acceleration and always executes on the
+CPU even when CUDA is available.  This behaviour has been benchmarked to ensure
+CPU performance remains within acceptable bounds and that enabling a GPU does
+not introduce a significant slowdown.  No other modules currently require
+GPU-exclusive execution, but GPU resources will be utilised whenever they offer
+measurable speedups.
+
 ## Additional Resources
 
 * **Interactive notebook** – A Jupyter notebook located under ``notebooks/``

@@ -1491,12 +1491,12 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Parallel wanderers CPU fallback.
             - [x] Disable CUDA and run wanderer tests.
             - [x] Document any discrepancies (none observed).
-        - [ ] PromptMemory CPU performance baseline.
-        - [x] Run load tests with CUDA disabled.
-        - [ ] Compare timings with GPU-enabled runs.
-        - [ ] Document any GPU-only limitations.
-            - [ ] Record modules lacking CPU implementation.
-            - [ ] Update README with limitation notes.
+        - [x] PromptMemory CPU performance baseline.
+            - [x] Run load tests with CUDA disabled.
+            - [x] Compare timings with GPU-enabled runs.
+        - [x] Document any GPU-only limitations.
+            - [x] Record modules lacking CPU implementation.
+            - [x] Update README with limitation notes.
 
 ### Dream Replay Enhancements
 
