@@ -11,3 +11,4 @@ No failing tests.
 - tests/test_streamlit_gui.py::test_pipeline_tab_add_and_run: IndexError: list index out of range
 - tests/test_streamlit_gui.py::test_pipeline_reorder_and_remove: IndexError: list index out of range
 - tests/test_hybrid_memory_kuzu.py::test_kuzu_memory_separate_from_topology: RuntimeError: Catalog exception: function DATETIME does not exist [resolved]
+- tests/test_pipeline_cache_stress.py::test_cache_stress_cpu: assert 1.3928057014807302 < 1 [resolved]
