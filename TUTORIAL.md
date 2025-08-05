@@ -233,6 +233,64 @@ print(pipe.execute()[0])  # tensor([7., 13.])
 Avoid side effects inside hooks and promptly release any GPU tensors to prevent
 memory leaks.
 
+### Automatically Reordering Dependent Steps
+
+Steps can reference prerequisites using ``depends_on``.  The pipeline sorts the
+steps using a dependency graph so that each runs only after its requirements are
+met.  This works uniformly on CPU and GPU.
+
+1. **Define steps out of order but specify dependencies**:
+
+   ```python
+   from pipeline import Pipeline
+   from tests.helpers import append_value
+
+   store = []
+   pipe = Pipeline([
+       {
+           "name": "second",
+           "func": "append_value",
+           "module": "tests.helpers",
+           "params": {"value": "b", "store": store},
+           "depends_on": ["first"],
+       },
+       {
+           "name": "first",
+           "func": "append_value",
+           "module": "tests.helpers",
+           "params": {"value": "a", "store": store},
+       },
+   ])
+   pipe.execute()
+   print(store)  # ['a', 'b']
+   ```
+
+   The pipeline automatically orders the steps so ``first`` executes before
+   ``second``. Cycles or missing dependencies trigger clear ``ValueError``
+   messages.
+
+### Running Steps in Isolated Processes
+
+For additional fault tolerance, set ``isolated: true`` on a step to execute it
+in its own process. The child process selects the appropriate CPU or GPU device
+and returns the result to the parent.
+
+1. **Run a step safely in a separate process**:
+
+   ```python
+   import os
+   from pipeline import Pipeline
+
+   pipe = Pipeline([
+       {"name": "safe", "func": "getpid", "module": "os", "isolated": True}
+   ])
+   pid = pipe.execute()[0]
+   print("child pid", pid, "parent pid", os.getpid())
+   ```
+
+   If the isolated step fails catastrophically, the parent pipeline receives the
+   exception without crashing, allowing recovery or retry logic.
+
 ### Interactive Step Debugging
 
 During experimentation it can be helpful to pause after each pipeline step and

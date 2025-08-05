@@ -671,22 +671,22 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Add tests validating Serve models through the web API directly from a pipeline step.
    - [x] Document Serve models through the web API directly from a pipeline step in README and TUTORIAL.
 200. [x] Benchmark pipeline steps using the core micro-benchmark tool.
-201. [ ] Reorder steps dynamically based on dependency resolution.
-   - [ ] Outline design for Reorder steps dynamically based on dependency resolution.
-   - [ ] Implement Reorder steps dynamically based on dependency resolution with CPU/GPU support.
-   - [ ] Add tests validating Reorder steps dynamically based on dependency resolution.
-   - [ ] Document Reorder steps dynamically based on dependency resolution in README and TUTORIAL.
+201. [x] Reorder steps dynamically based on dependency resolution.
+   - [x] Outline design for Reorder steps dynamically based on dependency resolution.
+   - [x] Implement Reorder steps dynamically based on dependency resolution with CPU/GPU support.
+   - [x] Add tests validating Reorder steps dynamically based on dependency resolution.
+   - [x] Document Reorder steps dynamically based on dependency resolution in README and TUTORIAL.
 202. [x] Broadcast pipeline progress to the Global Workspace plugin.
 203. [x] Route step logs to the metrics visualiser for real-time viewing.
 204. [x] Diff pipeline configurations to track changes between runs.
 205. [x] Stream logs from each step into the GUI console.
 206. [x] Pre-allocate resources via the memory pool before executing steps.
 207. [x] Freeze and defrost steps without removing them from the pipeline.
-208. [ ] Run pipeline sections in isolated processes for fault tolerance.
-   - [ ] Outline design for Run pipeline sections in isolated processes for fault tolerance.
-   - [ ] Implement Run pipeline sections in isolated processes for fault tolerance with CPU/GPU support.
-   - [ ] Add tests validating Run pipeline sections in isolated processes for fault tolerance.
-   - [ ] Document Run pipeline sections in isolated processes for fault tolerance in README and TUTORIAL.
+208. [x] Run pipeline sections in isolated processes for fault tolerance.
+   - [x] Outline design for Run pipeline sections in isolated processes for fault tolerance.
+   - [x] Implement Run pipeline sections in isolated processes for fault tolerance with CPU/GPU support.
+   - [x] Add tests validating Run pipeline sections in isolated processes for fault tolerance.
+   - [x] Document Run pipeline sections in isolated processes for fault tolerance in README and TUTORIAL.
 209. [ ] Connect with remote wanderers for asynchronous exploration phases.
    - [ ] Outline design for Connect with remote wanderers for asynchronous exploration phases.
    - [ ] Implement Connect with remote wanderers for asynchronous exploration phases with CPU/GPU support.
