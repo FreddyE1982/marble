@@ -391,6 +391,7 @@ class Pipeline:
         cache_dir: str | Path | None = None,
         export_path: str | Path | None = None,
         export_format: str = "json",
+        max_gpu_concurrency: int | None = None,
     ) -> list[Any]:
         results: list[Any] = []
         self._summaries = []
@@ -468,6 +469,7 @@ class Pipeline:
                         log_callback=log_callback,
                         debug_hook=debug_hook,
                         cache_dir=sub_cache,
+                        max_gpu_concurrency=max_gpu_concurrency,
                     )
                     self._summaries.extend(sub_pipeline._summaries)
                     self._benchmarks.extend(sub_pipeline._benchmarks)
@@ -481,6 +483,7 @@ class Pipeline:
                             benchmark_iterations=benchmark_iterations,
                             log_callback=log_callback,
                             debug_hook=debug_hook,
+                            max_gpu_concurrency=max_gpu_concurrency,
                         )
                     )
                     merge_spec = step.get("merge")

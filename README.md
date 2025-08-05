@@ -341,6 +341,28 @@ print(debugger.inputs)
 print(debugger.outputs)
 ```
 
+### Visualising Pipelines
+
+MARBLE can render an entire pipeline as a graph. The helper
+``pipeline_to_networkx`` converts a list of step dictionaries into a directed
+``networkx`` graph which can then be displayed or further processed. The
+function expands macros and branches recursively so the resulting graph mirrors
+the complete execution structure. A ``pipeline_to_core`` companion builds a
+``marble_core.Core`` enabling integration with the existing graph builders.
+
+```python
+from networkx_interop import pipeline_to_networkx
+
+pipe = Pipeline()
+pipe.add_step("normalise", module="my_steps")
+pipe.add_step("encode", module="my_steps", depends_on=["normalise"])
+graph = pipeline_to_networkx(pipe.steps)
+```
+
+The produced graph can be visualised using any ``networkx`` compatible tool or
+converted to a MARBLE core via ``pipeline_to_core`` for use with the existing
+visualisation utilities.
+
 ### Caching Step Results
 
 ``Pipeline.execute`` accepts a ``cache_dir`` argument that persists each step's
@@ -857,6 +879,21 @@ pipe.execute()
 Branching is advantageous when comparing alternative preprocessing chains or
 model variants.  Each branch receives an independent execution context and the
 merge function decides how to reconcile their outputs.
+
+### Limiting GPU Memory Per Step
+
+When multiple branches execute on a GPU it is easy to exhaust device memory.
+``Pipeline.execute`` therefore exposes ``max_gpu_concurrency`` which bounds the
+number of concurrently running GPU branches. Excess branches wait until GPU
+capacity is available, preventing out-of-memory errors while still allowing
+CPU-only execution to proceed unhindered.
+
+```python
+pipe.execute(max_gpu_concurrency=1)
+```
+
+This control applies recursively to macro steps and nested branches ensuring
+consistent behaviour across complex pipelines.
 
 ## PyTorch to MARBLE Conversion
 The project ships with a converter that maps PyTorch models into the MARBLE

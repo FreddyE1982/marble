@@ -38,7 +38,12 @@ class BranchContainer:
 
     # ------------------------------------------------------------------
     async def _run_branch(
-        self, steps: List[dict], device: torch.device, marble: Any, kwargs: dict
+        self,
+        steps: List[dict],
+        device: torch.device,
+        marble: Any,
+        kwargs: dict,
+        sem: asyncio.Semaphore | None = None,
     ) -> Any:
         steps_with_device: List[dict] = []
         for s in steps:
@@ -49,19 +54,36 @@ class BranchContainer:
             s["params"] = params
             steps_with_device.append(s)
 
-        def _execute():
-            from pipeline import Pipeline
+        async def _async_execute() -> Any:
+            def _execute():
+                from pipeline import Pipeline
 
-            pipe = Pipeline(steps_with_device)
-            results = pipe.execute(marble=marble, **kwargs)
-            return results[-1] if results else None
+                pipe = Pipeline(steps_with_device)
+                results = pipe.execute(marble=marble, **kwargs)
+                return results[-1] if results else None
 
-        return await asyncio.to_thread(_execute)
+            return await asyncio.to_thread(_execute)
 
-    async def run(self, marble: Any | None, **kwargs) -> List[Any]:
+        if device.type == "cuda" and sem is not None:
+            async with sem:
+                return await _async_execute()
+        return await _async_execute()
+
+    async def run(
+        self,
+        marble: Any | None,
+        *,
+        max_gpu_concurrency: int | None = None,
+        **kwargs,
+    ) -> List[Any]:
         devices = self._allocate_devices()
+        sem = (
+            asyncio.Semaphore(max_gpu_concurrency)
+            if max_gpu_concurrency is not None and any(d.type == "cuda" for d in devices)
+            else None
+        )
         tasks = [
-            self._run_branch(steps, dev, marble, kwargs)
+            self._run_branch(steps, dev, marble, kwargs, sem)
             for steps, dev in zip(self.branches, devices)
         ]
         results = await asyncio.gather(*tasks, return_exceptions=True)
