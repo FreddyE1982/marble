@@ -341,6 +341,7 @@ memory_system:
 hybrid_memory:
   vector_store_path: "vector_store.pkl"
   symbolic_store_path: "symbolic_memory.pkl"
+  kuzu_store_path: null
   max_entries: 1000
 data_compressor:
   compression_level: 6

@@ -318,6 +318,7 @@ Each entry is listed under its section heading.
 ## hybrid_memory
 - vector_store_path
 - symbolic_store_path
+- kuzu_store_path
 - max_entries
 
 
