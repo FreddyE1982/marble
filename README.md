@@ -596,6 +596,27 @@ based on hardware. The metrics dashboard exposes ``cache_hit`` and ``cache_miss`
 counters so you can monitor effectiveness. Ensure the cache directory has
 sufficient free space and use ``HighLevelPipeline.clear_cache()`` to purge old
 results when necessary.
+
+### Checkpointing and resuming pipelines
+
+``HighLevelPipeline`` instances can be saved and later resumed without losing
+their dataset version metadata. The ``highlevel_pipeline_cli.py`` utility
+provides two sub‑commands:
+
+```bash
+python highlevel_pipeline_cli.py checkpoint my_pipe.json my_pipe.pkl \
+    --config config.yaml --dataset-version v1 --device cpu
+
+python highlevel_pipeline_cli.py resume my_pipe.pkl --config config.yaml \
+    --device gpu
+```
+
+``checkpoint`` executes the pipeline and writes a checkpoint containing the
+steps, configuration and optional ``dataset_version``. ``resume`` reloads this
+file and continues execution, automatically selecting cached results for steps
+that finished before the interruption. The ``--device`` flag runs the pipeline
+on ``cpu`` or ``gpu`` so checkpoints can move between hardware while producing
+identical outputs.
 The advanced interface now features a **Config Editor** tab where any
 parameter from the YAML configuration can be modified on the fly.  Changes are
 applied immediately and you can re-initialise the system with the updated
