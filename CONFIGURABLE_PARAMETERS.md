@@ -23,6 +23,14 @@ Each entry is listed under its section heading.
 - macro (step field allowing a list of sub-steps)
 - tier (step field selecting a remote hardware tier)
 
+
+## cross_validation
+- folds
+- seed
+
+## serve_model
+- host
+- port
 ## sync
 - interval_ms
 

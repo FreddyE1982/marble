@@ -2770,3 +2770,50 @@ executed steps.
 
 The profile lists each step with start and end times and the CPU or GPU
 device used during execution.
+
+3. **Evaluate with deterministic k-fold cross-validation** using the classic Iris dataset:
+
+   ```python
+   from sklearn.datasets import load_iris
+   import torch
+   from cross_validation import cross_validate
+
+   # download and prepare dataset
+   data = load_iris(as_frame=True)
+   X = torch.tensor(data.data.values, dtype=torch.float32)
+   y = torch.tensor(data.target.values, dtype=torch.float32)
+   dataset = list(zip(X, y))
+
+   def train(ds, device):
+       # compute mean of targets as a tiny model
+       return torch.mean(torch.stack([t for _, t in ds])).to(device)
+
+   def metric(model, ds, device):
+       preds = torch.full((len(ds),), model.item(), device=device)
+       targets = torch.stack([t for _, t in ds]).to(device)
+       return float(torch.mean((preds - targets) ** 2))
+
+   scores = cross_validate(train, metric, dataset, folds=5, seed=0)
+   print(scores)
+   ```
+
+   The Iris dataset originates from the UCI repository: https://archive.ics.uci.edu/dataset/53/iris
+
+4. **Serve a model through the pipeline API**:
+
+   ```python
+   from pipeline import Pipeline
+   from marble_core import Core, DataLoader
+   from marble_neuronenblitz import Neuronenblitz
+   from marble_brain import Brain
+   from tests.test_core_functions import minimal_params
+
+   core = Core(minimal_params())
+   nb = Neuronenblitz(core)
+   brain = Brain(core, nb, DataLoader())
+   pipe = Pipeline([{ 'plugin': 'serve_model', 'params': {'host': 'localhost', 'port': 5082}}])
+   info = pipe.execute(type('M', (), {'get_brain': lambda self=brain: brain, 'brain': brain})())[0]
+   # interact with the server then stop
+   info['server'].stop()
+   ```
+
