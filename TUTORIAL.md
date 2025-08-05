@@ -1851,6 +1851,7 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    hybrid_memory:
      vector_store_path: "vectors.pkl"
      symbolic_store_path: "symbols.pkl"
+     kuzu_store_path: null
    ```
 2. **Create the training script.** It saves a few values and then queries them:
    ```python
@@ -1861,6 +1862,7 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    cfg["hybrid_memory"] = {
        "vector_store_path": "vectors.pkl",
        "symbolic_store_path": "symbols.pkl",
+       "kuzu_store_path": "memory.kuzu",  # use Kùzu for persistence
    }
    marble = create_marble_from_config(cfg)
    marble.hybrid_memory.store("a", 1.0)

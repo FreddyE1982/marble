@@ -10,3 +10,4 @@ No failing tests.
 - tests/test_streamlit_playground.py: multiple failures (TypeError: Brain.__init__() got an unexpected keyword argument 'dream_replay_buffer_size')
 - tests/test_streamlit_gui.py::test_pipeline_tab_add_and_run: IndexError: list index out of range
 - tests/test_streamlit_gui.py::test_pipeline_reorder_and_remove: IndexError: list index out of range
+- tests/test_hybrid_memory_kuzu.py::test_kuzu_memory_separate_from_topology: RuntimeError: Catalog exception: function DATETIME does not exist [resolved]

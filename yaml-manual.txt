@@ -817,6 +817,13 @@ hybrid_memory:
     directory.
   symbolic_store_path: File used to persist key/value pairs and timestamps.
     This mirrors the vector store so recalls can return the original data.
+  kuzu_store_path: Optional path to a Kùzu graph database file used to persist
+    all memory entries. When provided, both ``vector_store_path`` and
+    ``symbolic_store_path`` are ignored and the hybrid memory stores nodes in
+    the specified Kùzu database. Each entry becomes a node with the key, value,
+    embedding vector and insertion timestamp as properties. The path must be
+    distinct from the one used for the topology tracker so both databases can
+    operate simultaneously without interference.
   max_entries: Maximum number of items retained in the vector and symbolic
     stores. When the count exceeds this limit the oldest entries are removed
     to keep memory usage bounded.

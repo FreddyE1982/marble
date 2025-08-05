@@ -8,6 +8,11 @@ import numpy as np
 from marble_core import perform_message_passing
 from marble_neuronenblitz import Neuronenblitz
 
+try:  # optional Kùzu backend
+    from kuzu_memory_tier import KuzuMemoryTier
+except Exception:  # pragma: no cover - backend optional
+    KuzuMemoryTier = None  # type: ignore
+
 
 class VectorStore:
     """Store embeddings for similarity-based retrieval."""
@@ -88,12 +93,21 @@ class HybridMemory:
         neuronenblitz: Neuronenblitz,
         vector_path: str = "vector_store.pkl",
         symbolic_path: str = "symbolic_memory.pkl",
+        kuzu_path: str | None = None,
         max_entries: int = 1000,
     ) -> None:
         self.core = core
         self.nb = neuronenblitz
-        self.vector_store = VectorStore(vector_path, core.rep_size)
-        self.symbolic_memory = SymbolicMemory(symbolic_path)
+        self.kuzu_path = kuzu_path
+        self.dim = core.rep_size
+        if kuzu_path and KuzuMemoryTier is not None:
+            self.kuzu_store = KuzuMemoryTier(kuzu_path, core.rep_size)
+            self.vector_store = None
+            self.symbolic_memory = None
+        else:
+            self.kuzu_store = None
+            self.vector_store = VectorStore(vector_path, core.rep_size)
+            self.symbolic_memory = SymbolicMemory(symbolic_path)
         self.max_entries = int(max_entries)
 
     def _embed(self, value: float) -> np.ndarray:
@@ -104,16 +118,25 @@ class HybridMemory:
 
     def store(self, key: Any, value: float) -> None:
         vec = self._embed(value)
-        self.vector_store.add(key, vec)
-        self.symbolic_memory.store(key, value)
-        self.forget_old(self.max_entries)
+        if self.kuzu_store is not None:
+            self.kuzu_store.add(key, value, vec)
+            self.kuzu_store.forget_old(self.max_entries)
+        else:
+            self.vector_store.add(key, vec)
+            self.symbolic_memory.store(key, value)
+            self.forget_old(self.max_entries)
 
     def retrieve(self, query: float, top_k: int = 3) -> List[Tuple[Any, Any]]:
         q_vec = self._embed(query)
+        if self.kuzu_store is not None:
+            return self.kuzu_store.query(q_vec, top_k=top_k)
         keys = self.vector_store.query(q_vec, top_k=top_k)
         return [(k, self.symbolic_memory.retrieve(k)) for k in keys]
 
     def forget_old(self, max_entries: int = 1000) -> None:
+        if self.kuzu_store is not None:
+            self.kuzu_store.forget_old(max_entries)
+            return
         if len(self.vector_store.keys) <= max_entries:
             return
         self.vector_store.keys = self.vector_store.keys[-max_entries:]
@@ -128,7 +151,10 @@ class HybridMemory:
         state = self.__dict__.copy()
         state["core"] = None
         state["nb"] = None
+        state["kuzu_store"] = None
         return state
 
     def __setstate__(self, state: dict) -> None:
         self.__dict__.update(state)
+        if self.kuzu_path and KuzuMemoryTier is not None:
+            self.kuzu_store = KuzuMemoryTier(self.kuzu_path, self.dim)
