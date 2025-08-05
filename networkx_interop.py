@@ -50,6 +50,91 @@ def networkx_to_core(graph: nx.DiGraph, params: dict) -> Core:
     return core
 
 
+def core_to_dict(core: Core) -> dict:
+    """Serialise ``core`` into a plain Python ``dict``.
+
+    The returned dictionary follows the structure::
+
+        {
+            "nodes": [
+                {"id": int, "value": float, "tier": str, "neuron_type": str},
+                ...
+            ],
+            "edges": [
+                {"source": int, "target": int, "weight": float, "synapse_type": str},
+                ...
+            ],
+        }
+
+    The export is device agnostic – tensor data remains on its
+    original device (CPU or GPU) and only lightweight metadata is
+    captured.  This makes the representation suitable for transfer to
+    visualisation frontends.
+    """
+
+    nodes = [
+        {
+            "id": n.id,
+            "value": n.value,
+            "tier": n.tier,
+            "neuron_type": n.neuron_type,
+        }
+        for n in core.neurons
+    ]
+
+    edges = [
+        {
+            "source": s.source,
+            "target": s.target,
+            "weight": s.weight,
+            "synapse_type": s.synapse_type,
+        }
+        for s in core.synapses
+    ]
+
+    return {"nodes": nodes, "edges": edges}
+
+
+def dict_to_core(data: dict, params: dict) -> Core:
+    """Reconstruct a :class:`Core` from ``data`` produced by
+    :func:`core_to_dict`.
+
+    Parameters
+    ----------
+    data:
+        Dictionary with ``nodes`` and ``edges`` lists.
+    params:
+        Parameters forwarded to :class:`Core` during initialisation.
+    """
+
+    core = Core(params)
+    core.neurons = []
+    core.synapses = []
+    node_map: dict[int, Neuron] = {}
+    for n in data.get("nodes", []):
+        neuron = Neuron(
+            n["id"],
+            value=n.get("value", 0.0),
+            tier=n.get("tier", "vram"),
+            neuron_type=n.get("neuron_type", "standard"),
+            rep_size=params.get("representation_size", core.rep_size),
+        )
+        core.neurons.append(neuron)
+        node_map[neuron.id] = neuron
+
+    for e in data.get("edges", []):
+        syn = Synapse(
+            e["source"],
+            e["target"],
+            weight=e.get("weight", 1.0),
+            synapse_type=e.get("synapse_type", "standard"),
+        )
+        core.synapses.append(syn)
+        node_map[e["source"]].synapses.append(syn)
+
+    return core
+
+
 def pipeline_to_networkx(pipeline: list[dict]) -> nx.DiGraph:
     """Convert a pipeline description into a ``networkx`` graph.
 
