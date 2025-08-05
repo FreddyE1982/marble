@@ -2088,16 +2088,19 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
 6. **Perform inference** by providing a numeric value, text, image or audio
    sample under the *Inference* section and pressing **Infer**. Training metrics
    appear automatically after each run.
-7. **Save and load models** using the sidebar controls. You can also export or
+7. **Inspect neural pathways.** Open the *NB Explorer* tab, expand *Neural
+   Pathway Inspector* and compute the route between any two neurons on CPU or
+   GPU.
+8. **Save and load models** using the sidebar controls. You can also export or
    import the core JSON to share systems between sessions.
-8. **Manage multiple instances** using the *Active Instance* selector. Create,
+9. **Manage multiple instances** using the *Active Instance* selector. Create,
    duplicate or delete systems from the sidebar to compare configurations.
-9. **Switch to Advanced mode** to access every function in
+10. **Switch to Advanced mode** to access every function in
    ``marble_interface``. The playground displays each function's docstring and
    generates widgets for all parameters so you can call any operation directly.
-10. **Search functions** using the filter boxes provided in Advanced mode to
+11. **Search functions** using the filter boxes provided in Advanced mode to
     quickly locate operations by name.
-11. **Build pipelines** on the *Pipeline* tab or with
+12. **Build pipelines** on the *Pipeline* tab or with
    ``HighLevelPipeline``. Add steps from ``marble_interface`` directly as
    methods and access other modules using attribute notation like
    ``pipeline.plugin_system.load_plugins``. Press **Run Pipeline** to execute the
