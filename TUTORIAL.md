@@ -1995,7 +1995,15 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
       ``async_enabled=True`` to ``HighLevelPipeline`` to overlap data loading and
       computation using ``asyncio``.
    - Provide ``pipeline.cache_dir`` to enable on-disk caching of step outputs.
-12. **Inspect pipeline steps** via the *Step Visualisation* expander. It shows
+12. **Edit pipelines interactively**. The Pipeline tab provides controls to add,
+    reorder or remove steps with parameter widgets generated from function
+    signatures. Save or load the pipeline as JSON and run it on CPU or GPU
+    without leaving the browser.
+13. **Dataset events surface as notifications**. Functions like
+    ``dataset_loader.load_dataset`` publish ``dataset_load_start`` and
+    ``dataset_load_end`` events so the GUI can display dataset progress alongside
+    pipeline updates.
+14. **Inspect pipeline steps** via the *Step Visualisation* expander. It shows
     each step's parameters and dataset summaries, streams live CPU/GPU memory
     usage while the pipeline runs and lets you download step details as JSON or
     CSV. These features work on both desktop and mobile layouts.

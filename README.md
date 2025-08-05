@@ -532,6 +532,9 @@ generates widgets for each parameter so every capability of the
 repository are also exposed and you can construct a **pipeline** of function
 calls that execute sequentially. This makes it possible to combine training,
 evaluation and utility operations into a single workflow directly from the UI.
+The **Pipeline** tab provides widgets for every step parameter so pipelines can
+be assembled, reordered and deleted interactively before executing them on CPU
+or GPU. Pipelines may be saved to or loaded from JSON for reuse outside the GUI.
 The playground now also includes a **Model Conversion** tab for loading any
 pretrained model from the Hugging Face Hub and converting it into a MARBLE
 system with one click.
@@ -761,6 +764,8 @@ Call `tracker.log_metrics({"loss": value}, step)` during training and invoke
 Pipeline events such as `pipeline_progress` can be forwarded automatically by
 calling `attach_tracker_to_events(tracker, events=[PROGRESS_EVENT])`, enabling
 remote dashboards to display real-time step updates alongside metrics.
+Dataset utilities likewise publish `dataset_load_start` and `dataset_load_end`
+events so interfaces can surface dataset activity next to pipeline progress.
 
 ## Dataset Versioning and Replication
 
