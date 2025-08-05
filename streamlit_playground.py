@@ -23,6 +23,7 @@ warnings.filterwarnings(
     category=DeprecationWarning,
 )
 
+import csv
 import importlib
 import inspect
 import pkgutil
@@ -31,6 +32,7 @@ from zipfile import ZipFile
 
 import networkx as nx
 import numpy as np
+import optuna
 import pandas as pd
 import plotly.graph_objs as go
 import pytest
@@ -38,22 +40,21 @@ import streamlit as st
 import streamlit.components.v1 as components
 import torch
 import yaml
-import csv
-from bit_tensor_dataset import BitTensorDataset
 from PIL import Image
-from event_bus import PROGRESS_EVENT, ProgressEvent, global_event_bus
-from pipeline import Pipeline
-
-from huggingface_utils import (
-    hf_load_dataset as load_hf_dataset,
-    hf_load_model as load_hf_model,
-    hf_login,
-)
-from huggingface_hub import HfApi
-from transformers import AutoModel
-from marble_interface import load_hf_dataset as _iface_load_hf_dataset
+from streamlit_ace import st_ace
 
 import marble_interface
+from bit_tensor_dataset import (
+    BitTensorDataset,
+    bytes_to_tensors,
+    flatten_tensor_to_bitstream,
+    object_to_bytes,
+)
+from config_editor import load_config_text, save_config_text
+from event_bus import PROGRESS_EVENT, global_event_bus
+from huggingface_utils import hf_load_dataset as load_hf_dataset
+from huggingface_utils import hf_load_model as load_hf_model
+from huggingface_utils import hf_login
 from marble_interface import (
     add_neuron_to_marble,
     add_synapse_to_marble,
@@ -75,17 +76,10 @@ from marble_interface import (
     train_autoencoder,
     train_marble_system,
 )
-from bit_tensor_dataset import (
-    object_to_bytes,
-    bytes_to_tensors,
-    flatten_tensor_to_bitstream,
-)
 from marble_registry import MarbleRegistry
 from metrics_dashboard import MetricsDashboard
-from streamlit_ace import st_ace
-
-from config_editor import load_config_text, save_config_text
 from neural_pathway import find_neural_pathway, pathway_figure
+from pipeline import Pipeline
 
 
 def _detect_device() -> str:
@@ -286,6 +280,7 @@ def load_hf_examples(
 def search_hf_datasets(query: str, limit: int = 20) -> list[str]:
     """Return dataset IDs from the Hugging Face Hub matching ``query``."""
     from huggingface_hub import HfApi
+
     hf_login()
     datasets = HfApi().list_datasets(search=query, limit=limit)
     return [d.id for d in datasets]
@@ -294,9 +289,39 @@ def search_hf_datasets(query: str, limit: int = 20) -> list[str]:
 def search_hf_models(query: str, limit: int = 20) -> list[str]:
     """Return model IDs from the Hugging Face Hub matching ``query``."""
     from huggingface_hub import HfApi
+
     hf_login()
     models = HfApi().list_models(search=query, limit=limit)
     return [m.id for m in models]
+
+
+def load_optuna_study(storage_path: str, study_name: str) -> optuna.Study:
+    """Load and return an Optuna study from ``storage_path``.
+
+    Parameters
+    ----------
+    storage_path:
+        Path to the SQLite database storing the study.
+    study_name:
+        Name of the study to load.
+    """
+
+    storage_url = f"sqlite:///{storage_path}"
+    return optuna.load_study(study_name=study_name, storage=storage_url)
+
+
+def optuna_figures(study: optuna.Study) -> tuple[go.Figure, go.Figure]:
+    """Return optimisation history and parameter importance figures."""
+
+    hist = optuna.visualization.plot_optimization_history(study)
+    imps = optuna.visualization.plot_param_importances(study)
+    return hist, imps
+
+
+def optuna_best_config(study: optuna.Study) -> str:
+    """Return YAML string of the best trial parameters."""
+
+    return yaml.safe_dump(study.best_trial.params)
 
 
 def lobe_info(marble) -> list[dict]:
@@ -1828,6 +1853,7 @@ def run_playground() -> None:
             tab_memory,
             tab_nbexp,
             tab_proj,
+            tab_optuna,
             tab_tests,
             tab_docs,
             tab_browser,
@@ -1858,6 +1884,7 @@ def run_playground() -> None:
                 "Hybrid Memory",
                 "NB Explorer",
                 "Projects",
+                "Optuna",
                 "Tests",
                 "Documentation",
                 "Dataset Browser",
@@ -2237,9 +2264,7 @@ def run_playground() -> None:
                 st.session_state["metrics_placeholders"] = {}
                 for i, step in enumerate(st.session_state["pipeline"]):
                     module = step.get("module") or "marble_interface"
-                    st.markdown(
-                        f"**Step {i+1}:** `{module}.{step['func']}`"
-                    )
+                    st.markdown(f"**Step {i+1}:** `{module}.{step['func']}`")
                     params = step.get("params", {})
                     if params:
                         st.write("Parameters:")
@@ -2269,17 +2294,23 @@ def run_playground() -> None:
                         key=f"step_csv_{i}",
                     )
             if st.button("Run Pipeline") and st.session_state["pipeline"]:
-                is_mobile = st.session_state.get("device", "desktop") == "mobile" or st.session_state.get("mobile")
+                is_mobile = st.session_state.get(
+                    "device", "desktop"
+                ) == "mobile" or st.session_state.get("mobile")
                 placeholder = st.empty()
                 bar = placeholder.progress(0.0) if not is_mobile else None
                 text_box = placeholder if is_mobile else st.empty()
 
                 def _on_progress(name, data):
-                    pct = (data["index"] + (1 if data["status"] == "completed" else 0)) / data["total"]
+                    pct = (
+                        data["index"] + (1 if data["status"] == "completed" else 0)
+                    ) / data["total"]
                     msg = f"{data['status']}: {data['step']} ({data['device']})"
                     st.session_state["last_progress"] = msg
                     metrics = system_stats()
-                    box = st.session_state.get("metrics_placeholders", {}).get(data["index"])
+                    box = st.session_state.get("metrics_placeholders", {}).get(
+                        data["index"]
+                    )
                     if box:
                         box.metric(
                             "RAM (MB)",
@@ -2889,6 +2920,43 @@ def run_playground() -> None:
                 except Exception as e:
                     st.error(str(e))
 
+        with tab_optuna:
+            st.write("Visualize Optuna hyperparameter optimization studies.")
+            with st.expander("Load Study", expanded=True):
+                db_path = st.text_input(
+                    "SQLite Storage", "optuna_db.sqlite3", key="optuna_db_path"
+                )
+                study_name = st.text_input(
+                    "Study Name", "marble-optuna", key="optuna_study_name"
+                )
+                load_clicked = st.button("Load Study", key="optuna_load")
+
+            study = st.session_state.get("optuna_study")
+            if load_clicked:
+                try:
+                    study = load_optuna_study(db_path, study_name)
+                    st.session_state["optuna_study"] = study
+                    st.success("Study loaded")
+                except Exception as e:
+                    st.error(f"Failed to load study: {e}")
+                    study = None
+
+            if study:
+                hist_fig, imp_fig = optuna_figures(study)
+                with st.expander("Optimization History", expanded=True):
+                    st.plotly_chart(hist_fig, use_container_width=True)
+                with st.expander("Parameter Importances", expanded=True):
+                    st.plotly_chart(imp_fig, use_container_width=True)
+                with st.expander("Best Configuration", expanded=True):
+                    cfg_yaml = optuna_best_config(study)
+                    st.code(cfg_yaml, language="yaml")
+                    st.download_button(
+                        "Download Best Config",
+                        cfg_yaml,
+                        file_name="best_params.yaml",
+                        key="optuna_download",
+                    )
+
         with tab_tests:
             st.write("Run repository unit tests to verify functionality.")
             tests = list_test_files()
@@ -2918,9 +2986,18 @@ def run_playground() -> None:
             if file is not None:
                 df = preview_file_dataset(file)
                 st.dataframe(df.head(), use_container_width=True)
-                idx = st.number_input("Sample index", min_value=0, max_value=len(df)-1, value=0, step=1, key="bit_idx")
+                idx = st.number_input(
+                    "Sample index",
+                    min_value=0,
+                    max_value=len(df) - 1,
+                    value=0,
+                    step=1,
+                    key="bit_idx",
+                )
                 row = df.iloc[int(idx)]
-                bits = flatten_tensor_to_bitstream(bytes_to_tensors(object_to_bytes(row["input"])))
+                bits = flatten_tensor_to_bitstream(
+                    bytes_to_tensors(object_to_bytes(row["input"]))
+                )
                 arr = np.array(bits, dtype=np.uint8).reshape(-1, 8) * 255
                 st.image(arr, caption="Input Bits", width=200)
 

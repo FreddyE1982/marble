@@ -8,17 +8,18 @@ from unittest import mock
 from zipfile import ZipFile
 
 import numpy as np
+import optuna
 import pandas as pd
 import yaml
 from PIL import Image
 from plotly.graph_objs import Figure
 
+import streamlit_playground as sp
 from streamlit_playground import (
     activation_figure,
     add_lobe,
     adjust_meta_controller,
     clear_super_evo_changes,
-    convert_hf_model,
     core_figure,
     core_heatmap_figure,
     core_statistics,
@@ -54,9 +55,9 @@ from streamlit_playground import (
     load_example_code,
     load_examples,
     load_hf_examples,
-    load_hf_model,
     load_marble_system,
     load_module_source,
+    load_optuna_study,
     load_pipeline_from_json,
     load_readme,
     load_tutorial,
@@ -68,6 +69,8 @@ from streamlit_playground import (
     metrics_figure,
     model_summary,
     move_pipeline_step,
+    optuna_best_config,
+    optuna_figures,
     organize_lobes,
     parallel_wander_neuronenblitz,
     pipeline_figure,
@@ -426,25 +429,18 @@ def test_set_yaml_value_nested_creation():
 
 def test_load_hf_model_and_convert():
     dummy_model = object()
-    with mock.patch(
-        "streamlit_playground.AutoModel.from_pretrained",
-        return_value=dummy_model,
-    ) as auto:
-        model = load_hf_model("dummy")
-    auto.assert_called_once_with("dummy", trust_remote_code=True)
+    with mock.patch.object(sp, "load_hf_model", return_value=dummy_model) as loader:
+        model = sp.load_hf_model("dummy")
+    loader.assert_called_once_with("dummy")
     assert model is dummy_model
 
     with (
-        mock.patch(
-            "streamlit_playground.load_hf_model",
-            return_value=dummy_model,
-        ) as loader,
-        mock.patch(
-            "streamlit_playground.marble_interface.convert_pytorch_model",
-            return_value="marble",
+        mock.patch.object(sp, "load_hf_model", return_value=dummy_model) as loader,
+        mock.patch.object(
+            sp.marble_interface, "convert_pytorch_model", return_value="marble"
         ) as conv,
     ):
-        out = convert_hf_model("dummy")
+        out = sp.convert_hf_model("dummy")
     loader.assert_called_once_with("dummy")
     conv.assert_called_once()
     assert out == "marble"
@@ -761,3 +757,22 @@ def test_activation_figure(tmp_path):
     activations = {n.id: float(n.value) for n in m.get_core().neurons}
     fig = activation_figure(m.get_core(), activations, layout="circular")
     assert hasattr(fig, "to_dict")
+
+
+def test_optuna_helpers(tmp_path):
+    db = tmp_path / "optuna_db.sqlite3"
+    storage = f"sqlite:///{db}"
+    study = optuna.create_study(
+        study_name="marble-optuna", storage=storage, direction="minimize"
+    )
+
+    def _obj(trial: optuna.Trial) -> float:
+        return trial.suggest_float("x", 0, 1)
+
+    study.optimize(_obj, n_trials=2)
+
+    loaded = load_optuna_study(str(db), "marble-optuna")
+    hist, imps = optuna_figures(loaded)
+    yaml_cfg = optuna_best_config(loaded)
+    assert isinstance(hist, Figure) and isinstance(imps, Figure)
+    assert "x" in yaml_cfg
