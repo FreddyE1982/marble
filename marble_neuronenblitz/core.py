@@ -23,6 +23,23 @@ from . import memory as _memory
 # ruff: noqa: F405
 
 
+def cuda_available() -> bool:
+    """Return ``True`` if CUDA is available via :mod:`torch`.
+
+    The function guards against missing or misconfigured ``torch`` installs so
+    that CPU-only environments can still execute Neuronenblitz without raising
+    import errors.  Tests can monkeypatch this helper to simulate different
+    hardware scenarios.
+    """
+
+    try:  # pragma: no cover - thin wrapper over torch
+        import torch
+
+        return bool(torch.cuda.is_available())
+    except Exception:  # pragma: no cover - torch not installed
+        return False
+
+
 def _wander_worker(
     state_bytes: bytes, input_value: float, seed: int
 ) -> tuple[float, int]:
@@ -1212,7 +1229,10 @@ class Neuronenblitz:
 
         state = pickle.dumps(self)
         seeds = [random.randint(0, 2**32 - 1) for _ in range(num)]
-        ctx = mp.get_context("spawn")
+        method = "spawn" if cuda_available() else "fork"
+        if method not in mp.get_all_start_methods():
+            method = "spawn"
+        ctx = mp.get_context(method)
         with ctx.Pool(processes=num) as pool:
             outputs = pool.starmap(
                 _wander_worker, [(state, input_value, s) for s in seeds]

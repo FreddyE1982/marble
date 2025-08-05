@@ -3,7 +3,11 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import random
+import multiprocessing as mp
+
 import numpy as np
+
+import marble_neuronenblitz.core as nb_core
 from marble_core import Core
 from marble_neuronenblitz import Neuronenblitz
 from tests.test_core_functions import minimal_params
@@ -80,3 +84,28 @@ def test_parallel_wander_consistency():
     assert np.isclose(err_a, err_b)
     assert np.isclose(out_a, out_b)
     assert len(path_a) == len(path_b)
+
+
+def test_parallel_wander_cpu_fallback(monkeypatch):
+    random.seed(0)
+    np.random.seed(0)
+    params = minimal_params()
+    params["plasticity_threshold"] = 0.0
+    core = Core(params)
+    nb = Neuronenblitz(core, parallel_wanderers=2, plasticity_threshold=0.0)
+
+    method_used: dict[str, str] = {}
+    orig_get_context = mp.get_context
+
+    def record_context(method: str):
+        method_used["method"] = method
+        return orig_get_context(method)
+
+    monkeypatch.setattr(nb_core, "cuda_available", lambda: False)
+    monkeypatch.setattr(nb_core.mp, "get_context", record_context)
+
+    outputs = nb.dynamic_wander_parallel(0.5)
+    assert outputs and isinstance(outputs[0][0], float)
+    expected = "fork" if "fork" in mp.get_all_start_methods() else "spawn"
+    assert method_used["method"] == expected
+
