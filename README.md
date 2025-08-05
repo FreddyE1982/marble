@@ -322,6 +322,36 @@ pipe.register_pre_hook("n", pre_scale)
 pipe.execute()
 ```
 
+### Dependency-Based Step Reordering
+
+Steps can declare explicit prerequisites via ``depends_on``.  The pipeline
+performs a topological sort prior to execution so that steps run in dependency
+order regardless of their initial arrangement.  Cycles or references to unknown
+steps raise descriptive ``ValueError`` exceptions.  This reordering logic works
+identically on both CPU and GPU devices.
+
+### Isolated Step Execution
+
+To guard long-running workflows from crashes in individual steps, any step may
+set ``isolated: true``.  The step is executed in a separate Python process on
+the selected CPU or GPU device and its result is returned to the main pipeline.
+Isolating steps is particularly useful when experimenting with third-party
+code that might leak resources or segfault.
+
+```python
+from pipeline import Pipeline
+
+pipe = Pipeline([
+    {"name": "prepare", "func": "do_work"},
+    {"name": "risky", "func": "getpid", "module": "os", "depends_on": ["prepare"], "isolated": True},
+])
+pipe.execute()
+```
+
+The ``risky`` step runs in its own process while ``prepare`` executes in the
+main process.  Should the isolated step fail catastrophically the parent
+pipeline remains intact and receives a Python exception rather than crashing.
+
 ### Interactive Step Debugging
 
 For exploratory development you can inspect the inputs and outputs of every

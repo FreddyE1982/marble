@@ -6,10 +6,10 @@ import hashlib
 import importlib
 import inspect
 import json
-import time
 import shutil
+import time
 from pathlib import Path
-from typing import Any, Callable, Protocol, Iterable, Mapping
+from typing import Any, Callable, Iterable, Mapping, Protocol
 
 import networkx as nx
 import torch
@@ -22,8 +22,8 @@ from dataset_loader import wait_for_prefetch
 from marble_base import MetricsVisualizer
 from marble_core import TIER_REGISTRY, benchmark_message_passing
 from marble_neuronenblitz import Neuronenblitz
-from pipeline_schema import validate_step_schema
 from memory_manager import MemoryManager
+from pipeline_schema import validate_step_schema
 from run_profiler import RunProfiler
 
 
@@ -394,7 +394,9 @@ class Pipeline:
         if not func_name:
             return 0
         est_name = f"{func_name}_estimate"
-        module = importlib.import_module(module_name) if module_name else marble_interface
+        module = (
+            importlib.import_module(module_name) if module_name else marble_interface
+        )
         if not hasattr(module, est_name):
             return 0
         est_func = getattr(module, est_name)
@@ -490,7 +492,9 @@ class Pipeline:
         cache_path: Path | None = Path(cache_dir) if cache_dir is not None else None
         if cache_path:
             cache_path.mkdir(parents=True, exist_ok=True)
-        profiler = run_profiler or (RunProfiler(run_profile_path) if run_profile_path else None)
+        profiler = run_profiler or (
+            RunProfiler(run_profile_path) if run_profile_path else None
+        )
         if marble is not None and hasattr(marble, "get_core"):
             core = marble.get_core()
             if preallocate_neurons:
@@ -546,98 +550,110 @@ class Pipeline:
                     result = torch.load(cache_file, map_location=device)
                     executed = False
             if executed:
-                tier_name = step.get("tier")
-                if tier_name and tier_name in TIER_REGISTRY:
-                    tier = TIER_REGISTRY[tier_name]
-                    tier.connect()
-                    try:
-                        result = tier.run_step(step, marble, device)
-                    finally:
-                        tier.close()
-                    func_name = tier_name
-                elif "macro" in step:
-                    sub_cache = cache_path / step_name if cache_path else None
-                    sub_pipeline = Pipeline(step["macro"])
-                    # Share hooks so macros participate in global pre/post
-                    sub_pipeline._pre_hooks = self._pre_hooks
-                    sub_pipeline._post_hooks = self._post_hooks
-                    result = sub_pipeline.execute(
-                        marble,
-                        metrics_visualizer=metrics_visualizer,
-                        benchmark_iterations=benchmark_iterations,
-                        preallocate_neurons=0,
-                        preallocate_synapses=0,
-                        log_callback=log_callback,
-                        debug_hook=debug_hook,
-                        cache_dir=sub_cache,
-                        max_gpu_concurrency=max_gpu_concurrency,
-                        memory_manager=memory_manager,
-                        run_profiler=profiler,
-                        pre_estimate=False,
+                if step.get("isolated"):
+                    # Execute the step in a separate process for fault tolerance
+                    result = self._run_isolated_step(step, marble, device)
+                    func_name = (
+                        step.get("func")
+                        or step.get("plugin")
+                        or step.get("name")
+                        or "step"
                     )
-                    self._summaries.extend(sub_pipeline._summaries)
-                    self._benchmarks.extend(sub_pipeline._benchmarks)
-                    func_name = "macro"
-                elif "branches" in step:
-                    container = BranchContainer(step["branches"])
-                    branch_outputs = asyncio.run(
-                        container.run(
+                else:
+                    tier_name = step.get("tier")
+                    if tier_name and tier_name in TIER_REGISTRY:
+                        tier = TIER_REGISTRY[tier_name]
+                        tier.connect()
+                        try:
+                            result = tier.run_step(step, marble, device)
+                        finally:
+                            tier.close()
+                        func_name = tier_name
+                    elif "macro" in step:
+                        sub_cache = cache_path / step_name if cache_path else None
+                        sub_pipeline = Pipeline(step["macro"])
+                        # Share hooks so macros participate in global pre/post
+                        sub_pipeline._pre_hooks = self._pre_hooks
+                        sub_pipeline._post_hooks = self._post_hooks
+                        result = sub_pipeline.execute(
                             marble,
                             metrics_visualizer=metrics_visualizer,
                             benchmark_iterations=benchmark_iterations,
+                            preallocate_neurons=0,
+                            preallocate_synapses=0,
                             log_callback=log_callback,
                             debug_hook=debug_hook,
+                            cache_dir=sub_cache,
                             max_gpu_concurrency=max_gpu_concurrency,
                             memory_manager=memory_manager,
                             run_profiler=profiler,
                             pre_estimate=False,
                         )
-                    )
-                    merge_spec = step.get("merge")
-                    if merge_spec:
-                        merge_params = dict(merge_spec.get("params", {}))
-                        merge_params["branches"] = branch_outputs
-                        if "plugin" in merge_spec:
-                            plugin_name = merge_spec["plugin"]
+                        self._summaries.extend(sub_pipeline._summaries)
+                        self._benchmarks.extend(sub_pipeline._benchmarks)
+                        func_name = "macro"
+                    elif "branches" in step:
+                        container = BranchContainer(step["branches"])
+                        branch_outputs = asyncio.run(
+                            container.run(
+                                marble,
+                                metrics_visualizer=metrics_visualizer,
+                                benchmark_iterations=benchmark_iterations,
+                                log_callback=log_callback,
+                                debug_hook=debug_hook,
+                                max_gpu_concurrency=max_gpu_concurrency,
+                                memory_manager=memory_manager,
+                                run_profiler=profiler,
+                                pre_estimate=False,
+                            )
+                        )
+                        merge_spec = step.get("merge")
+                        if merge_spec:
+                            merge_params = dict(merge_spec.get("params", {}))
+                            merge_params["branches"] = branch_outputs
+                            if "plugin" in merge_spec:
+                                plugin_name = merge_spec["plugin"]
+                                plugin_cls = pipeline_plugins.get_plugin(plugin_name)
+                                plugin: pipeline_plugins.PipelinePlugin = plugin_cls(
+                                    **merge_params
+                                )
+                                plugin.initialise(device=device, marble=marble)
+                                result = plugin.execute(device=device, marble=marble)
+                                plugin.teardown()
+                                func_name = plugin_name
+                            else:
+                                func_name = merge_spec.get("func")
+                                module_name = merge_spec.get("module")
+                                if func_name is None:
+                                    raise ValueError(
+                                        "Merge step missing 'func' or 'plugin'"
+                                    )
+                                result = self._execute_function(
+                                    module_name, func_name, marble, merge_params
+                                )
+                        else:
+                            func_name = "branch"
+                            result = branch_outputs
+                    else:
+                        module_name = step.get("module")
+                        func_name = step.get("func")
+                        params = step.get("params", {})
+                        if "plugin" in step:
+                            plugin_name = step["plugin"]
                             plugin_cls = pipeline_plugins.get_plugin(plugin_name)
                             plugin: pipeline_plugins.PipelinePlugin = plugin_cls(
-                                **merge_params
+                                **params
                             )
                             plugin.initialise(device=device, marble=marble)
                             result = plugin.execute(device=device, marble=marble)
                             plugin.teardown()
                             func_name = plugin_name
                         else:
-                            func_name = merge_spec.get("func")
-                            module_name = merge_spec.get("module")
                             if func_name is None:
-                                raise ValueError(
-                                    "Merge step missing 'func' or 'plugin'"
-                                )
+                                raise ValueError("Step missing 'func' or 'plugin'")
                             result = self._execute_function(
-                                module_name, func_name, marble, merge_params
+                                module_name, func_name, marble, params
                             )
-                    else:
-                        func_name = "branch"
-                        result = branch_outputs
-                else:
-                    module_name = step.get("module")
-                    func_name = step.get("func")
-                    params = step.get("params", {})
-                    if "plugin" in step:
-                        plugin_name = step["plugin"]
-                        plugin_cls = pipeline_plugins.get_plugin(plugin_name)
-                        plugin: pipeline_plugins.PipelinePlugin = plugin_cls(**params)
-                        plugin.initialise(device=device, marble=marble)
-                        result = plugin.execute(device=device, marble=marble)
-                        plugin.teardown()
-                        func_name = plugin_name
-                    else:
-                        if func_name is None:
-                            raise ValueError("Step missing 'func' or 'plugin'")
-                        result = self._execute_function(
-                            module_name, func_name, marble, params
-                        )
                 if cache_file:
                     torch.save(result, cache_file)
             if hasattr(result, "next_batch") and hasattr(result, "is_finished"):
@@ -793,6 +809,7 @@ class Pipeline:
         """
 
         from copy import deepcopy
+
         from hyperparameter_search import grid_search, random_search
 
         def _to_cpu(obj: Any) -> Any:
@@ -811,12 +828,7 @@ class Pipeline:
                 for key, value in params.items():
                     step_name, param_name = key.split(".", 1)
                     for s in self.steps:
-                        name = (
-                            s.get("name")
-                            or s.get("func")
-                            or s.get("plugin")
-                            or ""
-                        )
+                        name = s.get("name") or s.get("func") or s.get("plugin") or ""
                         if name == step_name:
                             s.setdefault("params", {})[param_name] = value
                             break
@@ -840,7 +852,11 @@ class Pipeline:
         raise ValueError("search must be 'grid' or 'random'")
 
     def rollback(
-        self, step_name: str, cache_dir: str | Path, *, device: torch.device | None = None
+        self,
+        step_name: str,
+        cache_dir: str | Path,
+        *,
+        device: torch.device | None = None,
     ) -> Any:
         """Load cached output of ``step_name`` and discard later results.
 
@@ -856,7 +872,12 @@ class Pipeline:
         ordered = self._topological_sort(self.steps)
         target_file = None
         for idx, step in enumerate(ordered):
-            name = step.get("name") or step.get("func") or step.get("plugin") or f"step_{idx}"
+            name = (
+                step.get("name")
+                or step.get("func")
+                or step.get("plugin")
+                or f"step_{idx}"
+            )
             spec_bytes = json.dumps(step, sort_keys=True).encode("utf-8")
             digest = hashlib.sha256(spec_bytes).hexdigest()
             file = cache_path / f"{idx}_{name}_{digest}.pt"
@@ -883,3 +904,47 @@ class Pipeline:
         a = json.dumps(other_steps, indent=2, sort_keys=True).splitlines(keepends=True)
         b = json.dumps(self.steps, indent=2, sort_keys=True).splitlines(keepends=True)
         return "".join(difflib.unified_diff(a, b, fromfile="before", tofile="after"))
+
+    def _run_isolated_step(
+        self, step: dict, marble: Any | None, device: torch.device
+    ) -> Any:
+        """Execute ``step`` in a separate process and return its result.
+
+        The child process constructs a temporary :class:`Pipeline` with the given
+        step so that hooks, macros and branches behave identically to normal
+        execution.  Running steps in isolated processes protects the main
+        pipeline from crashes or resource leaks in individual steps.
+        """
+
+        import multiprocessing as mp
+
+        ctx = mp.get_context("spawn" if device.type == "cuda" else "fork")
+        q: mp.Queue = ctx.Queue()
+        step_copy = dict(step)
+        step_copy.pop("isolated", None)
+
+        def _target(q, step, marble, device, pre_hooks, post_hooks):
+            if device.type == "cuda":
+                torch.cuda.set_device(device)
+            p = Pipeline([step])
+            p._pre_hooks = pre_hooks
+            p._post_hooks = post_hooks
+            try:
+                result = p.execute(marble)[0]
+                q.put(("ok", result, p._summaries, p._benchmarks))
+            except Exception as exc:  # pragma: no cover - propagated
+                q.put(("err", exc))
+
+        proc = ctx.Process(
+            target=_target,
+            args=(q, step_copy, marble, device, self._pre_hooks, self._post_hooks),
+        )
+        proc.start()
+        proc.join()
+        status, *payload = q.get()
+        if status == "err":
+            raise payload[0]
+        result, summaries, benchmarks = payload
+        self._summaries.extend(summaries)
+        self._benchmarks.extend(benchmarks)
+        return result

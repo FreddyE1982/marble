@@ -92,6 +92,16 @@ pipeline:
   tier: Each step may specify a ``tier`` referencing a registered remote
     hardware backend. When provided the step runs on that tier instead of the
     local CPU or GPU, enabling seamless offload to specialised accelerators.
+  depends_on: Optional list of step names that must finish before the current
+    step executes. The pipeline constructs a dependency graph and reorders steps
+    automatically using a topological sort. Referencing an unknown step or
+    creating a cycle triggers a clear error. This mechanism behaves the same on
+    CPUs and GPUs.
+  isolated: When set to ``true`` the step is executed in its own Python process
+    to provide fault tolerance. The child process selects the appropriate CPU or
+    GPU device and returns the result to the parent pipeline. Use this for
+    experimental or unstable operations to prevent crashes from affecting the
+    main run.
 
 cross_validation:
   folds: Number of partitions used during k-fold evaluation. Each fold serves as a

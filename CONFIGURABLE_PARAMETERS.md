@@ -33,6 +33,8 @@ Each entry is listed under its section heading.
 - cache_dir
 - macro (step field allowing a list of sub-steps)
 - tier (step field selecting a remote hardware tier)
+- depends_on (step field listing prerequisite step names)
+- isolated (step field executing the step in a separate process)
 
 
 ## cross_validation
