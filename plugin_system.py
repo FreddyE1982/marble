@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 import importlib.util
+import inspect
 from pathlib import Path
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Type
 
-from marble_core import NEURON_TYPES, SYNAPSE_TYPES
+import torch.nn as nn
 
+from marble_core import LOSS_MODULES, NEURON_TYPES, SYNAPSE_TYPES
 
 NeuronRegFunc = Callable[[str], None]
 SynapseRegFunc = Callable[[str], None]
+LossRegFunc = Callable[[str, Type[nn.Module]], None]
 
 
 def register_neuron_type(name: str) -> None:
@@ -25,11 +28,19 @@ def register_synapse_type(name: str) -> None:
         SYNAPSE_TYPES.append(name)
 
 
+def register_loss_module(name: str, module: Type[nn.Module]) -> None:
+    """Register a custom loss module if not already present."""
+    if name not in LOSS_MODULES:
+        LOSS_MODULES[name] = module
+
+
 def load_plugins(dirs: Iterable[str] | str) -> None:
     """Load plugin modules from ``dirs``.
 
-    Each module may define ``register(register_neuron, register_synapse)`` which
-    is called with the registration callbacks.
+    Each module may define ``register`` with either two or three parameters.
+    ``register(reg_neuron, reg_synapse)`` registers neuron and synapse types.
+    ``register(reg_neuron, reg_synapse, reg_loss)`` additionally registers
+    custom loss modules.
     """
     if isinstance(dirs, str):
         dirs = [dirs]
@@ -43,4 +54,13 @@ def load_plugins(dirs: Iterable[str] | str) -> None:
                 module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(module)
                 if hasattr(module, "register"):
-                    module.register(register_neuron_type, register_synapse_type)
+                    func = module.register
+                    params = inspect.signature(func).parameters
+                    if len(params) >= 3:
+                        func(
+                            register_neuron_type,
+                            register_synapse_type,
+                            register_loss_module,
+                        )
+                    else:
+                        func(register_neuron_type, register_synapse_type)

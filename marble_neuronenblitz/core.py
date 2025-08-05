@@ -14,7 +14,13 @@ import numpy as np
 
 from contrastive_learning import ContrastiveLearner
 from imitation_learning import ImitationLearner
-from marble_core import NEURON_TYPES, SYNAPSE_TYPES, Neuron, perform_message_passing
+from marble_core import (
+    LOSS_MODULES,
+    NEURON_TYPES,
+    SYNAPSE_TYPES,
+    Neuron,
+    perform_message_passing,
+)
 from marble_imports import *  # noqa: F401,F403
 
 from . import learning as _learning
@@ -291,6 +297,15 @@ class Neuronenblitz:
 
         self.combine_fn = combine_fn if combine_fn is not None else default_combine_fn
         self.loss_fn = loss_fn if loss_fn is not None else default_loss_fn
+        if isinstance(loss_module, str):
+            if loss_module not in LOSS_MODULES:
+                raise ValueError(
+                    f"Unknown loss_module '{loss_module}'. Available: {', '.join(LOSS_MODULES)}"
+                )
+            import torch
+
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            loss_module = LOSS_MODULES[loss_module]().to(device)
         self.loss_module = loss_module
         self.weight_update_fn = (
             weight_update_fn
@@ -638,10 +653,11 @@ class Neuronenblitz:
         val = self.exploration_entropy_scale * ent + self.exploration_entropy_shift
         self.dropout_probability = float(max(0.0, min(1.0, val)))
         if self.entropy_epsilon_enabled:
-            eps_val = self.exploration_entropy_scale * (1 - ent) + self.exploration_entropy_shift
-            self.rl_epsilon = float(
-                max(self.rl_min_epsilon, min(1.0, eps_val))
+            eps_val = (
+                self.exploration_entropy_scale * (1 - ent)
+                + self.exploration_entropy_shift
             )
+            self.rl_epsilon = float(max(self.rl_min_epsilon, min(1.0, eps_val)))
 
     def decay_memory_gates(self) -> None:
         """Decay memory gate strengths over time."""
@@ -1511,16 +1527,23 @@ class Neuronenblitz:
             return False
         return all(not getattr(syn, "frozen", False) for syn in path)
 
-    def _apply_weight_updates_and_attention_cuda(self, path, error, path_length) -> None:
+    def _apply_weight_updates_and_attention_cuda(
+        self, path, error, path_length
+    ) -> None:
         import torch
+
         import neuronenblitz_kernel as nbk
 
         device = torch.device("cuda")
         dtype = torch.float16 if self.use_mixed_precision else torch.float32
         weights = torch.tensor([syn.weight for syn in path], device=device, dtype=dtype)
-        potentials = torch.tensor([syn.potential for syn in path], device=device, dtype=dtype)
+        potentials = torch.tensor(
+            [syn.potential for syn in path], device=device, dtype=dtype
+        )
         sources = torch.tensor(
-            [self.core.neurons[syn.source].value for syn in path], device=device, dtype=dtype
+            [self.core.neurons[syn.source].value for syn in path],
+            device=device,
+            dtype=dtype,
         )
         momentum = torch.tensor(
             [self._momentum.get(syn, 0.0) for syn in path], device=device, dtype=dtype
@@ -1529,13 +1552,19 @@ class Neuronenblitz:
             [self._grad_sq.get(syn, 1.0) for syn in path], device=device, dtype=dtype
         )
         prev_grad = torch.tensor(
-            [self._prev_gradients.get(syn, 0.0) for syn in path], device=device, dtype=dtype
+            [self._prev_gradients.get(syn, 0.0) for syn in path],
+            device=device,
+            dtype=dtype,
         )
         eligibility = torch.tensor(
-            [self._eligibility_traces.get(syn, 1.0) for syn in path], device=device, dtype=dtype
+            [self._eligibility_traces.get(syn, 1.0) for syn in path],
+            device=device,
+            dtype=dtype,
         )
         mem_gate = torch.tensor(
-            [self.memory_gates.get(syn, 0.0) for syn in path], device=device, dtype=dtype
+            [self.memory_gates.get(syn, 0.0) for syn in path],
+            device=device,
+            dtype=dtype,
         )
 
         depth_factor = 1.0 + self.depth_clip_scaling * (
@@ -1543,25 +1572,27 @@ class Neuronenblitz:
         )
         cap = self.synapse_update_cap / depth_factor
 
-        weights, potentials, momentum, grad_sq, prev_grad, scores = nbk.apply_weight_updates(
-            sources,
-            weights,
-            potentials,
-            momentum,
-            grad_sq,
-            prev_grad,
-            eligibility,
-            mem_gate,
-            float(error),
-            float(self.learning_rate),
-            float(self.momentum_coefficient),
-            float(self._rmsprop_beta),
-            float(self._grad_epsilon),
-            float(cap),
-            float(self._weight_limit),
-            float(self.gradient_score_scale),
-            float(self.synapse_potential_cap),
-            int(path_length),
+        weights, potentials, momentum, grad_sq, prev_grad, scores = (
+            nbk.apply_weight_updates(
+                sources,
+                weights,
+                potentials,
+                momentum,
+                grad_sq,
+                prev_grad,
+                eligibility,
+                mem_gate,
+                float(error),
+                float(self.learning_rate),
+                float(self.momentum_coefficient),
+                float(self._rmsprop_beta),
+                float(self._grad_epsilon),
+                float(cap),
+                float(self._weight_limit),
+                float(self.gradient_score_scale),
+                float(self.synapse_potential_cap),
+                int(path_length),
+            )
         )
 
         weights_cpu = weights.cpu().tolist()
@@ -1578,7 +1609,6 @@ class Neuronenblitz:
             self._grad_sq[syn] = grad_sq_cpu[i]
             self._prev_gradients[syn] = prev_grad_cpu[i]
             self.core.neurons[syn.target].attention_score += scores_cpu[i]
-
 
     def train_example(self, input_value, target_value, sample_weight: float = 1.0):
         with self.lock:
@@ -1621,7 +1651,9 @@ class Neuronenblitz:
                         )
                         err = self._compute_loss(target_value, out_val)
                         pred_size = len(self.core.synapses) + sum(
-                            1 for syn in path if syn.potential >= self.plasticity_threshold
+                            1
+                            for syn in path
+                            if syn.potential >= self.plasticity_threshold
                         )
                         metrics.append(
                             (
@@ -1644,7 +1676,9 @@ class Neuronenblitz:
                         output_value, path = self.dynamic_wander(input_value)
                         raw_error = self._compute_loss(target_value, output_value)
                         if self.dataloader is not None:
-                            raw_error += self.dataloader.round_trip_penalty_for(input_value)
+                            raw_error += self.dataloader.round_trip_penalty_for(
+                                input_value
+                            )
                     weighted_error = raw_error * sample_weight
                     path_length = self.apply_weight_updates_and_attention(
                         path, weighted_error

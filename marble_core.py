@@ -10,16 +10,16 @@ import random
 import time
 from collections import deque
 from datetime import datetime
-from typing import Any, Callable, Hashable
+from typing import Any, Callable, Hashable, Type
 
 import numpy as np
 import torch
 import torch.distributed as dist
+import torch.nn as nn
 from tokenizers import Tokenizer
-from event_bus import global_event_bus
 
 import tensor_backend as tb
-
+from event_bus import global_event_bus
 from marble_base import MetricsVisualizer
 from marble_imports import *  # noqa: F401,F403,F405
 from memory_pool import MemoryPool
@@ -401,6 +401,9 @@ SYNAPSE_TYPES = [
     "dropout",
     "batchnorm",
 ]
+
+# Registry of custom loss modules mapped by name
+LOSS_MODULES: dict[str, Type[nn.Module]] = {}
 
 # Global registry for all tiers
 TIER_REGISTRY = {}

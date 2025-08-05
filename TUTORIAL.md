@@ -3260,3 +3260,51 @@ inspect the results within the Streamlit playground.
      tuning further.
    * *Best Configuration* – expander listing the top-performing parameters with a
      download button to export them as ``best_params.yaml`` for future runs.
+
+## Project 99 – Custom Loss Module Plugin
+
+**Goal:** Register a custom loss function through the plugin system and use it
+within Neuronenblitz training.
+
+1. **Create the plugin** in ``plugins/custom_loss.py``:
+
+   ```python
+   import torch.nn as nn
+
+   def register(reg_neuron, reg_synapse, reg_loss):
+       class SmoothL1(nn.Module):
+           def forward(self, pred, target):
+               return nn.functional.smooth_l1_loss(pred, target)
+
+       reg_loss("smooth_l1", SmoothL1)
+   ```
+
+2. **Download a dataset** for experimentation:
+
+   ```python
+   from torchvision.datasets import MNIST
+
+   MNIST("data", download=True)
+   ```
+
+3. **Load the plugin and construct a model**:
+
+   ```python
+   from plugin_system import load_plugins
+   from marble_core import Core
+   from marble_neuronenblitz import Neuronenblitz
+
+   load_plugins("plugins")
+   core = Core({})
+   nb = Neuronenblitz(core, loss_module="smooth_l1")
+   ```
+
+4. **Train on a single example to verify the loss**:
+
+   ```python
+   nb.train_example(0.5, 0.2)
+   ```
+
+This project demonstrates that loss modules provided by plugins can be
+referenced by name and are automatically initialised on CPU or GPU depending on
+hardware availability.
