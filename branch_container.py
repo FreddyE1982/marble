@@ -47,6 +47,7 @@ class BranchContainer:
         *,
         branch_idx: int,
         num_branches: int,
+        pre_estimate: bool,
     ) -> Any:
         steps_with_device: List[dict] = []
         for s in steps:
@@ -64,7 +65,7 @@ class BranchContainer:
                 from pipeline import Pipeline
 
                 pipe = Pipeline(steps_with_device)
-                results = pipe.execute(marble=marble, **kwargs)
+                results = pipe.execute(marble=marble, pre_estimate=pre_estimate, **kwargs)
                 return results[-1] if results else None
 
             return await asyncio.to_thread(_execute)
@@ -79,6 +80,7 @@ class BranchContainer:
         marble: Any | None,
         *,
         max_gpu_concurrency: int | None = None,
+        pre_estimate: bool = True,
         **kwargs,
     ) -> List[Any]:
         devices = self._allocate_devices()
@@ -96,6 +98,7 @@ class BranchContainer:
                 sem,
                 branch_idx=idx,
                 num_branches=len(self.branches),
+                pre_estimate=pre_estimate,
             )
             for idx, (steps, dev) in enumerate(zip(self.branches, devices))
         ]

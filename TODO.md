@@ -622,16 +622,23 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Implement Distribute dataset shards across parallel pipelines with CPU/GPU support.
    - [x] Add tests validating Distribute dataset shards across parallel pipelines.
    - [x] Document Distribute dataset shards across parallel pipelines in README and TUTORIAL.
-193. [ ] Estimate resource needs ahead of execution to inform the memory manager.
-   - [ ] Outline design for Estimate resource needs ahead of execution to inform the memory manager.
-   - [ ] Implement Estimate resource needs ahead of execution to inform the memory manager with CPU/GPU support.
-   - [ ] Add tests validating Estimate resource needs ahead of execution to inform the memory manager.
-   - [ ] Document Estimate resource needs ahead of execution to inform the memory manager in README and TUTORIAL.
-194. [ ] Save run profiles capturing the exact execution order.
-   - [ ] Outline design for Save run profiles capturing the exact execution order.
-   - [ ] Implement Save run profiles capturing the exact execution order with CPU/GPU support.
-   - [ ] Add tests validating Save run profiles capturing the exact execution order.
-   - [ ] Document Save run profiles capturing the exact execution order in README and TUTORIAL.
+193. [x] Estimate resource needs ahead of execution to inform the memory manager.
+   - [x] Outline design for Estimate resource needs ahead of execution to inform the memory manager.
+       - Added a recursive `Pipeline.estimate_resources` that invokes step-specific
+         estimators (`<func>_estimate` helpers or plugin `estimate_memory` methods)
+         before any execution. The pass aggregates byte requirements across macros
+         and branches and notifies a `MemoryManager` with device-aware sizes.
+   - [x] Implement Estimate resource needs ahead of execution to inform the memory manager with CPU/GPU support.
+   - [x] Add tests validating Estimate resource needs ahead of execution to inform the memory manager.
+   - [x] Document Estimate resource needs ahead of execution to inform the memory manager in README and TUTORIAL.
+194. [x] Save run profiles capturing the exact execution order.
+   - [x] Outline design for Save run profiles capturing the exact execution order.
+       - Introduced a thread-safe `RunProfiler` recording start/end times and device
+         for every step. `Pipeline.execute` integrates the profiler and writes
+         sorted JSON logs capturing the precise order of macros and branches.
+   - [x] Implement Save run profiles capturing the exact execution order with CPU/GPU support.
+   - [x] Add tests validating Save run profiles capturing the exact execution order.
+   - [x] Document Save run profiles capturing the exact execution order in README and TUTORIAL.
 195. [ ] Edit pipeline definitions interactively through the GUI.
    - [ ] Outline design for Edit pipeline definitions interactively through the GUI.
    - [ ] Implement Edit pipeline definitions interactively through the GUI with CPU/GPU support.

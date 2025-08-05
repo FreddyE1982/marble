@@ -903,6 +903,38 @@ pipe.execute(max_gpu_concurrency=1)
 This control applies recursively to macro steps and nested branches ensuring
 consistent behaviour across complex pipelines.
 
+### Estimating Resource Needs
+
+``Pipeline.execute`` can plan allocations ahead of time. Steps may expose
+an estimator by defining a ``<func>_estimate`` helper or, for plugins,
+an ``estimate_memory`` method. During a pre-execution pass the pipeline
+calls these estimators and reports the predicted byte usage to a
+``MemoryManager``.
+
+```python
+from memory_manager import MemoryManager
+pipe = Pipeline([...])
+mgr = MemoryManager()
+pipe.execute(memory_manager=mgr)
+print(mgr.total_reserved())
+```
+
+### Saving Run Profiles
+
+Supplying ``run_profile_path`` writes a JSON file describing the exact
+step sequence.  The profiler records start and end times and the CPU or
+GPU device for each step, including those inside macros and branches.
+
+```python
+pipe.execute(run_profile_path="profile.json")
+```
+
+The resulting file lists entries like
+
+```json
+[{"step": "load", "start": 0.0, "end": 0.1, "device": "cpu"}]
+```
+
 ## PyTorch to MARBLE Conversion
 The project ships with a converter that maps PyTorch models into the MARBLE
 format. Run the CLI to transform a saved ``.pt`` file into JSON:

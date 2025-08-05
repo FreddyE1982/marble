@@ -2730,3 +2730,35 @@ conversation pairs.
 
 The plugin uses GPU acceleration when available and falls back to CPU
 otherwise.
+
+## Project: Estimating Memory and Profiling Execution
+
+This project shows how to plan memory usage and record the exact order of
+executed steps.
+
+1. **Construct a tiny pipeline** that allocates a tensor and requests a
+   run profile:
+
+   ```python
+   from pipeline import Pipeline
+   from memory_manager import MemoryManager
+
+   steps = [
+       {"module": "tests.test_resource_estimation", "func": "make_tensor", "params": {"size": 8}, "name": "alloc"}
+   ]
+   pipe = Pipeline(steps)
+   mgr = MemoryManager()
+   pipe.execute(memory_manager=mgr, run_profile_path="profile.json")
+   print("Reserved bytes:", mgr.total_reserved())
+   ```
+
+2. **Inspect the profile** saved to ``profile.json``:
+
+   ```python
+   import json, pprint
+   with open("profile.json") as f:
+       pprint.pprint(json.load(f))
+   ```
+
+The profile lists each step with start and end times and the CPU or GPU
+device used during execution.
