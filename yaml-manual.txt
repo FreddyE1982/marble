@@ -10,6 +10,10 @@ are automatically filled with the defaults from `config.yaml`, allowing small
 YAML snippets to override just the options you need.
 
 dataset:
+  source: Path or URL of the primary training dataset. Accepts local filesystem
+    paths as well as ``http://`` or ``https://`` URLs. When ``use_kuzu_graph`` is
+    ``true`` this field is ignored. Set to ``null`` when supplying data
+    programmatically.
   num_shards: Number of shards the training dataset is split into. When greater
     than ``1`` each training worker should set ``shard_index`` to a unique value
     between ``0`` and ``num_shards - 1`` so that only a subset of samples is
@@ -24,6 +28,25 @@ dataset:
   cache_url: Base URL of a running ``DatasetCacheServer``. When set, files are
     fetched from the cache first and only downloaded from the original source if
     missing. This keeps datasets synchronised across multiple machines.
+  use_kuzu_graph: Toggle that switches the training input to a Kùzu graph rather
+    than a flat dataset. When ``true`` the ``kuzu_graph`` subsection must be
+    provided and the ``source`` field above is ignored. This allows Marble to
+    train directly from graph-structured data stored in a Kùzu database without
+    intermediate export steps.
+  kuzu_graph:
+    db_path: Filesystem location of the Kùzu database storing the training
+      graph. The database is opened in read-only mode so it must already exist
+      and contain the relevant nodes or relationships.
+    query: Cypher query returning training samples. The query should yield at
+      least two columns representing input and target values. For example:
+      ``MATCH (s:Sample) RETURN s.input AS input, s.label AS target``.
+    input_column: Name of the column in the query result used as the model
+      input. Defaults to ``"input"`` if omitted.
+    target_column: Name of the column providing the expected output for each
+      sample. Defaults to ``"target"``.
+    limit: Optional integer restricting how many rows are read from the graph.
+      ``null`` reads the entire result set. Use this to cap training size during
+      experiments or when only a subset is needed.
   hf_token: Path to a file containing your Hugging Face API token. When the
     file exists Marble automatically logs in before downloading datasets or
     models. The default location is ``~/.cache/marble/hf_token``.

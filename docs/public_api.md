@@ -40,6 +40,8 @@ This document lists the main classes and functions intended for external use.
 - `dataset_loader.load_dataset`
 - `dataset_loader.prefetch_dataset`
 - `dataset_loader.export_dataset`
+- `dataset_loader.load_kuzu_graph`
+- `dataset_loader.load_training_data_from_config`
 - `dataset_versioning.create_version`
 - `dataset_versioning.apply_version`
 - `dataset_replication.replicate_dataset`

@@ -17,6 +17,7 @@ from marble_base import MetricsVisualizer
 from marble import DataLoader
 from tokenizer_utils import tokenize_line
 from event_bus import global_event_bus
+from kuzu_interface import KuzuGraphDatabase
 
 _SESSION = requests_cache.CachedSession("http_cache", expire_after=86400)
 _DATASET_CACHE: dict[str, list[tuple[Any, Any]]] = {}
@@ -284,6 +285,100 @@ def load_dataset(
     if return_deps:
         return pairs, deps
     return pairs
+
+
+def load_kuzu_graph(
+    db_path: str,
+    query: str,
+    *,
+    input_column: str = "input",
+    target_column: str = "target",
+    limit: int | None = None,
+    dataloader: "DataLoader | None" = None,
+) -> list[tuple[Any, Any]]:
+    """Execute ``query`` on a Kùzu graph and return ``(input, target)`` pairs.
+
+    Parameters
+    ----------
+    db_path:
+        Filesystem path to the Kùzu database.
+    query:
+        Cypher query selecting rows. The query must return columns matching
+        ``input_column`` and ``target_column``.
+    input_column / target_column:
+        Names of the columns in the query result used as input and target
+        values respectively.
+    limit:
+        Optional maximum number of pairs to return. ``None`` loads all rows.
+    dataloader:
+        Optional :class:`~marble.DataLoader` used to encode the raw values.
+    """
+
+    with KuzuGraphDatabase(db_path) as db:
+        rows = db.execute(query)
+
+    pairs: list[tuple[Any, Any]] = []
+    for row in rows:
+        inp = row.get(input_column)
+        tgt = row.get(target_column)
+        if dataloader is not None:
+            inp = dataloader.encode(inp)
+            tgt = dataloader.encode(tgt)
+        pairs.append((inp, tgt))
+        if limit is not None and len(pairs) >= limit:
+            break
+    return pairs
+
+
+def load_training_data_from_config(
+    dataset_cfg: dict,
+    *,
+    dataloader: "DataLoader | None" = None,
+) -> list[tuple[Any, Any]]:
+    """Load training pairs according to ``dataset`` configuration section.
+
+    When ``dataset_cfg`` contains ``use_kuzu_graph: true`` the function reads
+    data from a Kùzu graph using :func:`load_kuzu_graph`. Otherwise it falls back
+    to :func:`load_dataset` and expects ``dataset_cfg['source']`` to reference a
+    conventional dataset file or URL.
+    """
+
+    if dataset_cfg.get("use_kuzu_graph"):
+        graph_cfg = dataset_cfg.get("kuzu_graph", {})
+        db_path = graph_cfg.get("db_path")
+        query = graph_cfg.get("query")
+        if not db_path or not query:
+            raise ValueError(
+                "dataset.kuzu_graph.db_path and dataset.kuzu_graph.query must be provided"
+            )
+        return load_kuzu_graph(
+            db_path,
+            query,
+            input_column=graph_cfg.get("input_column", "input"),
+            target_column=graph_cfg.get("target_column", "target"),
+            limit=graph_cfg.get("limit"),
+            dataloader=dataloader,
+        )
+
+    source = dataset_cfg.get("source")
+    if source is None:
+        raise ValueError("dataset.source must be specified when not using a Kùzu graph")
+
+    kwargs: dict[str, Any] = {}
+    for key in [
+        "cache_dir",
+        "input_col",
+        "target_col",
+        "limit",
+        "force_refresh",
+        "offline",
+        "num_shards",
+        "shard_index",
+    ]:
+        if key in dataset_cfg:
+            kwargs[key] = dataset_cfg[key]
+
+    return load_dataset(source, dataloader=dataloader, **kwargs)
 
 
 class StreamingCSVLoader:

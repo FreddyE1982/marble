@@ -4,11 +4,18 @@ This file enumerates every parameter that can be specified in `config.yaml`.
 Each entry is listed under its section heading.
 
 ## dataset
+- source
 - num_shards
 - shard_index
 - offline
 - encryption_key
 - cache_url: Base URL of ``DatasetCacheServer`` to fetch cached files from.
+- use_kuzu_graph
+- kuzu_graph.db_path
+- kuzu_graph.query
+- kuzu_graph.input_column
+- kuzu_graph.target_column
+- kuzu_graph.limit
 
 ## logging
 - structured
@@ -453,6 +460,13 @@ Each entry is listed under its section heading.
 - shard_index
 - offline
 - encryption_key
+- source
+- use_kuzu_graph
+- kuzu_graph.db_path
+- kuzu_graph.query
+- kuzu_graph.input_column
+- kuzu_graph.target_column
+- kuzu_graph.limit
 
 ## distillation
 - enabled
