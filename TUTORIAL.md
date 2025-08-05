@@ -2346,6 +2346,72 @@ plugins and components.
    ``initialise`` and ``execute`` will be ``"cuda"``; otherwise it defaults to
    ``"cpu"``.
 
+### Project 32 – Swappable Learning Modules
+
+**Goal:** Replace learning algorithms at runtime using the plugin interface.
+
+1. **Create the plugin** in ``plugins/adder.py``:
+   ```python
+   import torch
+   from learning_plugins import LearningModule, register_learning_module
+
+   class Adder(LearningModule):
+       def initialise(self, device, marble=None):
+           self.device = device
+
+       def train_step(self, x, y, *, device, marble=None):
+           return torch.tensor(x, device=device) + torch.tensor(y, device=device)
+
+   def register(reg):
+       reg("adder", Adder)
+   ```
+2. **Load the plugin and instantiate ``UnifiedLearner``**:
+   ```python
+   from learning_plugins import load_learning_plugins
+   from unified_learning import UnifiedLearner
+   from marble_core import Core
+   from marble_neuronenblitz import Neuronenblitz
+   from tests.test_core_functions import minimal_params
+
+   load_learning_plugins("plugins")
+   core = Core(minimal_params())
+   nb = Neuronenblitz(core)
+   ul = UnifiedLearner(core, nb, {"sum": "adder"}, plugin_dirs=["plugins"])
+   ```
+3. **Run a training step**:
+   ```python
+   ul.train_step((2.0, 3.0))
+   print(ul.loss_history["sum"])  # contains the loss returned by the plugin
+   ```
+
+### Project 33 – Dynamic Attention Gating
+
+**Goal:** Use Global Workspace events to influence attention codelets.
+
+1. **Register codelets and enable gating**:
+   ```python
+   import global_workspace
+   import attention_codelets as ac
+
+   global_workspace.activate()
+
+   def c1():
+       return ac.AttentionProposal(score=0.1, content="low")
+
+   def c2():
+       return ac.AttentionProposal(score=0.2, content="high")
+
+   ac.register_codelet(c1)
+   ac.register_codelet(c2)
+   ac.enable_workspace_gating()
+   ```
+2. **Publish events to adjust salience**:
+   ```python
+   global_workspace.workspace.publish("tutorial", {"codelet": "c1", "gate": 1.0})
+   winner = ac.form_coalition(coalition_size=1)[0]
+   print(winner.content)  # now 'low' wins due to gating
+   ```
+
 ### Using Attention Codelets
 
 1. Define a codelet that returns an ``AttentionProposal``:
