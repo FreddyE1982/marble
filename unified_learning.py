@@ -1,9 +1,9 @@
 import json
-import random
-from typing import Dict, List, Callable
+from typing import Dict, Iterable, List
 
 import torch
 
+from learning_plugins import LearningModule, get_learning_module, load_learning_plugins
 from marble_core import Core, perform_message_passing
 from marble_neuronenblitz import Neuronenblitz
 
@@ -15,27 +15,43 @@ class UnifiedLearner:
         self,
         core: Core,
         nb: Neuronenblitz,
-        learners: Dict[str, object],
+        learners: Dict[str, str | LearningModule],
         gating_hidden: int = 8,
         log_path: str | None = None,
+        plugin_dirs: Iterable[str] | None = None,
     ) -> None:
         self.core = core
         self.nb = nb
-        self.learners = learners
+        load_learning_plugins(plugin_dirs)
+        device = (
+            nb.device
+            if hasattr(nb, "device")
+            else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        )
+        resolved: Dict[str, LearningModule] = {}
+        for name, module in learners.items():
+            if isinstance(module, str):
+                cls = get_learning_module(module)
+                inst = cls()
+            else:
+                inst = module
+            if hasattr(inst, "initialise"):
+                inst.initialise(device, nb)
+            resolved[name] = inst
+        self.learners = resolved
         self.log_path = log_path
         in_dim = 4
         self.gate = torch.nn.Sequential(
             torch.nn.Linear(in_dim, gating_hidden),
             torch.nn.ReLU(),
-            torch.nn.Linear(gating_hidden, len(learners)),
+            torch.nn.Linear(gating_hidden, len(resolved)),
         )
-        self.loss_history: Dict[str, List[float]] = {n: [] for n in learners}
+        self.loss_history: Dict[str, List[float]] = {n: [] for n in resolved}
         self.history: List[dict] = []
 
     def _context_vector(self) -> torch.Tensor:
-        avg_loss = (
-            sum(v[-1] for v in self.loss_history.values() if v)
-            / max(1, sum(1 for v in self.loss_history.values() if v))
+        avg_loss = sum(v[-1] for v in self.loss_history.values() if v) / max(
+            1, sum(1 for v in self.loss_history.values() if v)
         )
         ctx = [
             float(self.core.get_usage_by_tier("vram")),
@@ -64,14 +80,21 @@ class UnifiedLearner:
         ctx = self._context_vector()
         weights = self._select_weights(ctx)
         self._log(ctx, weights)
+        device = (
+            self.nb.device
+            if hasattr(self.nb, "device")
+            else torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        )
         for weight, (name, learner) in zip(weights, self.learners.items()):
             prev = getattr(self.nb, "plasticity_modulation", 1.0)
             self.nb.plasticity_modulation = float(weight)
             if hasattr(learner, "train_step"):
                 try:
-                    loss = learner.train_step(inp, target)
+                    loss = learner.train_step(
+                        inp, target, device=device, marble=self.nb
+                    )
                 except TypeError:
-                    loss = learner.train_step(inp)
+                    loss = learner.train_step(inp, device=device, marble=self.nb)
             else:
                 continue
             self.loss_history[name].append(float(loss) if loss is not None else 0.0)

@@ -732,16 +732,16 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [ ] Implement Support streaming dataset shards during Neuronenblitz training to keep the model responsive with CPU/GPU support.
    - [ ] Add tests validating Support streaming dataset shards during Neuronenblitz training to keep the model responsive.
    - [ ] Document Support streaming dataset shards during Neuronenblitz training to keep the model responsive in README and TUTORIAL.
-218. [ ] Allow learning modules to be swapped in and out through a plugin interface.
-   - [ ] Outline design for Allow learning modules to be swapped in and out through a plugin interface.
-   - [ ] Implement Allow learning modules to be swapped in and out through a plugin interface with CPU/GPU support.
-   - [ ] Add tests validating Allow learning modules to be swapped in and out through a plugin interface.
-   - [ ] Document Allow learning modules to be swapped in and out through a plugin interface in README and TUTORIAL.
-219. [ ] Use Global Workspace events to guide dynamic attention gating.
-   - [ ] Outline design for Use Global Workspace events to guide dynamic attention gating.
-   - [ ] Implement Use Global Workspace events to guide dynamic attention gating with CPU/GPU support.
-   - [ ] Add tests validating Use Global Workspace events to guide dynamic attention gating.
-   - [ ] Document Use Global Workspace events to guide dynamic attention gating in README and TUTORIAL.
+218. [x] Allow learning modules to be swapped in and out through a plugin interface.
+   - [x] Outline design for Allow learning modules to be swapped in and out through a plugin interface.
+   - [x] Implement Allow learning modules to be swapped in and out through a plugin interface with CPU/GPU support.
+   - [x] Add tests validating Allow learning modules to be swapped in and out through a plugin interface.
+   - [x] Document Allow learning modules to be swapped in and out through a plugin interface in README and TUTORIAL.
+219. [x] Use Global Workspace events to guide dynamic attention gating.
+   - [x] Outline design for Use Global Workspace events to guide dynamic attention gating.
+   - [x] Implement Use Global Workspace events to guide dynamic attention gating with CPU/GPU support.
+   - [x] Add tests validating Use Global Workspace events to guide dynamic attention gating.
+   - [x] Document Use Global Workspace events to guide dynamic attention gating in README and TUTORIAL.
 220. [ ] Provide a reinforcement learning loop coordinated by pipeline scheduling.
    - [ ] Outline design for Provide a reinforcement learning loop coordinated by pipeline scheduling.
    - [ ] Implement Provide a reinforcement learning loop coordinated by pipeline scheduling with CPU/GPU support.

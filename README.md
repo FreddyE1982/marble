@@ -928,6 +928,24 @@ codelets through the workspace. Register your own codelets via
 `attention_codelets.register_codelet` and invoke
 `attention_codelets.run_cycle()` during training.
 
+Learning algorithms can now be swapped at runtime through the dedicated
+``learning_plugins`` interface.  Implementations subclass
+``LearningModule`` and are registered with
+``learning_plugins.register_learning_module``.  ``UnifiedLearner`` accepts
+plugin names and initialises each module on CPU or GPU depending on hardware:
+
+```python
+from learning_plugins import load_learning_plugins
+
+load_learning_plugins("plugins")
+learner = UnifiedLearner(core, nb, {"custom": "my_plugin"}, plugin_dirs=["plugins"])
+```
+
+The ``attention_codelets`` system can also react to Global Workspace events.
+Invoking ``attention_codelets.enable_workspace_gating()`` subscribes to
+messages of the form ``{"codelet": "name", "gate": value}``, dynamically
+adjusting salience during coalition formation.
+
 For heavy computation on dedicated accelerators the `remote_offload` plugin
 spawns a `RemoteBrainServer` that executes message passing and learning steps on
 another machine. Local clients interact with it transparently through
