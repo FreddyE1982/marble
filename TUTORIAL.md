@@ -3244,7 +3244,13 @@ inspect the results within the Streamlit playground.
 3. **Open the Optuna tab** in advanced mode. Enter the database path and study
    name ``tutorial`` then click **Load Study**.
 
-4. **Review the results**. The *Optimization History* chart displays validation
-   loss per trial while *Parameter Importances* ranks hyperparameters by impact.
-   The *Best Configuration* expander shows the winning parameters and offers a
-   download button for a YAML file.
+4. **Review the results**.
+
+   * *Optimization History* – line plot of validation loss for each trial.  Hover
+     over a point to see its trial number and loss value; the downward trend
+     reveals improving performance.
+   * *Parameter Importances* – bar chart estimating how strongly each hyper-
+     parameter influenced the objective.  Taller bars indicate parameters worth
+     tuning further.
+   * *Best Configuration* – expander listing the top-performing parameters with a
+     download button to export them as ``best_params.yaml`` for future runs.
