@@ -80,6 +80,8 @@ from marble_registry import MarbleRegistry
 from metrics_dashboard import MetricsDashboard
 from neural_pathway import find_neural_pathway, pathway_figure
 from pipeline import Pipeline
+from graph_viz import sankey_figure
+from networkx_interop import core_to_dict
 
 
 def _detect_device() -> str:
@@ -2366,6 +2368,29 @@ def run_playground() -> None:
                 activations = {n.id: float(n.value) for n in marble.get_core().neurons}
                 fig = activation_figure(marble.get_core(), activations, layout=layout)
                 st.plotly_chart(fig, use_container_width=True)
+            with st.expander("Neuron Graph Sankey", expanded=False):
+                w_thresh = st.slider(
+                    "Min Edge Weight",
+                    min_value=0.0,
+                    max_value=1.0,
+                    value=0.0,
+                    step=0.01,
+                    key="sankey_weight",
+                )
+                d_thresh = st.slider(
+                    "Min Node Degree",
+                    min_value=0,
+                    max_value=10,
+                    value=0,
+                    step=1,
+                    key="sankey_degree",
+                )
+                if st.button("Render Neuron Graph", key="render_sankey"):
+                    graph_dict = core_to_dict(marble.get_core())
+                    fig = sankey_figure(
+                        graph_dict, weight_threshold=w_thresh, degree_threshold=d_thresh
+                    )
+                    st.plotly_chart(fig, use_container_width=True)
 
         with tab_heat:
             st.write("Display a heatmap of synaptic weights.")
