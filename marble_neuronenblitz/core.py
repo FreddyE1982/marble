@@ -1382,78 +1382,98 @@ class Neuronenblitz:
 
         self._update_traces(path)
         path_length = len(path)
-        for syn in path:
-            if getattr(syn, "frozen", False):
-                continue
-            source_value = self.core.neurons[syn.source].value
-            delta = self.weight_update_fn(source_value, error, path_length)
-            prev_delta = self._prev_gradients.get(syn)
-            if prev_delta is not None and prev_delta * delta < 0:
-                delta *= 0.5
-            self._prev_gradients[syn] = delta
-            delta *= self._eligibility_traces.get(syn, 1.0)
-            if self.use_echo_modulation and hasattr(syn, "get_echo_average"):
-                delta *= syn.get_echo_average()
-            if self.gradient_noise_std > 0:
-                delta += np.random.normal(0.0, self.gradient_noise_std)
-            delta = self.clip_gradient(delta)
-            prev_v = self._grad_sq.get(syn, 1.0)
-            v = self._rmsprop_beta * prev_v + (1 - self._rmsprop_beta) * (delta**2)
-            self._grad_sq[syn] = v
-            scaled_delta = delta / math.sqrt(v + self._grad_epsilon)
-            mom_prev = self._momentum.get(syn, 0.0)
-            mom = self.momentum_coefficient * mom_prev + scaled_delta
-            self._momentum[syn] = mom
-            update = self.learning_rate * (
-                self.momentum_coefficient * mom + scaled_delta
-            )
-            phase_factor = math.cos(syn.phase - self.global_phase)
-            update *= phase_factor
-            if self.chaotic_gating_enabled:
-                update *= self.update_chaotic_gate()
-            syn.phase = (syn.phase + self.phase_adaptation_rate * error) % (2 * math.pi)
-            if self.synaptic_fatigue_enabled:
-                fatigue_factor = 1.0 - getattr(syn, "fatigue", 0.0)
-                update *= max(0.0, fatigue_factor)
-            activity_factor = 1.0 / (1.0 + syn.visit_count**self.activity_gate_exponent)
-            update *= activity_factor
-            depth_factor = 1.0 + self.depth_clip_scaling * (
-                path_length / max(1, self.max_wander_depth)
-            )
-            cap = self.synapse_update_cap / depth_factor
-            if abs(update) > cap:
-                update = math.copysign(cap, update)
-            self._accum_updates[syn] = self._accum_updates.get(syn, 0.0) + update
-            syn.potential = min(
-                self.synapse_potential_cap,
-                syn.potential + abs(scaled_delta) * self.gradient_score_scale,
-            )
-            if random.random() < self.consolidation_probability:
-                syn.weight *= self.consolidation_strength
-            if syn.weight > self._weight_limit:
-                syn.weight = self._weight_limit
-            elif syn.weight < -self._weight_limit:
-                syn.weight = -self._weight_limit
-            mem_factor = 1.0 + self.memory_gates.get(syn, 0.0)
-            score = abs(error) * abs(syn.weight) / max(path_length, 1) * mem_factor
-            self.core.neurons[syn.target].attention_score += score
-        self._accum_step += 1
-        if self._accum_step >= self.gradient_accumulation_steps:
-            for syn, upd in self._accum_updates.items():
-                syn.weight += upd
+
+        used_cuda = False
+        if self._can_use_cuda_updates(path):
+            self._apply_weight_updates_and_attention_cuda(path, error, path_length)
+            used_cuda = True
+        else:
+            for syn in path:
+                if getattr(syn, "frozen", False):
+                    continue
+                source_value = self.core.neurons[syn.source].value
+                delta = self.weight_update_fn(source_value, error, path_length)
+                prev_delta = self._prev_gradients.get(syn)
+                if prev_delta is not None and prev_delta * delta < 0:
+                    delta *= 0.5
+                self._prev_gradients[syn] = delta
+                delta *= self._eligibility_traces.get(syn, 1.0)
+                if self.use_echo_modulation and hasattr(syn, "get_echo_average"):
+                    delta *= syn.get_echo_average()
+                if self.gradient_noise_std > 0:
+                    delta += np.random.normal(0.0, self.gradient_noise_std)
+                delta = self.clip_gradient(delta)
+                prev_v = self._grad_sq.get(syn, 1.0)
+                v = self._rmsprop_beta * prev_v + (1 - self._rmsprop_beta) * (delta**2)
+                self._grad_sq[syn] = v
+                scaled_delta = delta / math.sqrt(v + self._grad_epsilon)
+                mom_prev = self._momentum.get(syn, 0.0)
+                mom = self.momentum_coefficient * mom_prev + scaled_delta
+                self._momentum[syn] = mom
+                update = self.learning_rate * (
+                    self.momentum_coefficient * mom + scaled_delta
+                )
+                phase_factor = math.cos(syn.phase - self.global_phase)
+                update *= phase_factor
+                if self.chaotic_gating_enabled:
+                    update *= self.update_chaotic_gate()
+                syn.phase = (syn.phase + self.phase_adaptation_rate * error) % (
+                    2 * math.pi
+                )
+                if self.synaptic_fatigue_enabled:
+                    fatigue_factor = 1.0 - getattr(syn, "fatigue", 0.0)
+                    update *= max(0.0, fatigue_factor)
+                activity_factor = 1.0 / (
+                    1.0 + syn.visit_count**self.activity_gate_exponent
+                )
+                update *= activity_factor
+                depth_factor = 1.0 + self.depth_clip_scaling * (
+                    path_length / max(1, self.max_wander_depth)
+                )
+                cap = self.synapse_update_cap / depth_factor
+                if abs(update) > cap:
+                    update = math.copysign(cap, update)
+                self._accum_updates[syn] = self._accum_updates.get(syn, 0.0) + update
+                syn.potential = min(
+                    self.synapse_potential_cap,
+                    syn.potential + abs(scaled_delta) * self.gradient_score_scale,
+                )
+                if random.random() < self.consolidation_probability:
+                    syn.weight *= self.consolidation_strength
                 if syn.weight > self._weight_limit:
                     syn.weight = self._weight_limit
                 elif syn.weight < -self._weight_limit:
                     syn.weight = -self._weight_limit
+                mem_factor = 1.0 + self.memory_gates.get(syn, 0.0)
+                score = abs(error) * abs(syn.weight) / max(path_length, 1) * mem_factor
+                self.core.neurons[syn.target].attention_score += score
+            self._accum_step += 1
+            if self._accum_step >= self.gradient_accumulation_steps:
+                for syn, upd in self._accum_updates.items():
+                    syn.weight += upd
+                    if syn.weight > self._weight_limit:
+                        syn.weight = self._weight_limit
+                    elif syn.weight < -self._weight_limit:
+                        syn.weight = -self._weight_limit
+                if self.weight_decay:
+                    for syn in self.core.synapses:
+                        if getattr(syn, "frozen", False):
+                            continue
+                        syn.weight *= 1.0 - self.weight_decay
+                self._accum_updates.clear()
+                self._accum_step = 0
+                self.step_lr_scheduler()
+                self.step_epsilon_scheduler()
+
+        if used_cuda:
             if self.weight_decay:
                 for syn in self.core.synapses:
                     if getattr(syn, "frozen", False):
                         continue
                     syn.weight *= 1.0 - self.weight_decay
-            self._accum_updates.clear()
-            self._accum_step = 0
             self.step_lr_scheduler()
             self.step_epsilon_scheduler()
+
         if path:
             last_syn = path[-1]
             last_neuron = self.core.neurons[last_syn.target]
@@ -1474,12 +1494,91 @@ class Neuronenblitz:
                     )
                     mem_path.append(syn)
                 self.episodic_memory.append(mem_path)
-        if self.weight_decay:
-            for syn in self.core.synapses:
-                if getattr(syn, "frozen", False):
-                    continue
-                syn.weight *= 1.0 - self.weight_decay
         return path_length
+
+    def _can_use_cuda_updates(self, path) -> bool:
+        if not cuda_available() or not path:
+            return False
+        if (
+            self.gradient_noise_std > 0.0
+            or self.use_echo_modulation
+            or self.chaotic_gating_enabled
+            or self.synaptic_fatigue_enabled
+            or self.consolidation_probability > 0.0
+            or self.gradient_accumulation_steps != 1
+            or self.weight_update_fn is not default_weight_update_fn
+        ):
+            return False
+        return all(not getattr(syn, "frozen", False) for syn in path)
+
+    def _apply_weight_updates_and_attention_cuda(self, path, error, path_length) -> None:
+        import torch
+        import neuronenblitz_kernel as nbk
+
+        device = torch.device("cuda")
+        dtype = torch.float16 if self.use_mixed_precision else torch.float32
+        weights = torch.tensor([syn.weight for syn in path], device=device, dtype=dtype)
+        potentials = torch.tensor([syn.potential for syn in path], device=device, dtype=dtype)
+        sources = torch.tensor(
+            [self.core.neurons[syn.source].value for syn in path], device=device, dtype=dtype
+        )
+        momentum = torch.tensor(
+            [self._momentum.get(syn, 0.0) for syn in path], device=device, dtype=dtype
+        )
+        grad_sq = torch.tensor(
+            [self._grad_sq.get(syn, 1.0) for syn in path], device=device, dtype=dtype
+        )
+        prev_grad = torch.tensor(
+            [self._prev_gradients.get(syn, 0.0) for syn in path], device=device, dtype=dtype
+        )
+        eligibility = torch.tensor(
+            [self._eligibility_traces.get(syn, 1.0) for syn in path], device=device, dtype=dtype
+        )
+        mem_gate = torch.tensor(
+            [self.memory_gates.get(syn, 0.0) for syn in path], device=device, dtype=dtype
+        )
+
+        depth_factor = 1.0 + self.depth_clip_scaling * (
+            path_length / max(1, self.max_wander_depth)
+        )
+        cap = self.synapse_update_cap / depth_factor
+
+        weights, potentials, momentum, grad_sq, prev_grad, scores = nbk.apply_weight_updates(
+            sources,
+            weights,
+            potentials,
+            momentum,
+            grad_sq,
+            prev_grad,
+            eligibility,
+            mem_gate,
+            float(error),
+            float(self.learning_rate),
+            float(self.momentum_coefficient),
+            float(self._rmsprop_beta),
+            float(self._grad_epsilon),
+            float(cap),
+            float(self._weight_limit),
+            float(self.gradient_score_scale),
+            float(self.synapse_potential_cap),
+            int(path_length),
+        )
+
+        weights_cpu = weights.cpu().tolist()
+        potentials_cpu = potentials.cpu().tolist()
+        momentum_cpu = momentum.cpu().tolist()
+        grad_sq_cpu = grad_sq.cpu().tolist()
+        prev_grad_cpu = prev_grad.cpu().tolist()
+        scores_cpu = scores.cpu().tolist()
+
+        for i, syn in enumerate(path):
+            syn.weight = weights_cpu[i]
+            syn.potential = potentials_cpu[i]
+            self._momentum[syn] = momentum_cpu[i]
+            self._grad_sq[syn] = grad_sq_cpu[i]
+            self._prev_gradients[syn] = prev_grad_cpu[i]
+            self.core.neurons[syn.target].attention_score += scores_cpu[i]
+
 
     def train_example(self, input_value, target_value, sample_weight: float = 1.0):
         with self.lock:
