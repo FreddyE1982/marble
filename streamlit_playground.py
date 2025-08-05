@@ -38,6 +38,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 import torch
 import yaml
+import csv
 from bit_tensor_dataset import BitTensorDataset
 from PIL import Image
 from event_bus import PROGRESS_EVENT, ProgressEvent, global_event_bus
@@ -858,6 +859,47 @@ def system_stats(device: int = 0) -> dict:
         "ram_mb": get_system_memory_usage(),
         "gpu_mb": get_gpu_memory_usage(device),
     }
+
+
+def _serialise_step(step: dict) -> dict:
+    """Return a JSON-serialisable representation of a pipeline ``step``.
+
+    Dataset parameters are replaced with their ``summary`` information.
+    Non-serialisable values are cast to ``str``.
+    """
+
+    def _conv(val):
+        if isinstance(val, BitTensorDataset):
+            return {"dataset": val.summary()}
+        try:
+            json.dumps(val)
+            return val
+        except Exception:
+            return str(val)
+
+    module = step.get("module") or "marble_interface"
+    func = step.get("func")
+    params = {k: _conv(v) for k, v in step.get("params", {}).items()}
+    return {"module": module, "func": func, "params": params}
+
+
+def step_to_json(step: dict) -> str:
+    """Serialise ``step`` to formatted JSON."""
+
+    return json.dumps(_serialise_step(step), indent=2)
+
+
+def step_to_csv(step: dict) -> str:
+    """Serialise ``step`` to CSV with parameter rows."""
+
+    details = _serialise_step(step)
+    out = io.StringIO()
+    writer = csv.writer(out)
+    writer.writerow(["module", details["module"]])
+    writer.writerow(["func", details["func"]])
+    for k, v in details["params"].items():
+        writer.writerow([k, json.dumps(v) if isinstance(v, (dict, list)) else v])
+    return out.getvalue()
 
 
 def core_statistics(marble) -> dict:
@@ -2191,6 +2233,7 @@ def run_playground() -> None:
                 fig = pipeline_figure(st.session_state["pipeline"])
                 st.plotly_chart(fig, use_container_width=True)
             with st.expander("Step Visualisation"):
+                st.session_state["metrics_placeholders"] = {}
                 for i, step in enumerate(st.session_state["pipeline"]):
                     module = step.get("module") or "marble_interface"
                     st.markdown(
@@ -2206,6 +2249,24 @@ def run_playground() -> None:
                                 st.json(value.summary())
                     else:
                         st.write("Parameters: none")
+                    metrics_box = st.empty()
+                    st.session_state["metrics_placeholders"][i] = metrics_box
+                    json_data = step_to_json(step)
+                    st.download_button(
+                        "Download JSON",
+                        json_data,
+                        file_name=f"step_{i+1}.json",
+                        mime="application/json",
+                        key=f"step_json_{i}",
+                    )
+                    csv_data = step_to_csv(step)
+                    st.download_button(
+                        "Download CSV",
+                        csv_data,
+                        file_name=f"step_{i+1}.csv",
+                        mime="text/csv",
+                        key=f"step_csv_{i}",
+                    )
             if st.button("Run Pipeline") and st.session_state["pipeline"]:
                 is_mobile = st.session_state.get("device", "desktop") == "mobile" or st.session_state.get("mobile")
                 placeholder = st.empty()
@@ -2216,6 +2277,14 @@ def run_playground() -> None:
                     pct = (data["index"] + (1 if data["status"] == "completed" else 0)) / data["total"]
                     msg = f"{data['status']}: {data['step']} ({data['device']})"
                     st.session_state["last_progress"] = msg
+                    metrics = system_stats()
+                    box = st.session_state.get("metrics_placeholders", {}).get(data["index"])
+                    if box:
+                        box.metric(
+                            "RAM (MB)",
+                            f"{metrics['ram_mb']:.1f}",
+                            delta=f"GPU {metrics['gpu_mb']:.1f} MB",
+                        )
                     if bar:
                         bar.progress(pct, text=msg)
                     else:

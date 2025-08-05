@@ -486,6 +486,45 @@ def test_pipeline_step_visualisation():
     assert any("delta" in j.value for j in vis_exp.json)
 
 
+def _setup_pipeline_for_export(device: str) -> tuple[AppTest, any]:
+    at = AppTest.from_file("streamlit_playground.py")
+    at.query_params["device"] = device
+    at = at.run(timeout=15)
+    at = at.sidebar.button[0].click().run(timeout=30)
+    at = at.sidebar.radio[0].set_value("Advanced").run(timeout=20)
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+    add_exp = pipe_tab.expander[1]
+    add_exp.selectbox[0].set_value("increase_marble_representation")
+    add_exp.number_input[0].set_value(2)
+    at = add_exp.button[0].click().run(timeout=20)
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+    return at, pipe_tab
+
+
+def test_step_export_and_metrics_desktop():
+    at, pipe_tab = _setup_pipeline_for_export("desktop")
+    vis_exp = next(e for e in pipe_tab.expander if e.label == "Step Visualisation")
+    labels = [b.label for b in vis_exp.download_button]
+    assert "Download JSON" in labels and "Download CSV" in labels
+    run_btn = next(b for b in pipe_tab.button if b.label == "Run Pipeline")
+    at = run_btn.click().run(timeout=20)
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+    vis_exp = next(e for e in pipe_tab.expander if e.label == "Step Visualisation")
+    assert vis_exp.metric, "metric panels missing"
+
+
+def test_step_export_and_metrics_mobile():
+    at, pipe_tab = _setup_pipeline_for_export("mobile")
+    vis_exp = next(e for e in pipe_tab.expander if e.label == "Step Visualisation")
+    labels = [b.label for b in vis_exp.download_button]
+    assert "Download JSON" in labels and "Download CSV" in labels
+    run_btn = next(b for b in pipe_tab.button if b.label == "Run Pipeline")
+    at = run_btn.click().run(timeout=20)
+    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+    vis_exp = next(e for e in pipe_tab.expander if e.label == "Step Visualisation")
+    assert vis_exp.metric, "metric panels missing"
+
+
 def test_lobe_manager_actions():
     at = _setup_advanced_playground()
     lobe_tab = next(t for t in at.tabs if t.label == "Lobe Manager")
