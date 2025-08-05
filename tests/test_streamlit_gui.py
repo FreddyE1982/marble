@@ -4,6 +4,7 @@ import warnings
 
 from _pytest.warning_types import PytestDeprecationWarning
 from streamlit.testing.v1 import AppTest
+import config_editor
 
 # Suppress protobuf deprecation warnings from dependencies before importing
 warnings.filterwarnings(
@@ -613,9 +614,70 @@ def test_config_editor_reinitialize():
     cfg_tab.text_input[1].input("5")
     at = cfg_tab.button[0].click().run(timeout=20)
     cfg_tab = next(t for t in at.tabs if t.label == "Config Editor")
-    at = cfg_tab.button[1].click().run(timeout=20)
+    rein_btn = next(b for b in cfg_tab.button if b.label == "Reinitialize")
+    at = rein_btn.click().run(timeout=20)
     cfg_tab = next(t for t in at.tabs if t.label == "Config Editor")
     assert any("reinitialized" in s.value.lower() for s in cfg_tab.success)
+
+
+def test_config_editor_save_valid(monkeypatch, tmp_path):
+    at = _setup_advanced_playground()
+    cfg_tab = next(t for t in at.tabs if t.label == "Config Editor")
+
+    cfg_tab.text_input[0].input("core.width")
+    cfg_tab.text_input[1].input("6")
+    at = cfg_tab.button[0].click().run(timeout=20)
+    cfg_tab = next(t for t in at.tabs if t.label == "Config Editor")
+
+    orig_save = config_editor.save_config_text
+    orig_load = config_editor.load_config_text
+
+    base_cfg = orig_load()
+    (tmp_path / "config.yaml").write_text(base_cfg)
+
+    def fake_save(text, path="config.yaml"):
+        return orig_save(text, path=str(tmp_path / "config.yaml"))
+
+    def fake_load(path: str = "config.yaml") -> str:
+        return orig_load(str(tmp_path / "config.yaml"))
+
+    monkeypatch.setattr("config_editor.save_config_text", fake_save)
+    monkeypatch.setattr("config_editor.load_config_text", fake_load)
+
+    save_btn = next(b for b in cfg_tab.button if b.label == "Save Configuration")
+    at = save_btn.click().run(timeout=20)
+    cfg_tab = next(t for t in at.tabs if t.label == "Config Editor")
+
+    assert (tmp_path / "config.yaml").exists()
+    assert any("Configuration saved" in s.value for s in cfg_tab.success)
+
+
+def test_config_editor_invalid_yaml(monkeypatch, tmp_path):
+    at = _setup_advanced_playground()
+
+    orig_save = config_editor.save_config_text
+    orig_load = config_editor.load_config_text
+
+    base_cfg = orig_load()
+    (tmp_path / "config.yaml").write_text(base_cfg)
+
+    def fake_save(text, path="config.yaml"):
+        return orig_save(text, path=str(tmp_path / "config.yaml"))
+
+    def fake_load(path: str = "config.yaml") -> str:
+        return orig_load(str(tmp_path / "config.yaml"))
+
+    monkeypatch.setattr("config_editor.save_config_text", fake_save)
+    monkeypatch.setattr("config_editor.load_config_text", fake_load)
+
+    at.session_state["config_yaml"] = "invalid: [unclosed"
+    cfg_tab = next(t for t in at.tabs if t.label == "Config Editor")
+    save_btn = next(b for b in cfg_tab.button if b.label == "Save Configuration")
+    at = save_btn.click().run(timeout=20)
+    cfg_tab = next(t for t in at.tabs if t.label == "Config Editor")
+
+    assert (tmp_path / "config.yaml").read_text() == base_cfg
+    assert cfg_tab.error and any("invalid" in e.value.lower() for e in cfg_tab.error)
 
 
 def test_adaptive_control_actions(monkeypatch):
