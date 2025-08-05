@@ -21,7 +21,7 @@ from tqdm.notebook import tqdm  # For Jupyter-optimized progress bars
 
 from data_compressor import DataCompressor
 from dream_replay_buffer import DreamExperience, DreamReplayBuffer
-from marble_core import Core, Neuron, Synapse
+from marble_core import LOSS_MODULES, Core, Neuron, Synapse
 from marble_imports import cp
 
 
@@ -578,6 +578,13 @@ class Neuronenblitz:
         self.loss_fn = (
             loss_fn if loss_fn is not None else (lambda target, output: target - output)
         )
+        if isinstance(loss_module, str):
+            if loss_module not in LOSS_MODULES:
+                raise ValueError(
+                    f"Unknown loss_module '{loss_module}'. Available: {', '.join(LOSS_MODULES)}"
+                )
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            loss_module = LOSS_MODULES[loss_module]().to(device)
         self.loss_module = loss_module
         self.weight_update_fn = (
             weight_update_fn

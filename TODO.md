@@ -770,11 +770,11 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Implement Inspect neural pathways interactively via the GUI with CPU/GPU support.
    - [x] Add tests validating Inspect neural pathways interactively via the GUI.
    - [x] Document Inspect neural pathways interactively via the GUI in README and TUTORIAL.
-225. [ ] Register custom loss modules through the plugin system.
-   - [ ] Outline design for Register custom loss modules through the plugin system.
-   - [ ] Implement Register custom loss modules through the plugin system with CPU/GPU support.
-   - [ ] Add tests validating Register custom loss modules through the plugin system.
-   - [ ] Document Register custom loss modules through the plugin system in README and TUTORIAL.
+225. [x] Register custom loss modules through the plugin system.
+   - [x] Outline design for Register custom loss modules through the plugin system.
+   - [x] Implement Register custom loss modules through the plugin system with CPU/GPU support.
+   - [x] Add tests validating Register custom loss modules through the plugin system.
+   - [x] Document Register custom loss modules through the plugin system in README and TUTORIAL.
 226. [ ] Transfer knowledge between models using dataset serialisation features.
    - [ ] Outline design for Transfer knowledge between models using dataset serialisation features.
    - [ ] Implement Transfer knowledge between models using dataset serialisation features with CPU/GPU support.
