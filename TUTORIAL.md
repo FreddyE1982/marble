@@ -3031,3 +3031,37 @@ databases.
 The first call performs a web search while the second queries the Kùzu database.
 The ``ToolManagerPlugin`` decides which tool to use without manual intervention.
 
+
+## Project: Accelerated MARBLE Activation with a Custom CUDA Kernel
+
+This project demonstrates the `marble_activation` function, which uses a
+hand-crafted CUDA kernel when a GPU is available and falls back to a pure
+PyTorch implementation on CPU. The activation applies a piecewise linear
+transformation that is heavily used in MARBLE's neuromorphic processing
+pipelines.
+
+1. **Download a real dataset.** Here we use the classic Iris dataset:
+   ```bash
+   wget https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data -O iris.csv
+   ```
+2. **Load the data and apply the activation.**
+   ```python
+   import pandas as pd
+   import torch
+   from marble_activation_kernel import marble_activation
+
+   df = pd.read_csv("iris.csv", header=None)
+   features = torch.tensor(df.iloc[:, :4].values, dtype=torch.float32)
+   activated = marble_activation(features, threshold=1.0, a=1.5, b=0.1, c=0.5)
+   print("Activated sample:", activated[:5])
+   ```
+3. **Run on the GPU if available.** The same function automatically compiles
+   and dispatches the CUDA kernel:
+   ```python
+   if torch.cuda.is_available():
+       activated_gpu = marble_activation(features.cuda(), threshold=1.0, a=1.5, b=0.1, c=0.5)
+       print("GPU activation sample:", activated_gpu[:5])
+   ```
+
+This project verifies that the MARBLE-specific CUDA kernel operates correctly on
+real data and seamlessly integrates with the rest of the framework.
