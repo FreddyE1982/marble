@@ -36,6 +36,11 @@ Each entry is listed under its section heading.
 - depends_on (step field listing prerequisite step names)
 - isolated (step field executing the step in a separate process)
 
+## tool_manager
+- enabled
+- policy
+- tools (mapping of tool identifiers to parameter dictionaries)
+
 
 ## cross_validation
 - folds

@@ -2948,3 +2948,86 @@ The Kùzu database updates live whenever new neurons or synapses are created or
 the representation size changes, enabling external graph analytics while the
 model trains.
 
+## Project 20 – Tool‑Enhanced Queries (Exploratory)
+
+This project demonstrates how the new ``ToolManagerPlugin`` allows MARBLE to
+autonomously call external services such as web search APIs and graph
+databases.
+
+1. **Download a dataset** to populate the database used by the
+   ``DatabaseQueryTool``. Here we use the classic Iris flower dataset:
+
+   ```bash
+   curl -L -o iris.csv https://raw.githubusercontent.com/mwaskom/seaborn-data/master/iris.csv
+   ```
+
+2. **Create a Kùzu database** from the CSV file so that the tool can execute
+   Cypher queries:
+
+   ```python
+   import kuzu
+   import pandas as pd
+
+   df = pd.read_csv("iris.csv")
+   db = kuzu.Database("iris.kuzu")
+   conn = kuzu.Connection(db)
+   conn.execute(
+       """
+       CREATE NODE TABLE Flower(
+           id INT64, sepal_length DOUBLE, sepal_width DOUBLE,
+           petal_length DOUBLE, petal_width DOUBLE, species STRING,
+           PRIMARY KEY(id)
+       );
+       """
+   )
+   for i, row in df.iterrows():
+       conn.execute(
+           "CREATE (:Flower {id: $id, sepal_length: $sl, sepal_width: $sw, petal_length: $pl, petal_width: $pw, species: $sp});",
+           {
+               "id": int(i),
+               "sl": float(row.sepal_length),
+               "sw": float(row.sepal_width),
+               "pl": float(row.petal_length),
+               "pw": float(row.petal_width),
+               "sp": row.species,
+           },
+       )
+   conn.close()
+   ```
+
+3. **Enable the tool manager** by editing ``config.yaml``:
+
+   ```yaml
+   tool_manager:
+     enabled: true
+     policy: heuristic
+     tools:
+       web_search: {}
+       database_query:
+         db_path: "iris.kuzu"
+   ```
+
+4. **Invoke tools from Python**. The manager chooses the appropriate plugin
+   based on the query:
+
+   ```python
+   import torch
+   from tool_manager_plugin import ToolManagerPlugin
+
+   manager = ToolManagerPlugin(
+       tools={"web_search": {}, "database_query": {"db_path": "iris.kuzu"}}
+   )
+   manager.initialise(torch.device("cpu"))
+   print(manager.execute(torch.device("cpu"), query="search the web for Iris setosa"))
+   print(
+       manager.execute(
+           torch.device("cpu"),
+           query="database: MATCH (f:Flower) RETURN count(f) AS flowers",
+       )
+   )
+   manager.teardown()
+   ```
+
+The first call performs a web search while the second queries the Kùzu database.
+The ``ToolManagerPlugin`` decides which tool to use without manual intervention.
+

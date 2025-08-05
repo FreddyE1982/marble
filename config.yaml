@@ -31,6 +31,14 @@ pipeline:
   async_enabled: false  # Execute HighLevelPipeline steps asynchronously when true
   cache_dir: null       # Directory for cached step outputs; defaults to pipeline_cache_gpu or pipeline_cache_cpu
 
+tool_manager:
+  enabled: false        # When true the ToolManagerPlugin allows external tool use
+  policy: "heuristic"    # Strategy for selecting tools; only "heuristic" is currently available
+  tools:                # Mapping of tool names to configuration dictionaries
+    web_search: {}
+    database_query:
+      db_path: "knowledge.kuzu"
+
 
 cross_validation:
   folds: 5

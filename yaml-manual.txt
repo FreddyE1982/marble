@@ -103,6 +103,32 @@ pipeline:
     experimental or unstable operations to prevent crashes from affecting the
     main run.
 
+tool_manager:
+  enabled: Toggle that activates the ``ToolManagerPlugin``. When ``true`` the
+    pipeline can autonomously route natural language queries to external tools
+    such as web search APIs or graph databases. Disabled by default to ensure
+    reproducible experiments. Works on both CPU and GPU devices although most
+    tools run on CPU.
+  policy: Strategy used to choose which tool receives a query. The default
+    ``"heuristic"`` policy inspects the query for keywords and selects the first
+    tool whose :meth:`can_handle` method returns ``True``. Other policies may be
+    added in the future and should be referenced here by name. Invalid values
+    raise a configuration error.
+  tools: Mapping of tool identifiers to configuration dictionaries. Each key
+    must correspond to a registered tool plugin and its value supplies keyword
+    arguments passed to the tool's constructor. For example:
+
+    ``web_search: {}``
+        Uses :class:`WebSearchTool` to query the DuckDuckGo API.
+
+    ``database_query:``
+        ``db_path: "knowledge.kuzu"`` – path to a Kùzu database used by
+        :class:`DatabaseQueryTool` for executing Cypher queries.
+
+    The manager initialises each listed tool during pipeline start-up and
+    forwards queries to the selected tool at runtime. Results are returned to the
+    pipeline for further processing or integration into model responses.
+
 cross_validation:
   folds: Number of partitions used during k-fold evaluation. Each fold serves as a
     validation set once while the remaining folds train the model. Must be
