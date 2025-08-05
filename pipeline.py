@@ -17,6 +17,7 @@ import torch
 import global_workspace
 import marble_interface
 import pipeline_plugins
+from bit_tensor_dataset import bytes_to_object, tensors_to_bytes
 from branch_container import BranchContainer
 from dataset_loader import wait_for_prefetch
 from marble_base import MetricsVisualizer
@@ -317,12 +318,47 @@ class Pipeline:
         self, nb: Neuronenblitz, dataset, device: torch.device, epochs: int = 1
     ) -> None:
         """Train ``nb`` on ``dataset`` ensuring tensors reside on ``device``."""
+        
+        def _decode(t: torch.Tensor):
+            if isinstance(t, torch.Tensor) and t.dtype in {torch.uint8, torch.int32, torch.int64}:
+                try:
+                    return bytes_to_object(tensors_to_bytes(t.cpu()))
+                except Exception:
+                    return t
+            return t
+
+        # Support datasets streamed as batches of tensors.
+        if (
+            isinstance(dataset, list)
+            and dataset
+            and isinstance(dataset[0], dict)
+            and "inputs" in dataset[0]
+        ):
+            for batch in dataset:
+                inputs = batch.get("inputs")
+                targets = batch.get("targets")
+                if not isinstance(inputs, torch.Tensor) or not isinstance(targets, torch.Tensor):
+                    continue
+                pairs = []
+                for inp_t, tgt_t in zip(inputs, targets):
+                    inp = _decode(inp_t)
+                    tgt = _decode(tgt_t)
+                    if isinstance(inp, torch.Tensor):
+                        inp = inp.to(device)
+                    if isinstance(tgt, torch.Tensor):
+                        tgt = tgt.to(device)
+                    pairs.append((inp, tgt))
+                if pairs:
+                    nb.train(pairs, epochs=epochs)
+            return
 
         prepared = []
         for item in dataset:
             if not isinstance(item, (list, tuple)) or len(item) < 2:
                 continue
             inp, tgt = item[0], item[1]
+            inp = _decode(inp)
+            tgt = _decode(tgt)
             if isinstance(inp, torch.Tensor):
                 inp = inp.to(device)
             if isinstance(tgt, torch.Tensor):
