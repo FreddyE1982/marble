@@ -44,6 +44,22 @@ class DreamReplayBuffer:
         self.weighting = weighting
         self.buffer: Deque[DreamExperience] = deque()
 
+    # ------------------------------------------------------------------
+    def _apply_weighting(self, saliences: np.ndarray) -> np.ndarray:
+        """Return weighted ``saliences`` according to strategy."""
+
+        if self.weighting == "linear":
+            return saliences
+        if self.weighting == "exponential":
+            return np.exp(saliences)
+        if self.weighting == "quadratic":
+            return saliences ** 2
+        if self.weighting == "sqrt":
+            return np.sqrt(saliences)
+        if self.weighting == "uniform":
+            return np.ones_like(saliences)
+        raise ValueError(f"Unknown weighting: {self.weighting}")
+
     def __len__(self) -> int:  # pragma: no cover - trivial
         return len(self.buffer)
 
@@ -68,9 +84,8 @@ class DreamReplayBuffer:
             return []
         batch_size = min(batch_size, len(self.buffer))
         saliences = np.array([e.salience for e in self.buffer], dtype=float)
-        if self.weighting == "exponential":
-            saliences = np.exp(saliences)
-        probs = saliences / saliences.sum()
+        weights = self._apply_weighting(saliences)
+        probs = weights / weights.sum()
         idx = np.random.choice(
             len(self.buffer), size=batch_size, replace=False, p=probs
         )

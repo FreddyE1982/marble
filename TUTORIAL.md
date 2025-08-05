@@ -2865,9 +2865,16 @@ Run `python project41_chat_training.py` to experiment with live conversation fin
 2. **Enable dream replay** in the configuration:
    ```yaml
    dream_enabled: true
-   dream_replay_buffer_size: 50
-   dream_replay_batch_size: 8
-   ```
+ dream_replay_buffer_size: 50
+ dream_replay_batch_size: 8
+  dream_replay_weighting: quadratic  # linear, exponential, quadratic, sqrt or uniform
+  ```
+   The ``dream_replay_weighting`` option controls how salience biases sampling
+   from the buffer. Use ``linear`` for proportional weighting, ``exponential``
+   for a sharper focus on important memories, ``quadratic`` for an even
+   stronger bias, ``sqrt`` to soften differences or ``uniform`` to sample
+   experiences evenly.
+
 3. **Train and trigger dreaming** to observe consolidation:
    ```python
    from config_loader import load_config

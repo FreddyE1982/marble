@@ -431,7 +431,8 @@ Each entry is listed under its section heading.
 - dream_cycle_sleep
 - dream_replay_buffer_size
 - dream_replay_batch_size
-- dream_replay_weighting
+- dream_replay_weighting: Sampling strategy for the dream replay buffer
+  ("linear", "exponential", "quadratic", "sqrt", "uniform").
 - super_evolution_mode
 
 ## autograd

@@ -775,9 +775,10 @@ brain:
     more computation.
   dream_replay_weighting: Weighting strategy for sampling experiences from the
     replay buffer. ``"linear"`` biases selection proportionally to experience
-    salience, while ``"exponential"`` applies ``exp(salience)`` giving even
-    stronger preference to high-salience memories. Other values fall back to
-    linear weighting.
+    salience. ``"exponential"`` applies ``exp(salience)`` to emphasise high-
+    salience items. ``"quadratic"`` squares the salience for a strong bias,
+    ``"sqrt"`` uses the square root to soften differences and ``"uniform"``
+    treats all memories equally.
   tier_decision_params:
     vram_usage_threshold: Fraction of VRAM usage that triggers migration of
       neurons to a lower tier.
