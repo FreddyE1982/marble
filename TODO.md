@@ -765,11 +765,11 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Implement Accumulate gradients asynchronously in line with pipeline scheduling with CPU/GPU support.
    - [x] Add tests validating Accumulate gradients asynchronously in line with pipeline scheduling.
    - [x] Document Accumulate gradients asynchronously in line with pipeline scheduling in README and TUTORIAL.
-224. [ ] Inspect neural pathways interactively via the GUI.
-   - [ ] Outline design for Inspect neural pathways interactively via the GUI.
-   - [ ] Implement Inspect neural pathways interactively via the GUI with CPU/GPU support.
-   - [ ] Add tests validating Inspect neural pathways interactively via the GUI.
-   - [ ] Document Inspect neural pathways interactively via the GUI in README and TUTORIAL.
+224. [x] Inspect neural pathways interactively via the GUI.
+   - [x] Outline design for Inspect neural pathways interactively via the GUI.
+   - [x] Implement Inspect neural pathways interactively via the GUI with CPU/GPU support.
+   - [x] Add tests validating Inspect neural pathways interactively via the GUI.
+   - [x] Document Inspect neural pathways interactively via the GUI in README and TUTORIAL.
 225. [ ] Register custom loss modules through the plugin system.
    - [ ] Outline design for Register custom loss modules through the plugin system.
    - [ ] Implement Register custom loss modules through the plugin system with CPU/GPU support.
