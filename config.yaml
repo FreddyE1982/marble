@@ -5,11 +5,19 @@
 # ===================
 
 dataset:
+  source: null           # Local path or URL of the default dataset
   num_shards: 1       # Total shards for distributed datasets
   shard_index: 0      # Index of this shard for multi-node setups
   offline: false      # Disable remote dataset downloads
   encryption_key: null  # Optional key for dataset encryption
   cache_url: null      # Optional URL of DatasetCacheServer
+  use_kuzu_graph: false  # When true, load training data from a Kùzu graph instead of ``source``
+  kuzu_graph:
+    db_path: "training.kuzu"  # Filesystem path of the Kùzu database containing training data
+    query: "MATCH (n:Sample) RETURN n.input AS input, n.target AS target"  # Cypher query returning training pairs
+    input_column: "input"     # Column name for input values
+    target_column: "target"   # Column name for target values
+    limit: null               # Optional limit on number of pairs loaded from the graph
 logging:
   structured: false   # Output logs in JSON format when true
   log_file: "marble.log"  # Path of the main log file

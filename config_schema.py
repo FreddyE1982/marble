@@ -44,6 +44,18 @@ CONFIG_SCHEMA = {
                 "shard_index": {"type": "integer", "minimum": 0},
                 "offline": {"type": "boolean"},
                 "encryption_key": {"type": ["string", "null"]},
+                "source": {"type": ["string", "null"]},
+                "use_kuzu_graph": {"type": "boolean"},
+                "kuzu_graph": {
+                    "type": "object",
+                    "properties": {
+                        "db_path": {"type": "string"},
+                        "query": {"type": "string"},
+                        "input_column": {"type": "string"},
+                        "target_column": {"type": "string"},
+                        "limit": {"type": ["integer", "null"], "minimum": 1},
+                    },
+                },
             },
         },
         "logging": {

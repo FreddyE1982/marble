@@ -172,6 +172,9 @@ HTTP endpoints so that remote workers receive identical copies.  When combined
 with the high level ``dataset_loader`` utility, datasets can be prefetched,
 sharded and cached transparently using a memory pool and optional metrics
 visualisation.
+It now also supports loading training pairs directly from a persistent Kùzu
+graph via ``load_kuzu_graph`` or the ``dataset.use_kuzu_graph`` configuration
+toggle, enabling graph-structured data to feed the model without conversion.
 
 Several helper pipelines leverage ``BitTensorDataset`` to train various
 learning paradigms on arbitrary Python objects, including ``AutoencoderPipeline``,

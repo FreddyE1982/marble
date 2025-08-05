@@ -1913,6 +1913,27 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
        dataloader=dataloader,
    )
    ```
+5. **Load training data from a Kùzu graph** instead of a flat dataset:
+   ```python
+   from dataset_loader import load_kuzu_graph
+   from kuzu_interface import KuzuGraphDatabase
+
+   # Build a small graph with input/target properties
+   db = KuzuGraphDatabase("training.kuzu")
+   db.create_node_table("Sample", {"id": "INT64", "input": "DOUBLE", "target": "DOUBLE"}, "id")
+   db.add_node("Sample", {"id": 1, "input": 0.1, "target": 0.2})
+   db.add_node("Sample", {"id": 2, "input": 0.2, "target": 0.4})
+
+   pairs = load_kuzu_graph(
+       "training.kuzu",
+       "MATCH (s:Sample) RETURN s.input AS input, s.target AS target",
+       dataloader=dataloader,
+   )
+   ```
+   The loader executes any Cypher ``query`` and converts the result rows into
+   ``(input, target)`` tuples. Use this when your training data already resides
+   in a Kùzu graph.
+
    When defining parallel ``branches`` in a pipeline, ``BranchContainer`` sets
    ``num_shards`` to the number of branches and assigns each branch a unique
    ``shard_index`` automatically. This distributes large datasets across
