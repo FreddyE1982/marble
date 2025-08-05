@@ -170,3 +170,45 @@ class ExportModelPlugin(PipelinePlugin):
 
 # Register built-in plugins
 register_plugin("export_model", ExportModelPlugin)
+
+
+class ServeModelPlugin(PipelinePlugin):
+    """Start an HTTP server exposing a brain for inference.
+
+    The plugin launches :class:`web_api.InferenceServer` on the selected device
+    and returns a dictionary containing ``host``, ``port`` and the running
+    server instance.  The server continues serving requests after the pipeline
+    completes; callers are responsible for invoking ``server.stop()`` when
+    finished.
+    """
+
+    def __init__(self, host: str = "localhost", port: int = 5000) -> None:
+        super().__init__(host=host, port=port)
+        self.host = host
+        self.port = port
+        self.server = None
+
+    def initialise(self, device: torch.device, marble=None) -> None:
+        from web_api import InferenceServer
+
+        if marble is None:
+            raise ValueError("No model available for serving")
+        brain = (
+            marble.get_brain()
+            if hasattr(marble, "get_brain")
+            else getattr(marble, "brain", marble)
+        )
+        if hasattr(brain, "neuronenblitz") and hasattr(brain.neuronenblitz, "device"):
+            brain.neuronenblitz.device = device
+        self.server = InferenceServer(brain, host=self.host, port=self.port)
+
+    def execute(self, device: torch.device, marble=None):
+        self.server.start()
+        return {"host": self.host, "port": self.port, "server": self.server}
+
+    def teardown(self) -> None:
+        # Server is intentionally left running for external use.
+        pass
+
+
+register_plugin("serve_model", ServeModelPlugin)

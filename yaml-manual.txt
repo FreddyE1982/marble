@@ -57,6 +57,24 @@ pipeline:
     hardware backend. When provided the step runs on that tier instead of the
     local CPU or GPU, enabling seamless offload to specialised accelerators.
 
+cross_validation:
+  folds: Number of partitions used during k-fold evaluation. Each fold serves as a
+    validation set once while the remaining folds train the model. Must be
+    at least 2 and typically 5 or 10. Keeping folds constant ensures
+    consistent comparisons across runs.
+  seed: Random seed applied before shuffling dataset indices for fold
+    creation. Using a fixed value yields deterministic splits so repeated
+    experiments produce identical train/validation partitions regardless of
+    global RNG state.
+
+serve_model:
+  host: Interface address that the HTTP inference server binds to when
+    launched from a pipeline step. Set to "0.0.0.0" to accept external
+    connections or "localhost" for local-only access.
+  port: TCP port for the inference API. Choose an unused value; multiple
+    concurrent servers must each use a unique port. The server automatically
+    adapts to CPU or GPU execution depending on the active device.
+
 sync:
   interval_ms: Number of milliseconds between background tensor synchronization cycles
     across devices in distributed training. Lower values (100–500) keep model

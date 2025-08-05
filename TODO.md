@@ -654,16 +654,22 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [ ] Implement Update Neuronenblitz models automatically when datasets change with CPU/GPU support.
    - [ ] Add tests validating Update Neuronenblitz models automatically when datasets change.
    - [ ] Document Update Neuronenblitz models automatically when datasets change in README and TUTORIAL.
-198. [ ] Provide built-in cross-validation loops using deterministic dataset splits.
-   - [ ] Outline design for Provide built-in cross-validation loops using deterministic dataset splits.
-   - [ ] Implement Provide built-in cross-validation loops using deterministic dataset splits with CPU/GPU support.
-   - [ ] Add tests validating Provide built-in cross-validation loops using deterministic dataset splits.
-   - [ ] Document Provide built-in cross-validation loops using deterministic dataset splits in README and TUTORIAL.
-199. [ ] Serve models through the web API directly from a pipeline step.
-   - [ ] Outline design for Serve models through the web API directly from a pipeline step.
-   - [ ] Implement Serve models through the web API directly from a pipeline step with CPU/GPU support.
-   - [ ] Add tests validating Serve models through the web API directly from a pipeline step.
-   - [ ] Document Serve models through the web API directly from a pipeline step in README and TUTORIAL.
+198. [x] Provide built-in cross-validation loops using deterministic dataset splits.
+   - [x] Outline design for Provide built-in cross-validation loops using deterministic dataset splits.
+       - Introduce `k_fold_split` generating stable folds from a fixed seed.
+       - Add `cross_validate` helper running training/metric functions on CPU or GPU.
+       - Ensure tensors are moved to the active device for each fold.
+   - [x] Implement Provide built-in cross-validation loops using deterministic dataset splits with CPU/GPU support.
+   - [x] Add tests validating Provide built-in cross-validation loops using deterministic dataset splits.
+   - [x] Document Provide built-in cross-validation loops using deterministic dataset splits in README and TUTORIAL.
+199. [x] Serve models through the web API directly from a pipeline step.
+   - [x] Outline design for Serve models through the web API directly from a pipeline step.
+       - Create `serve_model` pipeline plugin launching `web_api.InferenceServer`.
+       - Return connection info and keep server running until explicitly stopped.
+       - Propagate selected CPU/GPU device to the underlying `Neuronenblitz` instance.
+   - [x] Implement Serve models through the web API directly from a pipeline step with CPU/GPU support.
+   - [x] Add tests validating Serve models through the web API directly from a pipeline step.
+   - [x] Document Serve models through the web API directly from a pipeline step in README and TUTORIAL.
 200. [x] Benchmark pipeline steps using the core micro-benchmark tool.
 201. [ ] Reorder steps dynamically based on dependency resolution.
    - [ ] Outline design for Reorder steps dynamically based on dependency resolution.

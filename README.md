@@ -492,6 +492,21 @@ curl -X POST http://localhost:5000/infer -H 'Content-Type: application/json' \
 
 Call ``server.stop()`` to shut it down.
 
+#### Serving from a Pipeline Step
+
+The `serve_model` pipeline plugin starts the HTTP inference server during pipeline
+execution.  The server stays active after the step completes, allowing immediate
+remote queries.
+
+```python
+from pipeline import Pipeline
+pipe = Pipeline([{ 'plugin': 'serve_model', 'params': {'host': 'localhost', 'port': 5080}}])
+info = pipe.execute(marble)[0]
+# interact with the API then stop it
+info['server'].stop()
+```
+
+
 ### System Metrics and Profiling
 
 Monitor resource usage during training runs with the utilities in
@@ -753,6 +768,27 @@ When tuning a new task consider the following workflow:
 5. Keep `gradient_clip_value` low (around `1.0`) when experimenting with very large learning rates or aggressive neurogenesis.
 
 Documenting the parameters of each run with the new experiment tracker makes it easy to compare results later.
+
+## Cross-Validation
+
+Evaluate models with deterministic dataset splits using the `cross_validation` module.
+The helper ensures identical folds across runs and automatically routes tensors
+to CPU or GPU depending on availability.
+
+```python
+from cross_validation import cross_validate
+
+def train(data, device):
+    # perform training and return a model
+    return sum(x[0] for x in data) / len(data)
+
+def metric(model, data, device):
+    return float(sum(abs(model - x[0]) for x in data) / len(data))
+
+dataset = [(float(i), float(i)) for i in range(10)]
+scores = cross_validate(train, metric, dataset, folds=5, seed=42)
+print('scores', scores)
+```
 
 ## Experiment Tracking
 
