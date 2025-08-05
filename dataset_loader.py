@@ -16,6 +16,7 @@ from memory_manager import MemoryManager
 from marble_base import MetricsVisualizer
 from marble import DataLoader
 from tokenizer_utils import tokenize_line
+from event_bus import global_event_bus
 
 _SESSION = requests_cache.CachedSession("http_cache", expire_after=86400)
 _DATASET_CACHE: dict[str, list[tuple[Any, Any]]] = {}
@@ -160,6 +161,7 @@ def load_dataset(
     """
     if metrics_visualizer:
         metrics_visualizer.log_event("dataset_load_start", {"source": source})
+    global_event_bus.publish("dataset_load_start", {"source": source})
     if cache_key is None:
         cache_key = f"{source}:{limit}:{input_col}:{target_col}"
 
@@ -278,6 +280,7 @@ def load_dataset(
         metrics_visualizer.log_event(
             "dataset_load_end", {"pairs": len(pairs)}
         )
+    global_event_bus.publish("dataset_load_end", {"pairs": len(pairs)})
     if return_deps:
         return pairs, deps
     return pairs

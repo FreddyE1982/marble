@@ -639,16 +639,16 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Implement Save run profiles capturing the exact execution order with CPU/GPU support.
    - [x] Add tests validating Save run profiles capturing the exact execution order.
    - [x] Document Save run profiles capturing the exact execution order in README and TUTORIAL.
-195. [ ] Edit pipeline definitions interactively through the GUI.
-   - [ ] Outline design for Edit pipeline definitions interactively through the GUI.
-   - [ ] Implement Edit pipeline definitions interactively through the GUI with CPU/GPU support.
-   - [ ] Add tests validating Edit pipeline definitions interactively through the GUI.
-   - [ ] Document Edit pipeline definitions interactively through the GUI in README and TUTORIAL.
-196. [ ] Relay dataset events to pipeline notifications.
-   - [ ] Outline design for Relay dataset events to pipeline notifications.
-   - [ ] Implement Relay dataset events to pipeline notifications with CPU/GPU support.
-   - [ ] Add tests validating Relay dataset events to pipeline notifications.
-   - [ ] Document Relay dataset events to pipeline notifications in README and TUTORIAL.
+195. [x] Edit pipeline definitions interactively through the GUI.
+   - [x] Outline design for Edit pipeline definitions interactively through the GUI.
+   - [x] Implement Edit pipeline definitions interactively through the GUI with CPU/GPU support.
+   - [x] Add tests validating Edit pipeline definitions interactively through the GUI.
+   - [x] Document Edit pipeline definitions interactively through the GUI in README and TUTORIAL.
+196. [x] Relay dataset events to pipeline notifications.
+   - [x] Outline design for Relay dataset events to pipeline notifications.
+   - [x] Implement Relay dataset events to pipeline notifications with CPU/GPU support.
+   - [x] Add tests validating Relay dataset events to pipeline notifications.
+   - [x] Document Relay dataset events to pipeline notifications in README and TUTORIAL.
 197. [ ] Update Neuronenblitz models automatically when datasets change.
    - [ ] Outline design for Update Neuronenblitz models automatically when datasets change.
    - [ ] Implement Update Neuronenblitz models automatically when datasets change with CPU/GPU support.
