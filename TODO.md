@@ -515,7 +515,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Document Automatically build training loops for Neuronenblitz when dataset steps are present in README and TUTORIAL.
        - [x] Describe automatic loop creation mechanism in README.
        - [x] Provide tutorial example demonstrating dataset-driven loop generation.
-180. [ ] Offer a specialised step that consumes the new streaming `BitTensorDataset`.
+180. [x] Offer a specialised step that consumes the new streaming `BitTensorDataset`.
    - [x] Outline design for Offer a specialised step that consumes the new streaming `BitTensorDataset`.
        - [x] Define step interface for streaming dataset consumption.
          - Introduce an `StreamingDatasetStep` abstraction implementing `next_batch()` and
