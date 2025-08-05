@@ -351,23 +351,23 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 170. [ ] Provide interactive step visualisation in the Streamlit GUI using dataset introspection.
     - [x] Add a "Step Visualisation" expander showing step parameters and dataset info.
     - [x] Unit tests ensuring the new expander appears in the Pipeline tab.
-    - [ ] Render real-time metrics within each step visualisation for CPU and GPU runs.
-        - [ ] Stream metric updates during CPU executions.
-        - [ ] Stream metric updates during GPU executions.
-        - [ ] Refresh visualisation panels live.
-    - [ ] Allow exporting step details as JSON or CSV from the GUI.
-        - [ ] Add export buttons for JSON and CSV formats.
-        - [ ] Implement JSON serialisation of step details.
-        - [ ] Implement CSV serialisation of step details.
-        - [ ] Verify downloads work on desktop and mobile.
-    - [ ] Document visualisation features in README and TUTORIAL.
-        - [ ] Update README with screenshots and explanations.
-        - [ ] Extend tutorial with step-by-step visualisation guide.
-        - [ ] Mention export options and metrics display.
-    - [ ] Add GUI tests verifying export functionality and mobile layout.
-        - [ ] Test export features on desktop layout.
-        - [ ] Test export features on mobile layout.
-        - [ ] Assert metric panels render correctly in both views.
+    - [x] Render real-time metrics within each step visualisation for CPU and GPU runs.
+        - [x] Stream metric updates during CPU executions.
+        - [x] Stream metric updates during GPU executions.
+        - [x] Refresh visualisation panels live.
+    - [x] Allow exporting step details as JSON or CSV from the GUI.
+        - [x] Add export buttons for JSON and CSV formats.
+        - [x] Implement JSON serialisation of step details.
+        - [x] Implement CSV serialisation of step details.
+        - [x] Verify downloads work on desktop and mobile.
+    - [x] Document visualisation features in README and TUTORIAL.
+        - [x] Update README with screenshots and explanations.
+        - [x] Extend tutorial with step-by-step visualisation guide.
+        - [x] Mention export options and metrics display.
+    - [x] Add GUI tests verifying export functionality and mobile layout.
+        - [x] Test export features on desktop layout.
+        - [x] Test export features on mobile layout.
+        - [x] Assert metric panels render correctly in both views.
 171. [x] Offer a plugin system so users can register custom pipeline steps easily.
    - [x] Draft plugin interface and lifecycle expectations.
        - [x] Outline core lifecycle phases (initialise, execute, teardown).

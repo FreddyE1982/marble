@@ -516,6 +516,10 @@ functionality is exposed programmatically via ``HighLevelPipeline.move_step``
 and ``HighLevelPipeline.remove_step`` so complex workflows can be iterated on
 quickly. Pipelines can be duplicated with ``HighLevelPipeline.duplicate`` and
 summarised using ``HighLevelPipeline.describe`` for easy logging.
+An expandable **Step Visualisation** panel lists every step with its parameters
+and any dataset summaries. During execution, this panel streams live CPU and GPU
+memory metrics for each step and offers one-click export of step details as
+JSON or CSV, enabling deeper inspection and sharing of pipeline configurations.
 Individual steps can be executed in isolation with ``HighLevelPipeline.run_step``
 or partial pipelines run via ``HighLevelPipeline.execute_until``. A complementary
 ``HighLevelPipeline.execute_from`` starts execution from an intermediate step.

@@ -1972,7 +1972,11 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
     - Set ``pipeline.async_enabled: true`` in ``config.yaml`` or pass
       ``async_enabled=True`` to ``HighLevelPipeline`` to overlap data loading and
       computation using ``asyncio``.
-    - Provide ``pipeline.cache_dir`` to enable on-disk caching of step outputs.
+   - Provide ``pipeline.cache_dir`` to enable on-disk caching of step outputs.
+12. **Inspect pipeline steps** via the *Step Visualisation* expander. It shows
+    each step's parameters and dataset summaries, streams live CPU/GPU memory
+    usage while the pipeline runs and lets you download step details as JSON or
+    CSV. These features work on both desktop and mobile layouts.
       The metrics dashboard tracks ``cache_hit`` and ``cache_miss`` so you can
       verify reuse. Clear the cache with ``HighLevelPipeline.clear_cache()`` when
       disk space runs low.
