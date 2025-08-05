@@ -95,6 +95,65 @@ def core_to_dict(core: Core) -> dict:
     return {"nodes": nodes, "edges": edges}
 
 
+def core_diff(prev: dict, core: Core) -> dict:
+    """Return incremental updates between ``prev`` snapshot and ``core``.
+
+    Parameters
+    ----------
+    prev:
+        Previous snapshot produced by :func:`core_to_dict`.
+    core:
+        Current :class:`Core` instance to diff against ``prev``.
+
+    Returns
+    -------
+    dict
+        Dictionary containing lists ``added_nodes``, ``removed_nodes``,
+        ``updated_nodes``, ``added_edges``, ``removed_edges`` and
+        ``updated_edges``. Each list mirrors the structure used by
+        :func:`core_to_dict`.  The operation inspects only lightweight
+        metadata and leaves tensor data on its original device, making it
+        safe for both CPU and GPU execution.
+    """
+
+    current = core_to_dict(core)
+
+    prev_nodes = {n["id"]: n for n in prev.get("nodes", [])}
+    curr_nodes = {n["id"]: n for n in current.get("nodes", [])}
+
+    added_nodes = [curr_nodes[i] for i in curr_nodes.keys() - prev_nodes.keys()]
+    removed_nodes = [prev_nodes[i] for i in prev_nodes.keys() - curr_nodes.keys()]
+    updated_nodes = [
+        curr_nodes[i]
+        for i in curr_nodes.keys() & prev_nodes.keys()
+        if curr_nodes[i] != prev_nodes[i]
+    ]
+
+    prev_edges = {
+        (e["source"], e["target"]): e for e in prev.get("edges", [])
+    }
+    curr_edges = {
+        (e["source"], e["target"]): e for e in current.get("edges", [])
+    }
+
+    added_edges = [curr_edges[k] for k in curr_edges.keys() - prev_edges.keys()]
+    removed_edges = [prev_edges[k] for k in prev_edges.keys() - curr_edges.keys()]
+    updated_edges = [
+        curr_edges[k]
+        for k in curr_edges.keys() & prev_edges.keys()
+        if curr_edges[k] != prev_edges[k]
+    ]
+
+    return {
+        "added_nodes": added_nodes,
+        "removed_nodes": removed_nodes,
+        "updated_nodes": updated_nodes,
+        "added_edges": added_edges,
+        "removed_edges": removed_edges,
+        "updated_edges": updated_edges,
+    }
+
+
 def dict_to_core(data: dict, params: dict) -> Core:
     """Reconstruct a :class:`Core` from ``data`` produced by
     :func:`core_to_dict`.

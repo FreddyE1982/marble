@@ -12,6 +12,7 @@ from networkx_interop import (
     networkx_to_core,
     core_to_dict,
     dict_to_core,
+    core_diff,
 )
 from tests.test_core_functions import minimal_params
 
@@ -50,3 +51,43 @@ def test_core_dict_roundtrip():
     assert len(rebuilt.neurons) == 2
     assert len(rebuilt.synapses) == 1
     assert rebuilt.synapses[0].weight == pytest.approx(0.3)
+
+
+def test_core_diff():
+    params = minimal_params()
+    core = Core(params, formula="0", formula_num_neurons=0)
+
+    # initial state with one neuron
+    n0 = core.neuron_pool.allocate()
+    n0.__init__(0, value=0.1, tier="vram", rep_size=core.rep_size)
+    core.neurons.append(n0)
+    snapshot = core_to_dict(core)
+
+    # add neuron and synapse
+    n1 = core.neuron_pool.allocate()
+    n1.__init__(1, value=0.2, tier="vram", rep_size=core.rep_size)
+    core.neurons.append(n1)
+    syn = core.synapse_pool.allocate()
+    syn.__init__(0, 1, weight=0.3)
+    core.synapses.append(syn)
+    n0.synapses.append(syn)
+
+    diff = core_diff(snapshot, core)
+    assert diff["added_nodes"][0]["id"] == 1
+    assert diff["added_edges"][0]["target"] == 1
+    assert not diff["removed_nodes"] and not diff["removed_edges"]
+
+    # update synapse weight
+    prev = core_to_dict(core)
+    syn.weight = 0.5
+    diff2 = core_diff(prev, core)
+    assert diff2["updated_edges"][0]["weight"] == pytest.approx(0.5)
+
+    # remove neuron and edge
+    prev = core_to_dict(core)
+    core.neurons.pop()  # remove n1
+    core.synapses.clear()
+    n0.synapses.clear()
+    diff3 = core_diff(prev, core)
+    assert diff3["removed_nodes"][0]["id"] == 1
+    assert diff3["removed_edges"][0]["source"] == 0

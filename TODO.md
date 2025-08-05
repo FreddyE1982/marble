@@ -1417,7 +1417,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 329. [ ] Implement live neuron graph visualisation.
     - [x] Export graph as `{"nodes": [...], "edges": [...]}` in core.
         - [x] Gather neuron and synapse metadata into structured dicts.
-        - [ ] Support incremental updates for dynamic graphs.
+        - [x] Support incremental updates for dynamic graphs.
     - [x] Add `/graph` API endpoint.
         - [x] Implement endpoint returning serialized graph JSON.
         - [x] Secure endpoint with optional authentication.
