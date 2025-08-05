@@ -3,8 +3,9 @@ from __future__ import annotations
 import threading
 from typing import Any
 
-from flask import Flask, request, jsonify
+from flask import Flask, jsonify, request
 
+from networkx_interop import core_to_dict
 from prompt_memory import PromptMemory
 
 
@@ -17,11 +18,13 @@ class InferenceServer:
         host: str = "localhost",
         port: int = 5000,
         prompt_memory: PromptMemory | None = None,
+        api_token: str | None = None,
     ) -> None:
         self.brain = brain
         self.host = host
         self.port = port
         self.prompt_memory = prompt_memory
+        self.api_token = api_token
         self.app = Flask(__name__)
         self.thread: threading.Thread | None = None
         self._setup_routes()
@@ -52,6 +55,15 @@ class InferenceServer:
         def shutdown():
             request.environ.get("werkzeug.server.shutdown", lambda: None)()
             return "OK"
+
+        @self.app.get("/graph")
+        def graph():
+            if self.api_token is not None:
+                auth = request.headers.get("Authorization", "")
+                if auth != f"Bearer {self.api_token}":
+                    return "Unauthorized", 401
+            data = core_to_dict(self.brain.core)
+            return jsonify(data)
 
     def start(self) -> None:
         if self.thread is None:

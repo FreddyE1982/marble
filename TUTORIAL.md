@@ -662,17 +662,23 @@ Steps without this field continue to run locally on CPU or GPU as usual.
    from marble_core import Core, DataLoader
    from marble_neuronenblitz import Neuronenblitz
    from marble_brain import Brain
-   from web_api import InferenceServer
+from web_api import InferenceServer
 
-   core = Core(minimal_params())
-   nb = Neuronenblitz(core)
-    brain = Brain(core, nb, DataLoader())  # numeric inference values
-   server = InferenceServer(brain)
-   server.start()
+core = Core(minimal_params())
+nb = Neuronenblitz(core)
+brain = Brain(core, nb, DataLoader())  # numeric inference values
+server = InferenceServer(brain, api_token="secret")
+server.start()
    ```
 2. **Send requests** to `http://localhost:5000/infer` with JSON
    `{"input": 0.42}` and read back the numeric output.
-3. **Stop the server** by calling `server.stop()` when finished.
+3. **Fetch the neuron graph** by issuing:
+
+   ```bash
+   curl -H 'Authorization: Bearer secret' http://localhost:5000/graph
+   ```
+
+4. **Stop the server** by calling `server.stop()` when finished.
 
 This project highlights how MARBLE can integrate with external services through
 a minimal web API.

@@ -540,7 +540,7 @@ from tests.test_core_functions import minimal_params
 core = Core(minimal_params())
 nb = Neuronenblitz(core)
 brain = Brain(core, nb, DataLoader())
-server = InferenceServer(brain)
+server = InferenceServer(brain, api_token="secret")
 server.start()
 ```
 
@@ -549,6 +549,12 @@ Query the API using ``curl``:
 ```bash
 curl -X POST http://localhost:5000/infer -H 'Content-Type: application/json' \
      -d '{"input": 0.5}'
+```
+
+Retrieve the current neuron graph:
+
+```bash
+curl -H 'Authorization: Bearer secret' http://localhost:5000/graph
 ```
 
 Call ``server.stop()`` to shut it down.
@@ -913,7 +919,10 @@ metrics at regular intervals and writes them to CSV for later inspection.
 
 `web_api.InferenceServer` exposes a trained brain through a minimal Flask
 application. Sending a JSON payload to `/infer` returns the decoded output so
-other services can integrate MARBLE predictions.
+other services can integrate MARBLE predictions.  The server also provides a
+`/graph` endpoint returning the current neuron graph as JSON.  When the server
+is created with ``api_token="..."`` requests to `/graph` must include the header
+``Authorization: Bearer ...``.
 
 ## Troubleshooting
 If training diverges or produces NaNs:
