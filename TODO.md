@@ -1394,8 +1394,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Surface validation success or errors in UI.
     - [ ] Update GUI tests for the editor tab.
         - [x] Unit test configuration load/save helpers.
-        - [ ] Simulate editing and saving a valid config.
-        - [ ] Confirm invalid YAML triggers error messages in UI.
+        - [x] Simulate editing and saving a valid config.
+        - [x] Confirm invalid YAML triggers error messages in UI.
 
 328. [ ] Integrate hyperparameter optimisation via Optuna.
     - [ ] Add `scripts/optimize.py` with Optuna study and objective function training one epoch.
@@ -1492,8 +1492,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [x] Disable CUDA and run wanderer tests.
             - [x] Document any discrepancies (none observed).
         - [ ] PromptMemory CPU performance baseline.
-            - [ ] Run load tests with CUDA disabled.
-            - [ ] Compare timings with GPU-enabled runs.
+        - [x] Run load tests with CUDA disabled.
+        - [ ] Compare timings with GPU-enabled runs.
         - [ ] Document any GPU-only limitations.
             - [ ] Record modules lacking CPU implementation.
             - [ ] Update README with limitation notes.
