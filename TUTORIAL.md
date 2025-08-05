@@ -2817,3 +2817,53 @@ device used during execution.
    info['server'].stop()
    ```
 
+## Project: Tracking the MARBLE Topology in Kùzu
+
+This project demonstrates how to mirror MARBLE's evolving network structure
+into a persistent Kùzu graph database during training.
+
+1. **Enable topology tracking** by editing `config.yaml` and setting:
+
+   ```yaml
+   topology_graph:
+     enabled: true
+     db_path: "topology.kuzu"
+   ```
+
+2. **Create and train a small system** on the Iris dataset. The following code
+   downloads the dataset and performs a single training iteration while the
+   Kùzu database records the generated neurons and synapses:
+
+   ```python
+   from sklearn.datasets import load_iris
+   from config_loader import create_marble_from_config, load_config
+   from marble_graph_builder import add_neuron_group, add_fully_connected_layer
+
+   data = load_iris(as_frame=True)
+   X = data.data.values.astype("float32")
+   y = data.target.values.astype("float32")
+
+   cfg = load_config("config.yaml")
+   cfg["topology_graph"]["enabled"] = True
+   marble = create_marble_from_config(config=cfg)
+
+   inputs = add_neuron_group(marble.core, X.shape[1])
+   add_fully_connected_layer(marble.core, inputs, 3)
+   # pretend to train by just accessing data
+   _ = list(zip(X, y))
+   ```
+
+3. **Inspect the graph** using Kùzu tools. Every neuron becomes a `Neuron`
+   node and each synapse a `SYNAPSE` relationship:
+
+   ```python
+   from kuzu_interface import KuzuGraphDatabase
+   db = KuzuGraphDatabase("topology.kuzu")
+   print(db.execute("MATCH (n:Neuron) RETURN count(n) AS neurons"))
+   print(db.execute("MATCH ()-[r:SYNAPSE]->() RETURN count(r) AS synapses"))
+   ```
+
+The Kùzu database updates live whenever new neurons or synapses are created or
+the representation size changes, enabling external graph analytics while the
+model trains.
+

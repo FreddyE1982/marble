@@ -17,6 +17,10 @@ Each entry is listed under its section heading.
 ## plugins
 - (list of module import paths to load)
 
+## topology_graph
+- enabled
+- db_path
+
 ## pipeline
 - async_enabled
 - cache_dir

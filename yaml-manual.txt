@@ -36,6 +36,19 @@ plugins:
     ``register(register_neuron, register_synapse)`` to add custom neuron and
     synapse types. Paths may be absolute or relative to the working directory.
 
+topology_graph:
+  enabled: Activates live topology tracking backed by a persistent Kùzu graph.
+    When ``true`` every change to the neuron or synapse structure is mirrored
+    into a local Kùzu database. External tools can query this graph to observe
+    how MARBLE grows during training. Disable when graph logging is not
+    required to avoid additional overhead.
+  db_path: Filesystem location where the Kùzu database is stored. The path may
+    be relative or absolute; when the file does not exist it is created. The
+    database contains one node per neuron and a ``SYNAPSE`` relationship for
+    every connection, allowing full reconstruction of the topology at any time.
+    Ensure the directory has sufficient free space as large networks can
+    generate substantial graph data.
+
 pipeline:
   async_enabled: When set to ``true`` the ``HighLevelPipeline`` executes its
     steps using ``asyncio`` to overlap data loading and computation. This

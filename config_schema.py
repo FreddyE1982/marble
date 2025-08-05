@@ -96,6 +96,13 @@ CONFIG_SCHEMA = {
                 },
             },
         },
+        "topology_graph": {
+            "type": "object",
+            "properties": {
+                "enabled": {"type": "boolean"},
+                "db_path": {"type": "string"},
+            },
+        },
         "network": {
             "type": "object",
             "properties": {

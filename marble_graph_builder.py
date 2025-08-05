@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import List, Iterable, Optional, Sequence
 
 from marble_core import Core, Neuron, Synapse
+from event_bus import global_event_bus
 
 
 def add_neuron_group(
@@ -27,6 +28,7 @@ def add_neuron_group(
         IDs of the created neurons.
     """
     ids: List[int] = []
+    added: List[dict] = []
     for _ in range(count):
         nid = len(core.neurons)
         neuron = Neuron(nid, value=0.0, tier="vram")
@@ -35,6 +37,17 @@ def add_neuron_group(
         neuron.params["activation_flag"] = activation_flag
         core.neurons.append(neuron)
         ids.append(nid)
+        added.append(
+            {
+                "id": nid,
+                "tier": neuron.tier,
+                "activation": neuron.params.get("activation", ""),
+                "activation_flag": bool(neuron.params.get("activation_flag", False)),
+                "rep_size": core.rep_size,
+            }
+        )
+    if added:
+        global_event_bus.publish("neurons_added", {"neurons": added})
     return ids
 
 
@@ -78,20 +91,27 @@ def add_fully_connected_layer(
     if weights is None:
         weights = [[0.0 for _ in inputs] for _ in range(out_dim)]
 
+    added_syn: List[dict] = []
     for j, out_id in enumerate(out_ids):
         for i, in_id in enumerate(inputs):
             w = float(weights[j][i])
             syn = Synapse(in_id, out_id, weight=w)
             core.neurons[in_id].synapses.append(syn)
             core.synapses.append(syn)
+            added_syn.append({"src": in_id, "dst": out_id, "weight": w})
 
     if bias is not None:
         bias_id = len(core.neurons)
         core.neurons.append(Neuron(bias_id, value=1.0, tier="vram"))
         for j, out_id in enumerate(out_ids):
-            syn = Synapse(bias_id, out_id, weight=float(bias[j]))
+            w = float(bias[j])
+            syn = Synapse(bias_id, out_id, weight=w)
             core.neurons[bias_id].synapses.append(syn)
             core.synapses.append(syn)
+            added_syn.append({"src": bias_id, "dst": out_id, "weight": w})
+
+    if added_syn:
+        global_event_bus.publish("synapses_added", {"synapses": added_syn})
 
     return out_ids
 
@@ -162,8 +182,8 @@ def conv2d_layer(
         padding = (padding, padding)
 
     inputs = add_neuron_group(core, in_channels)
-
     out_ids: List[int] = []
+    added_syn: List[dict] = []
     if weights is None:
         weights = [
             [[ [0.0 for _ in range(kernel_size[1])] for _ in range(kernel_size[0])] for _ in range(in_channels)]
@@ -182,6 +202,7 @@ def conv2d_layer(
             syn = Synapse(in_id, nid, weight=1.0)
             core.neurons[in_id].synapses.append(syn)
             core.synapses.append(syn)
+            added_syn.append({"src": in_id, "dst": nid, "weight": 1.0})
 
         if bias is not None:
             bias_id = len(core.neurons)
@@ -190,7 +211,10 @@ def conv2d_layer(
             bsyn = Synapse(bias_id, nid, weight=b)
             core.neurons[bias_id].synapses.append(bsyn)
             core.synapses.append(bsyn)
+            added_syn.append({"src": bias_id, "dst": nid, "weight": b})
 
         out_ids.append(nid)
 
+    if added_syn:
+        global_event_bus.publish("synapses_added", {"synapses": added_syn})
     return inputs, out_ids
