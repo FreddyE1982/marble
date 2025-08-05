@@ -554,16 +554,23 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Implement Persist step results to disk for quick re-runs with CPU/GPU support.
    - [x] Add tests validating Persist step results to disk for quick re-runs.
    - [x] Document Persist step results to disk for quick re-runs in README and TUTORIAL.
-182. [ ] Visualise pipelines as graphs using the marble graph builder.
-   - [ ] Outline design for Visualise pipelines as graphs using the marble graph builder.
-   - [ ] Implement Visualise pipelines as graphs using the marble graph builder with CPU/GPU support.
-   - [ ] Add tests validating Visualise pipelines as graphs using the marble graph builder.
-   - [ ] Document Visualise pipelines as graphs using the marble graph builder in README and TUTORIAL.
-183. [ ] Limit GPU memory usage per step through concurrency controls.
-   - [ ] Outline design for Limit GPU memory usage per step through concurrency controls.
-   - [ ] Implement Limit GPU memory usage per step through concurrency controls with CPU/GPU support.
-   - [ ] Add tests validating Limit GPU memory usage per step through concurrency controls.
-   - [ ] Document Limit GPU memory usage per step through concurrency controls in README and TUTORIAL.
+182. [x] Visualise pipelines as graphs using the marble graph builder.
+   - [x] Outline design for Visualise pipelines as graphs using the marble graph builder.
+       - Represent each pipeline step as a node in a directed ``networkx`` graph.
+       - Expand macros and branches recursively with prefixed node names.
+       - Provide ``pipeline_to_core`` to convert the graph into a ``Core`` for use
+         with existing builders.
+   - [x] Implement Visualise pipelines as graphs using the marble graph builder with CPU/GPU support.
+   - [x] Add tests validating Visualise pipelines as graphs using the marble graph builder.
+   - [x] Document Visualise pipelines as graphs using the marble graph builder in README and TUTORIAL.
+183. [x] Limit GPU memory usage per step through concurrency controls.
+   - [x] Outline design for Limit GPU memory usage per step through concurrency controls.
+       - Introduce an asyncio semaphore restricting concurrent GPU branches.
+       - Expose ``max_gpu_concurrency`` parameter on ``Pipeline.execute`` and
+         propagate through macros.
+   - [x] Implement Limit GPU memory usage per step through concurrency controls with CPU/GPU support.
+   - [x] Add tests validating Limit GPU memory usage per step through concurrency controls.
+   - [x] Document Limit GPU memory usage per step through concurrency controls in README and TUTORIAL.
 184. [x] Debug steps interactively by inspecting their inputs and outputs.
    - [x] Outline design for Debug steps interactively by inspecting their inputs and outputs.
        - Introduce an ``InteractiveDebugger`` using pre and post hooks to capture

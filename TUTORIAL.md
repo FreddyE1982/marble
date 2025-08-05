@@ -259,6 +259,22 @@ print(debugger.inputs[pipe.steps[0]["name"]])
 print(debugger.outputs[pipe.steps[0]["name"]])
 ```
 
+### Visualising Pipelines as Graphs
+
+Pipelines can be rendered as graphs for inspection or documentation. The
+``pipeline_to_networkx`` helper converts a sequence of step dictionaries into a
+directed ``networkx`` graph that expands macros and branches automatically.
+
+```python
+from networkx_interop import pipeline_to_networkx
+
+g = pipeline_to_networkx(pipe.steps)
+```
+
+The resulting graph can be shown with any ``networkx`` layout or converted to a
+MARBLE ``Core`` using ``pipeline_to_core`` for visualisation with the MARBLE
+graph builder.
+
 ### Caching Step Results
 
 When experimenting it is useful to skip recomputation. Supply a directory via
@@ -2014,6 +2030,16 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
       architectures without running separate experiments.  Each branch receives
       its own execution context and the merge step combines outputs once every
       branch completes.
+
+      When running on GPUs, branch execution can easily exhaust device memory.
+      Pass ``max_gpu_concurrency`` to ``Pipeline.execute`` to bound the number of
+      simultaneous GPU branches. Additional branches wait until prior ones
+      finish, preventing out-of-memory errors while keeping CPU execution
+      unrestricted.
+
+      ```python
+      pipe.execute(max_gpu_concurrency=1)
+      ```
 
 ## Project: Macro Steps and Rollback
 
