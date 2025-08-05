@@ -36,3 +36,12 @@ def test_gpu_handles_non_multiple_of_four():
     out_gpu = marble_activation(x, threshold=-0.3, a=0.8, b=0.1, c=1.2)
     out_cpu = marble_activation(cpu, threshold=-0.3, a=0.8, b=0.1, c=1.2)
     assert torch.allclose(out_gpu.cpu(), out_cpu, atol=1e-6)
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA is not available")
+def test_gpu_half_precision_matches_cpu():
+    x = torch.randn(2048, device="cuda", dtype=torch.float16)
+    cpu = x.cpu().float()
+    out_gpu = marble_activation(x, threshold=0.2, a=0.9, b=0.3, c=1.1)
+    out_cpu = marble_activation(cpu, threshold=0.2, a=0.9, b=0.3, c=1.1).half()
+    assert torch.allclose(out_gpu.cpu(), out_cpu, atol=1e-3, rtol=1e-3)
