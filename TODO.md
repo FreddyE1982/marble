@@ -1404,9 +1404,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Log trials to `optuna_db.sqlite3`.
         - [x] Configure SQLite storage backend.
         - [x] Expose path via CLI option.
-    - [ ] Add Streamlit tab to visualize optimization history and best config.
-        - [ ] Plot trial scores and parameter importances.
-        - [ ] Provide download of best config.
+    - [x] Add Streamlit tab to visualize optimization history and best config.
+        - [x] Plot trial scores and parameter importances.
+        - [x] Provide download of best config.
     - [ ] Document usage in tutorials and manuals.
         - [ ] Include setup and run instructions.
         - [ ] Describe interpretation of optimization charts.

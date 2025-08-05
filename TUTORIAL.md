@@ -3220,3 +3220,31 @@ normalise a batch and run a matrix multiplication using a pooled buffer.
 
 Reusing the same ``ArrayMemoryPool`` avoids new allocations on each call and
 works transparently across CPU and GPU backends.
+
+## Project: Hyperparameter Optimisation with Optuna
+
+This project demonstrates how to tune model hyperparameters using Optuna and
+inspect the results within the Streamlit playground.
+
+1. **Run an optimisation study** on a toy dataset:
+
+   ```bash
+   python scripts/optimize.py --trials 5 --study-name tutorial --storage sqlite:///optuna_tutorial.db
+   ```
+
+   The command writes ``optuna_tutorial.db`` and ``best_params.yaml`` in the
+   current directory.
+
+2. **Launch the playground**:
+
+   ```bash
+   streamlit run streamlit_playground.py
+   ```
+
+3. **Open the Optuna tab** in advanced mode. Enter the database path and study
+   name ``tutorial`` then click **Load Study**.
+
+4. **Review the results**. The *Optimization History* chart displays validation
+   loss per trial while *Parameter Importances* ranks hyperparameters by impact.
+   The *Best Configuration* expander shows the winning parameters and offers a
+   download button for a YAML file.

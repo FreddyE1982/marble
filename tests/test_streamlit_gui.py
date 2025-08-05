@@ -2,8 +2,10 @@ import os
 import sys
 import warnings
 
+import optuna
 from _pytest.warning_types import PytestDeprecationWarning
 from streamlit.testing.v1 import AppTest
+
 import config_editor
 
 # Suppress protobuf deprecation warnings from dependencies before importing
@@ -1103,3 +1105,25 @@ def test_dataset_browser_load(tmp_path):
     at = _setup_advanced_playground()
     tab = next(t for t in at.tabs if t.label == "Dataset Browser")
     assert tab.label == "Dataset Browser"
+
+
+def test_optuna_tab_visualization(tmp_path):
+    db = tmp_path / "optuna_db.sqlite3"
+    storage = f"sqlite:///{db}"
+    study = optuna.create_study(
+        study_name="marble-optuna", storage=storage, direction="minimize"
+    )
+
+    def _obj(trial: optuna.Trial) -> float:
+        return trial.suggest_float("x", 0, 1)
+
+    study.optimize(_obj, n_trials=3)
+
+    at = _setup_advanced_playground()
+    opt_tab = next(t for t in at.tabs if t.label == "Optuna")
+    opt_tab.text_input[0].input(str(db))
+    opt_tab.text_input[1].input("marble-optuna")
+    at = opt_tab.button[0].click().run(timeout=20)
+    opt_tab = next(t for t in at.tabs if t.label == "Optuna")
+    assert len(opt_tab.plotly_chart) == 2
+    assert opt_tab.download_button

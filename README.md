@@ -608,6 +608,12 @@ generates widgets for each parameter so every capability of the
 repository are also exposed and you can construct a **pipeline** of function
 calls that execute sequentially. This makes it possible to combine training,
 evaluation and utility operations into a single workflow directly from the UI.
+
+The ``Optuna`` tab visualises hyperparameter optimisation studies. Run
+``python scripts/optimize.py`` to generate trials, then load the resulting
+SQLite database in the tab to see optimisation history and parameter
+importances. The best configuration can be inspected and downloaded as a YAML
+file for reuse.
 The **Pipeline** tab provides widgets for every step parameter so pipelines can
 be assembled, reordered and deleted interactively before executing them on CPU
 or GPU. Pipelines may be saved to or loaded from JSON for reuse outside the GUI.
