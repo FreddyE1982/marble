@@ -1384,15 +1384,15 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Verify FIFO eviction policy.
         - [x] Test inference output when prompts are applied.
 
-327. [ ] Add YAML config editor in Streamlit.
-    - [ ] Add new "Config Editor" tab using `st_ace` with YAML syntax.
+327. [x] Add YAML config editor in Streamlit.
+    - [x] Add new "Config Editor" tab using `st_ace` with YAML syntax.
         - [x] Extract helper functions for loading and saving config files.
         - [x] Display `config.yaml` in `st_ace` with syntax highlighting and line numbers.
         - [x] Add save button invoking helper functions.
-    - [ ] Validate YAML with schema on submit and save edits to `config.yaml` with backup timestamp.
+    - [x] Validate YAML with schema on submit and save edits to `config.yaml` with backup timestamp.
         - [x] Validate YAML and create timestamped backup during save.
         - [x] Surface validation success or errors in UI.
-    - [ ] Update GUI tests for the editor tab.
+    - [x] Update GUI tests for the editor tab.
         - [x] Unit test configuration load/save helpers.
         - [x] Simulate editing and saving a valid config.
         - [x] Confirm invalid YAML triggers error messages in UI.
@@ -1415,8 +1415,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Assert database and result files are created.
 
 329. [ ] Implement live neuron graph visualisation.
-    - [ ] Export graph as `{"nodes": [...], "edges": [...]}` in core.
-        - [ ] Gather neuron and synapse metadata into structured dicts.
+    - [x] Export graph as `{"nodes": [...], "edges": [...]}` in core.
+        - [x] Gather neuron and synapse metadata into structured dicts.
         - [ ] Support incremental updates for dynamic graphs.
     - [ ] Add `/graph` API endpoint.
         - [ ] Implement endpoint returning serialized graph JSON.

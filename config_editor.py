@@ -5,6 +5,8 @@ from pathlib import Path
 import yaml
 from config_schema import validate_config_schema
 
+__all__ = ["load_config_text", "save_config_text"]
+
 
 def load_config_text(path: str = "config.yaml") -> str:
     """Return YAML text from ``path``.
