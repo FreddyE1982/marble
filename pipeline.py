@@ -23,6 +23,8 @@ from marble_base import MetricsVisualizer
 from marble_core import TIER_REGISTRY, benchmark_message_passing
 from marble_neuronenblitz import Neuronenblitz
 from pipeline_schema import validate_step_schema
+from memory_manager import MemoryManager
+from run_profiler import RunProfiler
 
 
 class PreStepHook(Protocol):
@@ -329,6 +331,87 @@ class Pipeline:
         if prepared:
             nb.train(prepared, epochs=epochs)
 
+    # ------------------------------------------------------------------
+    # Resource estimation
+    def estimate_resources(
+        self,
+        marble: Any | None = None,
+        device: torch.device | None = None,
+        memory_manager: "MemoryManager | None" = None,
+    ) -> int:
+        """Estimate memory requirements for all steps.
+
+        Steps may define a ``<func>_estimate`` helper or, for plugins, an
+        ``estimate_memory`` method. Macros and branches are evaluated
+        recursively. When ``memory_manager`` is provided its
+        ``notify_allocation`` method is called for each estimate.
+        """
+
+        device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        ordered = self._topological_sort(self.steps)
+        total = 0
+        for step in ordered:
+            if step.get("frozen"):
+                continue
+            if "macro" in step or "branches" in step:
+                total += self._estimate_step(step, marble, device, memory_manager)
+            else:
+                est = self._estimate_step(step, marble, device, None)
+                total += est
+                if memory_manager is not None and est:
+                    memory_manager.notify_allocation(est)
+        return total
+
+    def _estimate_step(
+        self,
+        step: dict,
+        marble: Any | None,
+        device: torch.device,
+        memory_manager: "MemoryManager | None",
+    ) -> int:
+        if "macro" in step:
+            sub = Pipeline(step["macro"])
+            return sub.estimate_resources(marble, device, memory_manager)
+        if "branches" in step:
+            total = 0
+            for branch in step["branches"]:
+                sub = Pipeline(branch)
+                total += sub.estimate_resources(marble, device, memory_manager)
+            return total
+        params = step.get("params", {})
+        if "plugin" in step:
+            plugin_cls = pipeline_plugins.get_plugin(step["plugin"])
+            plugin: pipeline_plugins.PipelinePlugin = plugin_cls(**params)
+            plugin.initialise(device=device, marble=marble)
+            try:
+                if hasattr(plugin, "estimate_memory"):
+                    return int(plugin.estimate_memory(device=device, marble=marble))
+            finally:
+                plugin.teardown()
+            return 0
+        func_name = step.get("func")
+        module_name = step.get("module")
+        if not func_name:
+            return 0
+        est_name = f"{func_name}_estimate"
+        module = importlib.import_module(module_name) if module_name else marble_interface
+        if not hasattr(module, est_name):
+            return 0
+        est_func = getattr(module, est_name)
+        sig = inspect.signature(est_func)
+        kwargs = {}
+        if "device" in sig.parameters and "device" not in params:
+            kwargs["device"] = device.type
+        for name, p in sig.parameters.items():
+            if name == "marble" and marble is not None:
+                kwargs[name] = marble
+                continue
+            if name in params:
+                kwargs[name] = params[name]
+            elif p.default is inspect.Parameter.empty:
+                raise ValueError(f"Missing parameter: {name}")
+        return int(est_func(**kwargs))
+
     # Dependency resolution -------------------------------------------------
 
     def _build_dependency_graph(
@@ -392,6 +475,10 @@ class Pipeline:
         export_path: str | Path | None = None,
         export_format: str = "json",
         max_gpu_concurrency: int | None = None,
+        memory_manager: "MemoryManager | None" = None,
+        run_profile_path: str | Path | None = None,
+        run_profiler: "RunProfiler | None" = None,
+        pre_estimate: bool = True,
     ) -> list[Any]:
         results: list[Any] = []
         self._summaries = []
@@ -403,6 +490,7 @@ class Pipeline:
         cache_path: Path | None = Path(cache_dir) if cache_dir is not None else None
         if cache_path:
             cache_path.mkdir(parents=True, exist_ok=True)
+        profiler = run_profiler or (RunProfiler(run_profile_path) if run_profile_path else None)
         if marble is not None and hasattr(marble, "get_core"):
             core = marble.get_core()
             if preallocate_neurons:
@@ -411,6 +499,8 @@ class Pipeline:
                 core.synapse_pool.preallocate(preallocate_synapses)
         # Resolve dependencies before execution
         self.steps = self._topological_sort(self.steps)
+        if pre_estimate and memory_manager is not None:
+            self.estimate_resources(marble, device, memory_manager)
         dataset_indices = self._dataset_step_indices()
         total_steps = sum(1 for s in self.steps if not s.get("frozen"))
         exec_idx = 0
@@ -438,6 +528,8 @@ class Pipeline:
                 ).as_dict(),
             )
             wait_for_prefetch()
+            if profiler:
+                profiler.start(step_name, device)
             for hook in self._pre_hooks.get(step_name, []):
                 hook(step, marble, device)
             start = time.perf_counter()
@@ -479,6 +571,9 @@ class Pipeline:
                         debug_hook=debug_hook,
                         cache_dir=sub_cache,
                         max_gpu_concurrency=max_gpu_concurrency,
+                        memory_manager=memory_manager,
+                        run_profiler=profiler,
+                        pre_estimate=False,
                     )
                     self._summaries.extend(sub_pipeline._summaries)
                     self._benchmarks.extend(sub_pipeline._benchmarks)
@@ -493,6 +588,9 @@ class Pipeline:
                             log_callback=log_callback,
                             debug_hook=debug_hook,
                             max_gpu_concurrency=max_gpu_concurrency,
+                            memory_manager=memory_manager,
+                            run_profiler=profiler,
+                            pre_estimate=False,
                         )
                     )
                     merge_spec = step.get("merge")
@@ -604,6 +702,8 @@ class Pipeline:
                     pass
             if summary:
                 self._summaries.append(summary)
+            if profiler:
+                profiler.end()
         if export_path is not None and marble is not None:
             plugin_cls = pipeline_plugins.get_plugin("export_model")
             exporter = plugin_cls(path=str(export_path), fmt=export_format)
@@ -611,6 +711,8 @@ class Pipeline:
             export_result = exporter.execute(device=device, marble=marble)
             exporter.teardown()
             results.append(export_result)
+        if profiler:
+            profiler.save()
         return results
 
     def _execute_function(
