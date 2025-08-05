@@ -1421,12 +1421,12 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Add `/graph` API endpoint.
         - [x] Implement endpoint returning serialized graph JSON.
         - [x] Secure endpoint with optional authentication.
-    - [ ] Render graph with `plotly.graph_objects.Sankey` or `pyvis.network` and add sliders for filtering.
-        - [ ] Build reusable visualization component.
-        - [ ] Provide sliders for weight and degree thresholds.
-    - [ ] Update GUI tests for graph visualization.
-        - [ ] Confirm endpoint availability in tests.
-        - [ ] Validate sliders adjust visible graph elements.
+    - [x] Render graph with `plotly.graph_objects.Sankey` or `pyvis.network` and add sliders for filtering.
+        - [x] Build reusable visualization component.
+        - [x] Provide sliders for weight and degree thresholds.
+    - [x] Update GUI tests for graph visualization.
+        - [x] Confirm endpoint availability in tests.
+        - [x] Validate sliders adjust visible graph elements.
 
 330. [ ] Introduce multi-agent MARBLE.
     - [ ] Define `MARBLEAgent` wrapper with its own config and brain.

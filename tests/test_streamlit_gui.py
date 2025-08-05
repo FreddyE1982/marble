@@ -141,6 +141,15 @@ def test_visualization_and_heatmap_tabs():
     vis_tab = next(t for t in at.tabs if t.label == "Visualization")
     assert vis_tab.get("plotly_chart")
 
+    sankey_exp = vis_tab.expander[0]
+    sankey_exp.slider[0].set_value(0.0)
+    sankey_exp.slider[1].set_value(0)
+    sankey_exp.button[0].click()
+    at = sankey_exp.run(timeout=20)
+    vis_tab = next(t for t in at.tabs if t.label == "Visualization")
+    sankey_exp = vis_tab.expander[0]
+    assert sankey_exp.get("plotly_chart")
+
     heat_tab = next(t for t in at.tabs if t.label == "Weight Heatmap")
     heat_tab.number_input[0].set_value(10)
     heat_tab.selectbox[0].set_value("Plasma")
