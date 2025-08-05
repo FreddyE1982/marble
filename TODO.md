@@ -1398,21 +1398,21 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Confirm invalid YAML triggers error messages in UI.
 
 328. [ ] Integrate hyperparameter optimisation via Optuna.
-    - [ ] Add `scripts/optimize.py` with Optuna study and objective function training one epoch.
-        - [ ] Define search space and objective returning validation loss.
-        - [ ] Allow resuming existing studies.
-    - [ ] Log trials to `optuna_db.sqlite3`.
-        - [ ] Configure SQLite storage backend.
-        - [ ] Expose path via CLI option.
+    - [x] Add `scripts/optimize.py` with Optuna study and objective function training one epoch.
+        - [x] Define search space and objective returning validation loss.
+        - [x] Allow resuming existing studies.
+    - [x] Log trials to `optuna_db.sqlite3`.
+        - [x] Configure SQLite storage backend.
+        - [x] Expose path via CLI option.
     - [ ] Add Streamlit tab to visualize optimization history and best config.
         - [ ] Plot trial scores and parameter importances.
         - [ ] Provide download of best config.
     - [ ] Document usage in tutorials and manuals.
         - [ ] Include setup and run instructions.
         - [ ] Describe interpretation of optimization charts.
-    - [ ] Add tests for optimization script.
-        - [ ] Use tiny dataset to run a short study.
-        - [ ] Assert database and result files are created.
+    - [x] Add tests for optimization script.
+        - [x] Use tiny dataset to run a short study.
+        - [x] Assert database and result files are created.
 
 329. [ ] Implement live neuron graph visualisation.
     - [ ] Export graph as `{"nodes": [...], "edges": [...]}` in core.

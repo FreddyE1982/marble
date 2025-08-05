@@ -86,6 +86,7 @@ numpy==1.26.4
 ollama==0.5.1
 openpyxl==3.1.2
 opt_einsum==3.4.0
+optuna==3.6.1
 packaging==24.0
 pandas==2.3.1
 parso==0.8.4
