@@ -753,11 +753,18 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [ ] Add tests validating Offload wandering to remote hardware using Marble Core utilities.
    - [ ] Document Offload wandering to remote hardware using Marble Core utilities in README and TUTORIAL.
 222. [x] Optimise memory usage by sharing dataset caches with the memory pool.
-223. [ ] Accumulate gradients asynchronously in line with pipeline scheduling.
-   - [ ] Outline design for Accumulate gradients asynchronously in line with pipeline scheduling.
-   - [ ] Implement Accumulate gradients asynchronously in line with pipeline scheduling with CPU/GPU support.
-   - [ ] Add tests validating Accumulate gradients asynchronously in line with pipeline scheduling.
-   - [ ] Document Accumulate gradients asynchronously in line with pipeline scheduling in README and TUTORIAL.
+223. [x] Accumulate gradients asynchronously in line with pipeline scheduling.
+   - [x] Outline design for Accumulate gradients asynchronously in line with pipeline scheduling.
+       - Introduce an `AsyncGradientAccumulator` maintaining a queue of backward
+         tasks so gradient computation runs in background threads. Each call to
+         `add_batch` schedules loss evaluation and backpropagation without
+         blocking the event loop, allowing other pipeline steps to proceed.
+       - Track processed micro-batches and apply the optimiser step once
+         `accumulation_steps` are reached. Inputs are moved to CPU or GPU with
+         non-blocking transfers so the mechanism adapts to available hardware.
+   - [x] Implement Accumulate gradients asynchronously in line with pipeline scheduling with CPU/GPU support.
+   - [x] Add tests validating Accumulate gradients asynchronously in line with pipeline scheduling.
+   - [x] Document Accumulate gradients asynchronously in line with pipeline scheduling in README and TUTORIAL.
 224. [ ] Inspect neural pathways interactively via the GUI.
    - [ ] Outline design for Inspect neural pathways interactively via the GUI.
    - [ ] Implement Inspect neural pathways interactively via the GUI with CPU/GPU support.

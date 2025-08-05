@@ -713,6 +713,31 @@ a minimal web API.
    ```
 5. **Inject MARBLE into any PyTorch model** with `attach_marble_layer` to run
    MARBLE side by side without altering the model output.
+6. **Accumulate gradients asynchronously** with
+   `AsyncGradientAccumulator`. Each `add_batch` call runs the backward pass in
+   a background thread and the optimiser step is triggered after a configurable
+   number of micro-batches. This keeps the pipeline scheduler responsive on CPU
+   and GPU.
+
+   ```python
+   from async_gradient_accumulator import AsyncGradientAccumulator
+   import asyncio
+   import torch
+
+   model = torch.nn.Linear(4, 1)
+   opt = torch.optim.SGD(model.parameters(), lr=0.1)
+   loss_fn = torch.nn.MSELoss()
+   data = [(torch.randn(4), torch.randn(1)) for _ in range(8)]
+
+   acc = AsyncGradientAccumulator(model, opt, loss_fn, accumulation_steps=4)
+
+   async def train():
+       for x, y in data:
+           await acc.add_batch(x, y)
+       await acc.flush()
+
+   asyncio.run(train())
+   ```
 
 **Complete Example**
 ```python

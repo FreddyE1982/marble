@@ -24,11 +24,14 @@ locate these modules and populate the registry mapping identifiers to classes.
 
 from __future__ import annotations
 
+import asyncio
 from importlib import metadata, util
 from pathlib import Path
-from typing import Dict, Iterable, Type
+from typing import Callable, Dict, Iterable, Type
 
 import torch
+
+from async_gradient_accumulator import AsyncGradientAccumulator
 
 
 class PipelinePlugin:
@@ -212,3 +215,66 @@ class ServeModelPlugin(PipelinePlugin):
 
 
 register_plugin("serve_model", ServeModelPlugin)
+
+
+class AsyncGradientAccumulationPlugin(PipelinePlugin):
+    """Train a model using :class:`AsyncGradientAccumulator`.
+
+    Parameters
+    ----------
+    model:
+        PyTorch module to optimise.
+    optimizer:
+        Optimiser updating ``model`` parameters.
+    loss_fn:
+        Loss function applied to model outputs and targets.
+    dataloader:
+        Iterable yielding ``(inputs, targets)`` pairs.
+    accumulation_steps:
+        Number of micro-batches to accumulate before stepping the optimiser.
+    """
+
+    def __init__(
+        self,
+        model: torch.nn.Module,
+        optimizer: torch.optim.Optimizer,
+        loss_fn: Callable[[torch.Tensor, torch.Tensor], torch.Tensor],
+        dataloader,
+        *,
+        accumulation_steps: int = 1,
+    ) -> None:
+        super().__init__(
+            model=model,
+            optimizer=optimizer,
+            loss_fn=loss_fn,
+            dataloader=dataloader,
+            accumulation_steps=accumulation_steps,
+        )
+        self.model = model
+        self.optimizer = optimizer
+        self.loss_fn = loss_fn
+        self.dataloader = dataloader
+        self.accumulation_steps = accumulation_steps
+        self.accumulator: AsyncGradientAccumulator | None = None
+
+    def initialise(self, device: torch.device, marble=None) -> None:
+        self.accumulator = AsyncGradientAccumulator(
+            self.model,
+            self.optimizer,
+            self.loss_fn,
+            accumulation_steps=self.accumulation_steps,
+            device=device,
+        )
+
+    def execute(self, device: torch.device, marble=None):
+        async def _run() -> None:
+            assert self.accumulator is not None
+            for inputs, targets in self.dataloader:
+                await self.accumulator.add_batch(inputs, targets)
+            await self.accumulator.flush()
+
+        asyncio.run(_run())
+        return self.model
+
+
+register_plugin("async_gradient_accumulation", AsyncGradientAccumulationPlugin)
