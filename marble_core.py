@@ -16,6 +16,7 @@ import numpy as np
 import torch
 import torch.distributed as dist
 from tokenizers import Tokenizer
+from event_bus import global_event_bus
 
 import tensor_backend as tb
 
@@ -2124,6 +2125,7 @@ class Core:
         for neuron in self.neurons:
             neuron.representation = np.pad(neuron.representation, (0, delta))
         self.rep_size = new_size
+        global_event_bus.publish("rep_size_changed", {"new_size": self.rep_size})
 
     def decrease_representation_size(self, delta: int = 1) -> None:
         """Decrease representation dimensionality for all neurons."""
@@ -2145,6 +2147,7 @@ class Core:
         for neuron in self.neurons:
             neuron.representation = neuron.representation[:new_size]
         self.rep_size = new_size
+        global_event_bus.publish("rep_size_changed", {"new_size": self.rep_size})
 
     # Built-in reinforcement learning utilities
     def enable_rl(self) -> None:

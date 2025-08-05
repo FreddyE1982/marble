@@ -89,6 +89,9 @@ def create_marble_from_config(
     neuro_base_neurons = brain_params.pop("neurogenesis_base_neurons", 5)
     neuro_base_synapses = brain_params.pop("neurogenesis_base_synapses", 10)
     super_evolution_mode = brain_params.pop("super_evolution_mode", False)
+    brain_params.pop("dream_replay_buffer_size", None)
+    brain_params.pop("dream_replay_batch_size", None)
+    brain_params.pop("dream_replay_weighting", None)
 
     formula = cfg.get("formula")
     formula_num_neurons = cfg.get("formula_num_neurons", 100)
@@ -221,6 +224,12 @@ def create_marble_from_config(
         pytorch_challenge_params=pytorch_challenge_params,
         hybrid_memory_params=hybrid_memory_params,
     )
+    topo_cfg = cfg.get("topology_graph", {})
+    if topo_cfg.get("enabled", False):
+        from topology_kuzu import TopologyKuzuTracker
+
+        db_path = topo_cfg.get("db_path", "topology.kuzu")
+        marble.topology_tracker = TopologyKuzuTracker(marble.core, db_path)
     if gw_cfg.get("enabled", False):
         from global_workspace import activate as activate_global_workspace
 
