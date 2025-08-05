@@ -562,8 +562,27 @@ class Neuronenblitz:
         markers = self.last_context.get("markers", [])
         goals = self.last_context.get("goals", [])
         tom = self.last_context.get("tom", {})
+        ctx = self.last_context
+        arousal = float(ctx.get("arousal", 0.0))
+        stress = float(ctx.get("stress", 0.0))
+        reward = float(ctx.get("reward", 0.0))
+        emotion = ctx.get("emotion", 0.0)
+        try:
+            emotion = float(emotion)
+        except (TypeError, ValueError):
+            emotion = 0.0
         self.replay_buffer.append(
-            (float(input_value), float(target_value), list(markers), list(goals), tom)
+            (
+                float(input_value),
+                float(target_value),
+                list(markers),
+                list(goals),
+                tom,
+                arousal,
+                stress,
+                reward,
+                emotion,
+            )
         )
         self.replay_priorities.append(abs(float(error)) + 1e-6)
 

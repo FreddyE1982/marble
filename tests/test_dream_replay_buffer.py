@@ -32,3 +32,13 @@ def test_sampling_bias():
         else:
             counts["low"] += 1
     assert counts["high"] > counts["low"] * 2
+
+
+def test_weighting_functions():
+    sal = np.array([0.2, 0.8], dtype=float)
+    buf = DreamReplayBuffer(capacity=3, weighting="quadratic")
+    assert np.allclose(buf._apply_weighting(sal), sal ** 2)
+    buf = DreamReplayBuffer(capacity=3, weighting="sqrt")
+    assert np.allclose(buf._apply_weighting(sal), np.sqrt(sal))
+    buf = DreamReplayBuffer(capacity=3, weighting="uniform")
+    assert np.allclose(buf._apply_weighting(sal), np.ones_like(sal))
