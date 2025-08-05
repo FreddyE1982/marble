@@ -697,11 +697,23 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [ ] Implement Secure pipeline data flow by integrating dataset encryption routines with CPU/GPU support.
    - [ ] Add tests validating Secure pipeline data flow by integrating dataset encryption routines.
    - [ ] Document Secure pipeline data flow by integrating dataset encryption routines in README and TUTORIAL.
-211. [ ] Route memory allocations through the memory pool for every operation.
-   - [ ] Outline design for Route memory allocations through the memory pool for every operation.
-   - [ ] Implement Route memory allocations through the memory pool for every operation with CPU/GPU support.
-   - [ ] Add tests validating Route memory allocations through the memory pool for every operation.
-   - [ ] Document Route memory allocations through the memory pool for every operation in README and TUTORIAL.
+211. [x] Route memory allocations through the memory pool for every operation.
+   - [x] Outline design for Route memory allocations through the memory pool for every operation.
+       - Introduce an ``ArrayMemoryPool`` capable of preallocating tensor buffers
+         on both CPU (NumPy) and GPU (JAX or torch) backends.
+       - Expose an ``out_pool`` parameter on ``tensor_backend`` operations so
+         callers can supply reusable buffers.
+       - Provide a backend-agnostic copy helper ensuring results populate pooled
+         tensors correctly regardless of device.
+   - [x] Implement Route memory allocations through the memory pool for every operation with CPU/GPU support.
+       - Added ``ArrayMemoryPool`` with device-aware allocation logic.
+       - Updated ``matmul``, ``sigmoid`` and ``relu`` to optionally return
+         results via memory pools using the new copy helper.
+   - [x] Add tests validating Route memory allocations through the memory pool for every operation.
+       - Confirmed pooled buffers are reused across calls on NumPy and JAX
+         backends.
+       - Verified activation functions respect supplied pools.
+   - [x] Document Route memory allocations through the memory pool for every operation in README and TUTORIAL.
 212. [x] Provide a CLI wrapper so pipelines can run without writing Python code.
 213. [x] Detect GPU availability and adapt pipeline behaviour automatically.
 214. [x] Persist vocabulary mappings for reuse across multiple runs.

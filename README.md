@@ -176,6 +176,28 @@ It now also supports loading training pairs directly from a persistent Kùzu
 graph via ``load_kuzu_graph`` or the ``dataset.use_kuzu_graph`` configuration
 toggle, enabling graph-structured data to feed the model without conversion.
 
+### Tensor operation memory pooling
+
+All fundamental tensor operations provided by ``tensor_backend`` now accept an
+optional :class:`memory_pool.ArrayMemoryPool` so that intermediate buffers can be
+reused instead of freshly allocating memory on every call.  Pools can allocate
+NumPy arrays for CPU execution or JAX device arrays when a GPU is available,
+automatically selecting ``cuda`` devices where supported.  Example:
+
+```python
+import numpy as np
+from memory_pool import ArrayMemoryPool
+import tensor_backend as tb
+
+tb.set_backend("numpy")
+pool = ArrayMemoryPool((2, 2))
+res = tb.matmul(np.ones((2, 2)), np.ones((2, 2)), out_pool=pool)
+pool.release(res)
+```
+
+Switching to JAX executes the computation on GPU if available while continuing
+to reuse the same pooled buffers.
+
 Several helper pipelines leverage ``BitTensorDataset`` to train various
 learning paradigms on arbitrary Python objects, including ``AutoencoderPipeline``,
 ``ContrastivePipeline``, ``DiffusionPairsPipeline``, ``UnifiedPairsPipeline``,
