@@ -1397,7 +1397,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Simulate editing and saving a valid config.
         - [x] Confirm invalid YAML triggers error messages in UI.
 
-328. [ ] Integrate hyperparameter optimisation via Optuna.
+328. [x] Integrate hyperparameter optimisation via Optuna.
     - [x] Add `scripts/optimize.py` with Optuna study and objective function training one epoch.
         - [x] Define search space and objective returning validation loss.
         - [x] Allow resuming existing studies.
@@ -1407,9 +1407,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Add Streamlit tab to visualize optimization history and best config.
         - [x] Plot trial scores and parameter importances.
         - [x] Provide download of best config.
-    - [ ] Document usage in tutorials and manuals.
-        - [ ] Include setup and run instructions.
-        - [ ] Describe interpretation of optimization charts.
+    - [x] Document usage in tutorials and manuals.
+        - [x] Include setup and run instructions.
+        - [x] Describe interpretation of optimization charts.
     - [x] Add tests for optimization script.
         - [x] Use tiny dataset to run a short study.
         - [x] Assert database and result files are created.

@@ -609,11 +609,26 @@ repository are also exposed and you can construct a **pipeline** of function
 calls that execute sequentially. This makes it possible to combine training,
 evaluation and utility operations into a single workflow directly from the UI.
 
-The ``Optuna`` tab visualises hyperparameter optimisation studies. Run
-``python scripts/optimize.py`` to generate trials, then load the resulting
-SQLite database in the tab to see optimisation history and parameter
-importances. The best configuration can be inspected and downloaded as a YAML
-file for reuse.
+The ``Optuna`` tab visualises hyperparameter optimisation studies.
+Start a study by running::
+
+    python scripts/optimize.py --trials 5 --study-name tutorial \
+        --storage sqlite:///optuna_tutorial.db
+
+The command persists trial results in ``optuna_tutorial.db`` and emits a
+``best_params.yaml`` file.  Launch ``streamlit_playground.py`` and, inside the
+**Optuna** tab (advanced mode), supply the database path and study name
+``tutorial``.  Clicking **Load Study** renders:
+
+* **Optimization History** – line chart showing validation loss per trial.  Hover
+  over points for exact loss values; lower curves indicate better performance.
+* **Parameter Importances** – bar chart ranking hyperparameters by their
+  contribution to loss reduction, helping to focus future searches.
+* **Best Configuration** – expander displaying winning parameters with a button
+  to download them as YAML for reuse.
+
+These visualisations make it straightforward to diagnose search progress and
+reuse successful settings.
 The **Pipeline** tab provides widgets for every step parameter so pipelines can
 be assembled, reordered and deleted interactively before executing them on CPU
 or GPU. Pipelines may be saved to or loaded from JSON for reuse outside the GUI.
