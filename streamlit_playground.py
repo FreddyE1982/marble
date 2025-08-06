@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import atexit
 import contextlib
 import glob
 import io
@@ -52,6 +53,7 @@ from bit_tensor_dataset import (
 )
 from config_editor import load_config_text, save_config_text
 from event_bus import PROGRESS_EVENT, global_event_bus
+from graph_viz import sankey_figure
 from huggingface_utils import hf_load_dataset as load_hf_dataset
 from huggingface_utils import hf_load_model as load_hf_model
 from huggingface_utils import hf_login
@@ -78,10 +80,45 @@ from marble_interface import (
 )
 from marble_registry import MarbleRegistry
 from metrics_dashboard import MetricsDashboard
+from networkx_interop import core_to_dict
 from neural_pathway import find_neural_pathway, pathway_figure
 from pipeline import Pipeline
-from graph_viz import sankey_figure
-from networkx_interop import core_to_dict
+from prompt_memory import PromptMemory
+
+PROMPT_MEMORY_FILE = os.environ.get(
+    "PROMPT_MEMORY_PATH", os.path.join(tempfile.gettempdir(), "prompt_memory.json")
+)
+PROMPT_PREF_FILE = os.environ.get(
+    "PROMPT_PREF_PATH", os.path.join(tempfile.gettempdir(), "prompt_pref.json")
+)
+
+PROMPT_MEMORY = PromptMemory.load(PROMPT_MEMORY_FILE, max_size=20)
+try:
+    with open(PROMPT_PREF_FILE, "r", encoding="utf-8") as f:
+        PROMPT_ENABLED = json.load(f).get("enabled", False)
+except FileNotFoundError:
+    PROMPT_ENABLED = False
+
+if "prompt_memory" not in st.session_state:
+    st.session_state["prompt_memory"] = PROMPT_MEMORY
+else:
+    PROMPT_MEMORY = st.session_state["prompt_memory"]
+if "prompt_enabled" not in st.session_state:
+    st.session_state["prompt_enabled"] = PROMPT_ENABLED
+else:
+    PROMPT_ENABLED = st.session_state["prompt_enabled"]
+
+
+def _save_prompt_data() -> None:
+    try:
+        PROMPT_MEMORY.serialize(PROMPT_MEMORY_FILE)
+        with open(PROMPT_PREF_FILE, "w", encoding="utf-8") as f:
+            json.dump({"enabled": PROMPT_ENABLED}, f)
+    except Exception:
+        pass
+
+
+atexit.register(_save_prompt_data)
 
 
 def _detect_device() -> str:
@@ -1809,6 +1846,16 @@ def run_playground() -> None:
 
     if mode == "Basic":
         st.header("Inference")
+        global PROMPT_ENABLED
+        st.session_state["prompt_enabled"] = st.toggle(
+            "Use Prompt Memory", value=st.session_state.get("prompt_enabled", False)
+        )
+        PROMPT_ENABLED = st.session_state["prompt_enabled"]
+        try:
+            with open(PROMPT_PREF_FILE, "w", encoding="utf-8") as f:
+                json.dump({"enabled": PROMPT_ENABLED}, f)
+        except Exception:
+            pass
         num_val = st.number_input("Numeric Input", value=0.0, format="%f")
         text_val = st.text_input("Text Input")
         img_file = st.file_uploader(
@@ -1820,13 +1867,19 @@ def run_playground() -> None:
                 input_value = _parse_value(
                     img_file.name, ZipFile(BytesIO(img_file.read()), "r")
                 )
+                out = infer_marble_system(marble, input_value)
             elif audio_file is not None:
                 input_value = _load_audio(BytesIO(audio_file.read()))
+                out = infer_marble_system(marble, input_value)
             elif text_val:
-                input_value = _parse_value(text_val)
+                out = infer_marble_system(
+                    marble,
+                    text_val,
+                    prompt_memory=st.session_state["prompt_memory"],
+                    use_prompt=st.session_state["prompt_enabled"],
+                )
             else:
-                input_value = float(num_val)
-            out = infer_marble_system(marble, input_value)
+                out = infer_marble_system(marble, float(num_val))
             st.write(f"Output: {out}")
     else:
         st.header("Advanced Function Execution")

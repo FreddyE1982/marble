@@ -1,7 +1,7 @@
 import json
 from collections import deque
 from time import time
-from typing import Deque, Dict, List, Tuple
+from typing import Any, Deque, Dict, List, Tuple
 
 
 class PromptMemory:
@@ -15,7 +15,7 @@ class PromptMemory:
 
     def __init__(self, max_size: int = 10):
         self.max_size = max_size
-        self._data: Deque[Dict[str, str]] = deque(maxlen=max_size)
+        self._data: Deque[Dict[str, Any]] = deque(maxlen=max_size)
 
     def __len__(self) -> int:
         """Return the number of stored records."""
@@ -29,9 +29,9 @@ class PromptMemory:
         """Return stored `(input, output)` pairs ignoring timestamps."""
         return [(item["input"], item["output"]) for item in list(self._data)]
 
-    def get_records(self) -> List[Dict[str, str]]:
-        """Return full records including timestamps."""
-        return list(self._data)
+    def get_records(self) -> List[Dict[str, Any]]:
+        """Return full records sorted by ``timestamp``."""
+        return sorted(self._data, key=lambda r: r["timestamp"])
 
     def get_prompt(self) -> str:
         """Concatenate stored pairs into a prompt string."""
@@ -82,7 +82,8 @@ class PromptMemory:
         memory = cls(max_size=max_size)
         try:
             with open(path, "r", encoding="utf-8") as f:
-                data: List[Dict[str, str]] = json.load(f)
+                data: List[Dict[str, Any]] = json.load(f)
+            data = sorted(data, key=lambda r: r.get("timestamp", 0))
             for pair in data[-max_size:]:
                 memory._data.append(pair)
         except FileNotFoundError:

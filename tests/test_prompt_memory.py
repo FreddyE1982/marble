@@ -1,6 +1,11 @@
 import time
 
+from marble_brain import Brain
+from marble_core import Core, DataLoader
+from marble_interface import infer_marble_system
+from marble_neuronenblitz import Neuronenblitz
 from prompt_memory import PromptMemory
+from tests.test_core_functions import minimal_params
 
 
 def test_fifo_eviction(tmp_path):
@@ -75,3 +80,30 @@ def test_load_latency_and_eviction():
     # retrieving prompt should also remain fast
     assert prompt_elapsed < 0.5
     assert prompt_text.startswith("Input: in4000")
+
+
+def test_prompt_injection_changes_inference():
+    params = minimal_params()
+    core_a = Core(params)
+    nb_a = Neuronenblitz(core_a)
+    brain_a = Brain(core_a, nb_a, DataLoader())
+
+    class Dummy:
+        def __init__(self, b):
+            self._b = b
+
+        def get_brain(self):
+            return self._b
+
+    marble_a = Dummy(brain_a)
+    memory = PromptMemory(max_size=3)
+    infer_marble_system(marble_a, "hello", prompt_memory=memory)
+    out_with = infer_marble_system(marble_a, "world", prompt_memory=memory)
+
+    core_b = Core(params)
+    nb_b = Neuronenblitz(core_b)
+    brain_b = Brain(core_b, nb_b, DataLoader())
+    marble_b = Dummy(brain_b)
+    out_without = infer_marble_system(marble_b, "world", use_prompt=False)
+
+    assert out_with != out_without

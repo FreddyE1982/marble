@@ -1,29 +1,27 @@
 from __future__ import annotations
 
-import pickle
-import dill
-import cloudpickle
 import warnings
 from typing import Any, Hashable, Iterable
 
+import cloudpickle
 import numpy as np
 import pandas as pd
 import torch
 from datasets import load_dataset
 
-from bit_tensor_dataset import BitTensorDataset
-from streaming_dataset_step import StreamingDatasetStep
-from huggingface_utils import hf_login
-from marble import DataLoader
-
 from autoencoder_learning import AutoencoderLearner
+from bit_tensor_dataset import BitTensorDataset
 from config_loader import create_marble_from_config, load_config
 from curriculum_learning import curriculum_train
 from distillation_trainer import DistillationTrainer
+from huggingface_utils import hf_login
+from marble import DataLoader
 from marble_autograd import MarbleAutogradLayer, TransparentMarbleLayer
-from marble_main import MARBLE
 from marble_brain import Brain
+from marble_main import MARBLE
 from marble_utils import core_from_json, core_to_json
+from prompt_memory import PromptMemory
+from streaming_dataset_step import StreamingDatasetStep
 
 warnings.filterwarnings(
     "ignore",
@@ -132,13 +130,35 @@ def load_marble_system(path: str) -> MARBLE:
 
 
 def infer_marble_system(
-    marble: MARBLE, input_value: float, *, tensor: bool = False
+    marble: MARBLE,
+    input_value: Any,
+    *,
+    tensor: bool = False,
+    prompt_memory: PromptMemory | None = None,
+    use_prompt: bool = True,
+    max_chars: int = 2048,
 ) -> Any:
     """Return model output for ``input_value`` using ``marble``.
+
+    When ``input_value`` is a string it is converted to a numeric embedding
+    based on character codes. If ``prompt_memory`` is provided and
+    ``use_prompt`` is ``True``, stored `(input, output)` pairs are prepended
+    as a prompt before conversion. The resulting output is stored back into
+    ``prompt_memory``.
 
     If ``tensor`` is ``True`` the raw encoded tensor is returned without
     decoding through the :class:`DataLoader` tokenizer.
     """
+    if isinstance(input_value, str):
+        text = input_value
+        composite = text
+        if use_prompt and prompt_memory is not None:
+            composite = prompt_memory.composite_with(text, max_chars=max_chars)
+        value = sum(ord(c) for c in composite) / max(len(composite), 1)
+        out = marble.get_brain().infer(value, tensor=tensor)
+        if use_prompt and prompt_memory is not None:
+            prompt_memory.add(text, str(out))
+        return out
     return marble.get_brain().infer(input_value, tensor=tensor)
 
 

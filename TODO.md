@@ -1365,22 +1365,22 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [ ] Unit test loss calculation with synthetic logits.
         - [ ] Ensure training uses previous epoch logits when available.
 
-326. [ ] Create in-context learning prompt system.
-    - [ ] Add `PromptMemory` to cache recent `(input, output)` pairs.
+326. [x] Create in-context learning prompt system.
+    - [x] Add `PromptMemory` to cache recent `(input, output)` pairs.
         - [x] Define `PromptMemory` class skeleton.
         - [x] Implement bounded queue with eviction policy.
         - [x] Add methods for retrieval and composite prompt generation.
         - [x] Provide serialization for stored pairs.
-    - [ ] Modify inference to use `prompt + input` as composite query.
+    - [x] Modify inference to use `prompt + input` as composite query.
         - [x] Concatenate prompts with new inputs before inference.
         - [x] Handle empty or oversized prompt caches gracefully.
-    - [ ] Add GUI control for toggling prompt injection.
-        - [ ] Create Streamlit toggle linked to inference pipeline.
-        - [ ] Persist user preference between sessions.
-    - [ ] Store prompts persistently with timestamps.
-        - [ ] Save prompt memory to disk on shutdown.
+    - [x] Add GUI control for toggling prompt injection.
+        - [x] Create Streamlit toggle linked to inference pipeline.
+        - [x] Persist user preference between sessions.
+    - [x] Store prompts persistently with timestamps.
+        - [x] Save prompt memory to disk on shutdown.
         - [x] Include timestamps for chronological retrieval.
-    - [ ] Write tests for prompt cache behavior.
+    - [x] Write tests for prompt cache behavior.
         - [x] Verify FIFO eviction policy.
         - [x] Test inference output when prompts are applied.
 

@@ -57,6 +57,24 @@ def test_inference_server_with_prompt_memory(tmp_path):
         server.stop()
 
 
+def test_prompt_memory_persisted_on_shutdown(tmp_path):
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    brain = Brain(core, nb, DataLoader())
+    path = tmp_path / "memory.json"
+    server = InferenceServer(brain, host="localhost", port=5094, prompt_path=str(path))
+    server.start()
+    try:
+        time.sleep(0.5)
+        requests.post("http://localhost:5094/infer", json={"text": "hi"}, timeout=5)
+    finally:
+        server.stop()
+    loaded = PromptMemory.load(str(path))
+    pairs = loaded.get_pairs()
+    assert pairs and pairs[0][0] == "hi"
+
+
 def test_graph_endpoint(tmp_path):
     params = minimal_params()
     core = Core(params)
