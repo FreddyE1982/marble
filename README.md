@@ -3,6 +3,22 @@
 **Mandelbrot Adaptive Reasoning Brain-Like Engine**
 
 The MARBLE system is a modular neural architecture that begins with a Mandelbrot-inspired seed and adapts through neuromodulatory feedback and structural plasticity. This repository contains the source code for the system along with utilities and configuration files.
+The framework now also supports multi-agent simulations where several independent MARBLE brains collaborate or compete.
+
+## Multi-agent MARBLE
+
+Agents are wrapped by ``MARBLEAgent``, each loading its own configuration and brain instance. Communication occurs through a thread-safe ``MessageBus`` supporting both direct and broadcast messages. Interaction histories are recorded for later analysis and can be visualised as influence graphs.
+
+```python
+from marble_agent import MARBLEAgent
+from message_bus import MessageBus
+
+bus = MessageBus()
+a1 = MARBLEAgent("agent1", bus=bus)
+a2 = MARBLEAgent("agent2", bus=bus)
+a1.send("agent2", {"msg": "hello"})
+print(a2.receive().content)
+```
 It also includes a new unsupervised Hebbian learning module that ties together message passing in the Core with Neuronenblitz path exploration.
 An autoencoder learning paradigm further reconstructs noisy inputs through Neuronenblitz wander paths integrated with the Core.
 A semi-supervised paradigm leverages both labeled and unlabeled data by applying consistency regularization directly through Neuronenblitz.
