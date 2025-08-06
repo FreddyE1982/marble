@@ -2772,13 +2772,22 @@ reconstructed with the correct Python type during decoding.
 **Goal:** Train the theory of mind plugin to model agents.
 
 1. **Enable the plugin** by setting `theory_of_mind.enabled: true` in `config.yaml`.
-2. **Train** on small interaction traces:
+2. **Observe beliefs** with encoded memory:
    ```python
-   from theory_of_mind import activate
+   from theory_of_mind import activate, ToMInput
    from config_loader import load_config
    cfg = load_config()
-   tom = activate(hidden_size=8, num_layers=1, prediction_horizon=1)
-   tom.train([(0, 1), (1, 0)], epochs=5)
+   tom = activate(hidden_size=8, num_layers=1, prediction_horizon=1,
+                  memory_slots=8, attention_hops=2, mismatch_threshold=0.2)
+   obs = torch.randn(3, 2)
+   data = ToMInput(
+       agent_id="agent1",
+       char_id="alice",
+       observations=obs,
+       belief_state={"goal": torch.zeros(8)}
+   )
+   tom.observe(data)
+   mismatches = tom.get_mismatches()
    ```
 
 ## Project 37 – Predictive Coding Integration

@@ -631,6 +631,9 @@ Each entry is listed under its section heading.
 - hidden_size
 - num_layers
 - prediction_horizon
+- memory_slots
+- attention_hops
+- mismatch_threshold
 
 ## predictive_coding
 - num_layers
