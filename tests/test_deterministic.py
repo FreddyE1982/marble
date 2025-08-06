@@ -2,12 +2,14 @@ import os, sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import numpy as np
+import tensor_backend as tb
 from marble_core import Core, perform_message_passing
 from tests.test_core_functions import minimal_params
 
 
 def test_message_passing_deterministic():
     seed = 123
+    tb.set_backend("numpy")
     p1 = minimal_params()
     p1['random_seed'] = seed
     core1 = Core(p1)

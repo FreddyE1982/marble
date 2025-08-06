@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Tuple
 
 import numpy as np
 
@@ -12,6 +12,7 @@ from memory_pool import MemoryPool
 try:  # optional dependency
     import jax.numpy as jnp  # type: ignore
     from jax import device_get  # type: ignore
+    from jax import random as jrandom  # type: ignore
 
     _HAS_JAX = True
 except Exception:  # pragma: no cover - jax not installed
@@ -42,8 +43,20 @@ class _Backend:
     def relu(self, x: Any) -> Any:
         raise NotImplementedError
 
+    def seed(self, seed: int) -> None:
+        raise NotImplementedError
+
+    def rand(self, shape: Tuple[int, ...]) -> Any:
+        raise NotImplementedError
+
+    def randn(self, shape: Tuple[int, ...]) -> Any:
+        raise NotImplementedError
+
 
 class _NumpyBackend(_Backend):
+    def __init__(self) -> None:  # pragma: no cover - simple init
+        self.rng = np.random.default_rng()
+
     def matmul(self, a: Any, b: Any) -> Any:  # pragma: no cover - trivial
         return np.matmul(a, b)
 
@@ -53,22 +66,51 @@ class _NumpyBackend(_Backend):
     def relu(self, x: Any) -> Any:  # pragma: no cover - trivial
         return np.maximum(x, 0)
 
+    def seed(self, seed: int) -> None:  # pragma: no cover - trivial
+        self.rng = np.random.default_rng(seed)
+
+    def rand(self, shape: Tuple[int, ...]) -> Any:  # pragma: no cover - trivial
+        return self.rng.random(shape)
+
+    def randn(self, shape: Tuple[int, ...]) -> Any:  # pragma: no cover - trivial
+        return self.rng.standard_normal(shape)
+
 
 class _JaxBackend(_Backend):
+    def __init__(self) -> None:  # pragma: no cover - simple init
+        if jnp is None:
+            raise RuntimeError("JAX is not available")
+        self.key = jrandom.PRNGKey(0)
+
+    def _split(self) -> "jnp.ndarray":  # pragma: no cover - helper
+        self.key, sub = jrandom.split(self.key)
+        return sub
+
     def matmul(self, a: Any, b: Any) -> Any:
         if jnp is None:  # pragma: no cover - safety
             raise RuntimeError("JAX is not available")
-        return device_get(jnp.matmul(jnp.asarray(a), jnp.asarray(b)))
+        return jnp.matmul(jnp.asarray(a), jnp.asarray(b))
 
     def sigmoid(self, x: Any) -> Any:
         if jnp is None:  # pragma: no cover - safety
             raise RuntimeError("JAX is not available")
-        return device_get(1.0 / (1.0 + jnp.exp(-jnp.asarray(x))))
+        return 1.0 / (1.0 + jnp.exp(-jnp.asarray(x)))
 
     def relu(self, x: Any) -> Any:
         if jnp is None:  # pragma: no cover - safety
             raise RuntimeError("JAX is not available")
-        return device_get(jnp.maximum(jnp.asarray(x), 0))
+        return jnp.maximum(jnp.asarray(x), 0)
+
+    def seed(self, seed: int) -> None:  # pragma: no cover - simple
+        self.key = jrandom.PRNGKey(seed)
+
+    def rand(self, shape: Tuple[int, ...]) -> Any:
+        sub = self._split()
+        return jrandom.uniform(sub, shape)
+
+    def randn(self, shape: Tuple[int, ...]) -> Any:
+        sub = self._split()
+        return jrandom.normal(sub, shape)
 
 
 _backend: _Backend = _NumpyBackend()
@@ -94,6 +136,35 @@ def set_backend(name: str) -> None:
         _backend = _JaxBackend()
     else:
         raise ValueError(f"Unknown backend: {name}")
+
+
+def seed(seed: int) -> None:
+    """Seed the random number generator of the active backend."""
+    _backend.seed(int(seed))
+
+
+def rand(shape: Tuple[int, ...]) -> Any:
+    """Return uniform random array with given ``shape``."""
+    return _backend.rand(shape)
+
+
+def randn(shape: Tuple[int, ...]) -> Any:
+    """Return standard normal random array with given ``shape``."""
+    return _backend.randn(shape)
+
+
+def xp():
+    """Return array module (numpy or jax) of active backend."""
+    return np if isinstance(_backend, _NumpyBackend) else jnp
+
+
+def to_numpy(arr: Any) -> np.ndarray:
+    """Convert ``arr`` from backend format to a NumPy array."""
+    if torch is not None and isinstance(arr, torch.Tensor):  # pragma: no cover - torch
+        return arr.detach().cpu().numpy()
+    if jnp is not None and isinstance(arr, jnp.ndarray):  # pragma: no cover - jax
+        return np.asarray(device_get(arr))
+    return np.asarray(arr)
 
 
 def matmul(a: Any, b: Any, *, out_pool: "MemoryPool" | None = None) -> Any:

@@ -1,6 +1,7 @@
 import os, sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import tempfile
+import tensor_backend as tb
 from marble_core import Core, perform_message_passing
 from marble_utils import (
     export_core_to_onnx,
@@ -22,6 +23,7 @@ def test_graph_pruning():
 
 def test_export_import_neuron_state(tmp_path):
     params = minimal_params()
+    tb.set_backend("numpy")
     core = Core(params)
     perform_message_passing(core)
     path = tmp_path / "state.json"
@@ -55,6 +57,7 @@ def test_metrics_aggregator():
     assert metrics["loss"] == 2.0
 
 def test_message_passing_progress(monkeypatch):
+    tb.set_backend("numpy")
     params = minimal_params()
     core = Core(params)
     updates = []
@@ -69,6 +72,6 @@ def test_message_passing_progress(monkeypatch):
         def close(self):
             updates.append(True)
 
-    monkeypatch.setattr("marble_core.tqdm", lambda *a, **k: Dummy())
+    monkeypatch.setattr("core.message_passing.tqdm", lambda *a, **k: Dummy())
     perform_message_passing(core, show_progress=True)
     assert updates

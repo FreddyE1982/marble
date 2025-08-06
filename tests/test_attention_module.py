@@ -1,10 +1,12 @@
 import os, sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import numpy as np
+import tensor_backend as tb
 from marble_core import AttentionModule
 
 
 def test_attention_weights_sum_to_one():
+    tb.set_backend("numpy")
     am = AttentionModule(temperature=1.0)
     query = np.array([1.0, 0.0])
     keys = [np.array([1.0, 0.0]), np.array([0.0, 1.0])]
@@ -14,6 +16,7 @@ def test_attention_weights_sum_to_one():
 
 
 def test_attention_temperature_effect():
+    tb.set_backend("numpy")
     query = np.array([1.0, 0.0])
     keys = [np.array([1.0, 0.0]), np.array([0.0, 1.0])]
     high = AttentionModule(temperature=10.0)

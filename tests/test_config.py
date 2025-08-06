@@ -18,6 +18,7 @@ def test_load_config_defaults():
     assert cfg["core"]["width"] == 30
     assert cfg["core"]["representation_size"] == 4
     assert cfg["core"]["message_passing_alpha"] == 0.5
+    assert cfg["core"]["backend"] == "numpy"
     assert cfg["core"]["file_tier_path"] == "data/marble_file_tier.dat"
     assert "neuronenblitz" in cfg
     assert cfg["core"]["init_noise_std"] == 0.0
