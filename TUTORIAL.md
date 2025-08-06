@@ -150,6 +150,24 @@ Set ``dataloader.tokenizer_type: bert_wordpiece`` or ``tokenizer_json`` in
 project example assumes a ``dataloader`` prepared this way and passes it to
 ``load_dataset``.
 
+### Transferring knowledge between models
+
+Serialized datasets are a convenient medium for moving training examples from
+one model to another. A ``BitTensorDataset`` can be converted to JSON on the
+source machine and reloaded on CPU or GPU for the target. The helper
+``transfer_dataset_knowledge`` performs this round trip and trains a target
+``Neuronenblitz``:
+
+```python
+from transfer_learning import transfer_dataset_knowledge
+from marble_core import Core
+from marble_neuronenblitz import Neuronenblitz
+
+core = Core(params)
+nb = Neuronenblitz(core)
+transfer_dataset_knowledge(dataset, nb, device="cuda" if torch.cuda.is_available() else "cpu")
+```
+
 ### Project: Streaming Dataset Pipeline
 
 This project demonstrates how to process a streaming dataset through a pipeline.

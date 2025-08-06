@@ -775,11 +775,11 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Implement Register custom loss modules through the plugin system with CPU/GPU support.
    - [x] Add tests validating Register custom loss modules through the plugin system.
    - [x] Document Register custom loss modules through the plugin system in README and TUTORIAL.
-226. [ ] Transfer knowledge between models using dataset serialisation features.
-   - [ ] Outline design for Transfer knowledge between models using dataset serialisation features.
-   - [ ] Implement Transfer knowledge between models using dataset serialisation features with CPU/GPU support.
-   - [ ] Add tests validating Transfer knowledge between models using dataset serialisation features.
-   - [ ] Document Transfer knowledge between models using dataset serialisation features in README and TUTORIAL.
+226. [x] Transfer knowledge between models using dataset serialisation features.
+   - [x] Outline design for Transfer knowledge between models using dataset serialisation features.
+   - [x] Implement Transfer knowledge between models using dataset serialisation features with CPU/GPU support.
+   - [x] Add tests validating Transfer knowledge between models using dataset serialisation features.
+   - [x] Document Transfer knowledge between models using dataset serialisation features in README and TUTORIAL.
 227. [ ] Refresh vocabulary encodings mid-training when datasets evolve.
    - [ ] Outline design for Refresh vocabulary encodings mid-training when datasets evolve.
    - [ ] Implement Refresh vocabulary encodings mid-training when datasets evolve with CPU/GPU support.
