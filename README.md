@@ -81,6 +81,14 @@ Logging behaviour is configured under the `logging` section:
 logging:
   structured: false  # emit JSON lines when true
   log_file: "marble.log"  # path of the primary log file
+  level: "INFO"  # minimum severity recorded
+  format: "%(levelname)s:%(name)s:%(message)s"  # used when structured=false
+  datefmt: "%Y-%m-%d %H:%M:%S"  # timestamp format
+  propagate: false  # forward records to ancestor loggers
+  rotate: false  # enable size-based rotation
+  max_bytes: 1048576  # rotate after this many bytes
+  backup_count: 5  # number of rotated files to keep
+  encoding: "utf-8"  # file encoding
 ```
 
 These options allow replicating experiments exactly across machines and enable

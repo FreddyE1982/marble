@@ -77,6 +77,14 @@ CONFIG_SCHEMA = {
             "properties": {
                 "structured": {"type": "boolean"},
                 "log_file": {"type": ["string", "null"]},
+                "level": {"type": ["string", "integer"]},
+                "format": {"type": ["string", "null"]},
+                "datefmt": {"type": ["string", "null"]},
+                "propagate": {"type": "boolean"},
+                "rotate": {"type": "boolean"},
+                "max_bytes": {"type": "integer", "minimum": 1},
+                "backup_count": {"type": "integer", "minimum": 1},
+                "encoding": {"type": ["string", "null"]},
             },
         },
         "pipeline": {

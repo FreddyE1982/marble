@@ -22,6 +22,14 @@ Each entry is listed under its section heading.
 ## logging
 - structured
 - log_file
+- level: Minimum severity level captured.
+- format: Log message format when ``structured`` is ``false``.
+- datefmt: Timestamp format string.
+- propagate: Forward records to ancestor loggers.
+- rotate: Enable log file rotation.
+- max_bytes: Maximum size of a log file before rotation.
+- backup_count: Number of rotated log files retained.
+- encoding: File encoding for log files.
 
 ## plugins
 - (list of module import paths to load)
@@ -506,10 +514,6 @@ Each entry is listed under its section heading.
 ## distillation
 - enabled
 - alpha
-## logging
-- structured
-- log_file
-
 - teacher_model
 
 ## reinforcement_learning
