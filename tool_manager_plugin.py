@@ -7,7 +7,13 @@ from typing import Dict
 import torch
 
 from pipeline_plugins import PipelinePlugin, register_plugin
-from tool_plugins import TOOL_REGISTRY, ToolPlugin, get_tool, load_tool_plugins
+from tool_plugins import (
+    TOOL_REGISTRY,
+    ToolPlugin,
+    get_tool,
+    load_tool_plugins,
+    register_tool,
+)
 
 
 class HeuristicToolPolicy:
@@ -37,7 +43,9 @@ class ToolManagerPlugin(PipelinePlugin):
         for name, cfg in self.tool_configs.items():
             if name not in TOOL_REGISTRY:
                 try:
-                    __import__(f"{name}_tool")
+                    mod = __import__(f"{name}_tool")
+                    if hasattr(mod, "register"):
+                        mod.register(register_tool)
                 except ImportError as exc:  # pragma: no cover - user error
                     raise ImportError(f"Tool '{name}' is not registered") from exc
             cls = get_tool(name)

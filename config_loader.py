@@ -13,6 +13,7 @@ from plugin_system import load_plugins
 from remote_hardware import load_remote_tier_plugin
 from remote_offload import RemoteBrainClient, RemoteBrainServer
 from torrent_offload import BrainTorrentClient, BrainTorrentTracker
+import torch
 
 DEFAULT_CONFIG_FILE = Path(__file__).resolve().parent / "config.yaml"
 
@@ -246,6 +247,27 @@ def create_marble_from_config(
         pytorch_challenge_params=pytorch_challenge_params,
         hybrid_memory_params=hybrid_memory_params,
     )
+    # Optional tool manager instantiation
+    tool_cfg = cfg.get("tool_manager", {})
+    if tool_cfg.get("enabled"):
+        from tool_manager_plugin import ToolManagerPlugin
+
+        manager = ToolManagerPlugin(
+            tools=tool_cfg.get("tools", {}),
+            policy=tool_cfg.get("policy", "heuristic"),
+        )
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        manager.initialise(device, marble)
+        marble.tool_manager = manager
+
+    # Background tensor synchronisation
+    sync_cfg = cfg.get("sync", {})
+    if "interval_ms" in sync_cfg:
+        from tensor_sync_service import TensorSyncService
+
+        marble.tensor_sync_service = TensorSyncService(
+            interval_ms=int(sync_cfg.get("interval_ms", 1000))
+        )
     topo_cfg = cfg.get("topology_graph", {})
     if topo_cfg.get("enabled", False):
         from topology_kuzu import TopologyKuzuTracker
