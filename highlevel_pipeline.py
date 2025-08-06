@@ -11,9 +11,11 @@ import pickle
 
 import torch
 import psutil
+import networkx as nx
 from dotdict import DotDict
 from config_loader import load_config
 from marble_base import MetricsVisualizer
+from marble_core import TIER_REGISTRY
 
 from torch.utils.data import Dataset
 
@@ -256,6 +258,75 @@ class HighLevelPipeline:
             raise IndexError("index out of range")
         return self.steps[index]
 
+    def _build_dependency_graph(self, steps: list[dict]) -> tuple[nx.DiGraph, dict[str, dict]]:
+        """Construct a dependency graph for ``steps``.
+
+        Each step may define a ``depends_on`` list referencing other step names.
+        Steps without explicit ``name`` fields are assigned one based on their
+        order. Duplicate names, unknown dependencies or cycles raise a
+        ``ValueError``.
+        """
+
+        graph = nx.DiGraph()
+        name_to_step: dict[str, dict] = {}
+        for idx, step in enumerate(steps):
+            name = step.get("name") or step.get("func")
+            if not isinstance(name, str):
+                name = f"step_{idx}"
+            if name in name_to_step:
+                raise ValueError(f"Duplicate step name '{name}'")
+            step["name"] = name
+            graph.add_node(name)
+            name_to_step[name] = step
+        for step in steps:
+            for dep in step.get("depends_on", []):
+                if dep not in name_to_step:
+                    raise ValueError(
+                        f"Step '{step['name']}' depends on unknown step '{dep}'"
+                    )
+                graph.add_edge(dep, step["name"])
+        return graph, name_to_step
+
+    def _topological_sort(self, steps: list[dict]) -> list[dict]:
+        """Return ``steps`` ordered according to their dependencies."""
+
+        graph, name_to_step = self._build_dependency_graph(steps)
+        try:
+            order = list(nx.topological_sort(graph))
+        except nx.NetworkXUnfeasible:
+            cycle = nx.find_cycle(graph)
+            chain = " -> ".join(n for n, _ in cycle) + f" -> {cycle[0][0]}"
+            raise ValueError(f"Dependency cycle detected: {chain}")
+        return [name_to_step[n] for n in order]
+
+    def _run_isolated_step(
+        self, step: dict, marble: Any | None, metrics_visualizer: MetricsVisualizer | None = None
+    ) -> tuple[Any | None, Any]:
+        """Execute ``step`` in a separate process and return ``(marble, result)``."""
+
+        import multiprocessing as mp
+
+        ctx = mp.get_context("spawn" if torch.cuda.is_available() else "fork")
+        q: mp.Queue = ctx.Queue()
+        step_copy = dict(step)
+        step_copy.pop("isolated", None)
+
+        def _target(q, step, marble, async_enabled):
+            pipe = HighLevelPipeline([step], async_enabled=async_enabled)
+            try:
+                m, results = pipe.execute(marble, metrics_visualizer=metrics_visualizer)
+                q.put(("ok", m, results[0] if results else None))
+            except Exception as exc:  # pragma: no cover - propagated to parent
+                q.put(("err", exc))
+
+        proc = ctx.Process(target=_target, args=(q, step_copy, marble, self.async_enabled))
+        proc.start()
+        proc.join()
+        status, *payload = q.get()
+        if status == "err":
+            raise payload[0]
+        return payload[0], payload[1]
+
     def list_steps(self) -> list[str]:
         """Return a list of step names for introspection."""
 
@@ -340,6 +411,28 @@ class HighLevelPipeline:
         current_marble = marble
         results: list[Any] = []
         for idx, step in enumerate(steps):
+            if "macro" in step:
+                sub_cache = (
+                    os.path.join(self.cache_dir, step.get("name", f"macro_{idx}"))
+                    if self.cache_dir
+                    else None
+                )
+                sub_pipe = HighLevelPipeline(
+                    step["macro"],
+                    use_bit_dataset=self.use_bit_dataset,
+                    bit_dataset_params=self.bit_dataset_params.copy(),
+                    data_args=self.data_args.copy(),
+                    cache_dir=sub_cache,
+                    dataset_version=self.dataset_version,
+                    async_enabled=self.async_enabled,
+                )
+                sub_pipe.config = self.config
+                sub_pipe.default_memory_limit_mb = self.default_memory_limit_mb
+                current_marble, sub_results = sub_pipe.execute(
+                    current_marble, metrics_visualizer=metrics_visualizer
+                )
+                results.extend(sub_results)
+                continue
             global_index = self.steps.index(step)
             cache_hit = False
             cache_path = None
@@ -357,46 +450,61 @@ class HighLevelPipeline:
                 if metrics_visualizer:
                     metrics_visualizer.update({"cache_hit": 1})
                 continue
-            if "callable" in step:
-                func = step["callable"]
-                params = step.get("params", {})
-            else:
-                module_name = step.get("module")
-                func_name = step["func"]
-                params = step.get("params", {})
-                module = (
-                    importlib.import_module(module_name)
-                    if module_name
-                    else marble_interface
-                )
-                if not hasattr(module, func_name):
-                    raise ValueError(f"Unknown function: {func_name}")
-                func = getattr(module, func_name)
+            params = step.get("params", {})
             new_params = {}
             for k, v in params.items():
                 if k in self.data_args:
                     new_params[k] = self._maybe_bit_dataset(v)
                 else:
                     new_params[k] = v
-            params = new_params
+            step["params"] = DotDict(new_params)
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             process = psutil.Process()
             cpu_before = process.memory_info().rss
             gpu_before = (
                 torch.cuda.memory_allocated(device) if device.type == "cuda" else 0
             )
-            sig = inspect.signature(func)
-            kwargs = {}
-            for name, p in sig.parameters.items():
-                if name == "marble":
-                    kwargs[name] = current_marble
-                elif name in params:
-                    kwargs[name] = params[name]
-                elif p.default is not inspect.Parameter.empty:
-                    kwargs[name] = p.default
+            if step.get("isolated"):
+                new_marble, result = self._run_isolated_step(
+                    step, current_marble, metrics_visualizer
+                )
+                if new_marble is not None:
+                    current_marble = new_marble
+            else:
+                tier_name = step.get("tier")
+                if tier_name and tier_name in TIER_REGISTRY:
+                    tier = TIER_REGISTRY[tier_name]
+                    tier.connect()
+                    try:
+                        result = tier.run_step(step, current_marble, device)
+                    finally:
+                        tier.close()
                 else:
-                    raise ValueError(f"Missing parameter: {name}")
-            result = func(**kwargs)
+                    if "callable" in step:
+                        func = step["callable"]
+                    else:
+                        module_name = step.get("module")
+                        func_name = step["func"]
+                        module = (
+                            importlib.import_module(module_name)
+                            if module_name
+                            else marble_interface
+                        )
+                        if not hasattr(module, func_name):
+                            raise ValueError(f"Unknown function: {func_name}")
+                        func = getattr(module, func_name)
+                    sig = inspect.signature(func)
+                    kwargs = {}
+                    for name, p in sig.parameters.items():
+                        if name == "marble":
+                            kwargs[name] = current_marble
+                        elif name in new_params:
+                            kwargs[name] = new_params[name]
+                        elif p.default is not inspect.Parameter.empty:
+                            kwargs[name] = p.default
+                        else:
+                            raise ValueError(f"Missing parameter: {name}")
+                    result = func(**kwargs)
             if metrics_visualizer:
                 metrics_visualizer.update({"cache_miss": 1})
             if self.cache_dir and cache_path:
@@ -446,6 +554,30 @@ class HighLevelPipeline:
         results: list[Any] = []
         loop = asyncio.get_event_loop()
         for idx, step in enumerate(steps):
+            if "macro" in step:
+                sub_cache = (
+                    os.path.join(self.cache_dir, step.get("name", f"macro_{idx}"))
+                    if self.cache_dir
+                    else None
+                )
+                sub_pipe = HighLevelPipeline(
+                    step["macro"],
+                    use_bit_dataset=self.use_bit_dataset,
+                    bit_dataset_params=self.bit_dataset_params.copy(),
+                    data_args=self.data_args.copy(),
+                    cache_dir=sub_cache,
+                    dataset_version=self.dataset_version,
+                    async_enabled=self.async_enabled,
+                )
+                sub_pipe.config = self.config
+                sub_pipe.default_memory_limit_mb = self.default_memory_limit_mb
+                current_marble, sub_results = await sub_pipe._execute_steps_async(
+                    sub_pipe._topological_sort(sub_pipe.steps),
+                    current_marble,
+                    metrics_visualizer,
+                )
+                results.extend(sub_results)
+                continue
             global_index = self.steps.index(step)
             cache_hit = False
             cache_path = None
@@ -463,49 +595,72 @@ class HighLevelPipeline:
                 if metrics_visualizer:
                     metrics_visualizer.update({"cache_hit": 1})
                 continue
-            if "callable" in step:
-                func = step["callable"]
-                params = step.get("params", {})
-            else:
-                module_name = step.get("module")
-                func_name = step["func"]
-                params = step.get("params", {})
-                module = (
-                    importlib.import_module(module_name)
-                    if module_name
-                    else marble_interface
-                )
-                if not hasattr(module, func_name):
-                    raise ValueError(f"Unknown function: {func_name}")
-                func = getattr(module, func_name)
+            params = step.get("params", {})
             new_params = {}
             for k, v in params.items():
                 if k in self.data_args:
                     new_params[k] = self._maybe_bit_dataset(v)
                 else:
                     new_params[k] = v
-            params = new_params
+            step["params"] = DotDict(new_params)
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             process = psutil.Process()
             cpu_before = process.memory_info().rss
             gpu_before = (
                 torch.cuda.memory_allocated(device) if device.type == "cuda" else 0
             )
-            sig = inspect.signature(func)
-            kwargs = {}
-            for name, p in sig.parameters.items():
-                if name == "marble":
-                    kwargs[name] = current_marble
-                elif name in params:
-                    kwargs[name] = params[name]
-                elif p.default is not inspect.Parameter.empty:
-                    kwargs[name] = p.default
-                else:
-                    raise ValueError(f"Missing parameter: {name}")
-            if inspect.iscoroutinefunction(func):
-                result = await func(**kwargs)
+            if step.get("isolated"):
+                new_marble, result = await loop.run_in_executor(
+                    None,
+                    lambda: self._run_isolated_step(
+                        step, current_marble, metrics_visualizer
+                    ),
+                )
+                if new_marble is not None:
+                    current_marble = new_marble
             else:
-                result = await loop.run_in_executor(None, lambda: func(**kwargs))
+                tier_name = step.get("tier")
+                if tier_name and tier_name in TIER_REGISTRY:
+                    tier = TIER_REGISTRY[tier_name]
+                    tier.connect()
+                    try:
+                        result = await loop.run_in_executor(
+                            None,
+                            lambda: tier.run_step(step, current_marble, device),
+                        )
+                    finally:
+                        await loop.run_in_executor(None, tier.close)
+                else:
+                    if "callable" in step:
+                        func = step["callable"]
+                    else:
+                        module_name = step.get("module")
+                        func_name = step["func"]
+                        module = (
+                            importlib.import_module(module_name)
+                            if module_name
+                            else marble_interface
+                        )
+                        if not hasattr(module, func_name):
+                            raise ValueError(f"Unknown function: {func_name}")
+                        func = getattr(module, func_name)
+                    sig = inspect.signature(func)
+                    kwargs = {}
+                    for name, p in sig.parameters.items():
+                        if name == "marble":
+                            kwargs[name] = current_marble
+                        elif name in new_params:
+                            kwargs[name] = new_params[name]
+                        elif p.default is not inspect.Parameter.empty:
+                            kwargs[name] = p.default
+                        else:
+                            raise ValueError(f"Missing parameter: {name}")
+                    if inspect.iscoroutinefunction(func):
+                        result = await func(**kwargs)
+                    else:
+                        result = await loop.run_in_executor(
+                            None, lambda: func(**kwargs)
+                        )
             if metrics_visualizer:
                 metrics_visualizer.update({"cache_miss": 1})
             if self.cache_dir and cache_path:
@@ -618,11 +773,12 @@ class HighLevelPipeline:
         *,
         metrics_visualizer: MetricsVisualizer | None = None,
     ) -> tuple[Any | None, list[Any]]:
+        ordered = self._topological_sort(self.steps)
         if self.async_enabled:
             return asyncio.run(
-                self._execute_steps_async(self.steps, marble, metrics_visualizer)
+                self._execute_steps_async(ordered, marble, metrics_visualizer)
             )
-        return self._execute_steps(self.steps, marble, metrics_visualizer)
+        return self._execute_steps(ordered, marble, metrics_visualizer)
 
     async def execute_async(
         self,
@@ -630,12 +786,14 @@ class HighLevelPipeline:
         *,
         metrics_visualizer: MetricsVisualizer | None = None,
     ) -> tuple[Any | None, list[Any]]:
-        return await self._execute_steps_async(self.steps, marble, metrics_visualizer)
+        ordered = self._topological_sort(self.steps)
+        return await self._execute_steps_async(ordered, marble, metrics_visualizer)
 
     def execute_stream(self, marble: Any | None = None):
         """Yield ``(marble, result)`` tuples after each step executes."""
+        ordered = self._topological_sort(self.steps)
         current_marble = marble
-        for step in self.steps:
+        for step in ordered:
             current_marble, result = self._execute_steps([step], current_marble)
             yield current_marble, result[0]
 
@@ -658,14 +816,16 @@ class HighLevelPipeline:
         """Execute pipeline steps up to ``index`` (inclusive)."""
         if index < 0 or index >= len(self.steps):
             raise IndexError("index out of range")
-        return self._execute_steps(self.steps[: index + 1], marble)
+        subset = self._topological_sort(self.steps[: index + 1])
+        return self._execute_steps(subset, marble)
 
     async def execute_until_async(
         self, index: int, marble: Any | None = None
     ) -> tuple[Any | None, list[Any]]:
         if index < 0 or index >= len(self.steps):
             raise IndexError("index out of range")
-        return await self._execute_steps_async(self.steps[: index + 1], marble)
+        subset = self._topological_sort(self.steps[: index + 1])
+        return await self._execute_steps_async(subset, marble)
 
     def execute_from(
         self, index: int, marble: Any | None = None
@@ -673,14 +833,16 @@ class HighLevelPipeline:
         """Execute pipeline steps starting at ``index`` until the end."""
         if index < 0 or index >= len(self.steps):
             raise IndexError("index out of range")
-        return self._execute_steps(self.steps[index:], marble)
+        subset = self._topological_sort(self.steps[index:])
+        return self._execute_steps(subset, marble)
 
     async def execute_from_async(
         self, index: int, marble: Any | None = None
     ) -> tuple[Any | None, list[Any]]:
         if index < 0 or index >= len(self.steps):
             raise IndexError("index out of range")
-        return await self._execute_steps_async(self.steps[index:], marble)
+        subset = self._topological_sort(self.steps[index:])
+        return await self._execute_steps_async(subset, marble)
 
     def execute_range(
         self, start: int, end: int, marble: Any | None = None
@@ -689,14 +851,16 @@ class HighLevelPipeline:
 
         if start < 0 or end >= len(self.steps) or start > end:
             raise IndexError("invalid range")
-        return self._execute_steps(self.steps[start : end + 1], marble)
+        subset = self._topological_sort(self.steps[start : end + 1])
+        return self._execute_steps(subset, marble)
 
     async def execute_range_async(
         self, start: int, end: int, marble: Any | None = None
     ) -> tuple[Any | None, list[Any]]:
         if start < 0 or end >= len(self.steps) or start > end:
             raise IndexError("invalid range")
-        return await self._execute_steps_async(self.steps[start : end + 1], marble)
+        subset = self._topological_sort(self.steps[start : end + 1])
+        return await self._execute_steps_async(subset, marble)
 
     def save_json(self, path: str) -> None:
         for step in self.steps:

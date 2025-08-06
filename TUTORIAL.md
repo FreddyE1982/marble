@@ -2258,6 +2258,12 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
     - Assign each step a unique ``name`` and declare prerequisites with
       ``depends_on``. MARBLE resolves the ordering automatically using a
       topological sort. Cycles produce a ``ValueError`` describing the loop.
+    - Provide a ``tier`` field to offload a step to a registered remote
+      hardware backend when available.
+    - Set ``isolated: true`` on a step to run it in a separate process for
+      increased fault tolerance.
+    - Group several operations using a ``macro`` list to reuse complex
+      workflows as a single step.
 
       ```python
       from pipeline import Pipeline
