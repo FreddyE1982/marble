@@ -525,6 +525,7 @@ meta_learning:
   epochs: 1
   inner_steps: 1
   meta_lr: 0.1
+  distill_alpha: 0.0
 transfer_learning:
   enabled: false
   epochs: 1

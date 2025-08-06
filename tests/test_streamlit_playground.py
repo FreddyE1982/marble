@@ -13,6 +13,7 @@ import pandas as pd
 import yaml
 from PIL import Image
 from plotly.graph_objs import Figure
+from streamlit.testing.v1 import AppTest
 
 import streamlit_playground as sp
 from streamlit_playground import (
@@ -776,3 +777,15 @@ def test_optuna_helpers(tmp_path):
     yaml_cfg = optuna_best_config(loaded)
     assert isinstance(hist, Figure) and isinstance(imps, Figure)
     assert "x" in yaml_cfg
+
+
+def test_self_distillation_expander(tmp_path):
+    data = [
+        {"epoch": 0, "logits": [[[0.0, 1.0]]]},
+        {"epoch": 1, "logits": [[[0.1, 0.9]]]}
+    ]
+    import pickle
+    with open("logits.pkl", "wb") as f:
+        pickle.dump(data, f)
+    at = AppTest.from_file("streamlit_playground.py").run(timeout=10)
+    assert at is not None

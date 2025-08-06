@@ -37,6 +37,7 @@ import optuna
 import pandas as pd
 import plotly.graph_objs as go
 import pytest
+import pickle
 import streamlit as st
 import streamlit.components.v1 as components
 import torch
@@ -1833,6 +1834,28 @@ def run_playground() -> None:
             st.sidebar.success("Training complete")
             if marble.get_metrics_visualizer().fig:
                 st.pyplot(marble.get_metrics_visualizer().fig)
+    with st.expander("Self-Distillation Alignment"):
+        if os.path.exists("logits.pkl"):
+            with open("logits.pkl", "rb") as f:
+                logs = pickle.load(f)
+            if len(logs) >= 2:
+                kl_vals = []
+                for i in range(1, len(logs)):
+                    curr = np.array(logs[i]["logits"])
+                    prev = np.array(logs[i - 1]["logits"])
+                    p = np.exp(curr - curr.max(axis=-1, keepdims=True))
+                    p = p / p.sum(axis=-1, keepdims=True)
+                    q = np.exp(prev - prev.max(axis=-1, keepdims=True))
+                    q = q / q.sum(axis=-1, keepdims=True)
+                    kl = np.mean(
+                        np.sum(p * (np.log(p + 1e-8) - np.log(q + 1e-8)), axis=-1)
+                    )
+                    kl_vals.append(float(kl))
+                st.line_chart(kl_vals)
+            else:
+                st.write("Need at least two epochs of logits.")
+        else:
+            st.write("No logits recorded yet.")
 
     eval_file = st.sidebar.file_uploader(
         "Evaluation Dataset", type=["csv", "json", "jsonl", "zip"], key="eval_file"

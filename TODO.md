@@ -1348,22 +1348,22 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [ ] Unit test memory slot creation and retrieval.
         - [ ] Validate attention selects correct belief states.
 
-325. [ ] Implement self-distillation over time.
-    - [ ] Save `logits.pkl` after each epoch.
-        - [ ] Hook training loop to capture logits.
-        - [ ] Serialize logits with epoch metadata.
-    - [ ] Add `self_distill_loss = KL(current_logits, previous_logits)` to the loss function with weight `meta_learning.distill_alpha`.
-        - [ ] Implement KL divergence term.
-        - [ ] Introduce `distill_alpha` parameter in config and docs.
-    - [ ] Visualize alignment of predictions over time.
-        - [ ] Plot KL divergence per epoch.
-        - [ ] Display visualization in Streamlit dashboard.
-    - [ ] Document distillation parameter in YAML manual and tutorial.
-        - [ ] Describe purpose and recommended ranges.
-        - [ ] Add tutorial section with example usage.
-    - [ ] Add tests for self-distillation loss.
-        - [ ] Unit test loss calculation with synthetic logits.
-        - [ ] Ensure training uses previous epoch logits when available.
+325. [x] Implement self-distillation over time.
+    - [x] Save `logits.pkl` after each epoch.
+        - [x] Hook training loop to capture logits.
+        - [x] Serialize logits with epoch metadata.
+    - [x] Add `self_distill_loss = KL(current_logits, previous_logits)` to the loss function with weight `meta_learning.distill_alpha`.
+        - [x] Implement KL divergence term.
+        - [x] Introduce `distill_alpha` parameter in config and docs.
+    - [x] Visualize alignment of predictions over time.
+        - [x] Plot KL divergence per epoch.
+        - [x] Display visualization in Streamlit dashboard.
+    - [x] Document distillation parameter in YAML manual and tutorial.
+        - [x] Describe purpose and recommended ranges.
+        - [x] Add tutorial section with example usage.
+    - [x] Add tests for self-distillation loss.
+        - [x] Unit test loss calculation with synthetic logits.
+        - [x] Ensure training uses previous epoch logits when available.
 
 326. [x] Create in-context learning prompt system.
     - [x] Add `PromptMemory` to cache recent `(input, output)` pairs.

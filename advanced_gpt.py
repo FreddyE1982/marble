@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import os
 import math
+import pickle
 from typing import List, Tuple, Dict
+
+import numpy as np
 
 try:
     import cupy as cp
@@ -16,6 +19,17 @@ try:
 except Exception:  # pragma: no cover - fallback
     import numpy as cp
     xp = cp
+
+
+def _to_numpy(arr: xp.ndarray) -> np.ndarray:
+    """Return ``arr`` as a NumPy array regardless of backend."""
+    try:  # pragma: no cover - cupy path
+        import cupy as _cp  # type: ignore
+        if isinstance(arr, _cp.ndarray):
+            return _cp.asnumpy(arr)
+    except Exception:  # pragma: no cover - numpy path
+        pass
+    return np.asarray(arr)
 
 
 def unbroadcast(grad: xp.ndarray, shape: Tuple[int, ...]) -> xp.ndarray:
@@ -144,6 +158,23 @@ def cross_entropy(logits: Tensor, targets: xp.ndarray) -> Tensor:
     return out
 
 
+def kl_divergence(logits: Tensor, prev_logits: xp.ndarray) -> Tensor:
+    """Return KL divergence between ``logits`` and ``prev_logits``."""
+    p = softmax(logits, axis=-1)
+    prev_e = xp.exp(prev_logits - xp.max(prev_logits, axis=-1, keepdims=True))
+    q = prev_e / prev_e.sum(axis=-1, keepdims=True)
+    p_data = p.data
+    kl_val = xp.mean(xp.sum(p_data * (xp.log(p_data + 1e-8) - xp.log(q + 1e-8)), axis=-1))
+    out = Tensor(kl_val, (logits,), "kl_divergence")
+
+    def _backward() -> None:
+        grad = (p_data - q) / p_data.shape[0]
+        logits.grad += grad * out.grad
+
+    out._backward = _backward
+    return out
+
+
 def embed(weight: Tensor, idx: xp.ndarray) -> Tensor:
     out = Tensor(weight.data[idx], (weight,), "embed")
 
@@ -261,39 +292,67 @@ def train_advanced_gpt(
     batch_size: int = 1,
     seed: int | None = None,
     max_grad_norm: float | None = None,
+    distill_alpha: float = 0.0,
+    logits_path: str = "logits.pkl",
     return_grad_norms: bool = False,
-) -> Tuple[AdvancedGPT, List[float]] | Tuple[AdvancedGPT, List[float], List[float]]:
+) -> Tuple[AdvancedGPT, List[float], List[float]] | Tuple[AdvancedGPT, List[float], List[float], List[float]]:
     if seed is not None:
         xp.random.seed(seed)
     model = AdvancedGPT(vocab_size, block_size, num_layers, num_heads, hidden_dim)
     losses: List[float] = []
     grad_norms: List[float] = []
-    for _ in range(epochs):
+    kl_history: List[float] = []
+    for epoch in range(epochs):
+        prev_logits = None
+        if os.path.exists(logits_path):
+            with open(logits_path, "rb") as f:
+                stored = pickle.load(f)
+            if stored:
+                prev_logits = stored[-1]["logits"]
+        epoch_logits: List[np.ndarray] = []
         total = 0.0
+        epoch_kl = 0.0
         for start in range(0, len(dataset), batch_size):
             batch = dataset[start : start + batch_size]
-            for seq in batch:
+            for i, seq in enumerate(batch):
                 inp = seq[:-1]
                 target = seq[1:]
                 logits = model(inp)
                 loss = cross_entropy(logits, target)
+                if prev_logits is not None:
+                    idx = start + i
+                    prev = xp.array(prev_logits[idx])
+                    dloss = kl_divergence(logits, prev)
+                    loss = loss + dloss * distill_alpha
+                    epoch_kl += float(dloss.data)
                 loss.backward()
                 if max_grad_norm is not None:
                     norm = _clip_gradients(model.parameters(), max_grad_norm)
                 else:
-                    total = 0.0
+                    total_grad = 0.0
                     for p in model.parameters():
-                        total += float((p.grad ** 2).sum())
-                    norm = math.sqrt(total)
+                        total_grad += float((p.grad ** 2).sum())
+                    norm = math.sqrt(total_grad)
                 for p in model.parameters():
                     p.data -= lr * p.grad
                     p.grad = xp.zeros_like(p.grad)
                 grad_norms.append(norm)
                 total += float(loss.data)
+                epoch_logits.append(_to_numpy(logits.data))
         losses.append(total / max(len(dataset), 1))
+        kl_history.append(
+            epoch_kl / max(len(dataset), 1) if prev_logits is not None else 0.0
+        )
+        saved: List[dict] = []
+        if os.path.exists(logits_path):
+            with open(logits_path, "rb") as f:
+                saved = pickle.load(f)
+        saved.append({"epoch": epoch, "logits": epoch_logits})
+        with open(logits_path, "wb") as f:
+            pickle.dump(saved, f)
     if return_grad_norms:
-        return model, losses, grad_norms
-    return model, losses
+        return model, losses, kl_history, grad_norms
+    return model, losses, kl_history
 
 
 __all__ = [
@@ -301,4 +360,5 @@ __all__ = [
     "load_text_dataset",
     "AdvancedGPT",
     "train_advanced_gpt",
+    "kl_divergence",
 ]
