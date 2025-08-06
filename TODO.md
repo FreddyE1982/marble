@@ -1445,22 +1445,22 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [ ] Unit test message exchange between two agents.
         - [ ] Validate environment simulations run without deadlocks.
 
-331. [ ] Add evolutionary learning module.
-    - [ ] Create `EvolutionTrainer` class.
-        - [ ] Implement mutation, evaluation, and selection hooks.
-        - [ ] Support parallel evaluation of candidates.
-    - [ ] Generate `N` config mutations, train each for a few steps, and evaluate fitness.
-        - [ ] Define mutation operators for numeric and categorical params.
-        - [ ] Collect fitness metrics after partial training.
-    - [ ] Select top `M` configurations and mutate again.
-        - [ ] Rank configurations by fitness.
-        - [ ] Produce next-generation configs via mutation.
-    - [ ] Log evolution tree and best lineage.
-        - [ ] Track parent-child relationships.
-        - [ ] Serialize lineage to JSON and graphs.
-    - [ ] Add tests for evolutionary training.
-        - [ ] Unit test mutation and selection logic.
-        - [ ] Integration test over multiple generations.
+331. [x] Add evolutionary learning module.
+    - [x] Create `EvolutionTrainer` class.
+        - [x] Implement mutation, evaluation, and selection hooks.
+        - [x] Support parallel evaluation of candidates.
+    - [x] Generate `N` config mutations, train each for a few steps, and evaluate fitness.
+        - [x] Define mutation operators for numeric and categorical params.
+        - [x] Collect fitness metrics after partial training.
+    - [x] Select top `M` configurations and mutate again.
+        - [x] Rank configurations by fitness.
+        - [x] Produce next-generation configs via mutation.
+    - [x] Log evolution tree and best lineage.
+        - [x] Track parent-child relationships.
+        - [x] Serialize lineage to JSON and graphs.
+    - [x] Add tests for evolutionary training.
+        - [x] Unit test mutation and selection logic.
+        - [x] Integration test over multiple generations.
 
 332. [ ] Document new configuration parameters and tutorials.
     - [ ] Update `yaml-manual.txt` with detailed explanations and examples.

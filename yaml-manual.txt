@@ -154,6 +154,31 @@ sync:
     (1000–10000) reduce network usage at the cost of more stale updates. Must be
     a positive integer. Defaults to ``1000``.
 
+evolution:
+  population_size: Number of candidate configurations evaluated in each
+    generation. Larger populations explore the search space more thoroughly but
+    require proportionally more compute. Values of ``4`` to ``32`` work well for
+    small experiments; advanced searches may scale into the hundreds.
+  selection_size: Number of top-performing candidates preserved after each
+    generation. Must be at least ``1`` and no greater than ``population_size``.
+    A larger value maintains diversity while a smaller one accelerates
+    convergence.
+  generations: Total number of evolutionary generations to run. Each generation
+    evaluates ``population_size`` candidates and spawns a new population from
+    the best ``selection_size`` individuals. Setting this between ``2`` and
+    ``20`` balances search depth with runtime.
+  steps_per_candidate: Number of training steps performed when estimating a
+    candidate's fitness. Evaluating more steps yields a more reliable fitness
+    score at the cost of additional training time. Must be a positive integer.
+  mutation_rate: Fraction of mutable parameters altered when producing an
+    offspring. ``0.0`` disables mutation while ``1.0`` mutates every parameter.
+  Typical values between ``0.05`` and ``0.3`` introduce useful diversity
+    without drifting too far from the parent configuration.
+  parallelism: Maximum number of candidates evaluated concurrently. Increase this
+    to exploit multi-core CPUs or multiple GPUs. When set higher than the number
+    of available devices the evaluations queue until resources free up. Defaults
+    to the number of local CPU cores.
+
 core:
   xmin: Minimum X coordinate for the Mandelbrot seed. Defines the left boundary
     of the complex plane used when initializing neuron values.
