@@ -45,6 +45,11 @@ def main() -> None:
         help="Path to a pipeline JSON file to execute after initialization",
     )
     parser.add_argument(
+        "--causal-attention",
+        action="store_true",
+        help="Enable causal masking in attention modules",
+    )
+    parser.add_argument(
         "--early-stopping-patience",
         type=int,
         help="Patience for early stopping",
@@ -101,6 +106,7 @@ def main() -> None:
         "brain": {},
         "sync": {},
         "network": {"remote_client": {}},
+        "core": {},
     }
     if args.lr_scheduler:
         overrides["neuronenblitz"]["lr_scheduler"] = args.lr_scheduler
@@ -122,6 +128,8 @@ def main() -> None:
         overrides["network"]["remote_client"]["max_retries"] = args.remote_retries
     if args.remote_backoff is not None:
         overrides["network"]["remote_client"]["backoff_factor"] = args.remote_backoff
+    if args.causal_attention:
+        overrides["core"]["attention_causal"] = True
     marble = create_marble_from_config(args.config, overrides=overrides)
     if args.grid_search:
         import yaml

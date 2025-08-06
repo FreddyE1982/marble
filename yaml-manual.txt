@@ -300,6 +300,22 @@ core:
     while ``1.0`` results in no neighbours being considered. When messages are
     dropped the remaining attention weights are renormalized so the sum equals
     one.
+  attention_causal: When ``true`` the attention module applies a causal mask so
+    that position ``i`` cannot attend to any ``j > i``. This prevents future
+    information from leaking into the computation and is essential for
+    autoregressive models. Set to ``false`` for bidirectional contexts. The
+    mask is generated on the active device and works on both CPU and GPU backends.
+  attention_gating:
+    enabled: Enables modulation of attention logits by a deterministic gating
+      function. When ``false`` scores are unmodified.
+    mode: Selects the gating function. ``"sine"`` produces a sinusoidal pattern
+      in the range ``[-1, 1]`` while ``"chaos"`` emits a chaotic sequence from
+      the logistic map in the range ``(0, 1)``. Any other value disables gating.
+    frequency: Number of full sine oscillations across the sequence length when
+      ``mode`` is ``"sine"``. Typical range ``0.1``–``10``.
+    chaos: Coefficient ``r`` of the logistic map used when ``mode`` is
+      ``"chaos"``. Values between ``3.5`` and ``3.9`` yield chaotic behaviour;
+      the parameter must lie within ``(0, 4]``.
   salience_weight: Scaling factor applied to salience inputs provided through
     attention codelets. Increase above ``1.0`` to emphasise externally supplied
     salience scores during coalition formation.

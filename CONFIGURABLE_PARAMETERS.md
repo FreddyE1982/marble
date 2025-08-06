@@ -104,6 +104,11 @@ Each entry is listed under its section heading.
 - message_passing_beta
 - attention_temperature
 - attention_dropout
+- attention_causal
+- attention_gating.enabled
+- attention_gating.mode
+- attention_gating.frequency
+- attention_gating.chaos
 - salience_weight
 - energy_threshold
 - reinforcement_learning_enabled

@@ -19,3 +19,25 @@ def test_context_attention_device():
     v = torch.randn(1, 2, device=device)
     out = attn(q, k, v)
     assert out.device.type == device
+
+
+def test_causal_mask_blocks_future_tokens():
+    attn = ContextAwareAttention(2, causal=True)
+    q = torch.randn(1, 3, 2)
+    k = torch.randn(1, 3, 2)
+    v = torch.randn(1, 3, 2)
+    _, weights = attn(q, k, v, return_weights=True)
+    assert torch.allclose(weights.triu(1), torch.zeros_like(weights.triu(1)))
+
+
+def test_gating_layer_bounds():
+    attn = ContextAwareAttention(
+        2, gating={"enabled": True, "mode": "sine", "frequency": 1.0}
+    )
+    gate = attn.gating(5)
+    assert gate.min() >= -1.0 and gate.max() <= 1.0
+    attn = ContextAwareAttention(
+        2, gating={"enabled": True, "mode": "chaos", "chaos": 3.7}
+    )
+    gate = attn.gating(5)
+    assert gate.min() >= 0.0 and gate.max() <= 1.0

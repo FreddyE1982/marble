@@ -85,6 +85,13 @@ from networkx_interop import core_to_dict
 from neural_pathway import find_neural_pathway, pathway_figure
 from pipeline import Pipeline
 from prompt_memory import PromptMemory
+from attention_utils import (
+    GatingLayer,
+    benchmark_mask_overhead,
+    gate_figure,
+    generate_causal_mask,
+    mask_figure,
+)
 
 PROMPT_MEMORY_FILE = os.environ.get(
     "PROMPT_MEMORY_PATH", os.path.join(tempfile.gettempdir(), "prompt_memory.json")
@@ -2467,6 +2474,33 @@ def run_playground() -> None:
                         graph_dict, weight_threshold=w_thresh, degree_threshold=d_thresh
                     )
                     st.plotly_chart(fig, use_container_width=True)
+
+            with st.expander("Attention Mask & Gating", expanded=False):
+                seq_len = st.number_input(
+                    "Sequence Length", min_value=1, value=8, step=1, key="mask_seq_len"
+                )
+                gate_mode = st.selectbox(
+                    "Gate Mode", ["sine", "chaos"], key="gate_mode"
+                )
+                freq = st.number_input(
+                    "Frequency", min_value=0.1, value=1.0, step=0.1, key="gate_freq"
+                )
+                chaos = st.number_input(
+                    "Chaos", min_value=0.0, max_value=4.0, value=3.7, step=0.1, key="gate_chaos"
+                )
+                if st.button("Visualize Mask and Gate", key="viz_mask_gate"):
+                    mask = generate_causal_mask(int(seq_len))
+                    gate_layer = GatingLayer(gate_mode, frequency=float(freq), chaos=float(chaos))
+                    gate = gate_layer(int(seq_len))
+                    st.plotly_chart(mask_figure(mask), use_container_width=True)
+                    st.plotly_chart(gate_figure(gate), use_container_width=True)
+                if st.button("Benchmark Mask Overhead", key="bench_mask_overhead"):
+                    cpu_time = benchmark_mask_overhead(int(seq_len), device="cpu")
+                    msg = f"CPU: {cpu_time:.6f}s"
+                    if torch.cuda.is_available():
+                        gpu_time = benchmark_mask_overhead(int(seq_len), device="cuda")
+                        msg += f", GPU: {gpu_time:.6f}s"
+                    st.write(msg)
 
         with tab_heat:
             st.write("Display a heatmap of synaptic weights.")
