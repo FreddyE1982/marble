@@ -62,16 +62,16 @@
   - [x] Converter for ``LSTM``
   - [x] Converter for ``GRU``
   - [x] Unit tests with tiny sequences
-    - [ ] Bidirectional and multi-layer support
-      - [ ] Map forward and backward weights for bidirectional RNNs.
-        - [ ] Align parameter ordering between PyTorch and MARBLE.
-        - [ ] Validate hidden state concatenation.
-      - [ ] Handle stacked layers with appropriate parameter naming.
-        - [ ] Prefix layer indices consistently.
-        - [ ] Ensure loading preserves original hierarchy.
-      - [ ] Add tests converting multi-layer bidirectional models.
-        - [ ] Build example network with two bidirectional layers.
-        - [ ] Compare outputs against PyTorch reference.
+    - [x] Bidirectional and multi-layer support
+      - [x] Map forward and backward weights for bidirectional RNNs.
+        - [x] Align parameter ordering between PyTorch and MARBLE.
+        - [x] Validate hidden state concatenation.
+      - [x] Handle stacked layers with appropriate parameter naming.
+        - [x] Prefix layer indices consistently.
+        - [x] Ensure loading preserves original hierarchy.
+      - [x] Add tests converting multi-layer bidirectional models.
+        - [x] Build example network with two bidirectional layers.
+        - [x] Compare outputs against PyTorch reference.
     - [ ] Persistent hidden state mapping
       - [ ] Serialize initial hidden states with layer metadata.
         - [ ] Embed state tensors into converter output.

@@ -2,8 +2,8 @@ import argparse
 import logging
 from typing import Callable, Dict, List, Type
 
-import torch
 import numpy as np
+import torch
 import torch.nn.functional as F
 from torch.fx import GraphModule, Tracer
 from torch.nn.modules.batchnorm import _BatchNorm
@@ -86,8 +86,10 @@ def register_method_converter(name: str) -> Callable[[LayerConverter], LayerConv
     return decorator
 
 
-@register_function_converter(__import__('operator').getitem)
-def _convert_getitem(func: Callable, core: Core, inputs: List[int], idx, *args, **kwargs) -> List[int]:
+@register_function_converter(__import__("operator").getitem)
+def _convert_getitem(
+    func: Callable, core: Core, inputs: List[int], idx, *args, **kwargs
+) -> List[int]:
     """Support tuple indexing by returning the input unchanged for idx 0."""
     if isinstance(idx, int) and idx == 0:
         return inputs
@@ -248,50 +250,74 @@ def _add_recurrent_layer(
     neuron_type: str,
 ) -> List[int]:
     """Add a recurrent layer (RNN/LSTM/GRU)."""
-    if layer.num_layers != 1 or layer.bidirectional or getattr(layer, "proj_size", 0) != 0:
+    if getattr(layer, "proj_size", 0) != 0:
         raise UnsupportedLayerError(
-            f"{layer.__class__.__name__} is not supported for conversion"
+            f"{layer.__class__.__name__} with projections is not supported"
         )
 
+    num_directions = 2 if layer.bidirectional else 1
+    prev_outputs = input_ids
     out_ids: List[int] = []
-    weight_ih, wih_device = _extract_tensor(layer.weight_ih_l0)
-    weight_hh, whh_device = _extract_tensor(layer.weight_hh_l0)
-    bias = None
-    b_device = None
-    if layer.bias:
-        bias_ih, bih_device = _extract_tensor(layer.bias_ih_l0)
-        bias_hh, bhh_device = _extract_tensor(layer.bias_hh_l0)
-        bias = bias_ih + bias_hh
-        b_device = bih_device
 
-    # create neurons first
-    for j in range(layer.hidden_size):
-        nid = len(core.neurons)
-        neuron = Neuron(nid, value=0.0, tier="vram", neuron_type=neuron_type)
-        neuron.params["weight_ih"] = weight_ih[j]
-        neuron.params["weight_ih_device"] = wih_device
-        neuron.params["weight_hh"] = weight_hh[j]
-        neuron.params["weight_hh_device"] = whh_device
-        if bias is not None:
-            neuron.params["bias"] = float(bias[j])
-            neuron.params["bias_device"] = b_device
-        if neuron_type == "rnn":
-            neuron.params["nonlinearity"] = layer.nonlinearity
-        neuron.params["input_size"] = int(layer.input_size)
-        neuron.params["hidden_size"] = int(layer.hidden_size)
-        core.neurons.append(neuron)
-        out_ids.append(nid)
+    for layer_idx in range(layer.num_layers):
+        layer_out: List[int] = []
+        for d in range(num_directions):
+            suffix = "" if d == 0 else "_reverse"
+            weight_ih, wih_device = _extract_tensor(
+                getattr(layer, f"weight_ih_l{layer_idx}{suffix}")
+            )
+            weight_hh, whh_device = _extract_tensor(
+                getattr(layer, f"weight_hh_l{layer_idx}{suffix}")
+            )
+            bias = None
+            b_device = None
+            if layer.bias:
+                bias_ih, bih_device = _extract_tensor(
+                    getattr(layer, f"bias_ih_l{layer_idx}{suffix}")
+                )
+                bias_hh, bhh_device = _extract_tensor(
+                    getattr(layer, f"bias_hh_l{layer_idx}{suffix}")
+                )
+                bias = bias_ih + bias_hh
+                b_device = bih_device
 
-    # connect inputs and recurrent connections
-    for j, out_id in enumerate(out_ids):
-        for in_id in input_ids:
-            syn = Synapse(in_id, out_id, weight=1.0)
-            core.neurons[in_id].synapses.append(syn)
-            core.synapses.append(syn)
-        for h_id in out_ids:
-            syn = Synapse(h_id, out_id, weight=1.0)
-            core.neurons[h_id].synapses.append(syn)
-            core.synapses.append(syn)
+            ids: List[int] = []
+            for j in range(layer.hidden_size):
+                nid = len(core.neurons)
+                neuron = Neuron(nid, value=0.0, tier="vram", neuron_type=neuron_type)
+                neuron.params["weight_ih"] = weight_ih[j]
+                neuron.params["weight_ih_device"] = wih_device
+                neuron.params["weight_hh"] = weight_hh[j]
+                neuron.params["weight_hh_device"] = whh_device
+                if bias is not None:
+                    neuron.params["bias"] = float(bias[j])
+                    neuron.params["bias_device"] = b_device
+                if neuron_type == "rnn":
+                    neuron.params["nonlinearity"] = layer.nonlinearity
+                neuron.params["input_size"] = int(
+                    layer.input_size
+                    if layer_idx == 0
+                    else layer.hidden_size * num_directions
+                )
+                neuron.params["hidden_size"] = int(layer.hidden_size)
+                neuron.params["layer_index"] = layer_idx
+                neuron.params["direction"] = "forward" if d == 0 else "reverse"
+                core.neurons.append(neuron)
+                ids.append(nid)
+            layer_out.extend(ids)
+
+            for out_id in ids:
+                for in_id in prev_outputs:
+                    syn = Synapse(in_id, out_id, weight=1.0)
+                    core.neurons[in_id].synapses.append(syn)
+                    core.synapses.append(syn)
+                for h_id in ids:
+                    syn = Synapse(h_id, out_id, weight=1.0)
+                    core.neurons[h_id].synapses.append(syn)
+                    core.synapses.append(syn)
+
+        prev_outputs = layer_out
+        out_ids = layer_out
 
     return out_ids
 
@@ -718,6 +744,7 @@ def main() -> None:
     args = parser.parse_args()
 
     from torch_model_io import load_model_auto
+
     model = load_model_auto(args.pytorch)
     core = convert_model(model)
     js = core_to_json(core)
