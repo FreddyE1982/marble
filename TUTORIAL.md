@@ -16,11 +16,14 @@ This tutorial demonstrates every major component of MARBLE through a series of p
 4. **Use the command line interface**. The `cli.py` script allows training from
    the terminal without writing custom code. Scheduler and early-stopping
    parameters can be specified on the command line. The ``--scheduler-plugin``
-   flag selects the asynchronous task scheduler (``thread`` or ``asyncio``):
+   flag selects the asynchronous task scheduler (``thread`` or ``asyncio``).
+   To remove graph compilation overhead on stable models you may add
+   ``--precompile-graphs`` which traces frequently executed operations once at
+   startup.  Example invocation:
    ```bash
    python cli.py --config config.yaml --train path/to/data.csv --epochs 10 \
        --lr-scheduler cosine --scheduler-steps 20 --early-stopping-patience 5 \
-       --scheduler-plugin thread \
+       --scheduler-plugin thread --precompile-graphs \
        --save trained_marble.pkl
    ```
    Replace the dataset path with your own CSV or JSON file. The optional

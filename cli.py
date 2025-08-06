@@ -81,6 +81,11 @@ def main() -> None:
         "--no-early-stop", action="store_true", help="Disable early stopping"
     )
     parser.add_argument(
+        "--precompile-graphs",
+        action="store_true",
+        help="Precompile compute graphs before training",
+    )
+    parser.add_argument(
         "--sync-config",
         nargs="+",
         metavar="DEST",
@@ -151,6 +156,8 @@ def main() -> None:
         overrides["core"]["quantization_bits"] = args.quantize
     if args.causal_attention:
         overrides["core"]["attention_causal"] = True
+    if args.precompile_graphs:
+        overrides["brain"]["precompile_graphs"] = True
     marble = create_marble_from_config(args.config, overrides=overrides)
     if args.grid_search:
         import yaml

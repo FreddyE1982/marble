@@ -826,6 +826,13 @@ brain:
   dream_enabled: Enables background dreaming when ``start_dreaming`` is called.
   vram_age_threshold: Age in seconds above which neurons in VRAM are considered
     old when deciding growth tiers.
+  precompile_graphs: When ``true`` the brain traces frequently executed compute
+    graphs, such as the internal message passing MLP, using ``torch.jit`` before
+    training begins.  The compiled graphs are cached for the current tensor
+    shape, device and activation settings which removes graph construction
+    overhead during every training step.  Enable this when model structure and
+    input shapes remain stable.  On very small models the overhead of
+    precompilation may outweigh the benefit, so the default is ``false``.
   ram_age_threshold: Equivalent threshold for neurons in RAM.
   status_display_interval: If greater than zero, ``display_live_status`` is
     invoked every N epochs during training.

@@ -309,6 +309,7 @@ Each entry is listed under its section heading.
 - auto_firing_enabled
 - dream_enabled
 - vram_age_threshold
+ - precompile_graphs
 - ram_age_threshold
 - status_display_interval
 - neurogenesis_interval

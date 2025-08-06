@@ -318,6 +318,7 @@ brain:
   auto_firing_enabled: false
   dream_enabled: true
   vram_age_threshold: 300
+  precompile_graphs: false
   ram_age_threshold: 600
   status_display_interval: 0
   neurogenesis_interval: 1
