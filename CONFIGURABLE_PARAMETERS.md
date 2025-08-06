@@ -11,6 +11,8 @@ Each entry is listed under its section heading.
 - encryption_key
 - cache_url: Base URL of ``DatasetCacheServer`` to fetch cached files from.
 - use_kuzu_graph
+- version_registry
+- version
 - kuzu_graph.db_path
 - kuzu_graph.query
 - kuzu_graph.input_column
@@ -208,6 +210,7 @@ Each entry is listed under its section heading.
 - lr_scheduler
 - scheduler_steps
 - scheduler_gamma
+- scheduler.plugin
 - epsilon_scheduler
 - epsilon_scheduler_steps
 - epsilon_scheduler_gamma

@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-from marble_imports import *
-from system_metrics import (
-    get_system_memory_usage,
-    get_gpu_memory_usage,
-    get_cpu_usage,
-)
-from torch.utils.tensorboard import SummaryWriter
+# ruff: noqa: F401, F403, F405
 import json
-from experiment_tracker import ExperimentTracker
+
+from torch.utils.tensorboard import SummaryWriter
+
 from backup_utils import BackupScheduler
 from event_bus import global_event_bus
+from experiment_tracker import ExperimentTracker
+from marble_imports import *
+from system_metrics import get_cpu_usage, get_gpu_memory_usage, get_system_memory_usage
 
 
 def clear_output(wait: bool = True) -> None:
@@ -42,7 +41,7 @@ def download_and_process_tar(url, temp_dir):
         print("Detected LFS pointer file. Downloading actual tar file...")
         lfs_info = content.decode("utf-8").strip().splitlines()
         oid_line = next(line for line in lfs_info if line.startswith("oid sha256:"))
-        oid = oid_line.split(":")[1].strip()
+        _ = oid_line.split(":")[1].strip()
         lfs_url = f"https://huggingface.co/datasets/jackyhate/text-to-image-2M/resolve/main/data_512_2M/data_{url.split('data_')[-1]}"
         response = requests.get(
             lfs_url, stream=True, headers=headers, allow_redirects=True
@@ -201,9 +200,7 @@ class MetricsVisualizer:
                 mean = arr.mean()
                 std = arr.std()
                 if std > 0 and abs(value - mean) > self.anomaly_std_threshold * std:
-                    msg = (
-                        f"Anomaly detected in {key}: {value} (mean {mean:.3f}, std {std:.3f})"
-                    )
+                    msg = f"Anomaly detected in {key}: {value} (mean {mean:.3f}, std {std:.3f})"
                     if self.writer:
                         self.writer.add_text("anomaly", msg, self._step)
                     print(msg)
@@ -233,8 +230,8 @@ class MetricsVisualizer:
     def log_event(self, name: str, data: dict | None = None) -> None:
         """Record a training event and broadcast it on the global event bus."""
         payload = data or {}
-        self.events.append((name, payload))
-        global_event_bus.publish(name, payload)
+        event = global_event_bus.publish(name, payload)
+        self.events.append(event)
 
     def plot_metrics(self):
         self.ax.clear()
@@ -242,17 +239,11 @@ class MetricsVisualizer:
         self.ax_twin = self.ax.twinx()
         self.ax_twin.plot(self.metrics["vram_usage"], "r-", label="VRAM (MB)")
         if self.track_memory_usage and self.metrics["ram_usage"]:
-            self.ax_twin.plot(
-                self.metrics["ram_usage"], "g-", label="RAM (MB)"
-            )
+            self.ax_twin.plot(self.metrics["ram_usage"], "g-", label="RAM (MB)")
         if self.track_memory_usage and self.metrics["gpu_usage"]:
-            self.ax_twin.plot(
-                self.metrics["gpu_usage"], "c-", label="GPU (MB)"
-            )
+            self.ax_twin.plot(self.metrics["gpu_usage"], "c-", label="GPU (MB)")
         if self.track_cpu_usage and self.metrics["cpu_usage"]:
-            self.ax_twin.plot(
-                self.metrics["cpu_usage"], "y-", label="CPU (%)"
-            )
+            self.ax_twin.plot(self.metrics["cpu_usage"], "y-", label="CPU (%)")
         if self.metrics["arousal"]:
             self.ax_twin.plot(self.metrics["arousal"], "g--", label="Arousal")
         if self.metrics["stress"]:
@@ -291,7 +282,6 @@ class MetricsVisualizer:
 
     def __setstate__(self, state: dict) -> None:
         self.__dict__.update(state)
-
 
     def __del__(self) -> None:
         self.close()

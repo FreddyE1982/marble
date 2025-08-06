@@ -12,6 +12,8 @@ dataset:
   encryption_key: null  # Optional key for dataset encryption
   cache_url: null      # Optional URL of DatasetCacheServer
   use_kuzu_graph: false  # When true, load training data from a Kùzu graph instead of ``source``
+  version_registry: null  # Directory or URL containing dataset version diffs
+  version: null           # Identifier of dataset version to apply
   kuzu_graph:
     db_path: "training.kuzu"  # Filesystem path of the Kùzu database containing training data
     query: "MATCH (n:Sample) RETURN n.input AS input, n.target AS target"  # Cypher query returning training pairs
@@ -22,6 +24,9 @@ logging:
   structured: false   # Output logs in JSON format when true
   log_file: "marble.log"  # Path of the main log file
 plugins: []           # Additional plugin modules to load
+
+scheduler:
+  plugin: thread       # Asynchronous task scheduler plugin (thread or asyncio)
 
 topology_graph:
   enabled: false        # Mirror core topology into a persistent Kùzu graph

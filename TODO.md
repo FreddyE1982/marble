@@ -1193,21 +1193,21 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [ ] Sync remote storage with incremental updates.
     - [ ] Provide progress reporting for each sync.
     - [ ] Add tests verifying no data loss.
-311. [ ] Use a plugin-based scheduler for asynchronous tasks.
-    - [ ] Define scheduler plugin interface.
-    - [ ] Implement default thread and asyncio scheduler plugins.
-    - [ ] Allow selection via configuration or CLI.
-    - [ ] Test plugin lifecycle and task dispatch.
-312. [ ] Standardise event formats so dataset and pipeline logs are compatible.
-    - [ ] Define unified event schema.
-    - [ ] Update logging emitters to output schema-compliant events.
-    - [ ] Provide converter for legacy log formats.
-    - [ ] Add tests validating event schema.
-313. [ ] Supply CLI tools to manage dataset versions across platforms.
-    - [ ] Implement `dataset version` CLI commands (list, create, switch).
-    - [ ] Support both local and remote registries.
-    - [ ] Integrate version info with pipeline loader.
-    - [ ] Add tests for version switching.
+311. [x] Use a plugin-based scheduler for asynchronous tasks.
+    - [x] Define scheduler plugin interface.
+    - [x] Implement default thread and asyncio scheduler plugins.
+    - [x] Allow selection via configuration or CLI.
+    - [x] Test plugin lifecycle and task dispatch.
+312. [x] Standardise event formats so dataset and pipeline logs are compatible.
+    - [x] Define unified event schema.
+    - [x] Update logging emitters to output schema-compliant events.
+    - [x] Provide converter for legacy log formats.
+    - [x] Add tests validating event schema.
+313. [x] Supply CLI tools to manage dataset versions across platforms.
+    - [x] Implement `dataset version` CLI commands (list, create, switch).
+    - [x] Support both local and remote registries.
+    - [x] Integrate version info with pipeline loader.
+    - [x] Add tests for version switching.
 314. [ ] Integrate with the Global Workspace to monitor overall system state.
     - [x] Expose pipeline metrics to Global Workspace.
     - [x] Add callbacks pushing state updates.

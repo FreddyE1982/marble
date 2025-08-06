@@ -15,10 +15,12 @@ This tutorial demonstrates every major component of MARBLE through a series of p
 
 4. **Use the command line interface**. The `cli.py` script allows training from
    the terminal without writing custom code. Scheduler and early-stopping
-   parameters can be specified on the command line:
+   parameters can be specified on the command line. The ``--scheduler-plugin``
+   flag selects the asynchronous task scheduler (``thread`` or ``asyncio``):
    ```bash
    python cli.py --config config.yaml --train path/to/data.csv --epochs 10 \
        --lr-scheduler cosine --scheduler-steps 20 --early-stopping-patience 5 \
+       --scheduler-plugin thread \
        --save trained_marble.pkl
    ```
    Replace the dataset path with your own CSV or JSON file. The optional
@@ -64,6 +66,12 @@ or GPU defaults into the produced script.
 
 This project shows how to persist a pipeline with an explicit dataset version
 and later resume it even on different hardware.
+
+Dataset versions are created and inspected with ``dataset_version_cli``:
+
+```bash
+python dataset_version_cli.py list --registry versions/
+```
 
 1. **Create a simple pipeline** and write it to JSON:
 
