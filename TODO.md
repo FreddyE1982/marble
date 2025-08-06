@@ -1428,22 +1428,22 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Confirm endpoint availability in tests.
         - [x] Validate sliders adjust visible graph elements.
 
-330. [ ] Introduce multi-agent MARBLE.
-    - [ ] Define `MARBLEAgent` wrapper with its own config and brain.
-        - [ ] Encapsulate brain initialization and lifecycle methods.
-        - [ ] Allow per-agent configuration loading.
-    - [ ] Implement `MessageBus` for agent-to-agent communication.
-        - [ ] Design protocol for broadcasting and direct messages.
-        - [ ] Ensure thread-safe message queues.
-    - [ ] Simulate cooperative or competitive RL environments.
-        - [ ] Provide sample environment harnesses.
-        - [ ] Support reward sharing and competition modes.
-    - [ ] Log inter-agent influence and conversation.
-        - [ ] Record message histories and effect metrics.
-        - [ ] Visualize interactions in dashboard.
-    - [ ] Add tests for multi-agent interactions.
-        - [ ] Unit test message exchange between two agents.
-        - [ ] Validate environment simulations run without deadlocks.
+330. [x] Introduce multi-agent MARBLE.
+    - [x] Define `MARBLEAgent` wrapper with its own config and brain.
+        - [x] Encapsulate brain initialization and lifecycle methods.
+        - [x] Allow per-agent configuration loading.
+    - [x] Implement `MessageBus` for agent-to-agent communication.
+        - [x] Design protocol for broadcasting and direct messages.
+        - [x] Ensure thread-safe message queues.
+    - [x] Simulate cooperative or competitive RL environments.
+        - [x] Provide sample environment harnesses.
+        - [x] Support reward sharing and competition modes.
+    - [x] Log inter-agent influence and conversation.
+        - [x] Record message histories and effect metrics.
+        - [x] Visualize interactions in dashboard.
+    - [x] Add tests for multi-agent interactions.
+        - [x] Unit test message exchange between two agents.
+        - [x] Validate environment simulations run without deadlocks.
 
 331. [x] Add evolutionary learning module.
     - [x] Create `EvolutionTrainer` class.

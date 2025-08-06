@@ -3373,3 +3373,34 @@ within Neuronenblitz training.
 This project demonstrates that loss modules provided by plugins can be
 referenced by name and are automatically initialised on CPU or GPU depending on
 hardware availability.
+
+## Project 100 – Multi-agent Cooperation
+
+This project walks through setting up two MARBLE agents that cooperate in a
+shared environment.
+
+1. **Create a message bus and agents:**
+
+   ```python
+   from marble_agent import MARBLEAgent
+   from message_bus import MessageBus
+   from multi_agent_env import CooperativeEnv, run_episode
+
+   bus = MessageBus()
+   agents = {
+       "alice": MARBLEAgent("alice", bus=bus),
+       "bob": MARBLEAgent("bob", bus=bus),
+   }
+   ```
+
+2. **Run the cooperative environment:**
+
+   ```python
+   env = CooperativeEnv(list(agents.keys()))
+   rewards = run_episode(env, agents, steps=5)
+   print(rewards)
+   ```
+
+Both agents share reward when they take the same action. The message bus can be
+used for further coordination or competition scenarios and all interactions are
+logged for later visualisation in the dashboard.
