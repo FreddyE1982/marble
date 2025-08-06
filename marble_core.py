@@ -1535,6 +1535,10 @@ class Core:
         self.q_table = {}
         self.gradient_clip_value = params.get("gradient_clip_value", 1.0)
         self.synapse_weight_decay = params.get("synapse_weight_decay", 0.0)
+        self.synapse_dropout_prob = params.get("synapse_dropout_prob", 0.0)
+        self.synapse_batchnorm_momentum = params.get("synapse_batchnorm_momentum", 0.1)
+        self.show_message_progress = params.get("show_message_progress", False)
+        self.salience_weight = params.get("salience_weight", 1.0)
         mpi = params.get("message_passing_iterations", 1)
         if mpi <= 0:
             raise ValueError("message_passing_iterations must be positive")
@@ -1840,6 +1844,8 @@ class Core:
         frozen: bool = False,
         echo_length: int | None = None,
         phase: float = 0.0,
+        dropout_prob: float | None = None,
+        momentum: float | None = None,
     ):
         syn = self.synapse_pool.allocate()
         syn.__init__(
@@ -1852,6 +1858,12 @@ class Core:
                 self.synapse_echo_length if echo_length is None else echo_length
             ),
             phase=phase,
+            dropout_prob=(
+                self.synapse_dropout_prob if dropout_prob is None else dropout_prob
+            ),
+            momentum=(
+                self.synapse_batchnorm_momentum if momentum is None else momentum
+            ),
         )
         self.neurons[source_id].synapses.append(syn)
         self.synapses.append(syn)
@@ -2222,6 +2234,7 @@ class Core:
                 metrics_visualizer=metrics_visualizer,
                 attention_module=attention_module,
                 global_phase=self.global_phase,
+                show_progress=self.show_message_progress,
             )
             self.global_phase = (self.global_phase + self.global_phase_rate) % (
                 2 * math.pi

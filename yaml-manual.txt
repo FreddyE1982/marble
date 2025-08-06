@@ -301,12 +301,14 @@ core:
     automatic differentiation with GPU/CPU fallback. Defaults to ``"numpy"``.
   message_passing_dropout: Fraction of messages dropped during propagation to
     regularize learning. ``0.0`` disables dropout.
-  synapse_dropout_prob: Probability of zeroing out connections of synapses
-    configured with the ``dropout`` type. ``0.0`` leaves all such synapses
-    active while ``1.0`` disables them completely on every transmission.
-  synapse_batchnorm_momentum: Momentum used by ``batchnorm`` synapses when
+  synapse_dropout_prob: Default probability applied to newly created synapses
+    of type ``"dropout"``. ``0.0`` leaves all such synapses active while ``1.0``
+    disables them completely on every transmission. Intermediate values randomly
+    silence connections with the given probability.
+  synapse_batchnorm_momentum: Default momentum for ``batchnorm`` synapses when
     updating their running mean and variance. Values close to ``1.0`` adapt
-    quickly while lower values provide smoother statistics.
+    quickly while lower values provide smoother statistics. Must lie within
+    ``0.0``–``1.0``.
   representation_activation: Activation function used by the internal MLP for
     message passing. Typical values are ``"tanh"`` or ``"relu"``.
   apply_layer_norm: When true the hidden layer of ``_simple_mlp`` is normalised
@@ -339,7 +341,9 @@ core:
     ``"uniform"`` and ``"normal"`` with the same semantics as
     ``weight_init_type``.
   show_message_progress: When ``true`` ``perform_message_passing`` renders a
-    progress bar so long operations provide visual feedback.
+    progress bar using :mod:`tqdm` so long operations provide visual feedback.
+    Requires the optional ``tqdm`` dependency and is controlled via
+    ``core.show_message_progress``. Defaults to ``false``.
   message_passing_beta: Secondary mixing factor controlling how quickly new
     representations replace old ones when ``alpha`` alone is insufficient.
   attention_temperature: Softmax temperature used by the attention module
