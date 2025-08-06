@@ -50,7 +50,8 @@ Each entry is listed under its section heading.
 - host
 - port
 ## sync
-- interval_ms
+- interval_ms: Interval in milliseconds between cross-device tensor
+  synchronisation cycles. Recommended 100–10_000 depending on network speed.
 
 ## evolution
 - population_size

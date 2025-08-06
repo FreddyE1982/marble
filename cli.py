@@ -43,7 +43,7 @@ def main() -> None:
     parser.add_argument(
         "--sync-interval-ms",
         type=int,
-        help="Milliseconds between cross-device tensor synchronizations",
+        help="Milliseconds between cross-device tensor synchronizations (100-10000 recommended)",
     )
     parser.add_argument(
         "--pipeline",

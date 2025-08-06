@@ -149,7 +149,9 @@ serve_model:
 
 sync:
   interval_ms: Number of milliseconds between background tensor synchronization cycles
-    across devices in distributed training. Lower values (100–500) keep model
+    across devices in distributed training. Synchronization uses delta encoding
+    (XOR for integer tensors, arithmetic differences for floating tensors) and
+    applies updates atomically per device. Lower values (100–500) keep model
     parameters closely aligned but increase communication overhead. Higher values
     (1000–10000) reduce network usage at the cost of more stale updates. Must be
     a positive integer. Defaults to ``1000``.
