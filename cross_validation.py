@@ -12,6 +12,7 @@ import random
 from collections.abc import Sequence
 from typing import Any, Callable, Iterable, List, Tuple
 
+
 import torch
 from torch.utils.data import Subset
 
@@ -44,11 +45,26 @@ def cross_validate(
     metric_fn: Callable[[Any, Iterable, torch.device], float],
     dataset: Sequence,
     *,
-    folds: int = 5,
-    seed: int = 0,
+    folds: int | None = None,
+    seed: int | None = None,
     device: torch.device | None = None,
 ) -> List[float]:
-    """Run k-fold cross-validation on ``dataset``."""
+    """Run k-fold cross-validation on ``dataset``.
+
+    ``folds`` and ``seed`` default to the ``cross_validation`` section of
+    :mod:`config.yaml` when unspecified.
+    """
+
+    if folds is None or seed is None:
+        from config_loader import load_config
+
+        cfg = load_config()
+        cv_cfg = cfg.get("cross_validation", {})
+        if folds is None:
+            folds = int(cv_cfg.get("folds", 5))
+        if seed is None:
+            seed = int(cv_cfg.get("seed", 0))
+
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
     scores: List[float] = []
     for train_set, val_set in k_fold_split(dataset, folds, seed):

@@ -185,7 +185,13 @@ class ServeModelPlugin(PipelinePlugin):
     finished.
     """
 
-    def __init__(self, host: str = "localhost", port: int = 5000) -> None:
+    def __init__(self, host: str | None = None, port: int | None = None) -> None:
+        from config_loader import load_config
+
+        cfg = load_config()
+        defaults = cfg.get("serve_model", {})
+        host = host if host is not None else defaults.get("host", "localhost")
+        port = port if port is not None else defaults.get("port", 5000)
         super().__init__(host=host, port=port)
         self.host = host
         self.port = port

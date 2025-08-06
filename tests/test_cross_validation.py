@@ -1,5 +1,9 @@
 import torch
 
+import torch
+import yaml
+import torch
+import yaml
 from cross_validation import cross_validate, k_fold_split
 
 
@@ -49,3 +53,21 @@ def test_cross_validate_gpu():
     )
     assert len(scores) == 4
     assert max(scores) < 1e-6
+
+
+def test_cross_validate_uses_config_defaults(tmp_path, monkeypatch):
+    import config_loader
+
+    cfg = config_loader.load_config()
+    cfg["cross_validation"] = {"folds": 3, "seed": 7}
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(yaml.safe_dump(cfg))
+
+    monkeypatch.setattr(config_loader, "DEFAULT_CONFIG_FILE", cfg_path)
+    dataset = [
+        (torch.tensor([float(i)]), torch.tensor([float(i * 2)])) for i in range(9)
+    ]
+    scores1 = cross_validate(_train, _metric, dataset)
+    scores2 = cross_validate(_train, _metric, dataset)
+    assert len(scores1) == 3
+    assert scores1 == scores2

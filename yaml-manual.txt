@@ -173,7 +173,9 @@ cross_validation:
   seed: Random seed applied before shuffling dataset indices for fold
     creation. Using a fixed value yields deterministic splits so repeated
     experiments produce identical train/validation partitions regardless of
-    global RNG state.
+    global RNG state. Both values are read by :func:`cross_validation.cross_validate`
+    when ``folds`` or ``seed`` arguments are omitted, providing repository-wide
+    defaults for CPU and GPU runs.
 
 serve_model:
   host: Interface address that the HTTP inference server binds to when
@@ -181,7 +183,9 @@ serve_model:
     connections or "localhost" for local-only access.
   port: TCP port for the inference API. Choose an unused value; multiple
     concurrent servers must each use a unique port. The server automatically
-    adapts to CPU or GPU execution depending on the active device.
+    adapts to CPU or GPU execution depending on the active device. The
+    ``ServeModelPlugin`` consults this section for default ``host`` and ``port``
+    values when a pipeline step omits explicit parameters.
 
 sync:
   interval_ms: Number of milliseconds between background tensor synchronization cycles
