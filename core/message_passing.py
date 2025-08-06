@@ -56,6 +56,7 @@ def perform_message_passing(
     attn_dropout = core.params.get("attention_dropout", 0.0)
     energy_thr = core.params.get("energy_threshold", 0.0)
     noise_std = core.params.get("representation_noise_std", 0.0)
+    causal = core.params.get("attention_causal", False)
 
     new_reps = [n.representation.copy() for n in core.neurons]
     old_reps = [n.representation.copy() for n in core.neurons]
@@ -72,7 +73,9 @@ def perform_message_passing(
         incoming = [
             s
             for s in core.synapses
-            if s.target == target.id and core.neurons[s.source].energy >= energy_thr
+            if s.target == target.id
+            and core.neurons[s.source].energy >= energy_thr
+            and (not causal or s.source <= target.id)
         ]
         if not incoming:
             continue
