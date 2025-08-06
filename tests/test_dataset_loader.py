@@ -170,6 +170,35 @@ def test_cache_url_used(monkeypatch, tmp_path):
     assert pairs == [(1, 2)]
 
 
+def test_encryption_key_roundtrip(tmp_path):
+    csv_path = tmp_path / "secure.csv"
+    csv_path.write_text("input,target\n1,2\n3,4\n")
+    httpd, thread = _serve_directory(tmp_path, 9075)
+    try:
+        url = f"http://localhost:9075/{csv_path.name}"
+        cache = tmp_path / "cache"
+        cfg = {
+            "source": url,
+            "cache_dir": str(cache),
+            "encryption_key": "key",
+        }
+        pairs = load_training_data_from_config(cfg)
+        assert pairs == [(1, 2), (3, 4)]
+        cached_file = cache / csv_path.name
+        assert cached_file.read_bytes().startswith(b"ENC")
+        cfg_offline = {
+            "source": url,
+            "cache_dir": str(cache),
+            "offline": True,
+            "encryption_key": "key",
+        }
+        pairs2 = load_training_data_from_config(cfg_offline)
+        assert pairs2 == pairs
+    finally:
+        httpd.shutdown()
+        thread.join()
+
+
 def test_prefetch_dataset(tmp_path):
     csv_path = tmp_path / "prefetch.csv"
     csv_path.write_text("input,target\n1,2\n")

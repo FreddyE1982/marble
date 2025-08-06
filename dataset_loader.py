@@ -7,6 +7,7 @@ import sys
 import threading
 import zipfile
 from typing import Any, List
+import io
 
 import pandas as pd
 import requests_cache
@@ -20,6 +21,7 @@ from marble_base import MetricsVisualizer
 from memory_manager import MemoryManager
 from memory_pool import MemoryPool
 from tokenizer_utils import tokenize_line
+from crypto_utils import encrypt_bytes, decrypt_bytes
 
 _SESSION = requests_cache.CachedSession("http_cache", expire_after=86400)
 _DATASET_CACHE: dict[str, list[tuple[Any, Any]]] = {}
@@ -68,7 +70,11 @@ _PREFETCH_THREADS: List[threading.Thread] = []
 
 
 def prefetch_dataset(
-    source: str, *, cache_dir: str = "dataset_cache", force_refresh: bool = False
+    source: str,
+    *,
+    cache_dir: str = "dataset_cache",
+    force_refresh: bool = False,
+    encryption_key: str | bytes | None = None,
 ) -> threading.Thread:
     """Prefetch ``source`` to the cache in a background thread.
 
@@ -80,6 +86,10 @@ def prefetch_dataset(
         Directory where the downloaded file will be cached.
     force_refresh:
         When ``True`` download even if the file is already cached.
+    encryption_key:
+        Optional key used to XOR-encrypt the cached file. When provided the
+        downloaded bytes are encrypted on disk so subsequent loads require the
+        same key for decryption.
 
     Returns
     -------
@@ -106,6 +116,11 @@ def prefetch_dataset(
 
     def _task() -> None:
         _download_file(source, path)
+        if encryption_key is not None:
+            with open(path, "rb") as f:
+                data = f.read()
+            with open(path, "wb") as f:
+                f.write(b"ENC" + encrypt_bytes(data, encryption_key))
 
     thread = threading.Thread(target=_task, daemon=True)
     thread.start()
@@ -141,6 +156,7 @@ def load_dataset(
     metrics_visualizer: "MetricsVisualizer | None" = None,
     filter_expr: str | None = None,
     cache_server_url: str | None = None,
+    encryption_key: str | bytes | None = None,
 ) -> list[tuple[Any, Any]] | tuple[list[tuple[Any, Any]], list[dict]]:
     """Load a dataset from ``source``.
 
@@ -149,17 +165,18 @@ def load_dataset(
     ``cache_dir`` and reused on subsequent calls unless ``force_refresh`` is
     ``True``. When ``offline`` is ``True`` the function will only load from the
     local cache and raise ``FileNotFoundError`` if the file is not present. If
-    the dataset is zipped only the first CSV/JSON file inside the
-    archive is used. Large datasets can be split across multiple shards by
-    specifying ``num_shards`` and ``shard_index``. When ``num_shards`` is
-    greater than one, only every ``num_shards``-th sample starting at
-    ``shard_index`` is returned. This is useful for distributed training where
-    each worker processes a different shard. When ``dataloader`` is provided,
-    inputs and targets are encoded using :class:`~marble.DataLoader`. When
-    ``cache_server_url`` is set and ``source`` is remote the loader will attempt
-    to fetch the file from the cache server before downloading it directly. If
-    ``memory_manager`` is provided, the estimated allocated bytes are reported
-    after loading completes.
+    the dataset is zipped only the first CSV/JSON file inside the archive is
+    used. Large datasets can be split across multiple shards by specifying
+    ``num_shards`` and ``shard_index``. When ``num_shards`` is greater than one,
+    only every ``num_shards``-th sample starting at ``shard_index`` is returned.
+    This is useful for distributed training where each worker processes a
+    different shard. When ``dataloader`` is provided, inputs and targets are
+    encoded using :class:`~marble.DataLoader`. When ``cache_server_url`` is set
+    and ``source`` is remote the loader will attempt to fetch the file from the
+    cache server before downloading it directly. If ``encryption_key`` is
+    provided, cached files are XOR-encrypted with the key and transparently
+    decrypted when loading. If ``memory_manager`` is provided, the estimated
+    allocated bytes are reported after loading completes.
     """
     if metrics_visualizer:
         metrics_visualizer.log_event("dataset_load_start", {"source": source})
@@ -192,14 +209,32 @@ def load_dataset(
                     _download_file(source, cached)
             else:
                 _download_file(source, cached)
+            if encryption_key is not None:
+                with open(cached, "rb") as f:
+                    data = f.read()
+                with open(cached, "wb") as f:
+                    f.write(b"ENC" + encrypt_bytes(data, encryption_key))
         path = cached
     else:
         path = source
+    data_bytes: bytes | None = None
+    if encryption_key is not None and os.path.exists(path):
+        with open(path, "rb") as f:
+            raw = f.read()
+        if raw.startswith(b"ENC"):
+            data_bytes = decrypt_bytes(raw[3:], encryption_key)
+        else:
+            data_bytes = raw
     ext = os.path.splitext(path)[1].lower()
     if ext == ".zip":
         for attempt in range(2):
             try:
-                with zipfile.ZipFile(path) as zf:
+                zf_obj = (
+                    zipfile.ZipFile(io.BytesIO(data_bytes))
+                    if data_bytes is not None
+                    else zipfile.ZipFile(path)
+                )
+                with zf_obj as zf:
                     members = [n for n in zf.namelist() if not n.endswith("/")]
                     if not members:
                         raise ValueError("Zip archive is empty")
@@ -220,12 +255,30 @@ def load_dataset(
                     and not offline
                 ):
                     _download_file(source, path)
+                    if encryption_key is not None:
+                        with open(path, "rb") as f:
+                            data = f.read()
+                        with open(path, "wb") as f:
+                            f.write(b"ENC" + encrypt_bytes(data, encryption_key))
+                    if encryption_key is not None:
+                        with open(path, "rb") as f:
+                            raw = f.read()
+                        if raw.startswith(b"ENC"):
+                            data_bytes = decrypt_bytes(raw[3:], encryption_key)
+                        else:
+                            data_bytes = raw
                 else:
                     raise
     elif ext in {".csv", ""}:
-        df = pd.read_csv(path)
+        if data_bytes is not None:
+            df = pd.read_csv(io.BytesIO(data_bytes))
+        else:
+            df = pd.read_csv(path)
     elif ext in {".json", ".jsonl"}:
-        df = pd.read_json(path, lines=ext == ".jsonl")
+        if data_bytes is not None:
+            df = pd.read_json(io.BytesIO(data_bytes), lines=ext == ".jsonl")
+        else:
+            df = pd.read_json(path, lines=ext == ".jsonl")
     else:
         raise ValueError("Unsupported dataset format")
     pairs: list[tuple[Any, Any]] = []
@@ -243,8 +296,16 @@ def load_dataset(
                 cached_path = os.path.join(cache_dir, name)
                 if not os.path.exists(cached_path):
                     _download_file(val, cached_path)
+                    if encryption_key is not None:
+                        with open(cached_path, "rb") as f:
+                            data = f.read()
+                        with open(cached_path, "wb") as f:
+                            f.write(b"ENC" + encrypt_bytes(data, encryption_key))
                 with open(cached_path, "rb") as f:
-                    data_bytes = f.read()
+                    dep_bytes = f.read()
+                if encryption_key is not None and dep_bytes.startswith(b"ENC"):
+                    dep_bytes = decrypt_bytes(dep_bytes[3:], encryption_key)
+                data_bytes = dep_bytes
                 if val_name == "input":
                     inp = data_bytes
                     inp_src = val
@@ -384,6 +445,7 @@ def load_training_data_from_config(
         "num_shards",
         "shard_index",
         "cache_url",
+        "encryption_key",
     ]:
         if key in dataset_cfg:
             if key == "cache_url":
