@@ -18,12 +18,19 @@ class InferenceServer:
         host: str = "localhost",
         port: int = 5000,
         prompt_memory: PromptMemory | None = None,
+        prompt_path: str | None = None,
         api_token: str | None = None,
     ) -> None:
         self.brain = brain
         self.host = host
         self.port = port
-        self.prompt_memory = prompt_memory
+        self.prompt_path = prompt_path
+        if prompt_memory is not None:
+            self.prompt_memory = prompt_memory
+        elif prompt_path is not None:
+            self.prompt_memory = PromptMemory.load(prompt_path)
+        else:
+            self.prompt_memory = None
         self.api_token = api_token
         self.app = Flask(__name__)
         self.thread: threading.Thread | None = None
@@ -76,6 +83,11 @@ class InferenceServer:
 
     def stop(self) -> None:
         if self.thread is not None:
+            if self.prompt_memory is not None and self.prompt_path is not None:
+                try:
+                    self.prompt_memory.serialize(self.prompt_path)
+                except Exception:
+                    pass
             try:
                 import requests
 

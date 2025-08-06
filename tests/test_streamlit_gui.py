@@ -1,6 +1,7 @@
 import os
 import sys
 import warnings
+from unittest import mock
 
 import optuna
 from _pytest.warning_types import PytestDeprecationWarning
@@ -77,6 +78,25 @@ def test_stats_tab_metrics():
     at = stats_tab.button[0].click().run(timeout=20)
     stats_tab = next(t for t in at.tabs if t.label == "System Stats")
     assert len(stats_tab.metric) == 2
+
+
+def test_prompt_toggle_persistence(tmp_path):
+    mem = tmp_path / "mem.json"
+    pref = tmp_path / "pref.json"
+    env = {
+        "PROMPT_MEMORY_PATH": str(mem),
+        "PROMPT_PREF_PATH": str(pref),
+    }
+    with mock.patch.dict(os.environ, env, clear=False):
+        at = AppTest.from_file("streamlit_playground.py").run(timeout=15)
+        at = at.sidebar.button[0].click().run(timeout=30)
+        assert at.toggle[0].value is False
+        at.toggle[0].set_value(True).run(timeout=15)
+
+    with mock.patch.dict(os.environ, env, clear=False):
+        at2 = AppTest.from_file("streamlit_playground.py").run(timeout=15)
+        at2 = at2.sidebar.button[0].click().run(timeout=30)
+        assert at2.toggle[0].value is True
 
 
 def test_metrics_tab_plot():
