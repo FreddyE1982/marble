@@ -3269,25 +3269,26 @@ databases.
          db_path: "iris.kuzu"
    ```
 
-4. **Invoke tools from Python**. The manager chooses the appropriate plugin
-   based on the query:
+4. **Invoke tools from Python**. After creating a MARBLE instance with this
+   configuration the manager is available via ``marble.tool_manager``:
 
    ```python
    import torch
-   from tool_manager_plugin import ToolManagerPlugin
+   from config_loader import create_marble_from_config
 
-   manager = ToolManagerPlugin(
-       tools={"web_search": {}, "database_query": {"db_path": "iris.kuzu"}}
-   )
-   manager.initialise(torch.device("cpu"))
-   print(manager.execute(torch.device("cpu"), query="search the web for Iris setosa"))
+   marble = create_marble_from_config("config.yaml")
    print(
-       manager.execute(
+       marble.tool_manager.execute(
+           torch.device("cpu"), query="search the web for Iris setosa"
+       )
+   )
+   print(
+       marble.tool_manager.execute(
            torch.device("cpu"),
            query="database: MATCH (f:Flower) RETURN count(f) AS flowers",
        )
    )
-   manager.teardown()
+   marble.tool_manager.teardown()
    ```
 
 The first call performs a web search while the second queries the Kùzu database.

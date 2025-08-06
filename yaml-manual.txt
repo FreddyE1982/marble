@@ -161,7 +161,9 @@ tool_manager:
 
     The manager initialises each listed tool during pipeline start-up and
     forwards queries to the selected tool at runtime. Results are returned to the
-    pipeline for further processing or integration into model responses.
+    pipeline for further processing or integration into model responses. When
+    enabled the initialised manager is exposed on the MARBLE instance as
+    ``marble.tool_manager`` for direct use in custom scripts.
 
 cross_validation:
   folds: Number of partitions used during k-fold evaluation. Each fold serves as a
@@ -188,7 +190,9 @@ sync:
     applies updates atomically per device. Lower values (100–500) keep model
     parameters closely aligned but increase communication overhead. Higher values
     (1000–10000) reduce network usage at the cost of more stale updates. Must be
-    a positive integer. Defaults to ``1000``.
+    a positive integer. Defaults to ``1000``. When specified, MARBLE constructs a
+    :class:`TensorSyncService` available as ``marble.tensor_sync_service`` which
+    keeps any registered tensors synchronised on CPU or GPU devices.
 
 evolution:
   population_size: Number of candidate configurations evaluated in each
