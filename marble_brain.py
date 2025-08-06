@@ -11,7 +11,7 @@ import torch
 from backup_utils import BackupScheduler
 from dream_replay_buffer import DreamReplayBuffer
 from dream_scheduler import DreamScheduler
-from marble_core import TIER_REGISTRY, MemorySystem
+from marble_core import TIER_REGISTRY, MemorySystem, precompile_simple_mlp
 from marble_imports import *
 from marble_lobes import LobeManager
 from meta_parameter_controller import MetaParameterController
@@ -127,6 +127,7 @@ class Brain:
         auto_firing_enabled: bool = False,
         dream_enabled: bool = True,
         vram_age_threshold: int = 300,
+        precompile_graphs: bool = False,
         ram_age_threshold: int = 600,
         status_display_interval: int = 0,
         neurogenesis_interval: int = 1,
@@ -241,6 +242,7 @@ class Brain:
         self.auto_firing_enabled = auto_firing_enabled
         self.dream_enabled = dream_enabled
         self.vram_age_threshold = vram_age_threshold
+        self.precompile_graphs = precompile_graphs
         self.ram_age_threshold = ram_age_threshold
         self.status_display_interval = status_display_interval
         self.neurogenesis_interval = neurogenesis_interval
@@ -460,6 +462,12 @@ class Brain:
             if validation_examples is not None
             else None
         )
+
+        if self.precompile_graphs:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            example = torch.zeros(1, self.core.rep_size, device=device)
+            precompile_simple_mlp(example)
+
         pbar = tqdm(range(epochs), desc="Epochs", ncols=100)
         best_loss = float("inf")
         patience_counter = 0

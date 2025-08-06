@@ -18,12 +18,13 @@ import torch.nn as nn
 from tokenizers import Tokenizer
 
 import tensor_backend as tb
+from core.init_seed import compute_mandelbrot, generate_seed
+from core.message_passing import AttentionModule, perform_message_passing
 from event_bus import global_event_bus
+from graph_cache import GRAPH_CACHE, GraphKey
 from marble_base import MetricsVisualizer
 from marble_imports import *  # noqa: F401,F403,F405
 from memory_pool import MemoryPool
-from core.init_seed import compute_mandelbrot, generate_seed
-from core.message_passing import AttentionModule, perform_message_passing
 
 
 def init_distributed(world_size: int, rank: int = 0, backend: str = "gloo") -> bool:
@@ -168,19 +169,15 @@ def _apply_activation_torch(arr: "torch.Tensor", activation: str) -> "torch.Tens
     return torch.tanh(arr)
 
 
-def _simple_mlp(
+def _simple_mlp_impl(
     x: np.ndarray | "torch.Tensor",
     activation: str = "tanh",
     *,
     apply_layer_norm: bool = True,
     mixed_precision: bool = False,
 ) -> np.ndarray | "torch.Tensor":
-    """Tiny MLP with one hidden layer and configurable activations.
+    """Implementation of the tiny MLP used throughout MARBLE."""
 
-    Uses GPU acceleration when ``x`` is a ``torch.Tensor`` and CUDA is available.
-    When ``mixed_precision`` is ``True`` the computation runs inside a
-    ``torch.autocast`` context for additional speed on supported hardware.
-    """
     if torch.is_tensor(x):
         device = x.device
         autocast = (
@@ -191,18 +188,12 @@ def _simple_mlp(
         with autocast:
             w1 = torch.as_tensor(_W1, device=device, dtype=x.dtype)
             b1 = torch.as_tensor(_B1, device=device, dtype=x.dtype)
-            h = _apply_activation_torch(
-                x @ w1 + b1,
-                activation,
-            )
+            h = _apply_activation_torch(x @ w1 + b1, activation)
             if apply_layer_norm:
                 h = torch.nn.functional.layer_norm(h, h.shape[-1:])
             w2 = torch.as_tensor(_W2, device=device, dtype=x.dtype)
             b2 = torch.as_tensor(_B2, device=device, dtype=x.dtype)
-            out = _apply_activation_torch(
-                h @ w2 + b2,
-                activation,
-            )
+            out = _apply_activation_torch(h @ w2 + b2, activation)
         if not torch.all(torch.isfinite(out)):
             raise ValueError("NaN or Inf encountered in MLP output")
         return out
@@ -215,6 +206,77 @@ def _simple_mlp(
     if not np.all(np.isfinite(out)):
         raise ValueError("NaN or Inf encountered in MLP output")
     return out
+
+
+def _simple_mlp(
+    x: np.ndarray | "torch.Tensor",
+    activation: str = "tanh",
+    *,
+    apply_layer_norm: bool = True,
+    mixed_precision: bool = False,
+) -> np.ndarray | "torch.Tensor":
+    """Tiny MLP with one hidden layer and configurable activations.
+
+    When graph precompilation is enabled the Torch execution graph for the
+    given input signature is cached and reused across calls.  The cache key
+    incorporates shape, dtype, device and relevant keyword arguments.
+    """
+
+    if torch.is_tensor(x) and GRAPH_CACHE.enabled:
+        key = GraphKey(
+            "simple_mlp",
+            tuple(x.shape),
+            x.dtype,
+            x.device,
+            extras=(activation, apply_layer_norm, mixed_precision),
+        )
+
+        def fn(inp: "torch.Tensor") -> "torch.Tensor":
+            return _simple_mlp_impl(
+                inp,
+                activation,
+                apply_layer_norm=apply_layer_norm,
+                mixed_precision=mixed_precision,
+            )
+
+        compiled = GRAPH_CACHE.precompile(key, fn, x)
+        return compiled(x)
+
+    return _simple_mlp_impl(
+        x,
+        activation,
+        apply_layer_norm=apply_layer_norm,
+        mixed_precision=mixed_precision,
+    )
+
+
+def precompile_simple_mlp(
+    example: "torch.Tensor",
+    activation: str = "tanh",
+    *,
+    apply_layer_norm: bool = True,
+    mixed_precision: bool = False,
+) -> None:
+    """Precompile the simple MLP for a representative ``example`` tensor."""
+
+    GRAPH_CACHE.enable(True)
+    key = GraphKey(
+        "simple_mlp",
+        tuple(example.shape),
+        example.dtype,
+        example.device,
+        extras=(activation, apply_layer_norm, mixed_precision),
+    )
+
+    def fn(inp: "torch.Tensor") -> "torch.Tensor":
+        return _simple_mlp_impl(
+            inp,
+            activation,
+            apply_layer_norm=apply_layer_norm,
+            mixed_precision=mixed_precision,
+        )
+
+    GRAPH_CACHE.precompile(key, fn, example)
 
 
 # List of supported neuron types including layer-mimicking variants

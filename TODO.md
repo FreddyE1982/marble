@@ -1178,11 +1178,11 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Instrument steps to track allocated memory.
     - [x] Abort or queue step when quota exceeded.
     - [x] Add tests simulating quota breaches.
-308. [ ] Precompile compute graphs to accelerate training.
-    - [ ] Implement graph caching for repeated computations.
-    - [ ] Add precompilation phase in training initialization.
-    - [ ] Provide CLI flag to toggle precompilation.
-    - [ ] Benchmark speed improvements on sample models.
+308. [x] Precompile compute graphs to accelerate training.
+    - [x] Implement graph caching for repeated computations.
+    - [x] Add precompilation phase in training initialization.
+    - [x] Provide CLI flag to toggle precompilation.
+    - [x] Benchmark speed improvements on sample models.
 309. [ ] Offer multi-step undo for dataset modifications via core services.
     - [x] Track modification history with unique IDs.
     - [x] Implement undo stack supporting multiple levels.
