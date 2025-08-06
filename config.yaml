@@ -49,7 +49,7 @@ serve_model:
   port: 5000
 
 sync:
-  interval_ms: 1000     # Interval in milliseconds between cross-device tensor synchronization cycles
+  interval_ms: 1000     # Interval in milliseconds between cross-device tensor synchronization cycles (100-10000 recommended)
 
 evolution:
   population_size: 4        # Number of configurations evaluated per generation
