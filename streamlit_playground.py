@@ -38,6 +38,7 @@ import pandas as pd
 import plotly.graph_objs as go
 import pytest
 import pickle
+from dataset_history_cli import list_history, redo_cmd, revert_cmd, undo_cmd
 import streamlit as st
 import streamlit.components.v1 as components
 import torch
@@ -457,6 +458,15 @@ def preview_file_dataset(file, limit: int = 5) -> pd.DataFrame:
     buf = BytesIO(data)
     df = pd.DataFrame(load_examples(buf)[:limit], columns=["input", "target"])
     return df
+
+
+def _save_uploaded_binary(file) -> str:
+    """Persist an uploaded file to a temporary location and return its path."""
+
+    tmp = tempfile.NamedTemporaryFile(delete=False)
+    tmp.write(file.getvalue())
+    tmp.flush()
+    return tmp.name
 
 
 def preview_hf_dataset(
@@ -3135,6 +3145,45 @@ def run_playground() -> None:
                 )
                 arr = np.array(bits, dtype=np.uint8).reshape(-1, 8) * 255
                 st.image(arr, caption="Input Bits", width=200)
+
+            with st.expander("Dataset History"):
+                hist_file = st.file_uploader(
+                    "BitTensorDataset", type=["pt"], key="hist_ds_file"
+                )
+                if hist_file is not None:
+                    tmp_path = _save_uploaded_binary(hist_file)
+                    if st.button("List History", key="hist_list"):
+                        ids = list_history(tmp_path)
+                        st.code("\n".join(ids) if ids else "<none>")
+                    undo_steps = st.number_input(
+                        "Undo Steps", min_value=1, value=1, step=1, key="hist_undo_steps"
+                    )
+                    if st.button("Undo", key="hist_undo_btn"):
+                        undo_cmd(tmp_path, int(undo_steps), tmp_path)
+                        st.success(
+                            "Undo applied. Use the download button to save changes."
+                        )
+                    redo_steps = st.number_input(
+                        "Redo Steps", min_value=1, value=1, step=1, key="hist_redo_steps"
+                    )
+                    if st.button("Redo", key="hist_redo_btn"):
+                        redo_cmd(tmp_path, int(redo_steps), tmp_path)
+                        st.success(
+                            "Redo applied. Use the download button to save changes."
+                        )
+                    snap_id = st.text_input("Snapshot ID", key="hist_snap_id")
+                    if st.button("Revert", key="hist_revert_btn") and snap_id:
+                        revert_cmd(tmp_path, snap_id, tmp_path)
+                        st.success(
+                            "Reverted dataset. Use the download button to save changes."
+                        )
+                    with open(tmp_path, "rb") as f:
+                        st.download_button(
+                            "Download Dataset",
+                            f.read(),
+                            file_name="dataset.pt",
+                            key="hist_download",
+                        )
 
         with tab_src:
             st.write("Browse repository source code.")
