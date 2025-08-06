@@ -58,8 +58,16 @@ dataset:
     file exists Marble automatically logs in before downloading datasets or
     models. The default location is ``~/.cache/marble/hf_token``.
 logging:
-  structured: When true, all logs are emitted as JSON objects. This simplifies parsing in tools like Logstash or Splunk.
-  log_file: File path where structured logs are written. If set to ``null`` the logs go to stderr.
+  structured: When true, all logs are emitted as JSON objects via ``JSONFormatter``. This format is machine friendly and can be ingested by tools such as Logstash or Splunk. When ``false`` the classic text format is used.
+  log_file: Filesystem path where log records are written. If set to ``null`` the logs go to stderr. When ``rotate`` is enabled this path becomes the base name for rotated files.
+  level: Minimum severity level recorded. Accepts either the standard string names (``"DEBUG"``, ``"INFO"``, ``"WARNING"``, ``"ERROR"``, ``"CRITICAL"``) or their numeric equivalents. Lower levels produce more verbose output.
+  format: Standard logging format string applied when ``structured`` is ``false``. The default ``"%(levelname)s:%(name)s:%(message)s"`` shows the severity, logger name and message.
+  datefmt: ``strftime`` pattern controlling timestamp appearance, e.g. ``"%Y-%m-%d %H:%M:%S"`` for ``2025-03-30 14:53:21``.
+  propagate: When ``true`` the root logger forwards records to ancestor loggers allowing integration with external logging setups.
+  rotate: Enables a size-based rotating file handler. Once ``max_bytes`` is exceeded the current log file is renamed with a numeric suffix and a new file is started.
+  max_bytes: Maximum size in bytes a log file may reach before rotation occurs. Values between ``1_000_000`` and ``100_000_000`` are typical.
+  backup_count: Number of rotated log files preserved on disk. Older files are removed once this count is exceeded. Recommended range is ``1``–``10``.
+  encoding: Text encoding used for file handlers, e.g. ``"utf-8"`` or ``"utf-16"``.
 
 plugins:
   - List of directories containing plugin modules. Each module implements

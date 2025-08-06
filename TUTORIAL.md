@@ -21,13 +21,45 @@ This tutorial demonstrates every major component of MARBLE through a series of p
    ``--precompile-graphs`` which traces frequently executed operations once at
    startup.  Example invocation:
    ```bash
-   python cli.py --config config.yaml --train path/to/data.csv --epochs 10 \
+    python cli.py --config config.yaml --train path/to/data.csv --epochs 10 \
        --lr-scheduler cosine --scheduler-steps 20 --early-stopping-patience 5 \
        --scheduler-plugin thread --precompile-graphs \
        --save trained_marble.pkl
    ```
    Replace the dataset path with your own CSV or JSON file. The optional
    `--validate` flag specifies a validation dataset.
+
+### Configuring Logging
+
+Logging behaviour is controlled through the ``logging`` section of
+``config.yaml``. The example below enables structured JSON logging with
+rotation. It also downloads the Iris dataset so the training script has
+sample data to process:
+
+```bash
+wget https://raw.githubusercontent.com/uiuc-cse/data-fa14/gh-pages/data/iris.csv -O iris.csv
+```
+
+Edit ``config.yaml`` to enable verbose rotating logs:
+
+```yaml
+logging:
+  structured: true
+  log_file: marble.jsonl
+  level: "DEBUG"
+  rotate: true
+  max_bytes: 1048576
+  backup_count: 3
+```
+
+Run a short training session:
+
+```bash
+python cli.py --config config.yaml --train iris.csv --epochs 1
+```
+
+The file ``marble.jsonl`` will grow with JSON log records and automatically
+roll over once it reaches one megabyte.
 
 ## Project: Generating a Workflow Template
 
