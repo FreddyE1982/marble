@@ -22,6 +22,17 @@ CONFIG_SCHEMA = {
             },
         },
         "neuronenblitz": {"type": "object"},
+        "evolution": {
+            "type": "object",
+            "properties": {
+                "population_size": {"type": "integer", "minimum": 1},
+                "selection_size": {"type": "integer", "minimum": 1},
+                "generations": {"type": "integer", "minimum": 1},
+                "steps_per_candidate": {"type": "integer", "minimum": 1},
+                "mutation_rate": {"type": "number", "minimum": 0, "maximum": 1},
+                "parallelism": {"type": "integer", "minimum": 1},
+            },
+        },
         "brain": {
             "type": "object",
             "properties": {

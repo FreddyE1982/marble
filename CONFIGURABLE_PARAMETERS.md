@@ -52,6 +52,14 @@ Each entry is listed under its section heading.
 ## sync
 - interval_ms
 
+## evolution
+- population_size
+- selection_size
+- generations
+- steps_per_candidate
+- mutation_rate
+- parallelism
+
 ## core
 - xmin
 - xmax

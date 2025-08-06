@@ -51,6 +51,14 @@ serve_model:
 sync:
   interval_ms: 1000     # Interval in milliseconds between cross-device tensor synchronization cycles
 
+evolution:
+  population_size: 4        # Number of configurations evaluated per generation
+  selection_size: 2         # Top configurations kept after each generation
+  generations: 2            # How many generations to run
+  steps_per_candidate: 1    # Training steps per candidate during evaluation
+  mutation_rate: 0.1        # Fraction of parameters mutated in each offspring
+  parallelism: 2            # Number of candidates evaluated concurrently
+
 # =====
 # Core
 # =====
