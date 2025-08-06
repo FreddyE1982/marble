@@ -699,6 +699,7 @@ class HighLevelPipeline:
             "data_args": list(self.data_args),
             "config": self.config.to_dict(),
             "dataset_version": self.dataset_version,
+            "cache_dir": self.cache_dir,
         }
         with open(path, "wb") as f:
             pickle.dump(data, f)
@@ -712,7 +713,7 @@ class HighLevelPipeline:
             use_bit_dataset=data.get("use_bit_dataset", True),
             bit_dataset_params=data.get("bit_dataset_params"),
             data_args=data.get("data_args"),
-            cache_dir=None,
+            cache_dir=data.get("cache_dir"),
             dataset_version=data.get("dataset_version"),
         )
         obj.config = DotDict(data.get("config", {}))

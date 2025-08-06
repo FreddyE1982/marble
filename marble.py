@@ -854,7 +854,14 @@ class Brain:
         filename = f"brain_{timestamp}.pkl"
         filepath = os.path.join(self.save_dir, filename)
         with open(filepath, "wb") as f:
-            pickle.dump({"core": self.core, "neuronenblitz": self.neuronenblitz}, f)
+            pickle.dump(
+                {
+                    "core": self.core,
+                    "neuronenblitz": self.neuronenblitz,
+                    "dream_buffer": self.dream_buffer,
+                },
+                f,
+            )
         self.saved_model_paths.append(filepath)
         if len(self.saved_model_paths) > self.max_saved_models:
             old_file = self.saved_model_paths.pop(0)
@@ -873,6 +880,7 @@ class Brain:
             data = pickle.load(f)
             self.core = data["core"]
             self.neuronenblitz = data["neuronenblitz"]
+            self.dream_buffer = data.get("dream_buffer", self.dream_buffer)
         print(f"Model loaded from {filepath}")
 
     def start_auto_firing(self, input_generator=None):
