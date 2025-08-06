@@ -9,6 +9,7 @@ import tensor_backend as tb
 
 from marble_base import MetricsVisualizer
 from marble_core import Core, perform_message_passing
+from core.message_passing import AttentionModule
 import marble_core
 from tests.test_core_functions import minimal_params
 
@@ -138,6 +139,30 @@ def test_attention_causal_blocks_future_messages():
     blocked = np.allclose(core2.neurons[1].representation, 0.0)
 
     assert changed and blocked
+
+
+def test_attention_gating_sine_changes_weights():
+    tb.set_backend("numpy")
+    am = AttentionModule(
+        temperature=1.0,
+        gating_cfg={"enabled": True, "mode": "sine", "frequency": 0.5},
+    )
+    q = np.ones(2)
+    keys = [np.ones(2), np.ones(2)]
+    w = am.compute(q, keys)
+    assert w[0] < w[1]
+
+
+def test_attention_gating_chaos_varies_over_calls():
+    tb.set_backend("numpy")
+    am = AttentionModule(
+        temperature=1.0, gating_cfg={"enabled": True, "mode": "chaos", "chaos": 3.9}
+    )
+    q = np.ones(2)
+    keys = [np.ones(2), np.ones(2)]
+    w1 = am.compute(q, keys)
+    w2 = am.compute(q, keys)
+    assert not np.allclose(w1, w2)
 
 
 def test_representation_activation_relu():

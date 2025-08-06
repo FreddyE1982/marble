@@ -17,8 +17,35 @@ except Exception:  # pragma: no cover - tqdm not installed
 class AttentionModule:
     """Compute attention weights for message passing."""
 
-    def __init__(self, temperature: float = 1.0) -> None:
+    def __init__(
+        self, temperature: float = 1.0, gating_cfg: dict | None = None
+    ) -> None:
         self.temperature = temperature
+        self.gating_cfg = gating_cfg or {}
+        # persistent state for chaotic gating
+        self._chaos_state = 0.5
+
+    def _gating(self, n: int, xp) -> Any | None:
+        """Return gating values for ``n`` keys or ``None`` if disabled."""
+
+        if not self.gating_cfg.get("enabled") or n == 0:
+            return None
+        mode = self.gating_cfg.get("mode", "sine")
+        if mode == "sine":
+            freq = float(self.gating_cfg.get("frequency", 1.0))
+            idx = xp.arange(n, dtype=xp.float32)
+            return xp.sin(2 * xp.pi * freq * idx / max(n, 1))
+        if mode == "chaos":
+            r = float(self.gating_cfg.get("chaos", 3.7))
+            r = max(0.0, min(r, 4.0))
+            vals = []
+            x = self._chaos_state
+            for _ in range(n):
+                x = r * x * (1 - x)
+                vals.append(x)
+            self._chaos_state = x
+            return xp.array(vals, dtype=xp.float32)
+        return None
 
     def compute(self, query: np.ndarray, keys: list[np.ndarray]) -> Any:
         xp = tb.xp()
@@ -27,6 +54,9 @@ class AttentionModule:
         q = xp.nan_to_num(query, nan=0.0, posinf=0.0, neginf=0.0)
         ks = xp.stack([xp.nan_to_num(k, nan=0.0, posinf=0.0, neginf=0.0) for k in keys])
         dots = ks @ q / max(self.temperature, 1e-6)
+        gate = self._gating(len(keys), xp)
+        if gate is not None:
+            dots = dots * gate
         exp = xp.exp(dots - xp.max(dots))
         return exp / xp.sum(exp)
 
@@ -46,7 +76,8 @@ def perform_message_passing(
         alpha = core.params.get("message_passing_alpha", 0.5)
     if attention_module is None:
         temp = core.params.get("attention_temperature", 1.0)
-        attention_module = AttentionModule(temperature=temp)
+        gating_cfg = core.params.get("attention_gating", {})
+        attention_module = AttentionModule(temperature=temp, gating_cfg=gating_cfg)
     if global_phase is None:
         global_phase = getattr(core, "global_phase", 0.0)
 

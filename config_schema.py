@@ -20,6 +20,15 @@ CONFIG_SCHEMA = {
                 },
                 "use_mixed_precision": {"type": "boolean"},
                 "quantization_bits": {"type": "integer", "minimum": 0, "maximum": 16},
+                "attention_gating": {
+                    "type": "object",
+                    "properties": {
+                        "enabled": {"type": "boolean"},
+                        "mode": {"type": "string"},
+                        "frequency": {"type": "number", "minimum": 0},
+                        "chaos": {"type": "number", "minimum": 0, "maximum": 4},
+                    },
+                },
             },
         },
         "neuronenblitz": {"type": "object"},
