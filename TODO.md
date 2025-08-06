@@ -1304,25 +1304,25 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [ ] Test bit conversion round-trips.
         - [ ] Validate sparse and dense paths produce same results.
 
-322. [ ] Implement causal attention and gating.
-    - [ ] Add `core.attention_causal` to configuration and document it.
-        - [ ] Insert parameter into `config.yaml` with default setting.
-        - [ ] Extend `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
-        - [ ] Provide CLI flag to toggle causal attention.
-    - [ ] Modify attention mechanism to mask future tokens (`mask[i, j] = j > i`).
-        - [ ] Implement mask generation routine.
-        - [ ] Ensure masking works on CPU and GPU backends.
-        - [ ] Benchmark overhead introduced by masking.
-    - [ ] Implement `gating_layer` using sine or chaotic modulation.
-        - [ ] Prototype gating function and parameter ranges.
-        - [ ] Integrate gating into attention pipeline.
-        - [ ] Expose gating parameters in configuration.
-    - [ ] Visualize mask and gate effects on message propagation.
-        - [ ] Create plotting utilities for masks and gates.
-        - [ ] Add Streamlit view to display visuals.
-    - [ ] Add tests for causal attention and gating behavior.
-        - [ ] Verify masks prevent future token access.
-        - [ ] Check gating outputs remain within expected bounds.
+322. [x] Implement causal attention and gating.
+    - [x] Add `core.attention_causal` to configuration and document it.
+        - [x] Insert parameter into `config.yaml` with default setting.
+        - [x] Extend `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
+        - [x] Provide CLI flag to toggle causal attention.
+    - [x] Modify attention mechanism to mask future tokens (`mask[i, j] = j > i`).
+        - [x] Implement mask generation routine.
+        - [x] Ensure masking works on CPU and GPU backends.
+        - [x] Benchmark overhead introduced by masking.
+    - [x] Implement `gating_layer` using sine or chaotic modulation.
+        - [x] Prototype gating function and parameter ranges.
+        - [x] Integrate gating into attention pipeline.
+        - [x] Expose gating parameters in configuration.
+    - [x] Visualize mask and gate effects on message propagation.
+        - [x] Create plotting utilities for masks and gates.
+        - [x] Add Streamlit view to display visuals.
+    - [x] Add tests for causal attention and gating behavior.
+        - [x] Verify masks prevent future token access.
+        - [x] Check gating outputs remain within expected bounds.
 
 323. [x] Build streaming tokenizer and data loader.
     - [x] Refactor tokenizer interface to yield `tokenize(line)` instead of whole corpus.
