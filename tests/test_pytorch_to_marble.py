@@ -641,6 +641,42 @@ class GRUModel(torch.nn.Module):
         return self.rnn(x)[0]
 
 
+class BiRNNModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.rnn = torch.nn.RNN(
+            3, 2, num_layers=2, bidirectional=True, batch_first=True
+        )
+        self.input_size = (1, 1, 3)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.rnn(x)[0]
+
+
+class BiLSTMModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.rnn = torch.nn.LSTM(
+            3, 2, num_layers=2, bidirectional=True, batch_first=True
+        )
+        self.input_size = (1, 1, 3)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.rnn(x)[0]
+
+
+class BiGRUModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.rnn = torch.nn.GRU(
+            3, 2, num_layers=2, bidirectional=True, batch_first=True
+        )
+        self.input_size = (1, 1, 3)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.rnn(x)[0]
+
+
 def test_rnn_conversion():
     model = RNNModel()
     params = minimal_params()
@@ -660,6 +696,36 @@ def test_gru_conversion():
     params = minimal_params()
     core = convert_model(model, core_params=params)
     assert any(n.neuron_type == "gru" for n in core.neurons)
+
+
+def test_bidirectional_multilayer_rnn_conversion():
+    model = BiRNNModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    rnn_neurons = [n for n in core.neurons if n.neuron_type == "rnn"]
+    assert len(rnn_neurons) == 2 * 2 * 2  # hidden_size * num_layers * directions
+    assert set(n.params["layer_index"] for n in rnn_neurons) == {0, 1}
+    assert set(n.params["direction"] for n in rnn_neurons) == {"forward", "reverse"}
+
+
+def test_bidirectional_multilayer_lstm_conversion():
+    model = BiLSTMModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    lstm_neurons = [n for n in core.neurons if n.neuron_type == "lstm"]
+    assert len(lstm_neurons) == 2 * 2 * 2
+    assert set(n.params["layer_index"] for n in lstm_neurons) == {0, 1}
+    assert set(n.params["direction"] for n in lstm_neurons) == {"forward", "reverse"}
+
+
+def test_bidirectional_multilayer_gru_conversion():
+    model = BiGRUModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    gru_neurons = [n for n in core.neurons if n.neuron_type == "gru"]
+    assert len(gru_neurons) == 2 * 2 * 2
+    assert set(n.params["layer_index"] for n in gru_neurons) == {0, 1}
+    assert set(n.params["direction"] for n in gru_neurons) == {"forward", "reverse"}
 
 
 def test_embeddingbag_conversion():
