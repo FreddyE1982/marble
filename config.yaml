@@ -553,6 +553,8 @@ dream_reinforcement_learning:
   episodes: 1
   dream_cycles: 1
   dream_strength: 0.5
+  dream_interval: 1
+  dream_cycle_duration: null
 
 continuous_weight_field_learning:
   enabled: false

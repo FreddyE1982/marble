@@ -1365,6 +1365,12 @@ dream_reinforcement_learning:
   episodes: Number of training episodes consisting of input-target pairs.
   dream_cycles: How many dream updates follow each real step.
   dream_strength: Multiplier applied to dream errors before weight updates.
+  dream_interval: Number of real wander steps between dream batches. ``1`` means
+    dream after every wander cycle; higher values postpone dreaming. Values must
+    be positive integers. Typical range: 1–10.
+  dream_cycle_duration: Optional pause inserted after each dream step expressed
+    in seconds (fractional values allow millisecond precision). When ``null`` no
+    additional delay is added and dream steps take their natural execution time.
 
 continuous_weight_field_learning:
   # Optimises a weight vector ``W(x)`` that varies smoothly with the input ``x``.
