@@ -57,6 +57,7 @@ CONFIG_SCHEMA = {
                 "offline": {"type": "boolean"},
                 "encryption_key": {"type": ["string", "null"]},
                 "source": {"type": ["string", "null"]},
+                "cache_url": {"type": ["string", "null"]},
                 "use_kuzu_graph": {"type": "boolean"},
                 "version_registry": {"type": ["string", "null"]},
                 "version": {"type": ["string", "null"]},

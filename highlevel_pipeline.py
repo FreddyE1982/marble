@@ -10,6 +10,7 @@ import os
 import pickle
 
 import torch
+import psutil
 from dotdict import DotDict
 from config_loader import load_config
 from marble_base import MetricsVisualizer
@@ -128,6 +129,7 @@ class HighLevelPipeline:
         self.async_enabled = (
             async_enabled if async_enabled is not None else pipeline_cfg.get("async_enabled", False)
         )
+        self.default_memory_limit_mb = pipeline_cfg.get("default_step_memory_limit_mb")
 
     def set_bit_dataset_params(self, **params: Any) -> None:
         """Update default parameters for :class:`BitTensorDataset`."""
@@ -377,6 +379,12 @@ class HighLevelPipeline:
                 else:
                     new_params[k] = v
             params = new_params
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            process = psutil.Process()
+            cpu_before = process.memory_info().rss
+            gpu_before = (
+                torch.cuda.memory_allocated(device) if device.type == "cuda" else 0
+            )
             sig = inspect.signature(func)
             kwargs = {}
             for name, p in sig.parameters.items():
@@ -413,8 +421,18 @@ class HighLevelPipeline:
                 and isinstance(result, list)
             ):
                 epochs = int(step.get("params", {}).get("epochs", 1))
-                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
                 self._train_neuronenblitz(current_marble, result, device, epochs=epochs)
+            cpu_after = process.memory_info().rss
+            gpu_after = (
+                torch.cuda.memory_allocated(device) if device.type == "cuda" else 0
+            )
+            usage = max(cpu_after - cpu_before, gpu_after - gpu_before)
+            limit_mb = step.get("memory_limit_mb", self.default_memory_limit_mb)
+            if limit_mb is not None and usage > limit_mb * 1024 * 1024:
+                step_name = step.get("name") or step.get("func") or "callable"
+                raise MemoryError(
+                    f"Step '{step_name}' exceeded memory limit of {limit_mb} MB"
+                )
             results.append(result)
         return current_marble, results
 
@@ -467,6 +485,12 @@ class HighLevelPipeline:
                 else:
                     new_params[k] = v
             params = new_params
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            process = psutil.Process()
+            cpu_before = process.memory_info().rss
+            gpu_before = (
+                torch.cuda.memory_allocated(device) if device.type == "cuda" else 0
+            )
             sig = inspect.signature(func)
             kwargs = {}
             for name, p in sig.parameters.items():
@@ -503,12 +527,22 @@ class HighLevelPipeline:
                 and isinstance(result, list)
             ):
                 epochs = int(step.get("params", {}).get("epochs", 1))
-                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
                 await loop.run_in_executor(
                     None,
                     lambda: self._train_neuronenblitz(
                         current_marble, result, device, epochs=epochs
                     ),
+                )
+            cpu_after = process.memory_info().rss
+            gpu_after = (
+                torch.cuda.memory_allocated(device) if device.type == "cuda" else 0
+            )
+            usage = max(cpu_after - cpu_before, gpu_after - gpu_before)
+            limit_mb = step.get("memory_limit_mb", self.default_memory_limit_mb)
+            if limit_mb is not None and usage > limit_mb * 1024 * 1024:
+                step_name = step.get("name") or step.get("func") or "callable"
+                raise MemoryError(
+                    f"Step '{step_name}' exceeded memory limit of {limit_mb} MB"
                 )
             results.append(result)
         return current_marble, results

@@ -7,7 +7,13 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from dataset_loader import load_dataset, prefetch_dataset, export_dataset
+import dataset_loader
+from dataset_loader import (
+    load_dataset,
+    prefetch_dataset,
+    export_dataset,
+    load_training_data_from_config,
+)
 from marble import DataLoader
 from tests.dataset_harness import BitTensorDatasetHarness
 
@@ -142,6 +148,26 @@ def test_offline_mode(tmp_path):
     assert pairs == [(9, 10)]
     with pytest.raises(FileNotFoundError):
         load_dataset(url, cache_dir=tmp_path / "missing", offline=True)
+
+
+def test_cache_url_used(monkeypatch, tmp_path):
+    cfg = {
+        "source": "http://example.com/data.csv",
+        "cache_dir": str(tmp_path),
+        "cache_url": "http://cache.example.com",
+    }
+
+    recorded = {}
+
+    def fake_download(url, path):
+        recorded["url"] = url
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("input,target\n1,2\n")
+
+    monkeypatch.setattr(dataset_loader, "_download_file", fake_download)
+    pairs = load_training_data_from_config(cfg)
+    assert recorded["url"] == "http://cache.example.com/data.csv"
+    assert pairs == [(1, 2)]
 
 
 def test_prefetch_dataset(tmp_path):
