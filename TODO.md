@@ -1183,18 +1183,18 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Add precompilation phase in training initialization.
     - [x] Provide CLI flag to toggle precompilation.
     - [x] Benchmark speed improvements on sample models.
-309. [ ] Offer multi-step undo for dataset modifications via core services.
+309. [x] Offer multi-step undo for dataset modifications via core services.
     - [x] Track modification history with unique IDs.
     - [x] Implement undo stack supporting multiple levels.
-    - [ ] Expose CLI and GUI controls to revert operations.
+    - [x] Expose CLI and GUI controls to revert operations.
         - [x] Expose CLI controls to revert operations.
-        - [ ] Expose GUI controls to revert operations.
+        - [x] Expose GUI controls to revert operations.
     - [x] Add tests covering undo and redo logic.
-310. [ ] Update remote datasets incrementally during long experiments.
-    - [ ] Detect dataset changes and compute delta patches.
-    - [ ] Sync remote storage with incremental updates.
-    - [ ] Provide progress reporting for each sync.
-    - [ ] Add tests verifying no data loss.
+310. [x] Update remote datasets incrementally during long experiments.
+    - [x] Detect dataset changes and compute delta patches.
+    - [x] Sync remote storage with incremental updates.
+    - [x] Provide progress reporting for each sync.
+    - [x] Add tests verifying no data loss.
 311. [x] Use a plugin-based scheduler for asynchronous tasks.
     - [x] Define scheduler plugin interface.
     - [x] Implement default thread and asyncio scheduler plugins.
