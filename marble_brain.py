@@ -10,6 +10,7 @@ import torch
 
 from backup_utils import BackupScheduler
 from dream_replay_buffer import DreamReplayBuffer
+from dream_scheduler import DreamScheduler
 from marble_core import TIER_REGISTRY, MemorySystem
 from marble_imports import *
 from marble_lobes import LobeManager
@@ -261,6 +262,9 @@ class Brain:
         self.dream_replay_batch_size = dream_replay_batch_size
         self.dream_instant_buffer_size = dream_instant_buffer_size
         self.dream_housekeeping_threshold = dream_housekeeping_threshold
+        self.dream_scheduler = DreamScheduler(
+            self.neuronenblitz, self.dream_buffer, self.dream_replay_batch_size
+        )
         self.model_name = model_name
         self.checkpoint_format = checkpoint_format
         self.checkpoint_compress = checkpoint_compress
@@ -823,15 +827,13 @@ class Brain:
     def dream(self, num_cycles=10):
         print("Dreaming started...")
         for cycle in range(num_cycles):
-            batch = self.dream_buffer.sample(self.dream_replay_batch_size)
-            for exp in batch:
-                self.neuronenblitz.train_example(exp.input_value, exp.target_value)
+            replayed = self.dream_scheduler.replay()
             random_input = random.uniform(0.0, 1.0)
             output, path = self.neuronenblitz.dynamic_wander(random_input)
             for syn in path:
                 syn.weight *= self.compute_dream_decay()
             print(
-                f"Dream cycle {cycle+1}/{num_cycles}: output = {output:.4f}, path length = {len(path)}"
+                f"Dream cycle {cycle+1}/{num_cycles}: output = {output:.4f}, path length = {len(path)}, replayed = {replayed}"
             )
             time.sleep(self.dream_cycle_sleep)
         print("Dreaming completed.")

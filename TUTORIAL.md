@@ -2894,6 +2894,15 @@ dream_replay_batch_size: 8
    brain.start_dreaming(num_cycles=3, interval=2)
    ```
 
+4. **Manually run consolidation cycles** when background dreaming is
+   disabled or additional replay is desired:
+   ```python
+   from dream_scheduler import DreamScheduler
+
+   scheduler = DreamScheduler(marble.neuronenblitz, brain.dream_buffer, batch_size=8)
+   scheduler.run(2)
+   ```
+
 **Complete Example**
 ```python
 # project42_dream_replay.py
