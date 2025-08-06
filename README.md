@@ -1207,6 +1207,23 @@ Each template provides executable scaffolding with clearly marked
 sections for custom data loading and processing so projects can be
 bootstrapped quickly.
 
+## Dream Replay Scheduler
+
+Dream consolidation can be automated via ``DreamScheduler`` which samples
+high-salience memories from the ``DreamReplayBuffer`` and replays them
+through a ``Neuronenblitz`` instance.  Low-salience experiences are
+pruned after each cycle.
+
+```python
+from dream_scheduler import DreamScheduler
+
+scheduler = DreamScheduler(marble.neuronenblitz, marble.brain.dream_buffer, batch_size=8)
+scheduler.run(3)
+```
+
+The scheduler transparently works on CPU or GPU depending on the
+``Neuronenblitz`` device.
+
 ## Release Process
 To publish a new release to PyPI:
 1. Update the version number in `pyproject.toml` and `setup.py`.
