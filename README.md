@@ -117,6 +117,12 @@ pipeline. Invalid or corrupted pairs can be removed at any time with
 ``BitTensorDataset.prune_invalid`` which accepts a callback to check decoded
 objects.
 
+Serialised datasets can also act as a lightweight interchange format for
+knowledge transfer. The helper ``transfer_dataset_knowledge`` round-trips a
+``BitTensorDataset`` through JSON and trains a target ``Neuronenblitz`` on
+CPU or GPU, making it easy to ship training examples from one model to
+another regardless of hardware.
+
 ### Streaming Dataset Step
 
 ``StreamingDatasetStep`` wraps a ``BitTensorDataset`` iterator and prefetches
