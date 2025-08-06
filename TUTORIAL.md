@@ -467,6 +467,30 @@ pipe.execute(cache_dir="cache")  # second run loads from disk
    ```
    The helper moves tensors back to the CPU for scoring and empties the GPU cache between trials so even long searches run reliably on limited hardware.
 
+13. **Benchmark multiple configurations** using `benchmark_training_configs`:
+   ```python
+   import csv, urllib.request
+   from pathlib import Path
+   from benchmark_config_training import benchmark_training_configs
+
+   url = "https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
+   raw = urllib.request.urlopen(url).read().decode("utf-8").splitlines()[1:51]
+   reader = csv.reader(raw, delimiter=";")
+   data = [(float(r[0]), float(r[-1])) for r in reader]
+
+   Path("config1.yaml").write_text("brain:\n  manual_seed: 0\nneuronenblitz:\n  learning_rate: 0.01\n")
+   Path("config2.yaml").write_text("brain:\n  manual_seed: 0\nneuronenblitz:\n  learning_rate: 0.02\n")
+
+   results, best_path = benchmark_training_configs(
+       data,
+       ["config1.yaml", "config2.yaml"],
+   )
+   print("Best configuration:", best_path)
+   ```
+   The function trains a fresh MARBLE instance for each YAML file, reports
+   validation loss for every configuration and renames the best performing file
+   to `best_config.yaml`.
+
 **Complete Example**
 ```python
 # project1_numeric_regression.py
