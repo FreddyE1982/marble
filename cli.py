@@ -90,6 +90,11 @@ def main() -> None:
         type=float,
         help="Backoff factor for remote call retries",
     )
+    parser.add_argument(
+        "--quantize",
+        type=int,
+        help="Quantize tensors to the specified bit width (1-8)",
+    )
     args = parser.parse_args()
 
     if args.sync_config:
@@ -128,6 +133,8 @@ def main() -> None:
         overrides["network"]["remote_client"]["max_retries"] = args.remote_retries
     if args.remote_backoff is not None:
         overrides["network"]["remote_client"]["backoff_factor"] = args.remote_backoff
+    if args.quantize is not None:
+        overrides["core"]["quantization_bits"] = args.quantize
     if args.causal_attention:
         overrides["core"]["attention_causal"] = True
     marble = create_marble_from_config(args.config, overrides=overrides)

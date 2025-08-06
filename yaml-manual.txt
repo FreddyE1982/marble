@@ -994,6 +994,16 @@ data_compressor:
     quick general-purpose compression while ``"lzma"`` can provide higher ratios
     at the expense of CPU time. Set according to your network bandwidth and CPU
     availability.
+  quantization_bits: If greater than ``0`` each array passed through the
+    DataCompressor is uniformly quantized to the specified bit width before
+    compression. Lower bit widths drastically reduce size at the cost of
+    numerical precision. The same value is exposed as ``core.quantization_bits``
+    and can be toggled via the ``--quantize`` CLI flag.
+  sparse_threshold: Optional floating point value between ``0`` and ``1``. When
+    set, arrays whose non-zero element fraction falls below this threshold are
+    converted to ``scipy.sparse.csr_matrix`` prior to compression. This yields
+    significant memory savings for synapse matrices or other large, mostly zero
+    tensors.
 
 dataloader:
   # Settings for the ``DataLoader`` which serializes and compresses data.

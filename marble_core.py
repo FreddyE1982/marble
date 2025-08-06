@@ -1424,6 +1424,8 @@ class DataLoader:
         track_metadata: bool = True,
         round_trip_penalty: float = 0.0,
         enable_round_trip_check: bool = False,
+        quantization_bits: int = 0,
+        sparse_threshold: float | None = None,
     ) -> None:
         self.compressor = (
             compressor
@@ -1431,6 +1433,8 @@ class DataLoader:
             else DataCompressor(
                 level=compression_level,
                 compression_enabled=compression_enabled,
+                quantization_bits=quantization_bits,
+                sparse_threshold=sparse_threshold,
             )
         )
         self.metrics_visualizer = metrics_visualizer

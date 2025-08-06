@@ -369,6 +369,10 @@ Each entry is listed under its section heading.
 ## data_compressor
 - compression_level
 - compression_enabled
+- delta_encoding
+- compression_algorithm
+- quantization_bits
+- sparse_threshold
 ## remote_hardware
 - tier_plugin: Import path of a module exposing ``get_remote_tier`` used to
   instantiate a custom remote hardware tier.
@@ -376,8 +380,6 @@ Each entry is listed under its section heading.
   implementation.
 - grpc.max_retries: Number of times to retry gRPC calls on failure.
 - grpc.backoff_factor: Multiplier for exponential backoff between retries.
-- delta_encoding
-- compression_algorithm
 
 ## dataloader
 - tensor_dtype

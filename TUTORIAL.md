@@ -544,6 +544,12 @@ All following project scripts assume a ``dataloader`` created as in
 Project&nbsp;1 so that text input is tokenized consistently. Only the dataset
 URL or loading routine changes.
 
+**Optional – Enable Quantized Compression:** Set ``core.quantization_bits: 4``
+in your ``config.yaml`` or launch training with ``python cli.py --quantize 4``
+to store activations and synapse matrices using 4-bit packed tensors. This
+significantly reduces memory use with negligible impact on accuracy for many
+tasks.
+
 ## Project 2 – Image Classification (Medium)
 
 **Goal:** Use the built-in asynchronous training and evolutionary tools on an image dataset.

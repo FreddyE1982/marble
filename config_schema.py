@@ -83,6 +83,8 @@ CONFIG_SCHEMA = {
                 "compression_enabled": {"type": "boolean"},
                 "delta_encoding": {"type": "boolean"},
                 "compression_algorithm": {"type": "string", "enum": ["zlib", "lzma"]},
+                "quantization_bits": {"type": "integer", "minimum": 0, "maximum": 8},
+                "sparse_threshold": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
             },
         },
         "dataloader": {

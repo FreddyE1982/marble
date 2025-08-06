@@ -98,6 +98,8 @@ class MARBLE:
         track_meta = True
         enable_rtc = False
         rt_penalty = 0.0
+        q_bits = 0
+        sparse_threshold = None
         if dataloader_params is not None:
             dl_level = dataloader_params.get("compression_level", dl_level)
             dl_enabled = dataloader_params.get("compression_enabled", True)
@@ -105,6 +107,8 @@ class MARBLE:
             track_meta = dataloader_params.get("track_metadata", True)
             enable_rtc = dataloader_params.get("enable_round_trip_check", False)
             rt_penalty = dataloader_params.get("round_trip_penalty", 0.0)
+            q_bits = dataloader_params.get("quantization_bits", 0)
+            sparse_threshold = dataloader_params.get("sparse_threshold")
             tok_type = dataloader_params.get("tokenizer_type")
             tok_json = dataloader_params.get("tokenizer_json")
             tok_vocab = dataloader_params.get("tokenizer_vocab_size", 30000)
@@ -125,6 +129,8 @@ class MARBLE:
             track_metadata=track_meta,
             enable_round_trip_check=enable_rtc,
             round_trip_penalty=rt_penalty,
+            quantization_bits=q_bits,
+            sparse_threshold=sparse_threshold,
         )
 
         nb_defaults = {

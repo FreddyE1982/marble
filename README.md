@@ -118,6 +118,10 @@ conversion, reducing dataset size when storing large objects. Encoding and
 decoding operations are accelerated with vectorised PyTorch kernels that run on
 CPU or GPU automatically. You can also pass an existing ``vocab`` dictionary to
 reuse the same mapping across multiple datasets for consistent encoding.
+Quantization and sparse matrix support further reduce footprint: set
+``core.quantization_bits`` (or ``--quantize`` on the CLI) to pack tensors into
+compact bit representations and automatically convert large, mostly zero arrays
+into ``scipy.sparse`` matrices when beneficial.
 ``BitTensorDataset.summary`` provides quick statistics about the stored pairs,
 vocabulary size, device placement and now also the total and average byte
 footprint for convenient logging. Datasets can be serialised to JSON with
