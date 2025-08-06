@@ -1307,6 +1307,11 @@ meta_learning:
     before the meta update is applied. Typically between 1 and 5.
   meta_lr: Step size used when blending task weights back into the
     primary network. Values around ``0.1`` work well for most setups.
+  distill_alpha: Weight for self-distillation loss. Set between ``0.0`` and
+    ``1.0`` to blend the KL divergence between current and previous epoch
+    logits into the training objective. ``0.0`` disables distillation while
+    values like ``0.1``–``0.5`` encourage gradual alignment of predictions
+    over time.
 transfer_learning:
   # Fine-tune a pretrained model while keeping a portion of synapses fixed.
   # ``freeze_fraction`` controls what percentage of synapses are marked as

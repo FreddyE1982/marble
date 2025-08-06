@@ -844,6 +844,28 @@ This project covers **autograd integration** and the **PyTorch challenge** mecha
 4. **Generate text** once training completes by calling `advanced_gpt.generate_text(marble.brain, 'Once upon a time')`.
 5. **Optionally distill** the knowledge to a smaller network with `DistillationTrainer` by loading a saved model and training a student brain against it.
 
+### Self-Distillation Over Time
+
+To encourage the model to refine its own predictions across epochs, enable
+``meta_learning.distill_alpha`` in ``config.yaml`` and train with
+``advanced_gpt.train_advanced_gpt``'s ``distill_alpha`` parameter:
+
+```python
+dataset, vocab = advanced_gpt.load_text_dataset(cfg['gpt']['dataset_path'])
+model, losses, kls = advanced_gpt.train_advanced_gpt(
+    dataset,
+    vocab_size=len(vocab),
+    block_size=cfg['gpt']['block_size'],
+    epochs=3,
+    distill_alpha=0.2,
+)
+print(kls)
+```
+
+This saves ``logits.pkl`` after each epoch and returns a list of KL divergence
+values that can be visualised in the Streamlit dashboard to inspect how model
+predictions align over time.
+
 **Complete Example**
 ```python
 # project5_gpt_training.py

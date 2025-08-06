@@ -252,7 +252,7 @@ def create_marble_from_config(
             gpt_cfg.get("vocab_size", 50),
             gpt_cfg.get("block_size", 8),
         )
-        marble.gpt_model, _ = train_advanced_gpt(
+        marble.gpt_model, _, _ = train_advanced_gpt(
             dataset,
             vocab_size=gpt_cfg.get("vocab_size", 50),
             block_size=gpt_cfg.get("block_size", 8),
@@ -262,5 +262,6 @@ def create_marble_from_config(
             epochs=gpt_cfg.get("num_train_steps", 1),
             lr=gpt_cfg.get("learning_rate", 1e-3),
             batch_size=gpt_cfg.get("batch_size", 1),
+            distill_alpha=cfg.get("meta_learning", {}).get("distill_alpha", 0.0),
         )
     return marble
