@@ -591,7 +591,15 @@ class Brain:
         filename = f"brain_{timestamp}.pkl"
         filepath = os.path.join(self.save_dir, filename)
         with open(filepath, "wb") as f:
-            pickle.dump({"core": self.core, "neuronenblitz": self.neuronenblitz}, f)
+            pickle.dump(
+                {
+                    "core": self.core,
+                    "neuronenblitz": self.neuronenblitz,
+                    "dream_buffer": self.dream_buffer,
+                    "neuromodulatory_system": self.neuromodulatory_system,
+                },
+                f,
+            )
         self.saved_model_paths.append(filepath)
         if len(self.saved_model_paths) > self.max_saved_models:
             old_file = self.saved_model_paths.pop(0)
@@ -610,6 +618,10 @@ class Brain:
             data = pickle.load(f)
             self.core = data["core"]
             self.neuronenblitz = data["neuronenblitz"]
+            self.dream_buffer = data.get("dream_buffer", self.dream_buffer)
+            self.neuromodulatory_system = data.get(
+                "neuromodulatory_system", self.neuromodulatory_system
+            )
         print(f"Model loaded from {filepath}")
 
     def save_checkpoint(self, path: str, epoch: int) -> None:
@@ -623,6 +635,8 @@ class Brain:
             "lobe_manager": self.lobe_manager,
             "random_state": random.getstate(),
             "numpy_state": np.random.get_state(),
+            "dream_buffer": self.dream_buffer,
+            "neuromodulatory_system": self.neuromodulatory_system,
         }
         if (
             self.dataloader is not None
@@ -663,6 +677,10 @@ class Brain:
         self.meta_controller = state["meta_controller"]
         self.memory_system = state["memory_system"]
         self.lobe_manager = state["lobe_manager"]
+        self.dream_buffer = state.get("dream_buffer", self.dream_buffer)
+        self.neuromodulatory_system = state.get(
+            "neuromodulatory_system", self.neuromodulatory_system
+        )
         random.setstate(state["random_state"])
         np.random.set_state(state["numpy_state"])
         if "tokenizer_json" in state and self.dataloader is not None:

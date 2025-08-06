@@ -8,6 +8,7 @@ from marble_core import Core, DataLoader
 from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain
 from neuromodulatory_system import NeuromodulatorySystem
+from dream_replay_buffer import DreamExperience
 import torch
 
 from tests.test_core_functions import minimal_params
@@ -33,6 +34,11 @@ def test_brain_save_and_load(tmp_path):
                        weight_update_fn=weight_update_fn)
     brain = Brain(core, nb, DataLoader(), save_dir=str(tmp_path))
 
+    brain.dream_buffer.add(
+        DreamExperience(0.1, 0.2, reward=0.3, emotion=0.4, arousal=0.5, stress=0.6)
+    )
+    brain.dream_buffer.merge_instant_buffer()
+    brain.neuromodulatory_system.update_signals(arousal=0.7)
     brain.save_model()
     assert len(brain.saved_model_paths) == 1
     saved_path = brain.saved_model_paths[0]
@@ -43,6 +49,8 @@ def test_brain_save_and_load(tmp_path):
     brain.load_model(saved_path)
     assert isinstance(brain.core, Core)
     assert len(brain.core.neurons) != old_count
+    assert len(brain.dream_buffer.buffer) == 1
+    assert brain.neuromodulatory_system.get_context()["arousal"] == 0.7
 
 
 def test_metrics_visualizer_update():
@@ -115,3 +123,25 @@ def test_train_with_pytorch_dataloader_and_infer(tmp_path):
     assert isinstance(out, float)
     tensor_out = new_brain.infer(0.1, tensor=True)
     assert not isinstance(tensor_out, float)
+
+
+def test_checkpoint_persists_dream_and_neuromod_state(tmp_path):
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    brain = Brain(core, nb, DataLoader(), save_dir=str(tmp_path))
+    brain.dream_buffer.add(
+        DreamExperience(0.1, 0.2, reward=0.3, emotion=0.4, arousal=0.5, stress=0.6)
+    )
+    brain.dream_buffer.merge_instant_buffer()
+    brain.neuromodulatory_system.update_signals(stress=0.9)
+    ckpt = tmp_path / "state.pkl"
+    brain.save_checkpoint(str(ckpt), epoch=2)
+
+    new_core = Core(params)
+    new_nb = Neuronenblitz(new_core)
+    new_brain = Brain(new_core, new_nb, DataLoader(), save_dir=str(tmp_path))
+    epoch = new_brain.load_checkpoint(str(ckpt))
+    assert epoch == 2
+    assert len(new_brain.dream_buffer.buffer) == 1
+    assert new_brain.neuromodulatory_system.get_context()["stress"] == 0.9
