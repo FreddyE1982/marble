@@ -1507,4 +1507,4 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 - [x] Orchestrate dream scheduler combining replay, weighting and housekeeping steps.
 - [x] Persist replay buffers and neuromodulatory state in model snapshots.
 - [x] Create integration tests verifying dreaming state survives save/load cycles.
-- [ ] Benchmark learning performance with and without dream consolidation.
+- [x] Benchmark learning performance with and without dream consolidation.
