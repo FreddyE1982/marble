@@ -598,7 +598,8 @@ Call ``server.stop()`` to shut it down.
 
 The `serve_model` pipeline plugin starts the HTTP inference server during pipeline
 execution.  The server stays active after the step completes, allowing immediate
-remote queries.
+remote queries.  When a step omits ``params`` the plugin falls back to the
+``serve_model`` section of ``config.yaml`` for ``host`` and ``port`` defaults.
 
 ```python
 from pipeline import Pipeline
@@ -916,7 +917,9 @@ Documenting the parameters of each run with the new experiment tracker makes it 
 
 Evaluate models with deterministic dataset splits using the `cross_validation` module.
 The helper ensures identical folds across runs and automatically routes tensors
-to CPU or GPU depending on availability.
+to CPU or GPU depending on availability. When ``folds`` or ``seed`` parameters are
+omitted they default to the values specified under ``cross_validation`` in
+``config.yaml``.
 
 ```python
 from cross_validation import cross_validate

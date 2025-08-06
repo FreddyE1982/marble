@@ -1,13 +1,16 @@
 import time
 
+import time
 import requests
 import torch
+import yaml
+import config_loader
 
 from marble_brain import Brain
 from marble_core import Core, DataLoader
 from marble_neuronenblitz import Neuronenblitz
 from pipeline import Pipeline
-from pipeline_plugins import PLUGIN_REGISTRY
+from pipeline_plugins import PLUGIN_REGISTRY, ServeModelPlugin
 from tests.test_core_functions import minimal_params
 
 
@@ -61,3 +64,14 @@ def test_serve_model_plugin_gpu():
         assert resp.status_code == 200
     finally:
         info["server"].stop()
+
+
+def test_serve_model_defaults_from_config(tmp_path, monkeypatch):
+    cfg = config_loader.load_config()
+    cfg["serve_model"] = {"host": "localhost", "port": 5095}
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text(yaml.safe_dump(cfg))
+    monkeypatch.setattr(config_loader, "DEFAULT_CONFIG_FILE", cfg_path)
+    plugin = ServeModelPlugin()
+    assert plugin.host == "localhost"
+    assert plugin.port == 5095

@@ -3138,6 +3138,7 @@ device used during execution.
 
    scores = cross_validate(train, metric, dataset, folds=5, seed=0)
    print(scores)
+   # ``folds`` and ``seed`` fall back to ``config.yaml`` when omitted
    ```
 
    The Iris dataset originates from the UCI repository: https://archive.ics.uci.edu/dataset/53/iris
@@ -3159,6 +3160,9 @@ device used during execution.
    # interact with the server then stop
    info['server'].stop()
    ```
+
+   Omitting the ``params`` block makes the plugin look up ``host`` and ``port``
+   in ``config.yaml``.
 
 ## Project: Tracking the MARBLE Topology in Kùzu
 
