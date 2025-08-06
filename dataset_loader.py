@@ -383,9 +383,13 @@ def load_training_data_from_config(
         "offline",
         "num_shards",
         "shard_index",
+        "cache_url",
     ]:
         if key in dataset_cfg:
-            kwargs[key] = dataset_cfg[key]
+            if key == "cache_url":
+                kwargs["cache_server_url"] = dataset_cfg[key]
+            else:
+                kwargs[key] = dataset_cfg[key]
 
     pairs = load_dataset(source, dataloader=dataloader, **kwargs)
     registry = dataset_cfg.get("version_registry")
