@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import torch
 import yaml
 
 import tensor_backend as tb
@@ -13,7 +14,6 @@ from plugin_system import load_plugins
 from remote_hardware import load_remote_tier_plugin
 from remote_offload import RemoteBrainClient, RemoteBrainServer
 from torrent_offload import BrainTorrentClient, BrainTorrentTracker
-import torch
 
 DEFAULT_CONFIG_FILE = Path(__file__).resolve().parent / "config.yaml"
 
@@ -284,7 +284,10 @@ def create_marble_from_config(
     if ac_cfg.get("enabled", False):
         from attention_codelets import activate as activate_codelets
 
-        activate_codelets(coalition_size=ac_cfg.get("coalition_size", 1))
+        activate_codelets(
+            coalition_size=ac_cfg.get("coalition_size", 1),
+            salience_weight=core_params.get("salience_weight", 1.0),
+        )
     if qbits:
         from model_quantization import quantize_core_weights
 

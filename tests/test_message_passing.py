@@ -1,16 +1,16 @@
+import math
 import os
 import random
 import sys
-import math
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import numpy as np
-import tensor_backend as tb
 
+import marble_core
+import tensor_backend as tb
+from core.message_passing import AttentionModule
 from marble_base import MetricsVisualizer
 from marble_core import Core, perform_message_passing
-from core.message_passing import AttentionModule
-import marble_core
 from tests.test_core_functions import minimal_params
 
 
@@ -238,6 +238,21 @@ def test_representation_variance_metric_updated():
         n.representation = np.random.rand(4)
     perform_message_passing(core, metrics_visualizer=mv)
     assert mv.metrics["representation_variance"], "Metric not updated"
+
+
+def test_show_message_progress(monkeypatch):
+    params = minimal_params()
+    params["show_message_progress"] = True
+    core = Core(params)
+    called = {"flag": False}
+
+    def fake_pmp(*args, **kwargs):
+        called["flag"] = kwargs.get("show_progress", False)
+        return 0.0
+
+    monkeypatch.setattr(marble_core, "perform_message_passing", fake_pmp)
+    core.run_message_passing()
+    assert called["flag"] is True
 
 
 def test_gating_blocks_zero_signal():
