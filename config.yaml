@@ -35,6 +35,7 @@ topology_graph:
 pipeline:
   async_enabled: false  # Execute HighLevelPipeline steps asynchronously when true
   cache_dir: null       # Directory for cached step outputs; defaults to pipeline_cache_gpu or pipeline_cache_cpu
+  default_step_memory_limit_mb: null  # Maximum memory per step in megabytes; null disables enforcement
 
 tool_manager:
   enabled: false        # When true the ToolManagerPlugin allows external tool use

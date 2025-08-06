@@ -33,6 +33,8 @@ Each entry is listed under its section heading.
 ## pipeline
 - async_enabled
 - cache_dir
+- default_step_memory_limit_mb
+- memory_limit_mb (step field limiting memory in MB)
 - macro (step field allowing a list of sub-steps)
 - tier (step field selecting a remote hardware tier)
 - depends_on (step field listing prerequisite step names)

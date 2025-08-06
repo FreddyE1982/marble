@@ -1173,21 +1173,23 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 306. [x] Provide a dedicated test harness for bit tensor functions.
     - [x] Create helper class for generating datasets.
     - [x] Integrate harness with existing tests.
-307. [ ] Enforce memory quotas per pipeline step.
-    - [ ] Introduce configuration parameter for per-step memory limit.
-    - [ ] Instrument steps to track allocated memory.
-    - [ ] Abort or queue step when quota exceeded.
-    - [ ] Add tests simulating quota breaches.
+307. [x] Enforce memory quotas per pipeline step.
+    - [x] Introduce configuration parameter for per-step memory limit.
+    - [x] Instrument steps to track allocated memory.
+    - [x] Abort or queue step when quota exceeded.
+    - [x] Add tests simulating quota breaches.
 308. [ ] Precompile compute graphs to accelerate training.
     - [ ] Implement graph caching for repeated computations.
     - [ ] Add precompilation phase in training initialization.
     - [ ] Provide CLI flag to toggle precompilation.
     - [ ] Benchmark speed improvements on sample models.
 309. [ ] Offer multi-step undo for dataset modifications via core services.
-    - [ ] Track modification history with unique IDs.
-    - [ ] Implement undo stack supporting multiple levels.
+    - [x] Track modification history with unique IDs.
+    - [x] Implement undo stack supporting multiple levels.
     - [ ] Expose CLI and GUI controls to revert operations.
-    - [ ] Add tests covering undo and redo logic.
+        - [x] Expose CLI controls to revert operations.
+        - [ ] Expose GUI controls to revert operations.
+    - [x] Add tests covering undo and redo logic.
 310. [ ] Update remote datasets incrementally during long experiments.
     - [ ] Detect dataset changes and compute delta patches.
     - [ ] Sync remote storage with incremental updates.

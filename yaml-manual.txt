@@ -100,6 +100,12 @@ pipeline:
     is chosen automatically: ``pipeline_cache_gpu`` when a CUDA device is
     available or ``pipeline_cache_cpu`` otherwise. Use ``HighLevelPipeline.clear_cache()``
     to remove cached files when space is needed.
+  default_step_memory_limit_mb: Global cap on the additional memory each step
+    may allocate, measured in megabytes. The pipeline records CPU and GPU
+    allocations for every step and raises a ``MemoryError`` when the usage
+    exceeds this limit. Set to ``null`` to disable enforcement. Individual
+    steps can override the global quota by providing a ``memory_limit_mb``
+    field in their step definition.
   macro: A step may include a ``macro`` field containing a list of sub-step
     dictionaries. These sub-steps execute sequentially and return a list of
     results, allowing complex workflows to be bundled into a single step within
@@ -118,6 +124,10 @@ pipeline:
     GPU device and returns the result to the parent pipeline. Use this for
     experimental or unstable operations to prevent crashes from affecting the
     main run.
+  memory_limit_mb: Optional field specifying the maximum additional memory in
+    megabytes that the step is permitted to allocate. It overrides
+    ``default_step_memory_limit_mb`` and causes a ``MemoryError`` when the
+    allocation is exceeded.
 
 tool_manager:
   enabled: Toggle that activates the ``ToolManagerPlugin``. When ``true`` the
