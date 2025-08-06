@@ -6,6 +6,8 @@ import random
 import tarfile
 import threading
 import time
+import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
 
@@ -564,6 +566,7 @@ class Neuronenblitz:
         loss_module=None,
         weight_update_fn=None,
         plasticity_threshold=10.0,
+        parallel_wanderers: int = 1,
     ):
         self.core = core
         self.backtrack_probability = backtrack_probability
@@ -597,9 +600,11 @@ class Neuronenblitz:
             else (lambda source, error, path_len: (error * source) / (path_len + 1))
         )
 
-        self.training_history = []
+        self.training_history: list[dict] = []
         self.global_activation_count = 0
         self.dataloader = None
+        self.parallel_wanderers = max(1, int(parallel_wanderers))
+        self._lock = threading.Lock()
 
     def reset_neuron_values(self):
         for neuron in self.core.neurons:
@@ -720,38 +725,103 @@ class Neuronenblitz:
                 )
 
     def train_example(self, input_value, target_value, dream_buffer=None):
+        """Train on a single example in a reentrant, thread-safe manner.
+
+        The forward pass and error computation are performed without acquiring
+        locks so multiple workers can run concurrently.  Weight updates and
+        history bookkeeping are guarded by an internal lock to ensure
+        thread safety.  The method does not depend on any global state and may
+        therefore be invoked safely from multiple threads.
+        """
+
         output_value, path = self.dynamic_wander(input_value)
         error = self._compute_loss(target_value, output_value)
         if self.dataloader is not None:
             error += self.dataloader.round_trip_penalty_for(input_value)
         path_length = len(path)
-        for syn in path:
-            source_value = self.core.neurons[syn.source].value
-            delta = self.weight_update_fn(source_value, error, path_length)
-            syn.weight += delta
-            if random.random() < self.consolidation_probability:
-                syn.weight *= self.consolidation_strength
-        if dream_buffer is not None:
-            reward = max(1.0 - abs(float(error)), 0.0)
-            exp = DreamExperience(
-                input_value=float(input_value),
-                target_value=float(target_value),
-                reward=reward,
-                emotion=0.5,
-                arousal=0.5,
-                stress=0.0,
+        with self._lock:
+            for syn in path:
+                source_value = self.core.neurons[syn.source].value
+                delta = self.weight_update_fn(source_value, error, path_length)
+                syn.weight += delta
+                if random.random() < self.consolidation_probability:
+                    syn.weight *= self.consolidation_strength
+            if dream_buffer is not None:
+                reward = max(1.0 - abs(float(error)), 0.0)
+                exp = DreamExperience(
+                    input_value=float(input_value),
+                    target_value=float(target_value),
+                    reward=reward,
+                    emotion=0.5,
+                    arousal=0.5,
+                    stress=0.0,
+                )
+                dream_buffer.add(exp)
+            self.training_history.append(
+                {
+                    "input": input_value,
+                    "target": target_value,
+                    "output": output_value,
+                    "error": error,
+                    "path_length": path_length,
+                }
             )
-            dream_buffer.add(exp)
-        self.training_history.append(
-            {
-                "input": input_value,
-                "target": target_value,
-                "output": output_value,
-                "error": error,
-                "path_length": path_length,
-            }
-        )
         return output_value, error, path
+
+    def train_in_parallel(self, train_examples, dream_buffer=None, max_workers=None):
+        """Train on ``train_examples`` using a pool of worker threads.
+
+        Parameters
+        ----------
+        train_examples:
+            Iterable of ``(input_value, target_value)`` pairs.
+        dream_buffer:
+            Optional buffer used by each worker.
+        max_workers:
+            Override the number of worker threads.  ``None`` uses the
+            ``parallel_wanderers`` value from the configuration.
+
+        Returns
+        -------
+        dict
+            Aggregated metrics containing average error and path length per
+            worker.  Individual worker summaries are logged via the standard
+            ``logging`` system.
+        """
+
+        logger = logging.getLogger(__name__)
+        workers = max_workers or self.parallel_wanderers
+        metrics: dict[int, list[tuple[float, int]]] = {}
+
+        def _worker(idx, example):
+            out, err, path = self.train_example(*example, dream_buffer=dream_buffer)
+            metrics.setdefault(idx, []).append((err, len(path)))
+            return out, err, path
+
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = []
+            for idx, ex in enumerate(train_examples):
+                futures.append(executor.submit(_worker, idx % workers, ex))
+            for f in as_completed(futures):
+                f.result()
+
+        summaries = {}
+        for wid, vals in metrics.items():
+            avg_err = sum(v[0] for v in vals) / len(vals)
+            avg_path = sum(v[1] for v in vals) / len(vals)
+            summaries[wid] = {
+                "avg_error": avg_err,
+                "avg_path_length": avg_path,
+                "examples": len(vals),
+            }
+            logger.info(
+                "Worker %s processed %s examples: avg_error=%.6f avg_path=%.2f",
+                wid,
+                len(vals),
+                avg_err,
+                avg_path,
+            )
+        return summaries
 
     def train(self, examples, epochs=1, dream_buffer=None):
         for epoch in range(epochs):
@@ -1154,6 +1224,7 @@ class MARBLE:
             "loss_module": None,
             "weight_update_fn": None,
             "plasticity_threshold": 10.0,
+            "parallel_wanderers": 1,
         }
         if nb_params is not None:
             nb_defaults.update(nb_params)
@@ -1173,6 +1244,7 @@ class MARBLE:
             loss_module=nb_defaults["loss_module"],
             weight_update_fn=nb_defaults["weight_update_fn"],
             plasticity_threshold=nb_defaults["plasticity_threshold"],
+            parallel_wanderers=nb_defaults["parallel_wanderers"],
         )
 
         brain_defaults = {

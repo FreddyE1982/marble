@@ -1257,29 +1257,29 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Add `core.backend` to `config.yaml` with fallback to NumPy and document in `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
     - [x] Test Mandelbrot output consistency across backends.
 
-320. [ ] Introduce parallel Neuronenblitz workers.
-    - [ ] Refactor `Neuronenblitz.train_example()` to be stateless and reentrant.
-        - [ ] Remove global state dependencies.
-        - [ ] Guard internal structures for thread safety.
-        - [ ] Document reentrant assumptions in docstrings.
-    - [ ] Implement `train_in_parallel()` using `concurrent.futures.ThreadPoolExecutor`.
-        - [ ] Create worker wrapper around `train_example`.
-        - [ ] Manage executor lifecycle and exception handling.
-        - [ ] Aggregate gradients and metrics from workers.
-    - [ ] Add `neuronenblitz.parallel_wanderers` to config with default 1 and document it.
-        - [ ] Add parameter to `config.yaml` and CLI.
-        - [ ] Describe usage in `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
-        - [ ] Provide defaults and edge-case guidance.
-    - [ ] Log worker-level metrics like average path length and divergence.
-        - [ ] Record metrics within each worker loop.
-        - [ ] Aggregate and report per-worker summaries.
-    - [ ] Benchmark speedup on multi-core CPUs.
-        - [ ] Design benchmark comparing single vs multi-worker.
-        - [ ] Capture wall-clock time and throughput.
-        - [ ] Summarize findings in docs.
-    - [ ] Write tests for parallel wanderers.
-        - [ ] Ensure deterministic results with one worker.
-        - [ ] Validate scaling behavior with multiple workers.
+320. [x] Introduce parallel Neuronenblitz workers.
+    - [x] Refactor `Neuronenblitz.train_example()` to be stateless and reentrant.
+        - [x] Remove global state dependencies.
+        - [x] Guard internal structures for thread safety.
+        - [x] Document reentrant assumptions in docstrings.
+    - [x] Implement `train_in_parallel()` using `concurrent.futures.ThreadPoolExecutor`.
+        - [x] Create worker wrapper around `train_example`.
+        - [x] Manage executor lifecycle and exception handling.
+        - [x] Aggregate gradients and metrics from workers.
+    - [x] Add `neuronenblitz.parallel_wanderers` to config with default 1 and document it.
+        - [x] Add parameter to `config.yaml` and CLI.
+        - [x] Describe usage in `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
+        - [x] Provide defaults and edge-case guidance.
+    - [x] Log worker-level metrics like average path length and divergence.
+        - [x] Record metrics within each worker loop.
+        - [x] Aggregate and report per-worker summaries.
+    - [x] Benchmark speedup on multi-core CPUs.
+        - [x] Design benchmark comparing single vs multi-worker.
+        - [x] Capture wall-clock time and throughput.
+        - [x] Summarize findings in docs.
+    - [x] Write tests for parallel wanderers.
+        - [x] Ensure deterministic results with one worker.
+        - [x] Validate scaling behavior with multiple workers.
 
 321. [ ] Add quantization and sparse tensor support.
     - [x] Implement `QuantizedTensor` class with `.to_dense()` and `.to_bits()`.
