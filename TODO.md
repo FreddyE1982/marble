@@ -1502,8 +1502,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 
 - [x] Tag training and ingestion pathways with emotion, arousal and stress values.
 - [x] Expose configurable weighting functions for dream replay beyond linear and exponential.
-- [ ] Implement mental housekeeping to prune low-importance connections during dreams.
-- [ ] Add short-term instant replay buffer and merge into long-term buffer.
+- [x] Implement mental housekeeping to prune low-importance connections during dreams.
+- [x] Add short-term instant replay buffer and merge into long-term buffer.
 - [ ] Orchestrate dream scheduler combining replay, weighting and housekeeping steps.
 - [ ] Persist replay buffers and neuromodulatory state in model snapshots.
 - [ ] Create integration tests verifying dreaming state survives save/load cycles.

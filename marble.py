@@ -790,6 +790,8 @@ class Brain:
         dream_replay_weighting: str = "linear",
         dream_cycle_sleep: float = 0.1,
         dream_synapse_decay: float = 0.995,
+        dream_instant_buffer_size: int = 10,
+        dream_housekeeping_threshold: float = 0.05,
     ):
         self.core = core
         self.neuronenblitz = neuronenblitz
@@ -805,11 +807,16 @@ class Brain:
         self.dream_thread = None
 
         self.dream_buffer = DreamReplayBuffer(
-            dream_replay_buffer_size, weighting=dream_replay_weighting
+            dream_replay_buffer_size,
+            weighting=dream_replay_weighting,
+            instant_capacity=dream_instant_buffer_size,
+            housekeeping_threshold=dream_housekeeping_threshold,
         )
         self.dream_replay_batch_size = dream_replay_batch_size
         self.dream_cycle_sleep = dream_cycle_sleep
         self.dream_synapse_decay = dream_synapse_decay
+        self.dream_instant_buffer_size = dream_instant_buffer_size
+        self.dream_housekeeping_threshold = dream_housekeeping_threshold
 
         os.makedirs(self.save_dir, exist_ok=True)
         self.best_validation_loss = float("inf")
@@ -1164,6 +1171,13 @@ class MARBLE:
             "torrent_offload_enabled": False,
             "pytorch_model": None,
             "pytorch_input_size": None,
+            "dream_replay_buffer_size": 100,
+            "dream_replay_batch_size": 8,
+            "dream_replay_weighting": "linear",
+            "dream_cycle_sleep": 0.1,
+            "dream_synapse_decay": 0.995,
+            "dream_instant_buffer_size": 10,
+            "dream_housekeeping_threshold": 0.05,
         }
         if brain_params is not None:
             brain_defaults.update(brain_params)
@@ -1179,6 +1193,13 @@ class MARBLE:
             torrent_offload_enabled=brain_defaults["torrent_offload_enabled"],
             pytorch_model=brain_defaults["pytorch_model"],
             pytorch_input_size=brain_defaults["pytorch_input_size"],
+            dream_replay_buffer_size=brain_defaults["dream_replay_buffer_size"],
+            dream_replay_batch_size=brain_defaults["dream_replay_batch_size"],
+            dream_replay_weighting=brain_defaults["dream_replay_weighting"],
+            dream_cycle_sleep=brain_defaults["dream_cycle_sleep"],
+            dream_synapse_decay=brain_defaults["dream_synapse_decay"],
+            dream_instant_buffer_size=brain_defaults["dream_instant_buffer_size"],
+            dream_housekeeping_threshold=brain_defaults["dream_housekeeping_threshold"],
         )
 
         self.metrics_visualizer = MetricsVisualizer()

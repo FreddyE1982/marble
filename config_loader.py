@@ -2,8 +2,9 @@ from pathlib import Path
 
 import yaml
 
+import tensor_backend as tb
 from config_schema import validate_config_schema
-from marble_core import MemorySystem, TIER_REGISTRY
+from marble_core import TIER_REGISTRY, MemorySystem
 from marble_main import MARBLE
 from meta_parameter_controller import MetaParameterController
 from neuromodulatory_system import NeuromodulatorySystem
@@ -11,8 +12,6 @@ from plugin_system import load_plugins
 from remote_hardware import load_remote_tier_plugin
 from remote_offload import RemoteBrainClient, RemoteBrainServer
 from torrent_offload import BrainTorrentClient, BrainTorrentTracker
-
-import tensor_backend as tb
 
 DEFAULT_CONFIG_FILE = Path(__file__).resolve().parent / "config.yaml"
 
@@ -89,9 +88,6 @@ def create_marble_from_config(
     neuro_base_neurons = brain_params.pop("neurogenesis_base_neurons", 5)
     neuro_base_synapses = brain_params.pop("neurogenesis_base_synapses", 10)
     super_evolution_mode = brain_params.pop("super_evolution_mode", False)
-    brain_params.pop("dream_replay_buffer_size", None)
-    brain_params.pop("dream_replay_batch_size", None)
-    brain_params.pop("dream_replay_weighting", None)
 
     formula = cfg.get("formula")
     formula_num_neurons = cfg.get("formula_num_neurons", 100)

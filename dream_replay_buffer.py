@@ -37,12 +37,29 @@ class DreamExperience:
 
 
 class DreamReplayBuffer:
-    """Store past experiences for memory consolidation during dreams."""
+    """Store past experiences for memory consolidation during dreams.
 
-    def __init__(self, capacity: int, weighting: str = "linear") -> None:
+    The buffer consists of a short-term *instant* buffer capturing the most
+    recent experiences and a long-term buffer used for consolidated replay. The
+    ``merge_instant_buffer`` method moves data from the instant buffer into the
+    long-term store where salience-based eviction and optional housekeeping are
+    applied.
+    """
+
+    def __init__(
+        self,
+        capacity: int,
+        weighting: str = "linear",
+        *,
+        instant_capacity: int = 10,
+        housekeeping_threshold: float = 0.05,
+    ) -> None:
         self.capacity = int(capacity)
         self.weighting = weighting
         self.buffer: Deque[DreamExperience] = deque()
+        self.instant_capacity = int(instant_capacity)
+        self.instant_buffer: Deque[DreamExperience] = deque()
+        self.housekeeping_threshold = float(housekeeping_threshold)
 
     # ------------------------------------------------------------------
     def _apply_weighting(self, saliences: np.ndarray) -> np.ndarray:
@@ -53,7 +70,7 @@ class DreamReplayBuffer:
         if self.weighting == "exponential":
             return np.exp(saliences)
         if self.weighting == "quadratic":
-            return saliences ** 2
+            return saliences**2
         if self.weighting == "sqrt":
             return np.sqrt(saliences)
         if self.weighting == "uniform":
@@ -61,25 +78,48 @@ class DreamReplayBuffer:
         raise ValueError(f"Unknown weighting: {self.weighting}")
 
     def __len__(self) -> int:  # pragma: no cover - trivial
-        return len(self.buffer)
+        return len(self.buffer) + len(self.instant_buffer)
 
     # ------------------------------------------------------------------
-    def add(self, exp: DreamExperience) -> None:
-        """Add an experience with salience-based eviction."""
+    def _insert(self, exp: DreamExperience) -> None:
+        """Insert ``exp`` into the long-term buffer with salience eviction."""
 
         if len(self.buffer) < self.capacity:
             self.buffer.append(exp)
             return
-        # Evict lowest salience item if buffer full
         idx, min_exp = min(enumerate(self.buffer), key=lambda x: x[1].salience)
         if exp.salience > min_exp.salience:
             self.buffer[idx] = exp
-        # else: drop new experience
+
+    def merge_instant_buffer(self) -> None:
+        """Merge short-term experiences into the long-term buffer."""
+
+        while self.instant_buffer:
+            self._insert(self.instant_buffer.popleft())
+        self.housekeeping()
+
+    def housekeeping(self) -> None:
+        """Prune experiences below the housekeeping threshold."""
+
+        if self.housekeeping_threshold <= 0:
+            return
+        self.buffer = deque(
+            [e for e in self.buffer if e.salience >= self.housekeeping_threshold],
+            maxlen=self.capacity,
+        )
+
+    def add(self, exp: DreamExperience) -> None:
+        """Add an experience to the instant buffer."""
+
+        self.instant_buffer.append(exp)
+        if len(self.instant_buffer) >= self.instant_capacity:
+            self.merge_instant_buffer()
 
     # ------------------------------------------------------------------
     def sample(self, batch_size: int) -> List[DreamExperience]:
         """Sample a batch biased toward high-salience experiences."""
 
+        self.merge_instant_buffer()
         if not self.buffer:
             return []
         batch_size = min(batch_size, len(self.buffer))

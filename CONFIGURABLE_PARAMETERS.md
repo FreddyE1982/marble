@@ -433,6 +433,9 @@ Each entry is listed under its section heading.
 - dream_replay_batch_size
 - dream_replay_weighting: Sampling strategy for the dream replay buffer
   ("linear", "exponential", "quadratic", "sqrt", "uniform").
+- dream_instant_buffer_size
+- dream_housekeeping_threshold: Minimum salience (0-1) below which experiences
+  are pruned during dream housekeeping
 - super_evolution_mode
 
 ## autograd
