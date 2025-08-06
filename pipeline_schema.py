@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """JSON schema for validating pipeline step configurations.
 
 Each step must define a ``name`` and either a ``func``, ``plugin`` or
@@ -7,6 +5,8 @@ Each step must define a ``name`` and either a ``func``, ``plugin`` or
 as well.  :func:`validate_step_schema` raises ``jsonschema.ValidationError`` if
 a step does not conform to the expected structure.
 """
+
+from __future__ import annotations
 
 import jsonschema
 
@@ -20,6 +20,7 @@ STEP_SCHEMA: dict = {
         "plugin": {"type": "string"},
         "depends_on": {"type": "array", "items": {"type": "string"}},
         "tier": {"type": "string"},
+        "memory_limit_mb": {"type": ["number", "null"], "minimum": 0},
         "branches": {
             "type": "array",
             "items": {

@@ -79,6 +79,15 @@ CONFIG_SCHEMA = {
                 "log_file": {"type": ["string", "null"]},
             },
         },
+        "pipeline": {
+            "type": "object",
+            "properties": {
+                "default_step_memory_limit_mb": {
+                    "type": ["number", "null"],
+                    "minimum": 0,
+                }
+            },
+        },
         "scheduler": {
             "type": "object",
             "properties": {"plugin": {"type": "string"}},

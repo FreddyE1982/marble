@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Callable, Iterable, Mapping, Protocol
 
 import networkx as nx
+import psutil
 import torch
 
 import global_workspace
@@ -318,9 +319,13 @@ class Pipeline:
         self, nb: Neuronenblitz, dataset, device: torch.device, epochs: int = 1
     ) -> None:
         """Train ``nb`` on ``dataset`` ensuring tensors reside on ``device``."""
-        
+
         def _decode(t: torch.Tensor):
-            if isinstance(t, torch.Tensor) and t.dtype in {torch.uint8, torch.int32, torch.int64}:
+            if isinstance(t, torch.Tensor) and t.dtype in {
+                torch.uint8,
+                torch.int32,
+                torch.int64,
+            }:
                 try:
                     return bytes_to_object(tensors_to_bytes(t.cpu()))
                 except Exception:
@@ -337,7 +342,9 @@ class Pipeline:
             for batch in dataset:
                 inputs = batch.get("inputs")
                 targets = batch.get("targets")
-                if not isinstance(inputs, torch.Tensor) or not isinstance(targets, torch.Tensor):
+                if not isinstance(inputs, torch.Tensor) or not isinstance(
+                    targets, torch.Tensor
+                ):
                     continue
                 pairs = []
                 for inp_t, tgt_t in zip(inputs, targets):
@@ -517,6 +524,7 @@ class Pipeline:
         run_profile_path: str | Path | None = None,
         run_profiler: "RunProfiler | None" = None,
         pre_estimate: bool = True,
+        default_memory_limit_mb: float | None = None,
     ) -> list[Any]:
         results: list[Any] = []
         self._summaries = []
@@ -572,6 +580,11 @@ class Pipeline:
                 profiler.start(step_name, device)
             for hook in self._pre_hooks.get(step_name, []):
                 hook(step, marble, device)
+            process = psutil.Process()
+            cpu_before = process.memory_info().rss
+            gpu_before = (
+                torch.cuda.memory_allocated(device) if device.type == "cuda" else 0
+            )
             start = time.perf_counter()
             result = None
             executed = True
@@ -711,6 +724,14 @@ class Pipeline:
                 self._train_neuronenblitz(marble, result, device, epochs=epochs)
             for hook in self._post_hooks.get(step_name, []):
                 result = hook(step, result, marble, device)
+            cpu_after = process.memory_info().rss
+            gpu_after = (
+                torch.cuda.memory_allocated(device) if device.type == "cuda" else 0
+            )
+            usage = max(cpu_after - cpu_before, gpu_after - gpu_before)
+            limit = step.get("memory_limit_mb", default_memory_limit_mb)
+            if memory_manager is not None:
+                memory_manager.notify_step_usage(step_name, usage, limit)
             runtime = time.perf_counter() - start if executed else 0.0
             results.append(result)
             global_event_bus.publish(
@@ -752,8 +773,10 @@ class Pipeline:
                     summary = {"step": func_name, **info}
                 except Exception:
                     pass
-            if summary:
-                self._summaries.append(summary)
+            if summary is None:
+                summary = {"step": func_name}
+            summary["memory_mb"] = usage / (1024**2)
+            self._summaries.append(summary)
             if profiler:
                 profiler.end()
         if export_path is not None and marble is not None:

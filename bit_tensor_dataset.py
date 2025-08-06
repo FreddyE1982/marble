@@ -2,26 +2,27 @@
 
 from __future__ import annotations
 
-import pickle
-import json
-import msgpack
-import json
 import base64
 import hashlib
-from collections import Counter
-from typing import Any, Iterable, Callable
-from dataclasses import dataclass
+import json
 import mmap
-import requests
 import os
-import aiohttp
+import pickle
 import threading
+import uuid
+from collections import Counter
+from dataclasses import dataclass
+from typing import Any, Callable, Iterable
 
+import aiohttp
+import msgpack
+import requests
 import torch
 from torch.utils.data import Dataset
-from memory_pool import MemoryPool
-from crypto_utils import constant_time_compare, encrypt_bytes, decrypt_bytes
+
+from crypto_utils import constant_time_compare, decrypt_bytes, encrypt_bytes
 from data_compressor import DataCompressor
+from memory_pool import MemoryPool
 
 
 @dataclass(slots=True)
@@ -53,7 +54,9 @@ def augment_bit_tensor(
         noise_mask = (rand >= flip_probability) & (
             rand < flip_probability + noise_probability
         )
-        random_bits = torch.randint(0, 2, result.shape, device=result.device, dtype=result.dtype)
+        random_bits = torch.randint(
+            0, 2, result.shape, device=result.device, dtype=result.dtype
+        )
         result = torch.where(noise_mask, random_bits, result)
     return result
 
@@ -91,7 +94,9 @@ def bytes_to_object(b: bytes, *, serializer: str = "pickle") -> Any:
     raise ValueError(f"unknown serializer {serializer}")
 
 
-def bytes_to_tensors(bytes_obj: bytes, device: str | torch.device | None = None) -> torch.Tensor:
+def bytes_to_tensors(
+    bytes_obj: bytes, device: str | torch.device | None = None
+) -> torch.Tensor:
     """Convert bytes to a ``(n, 8)`` uint8 tensor representing bits.
 
     Parameters
@@ -105,7 +110,7 @@ def bytes_to_tensors(bytes_obj: bytes, device: str | torch.device | None = None)
     """
 
     arr = torch.tensor(list(bytes_obj), dtype=torch.uint8, device=device)
-    masks = (1 << torch.arange(7, -1, -1, dtype=torch.uint8, device=arr.device))
+    masks = 1 << torch.arange(7, -1, -1, dtype=torch.uint8, device=arr.device)
     bits = arr.unsqueeze(1).bitwise_and(masks).ne(0).to(torch.uint8)
     return bits
 
@@ -260,7 +265,9 @@ def encode_with_vocab(
     return result
 
 
-def decode_with_vocab(encoded: list[int], vocab: dict[tuple[int, ...], int]) -> list[int]:
+def decode_with_vocab(
+    encoded: list[int], vocab: dict[tuple[int, ...], int]
+) -> list[int]:
     """Expand vocabulary tokens back into bit patterns."""
     inverse = {v: list(k) for k, v in vocab.items()}
     result: list[int] = []
@@ -346,7 +353,9 @@ class BitTensorDataset(Dataset):
         self.max_word_length = max_word_length
         self.min_occurrence = min_occurrence
         self.device = (
-            torch.device("cuda") if device is None and torch.cuda.is_available() else torch.device(device or "cpu")
+            torch.device("cuda")
+            if device is None and torch.cuda.is_available()
+            else torch.device(device or "cpu")
         )
         self.compress = compress
         self.compressor = DataCompressor(
@@ -399,6 +408,7 @@ class BitTensorDataset(Dataset):
         self.checksums = self._build_index()
 
         self._history: list[list[tuple[Any, Any]]] = []
+        self._history_ids: list[str] = []
         self._history_index: int = -1
         self._snapshot()
 
@@ -567,7 +577,10 @@ class BitTensorDataset(Dataset):
         next_id = max(self.vocab.values(), default=self.start_id - 1) + 1
         for pattern in new_vocab:
             if pattern not in self.vocab:
-                if self.max_vocab_size is not None and len(self.vocab) >= self.max_vocab_size:
+                if (
+                    self.max_vocab_size is not None
+                    and len(self.vocab) >= self.max_vocab_size
+                ):
                     break
                 self.vocab[pattern] = next_id
                 next_id += 1
@@ -629,10 +642,14 @@ class BitTensorDataset(Dataset):
 
         for pair in self.data:
             pair.inp = augment_bit_tensor(
-                pair.inp, flip_probability=flip_probability, noise_probability=noise_probability
+                pair.inp,
+                flip_probability=flip_probability,
+                noise_probability=noise_probability,
             )
             pair.tgt = augment_bit_tensor(
-                pair.tgt, flip_probability=flip_probability, noise_probability=noise_probability
+                pair.tgt,
+                flip_probability=flip_probability,
+                noise_probability=noise_probability,
             )
         self._snapshot()
 
@@ -686,10 +703,14 @@ class BitTensorDataset(Dataset):
         inp_obj = None
         tgt_obj = None
         if input_url is not None:
-            data = await _read_stream_async(input_url, chunk_size, max_bytes, timeout, session)
+            data = await _read_stream_async(
+                input_url, chunk_size, max_bytes, timeout, session
+            )
             inp_obj = input_processor(data) if input_processor else data
         if target_url is not None:
-            data = await _read_stream_async(target_url, chunk_size, max_bytes, timeout, session)
+            data = await _read_stream_async(
+                target_url, chunk_size, max_bytes, timeout, session
+            )
             tgt_obj = target_processor(data) if target_processor else data
 
         if inp_obj is None or tgt_obj is None:
@@ -739,7 +760,10 @@ class BitTensorDataset(Dataset):
         """
 
         total_elements = sum(p.inp.numel() + p.tgt.numel() for p in self.data)
-        total_bytes = sum(p.inp.element_size() * p.inp.numel() + p.tgt.element_size() * p.tgt.numel() for p in self.data)
+        total_bytes = sum(
+            p.inp.element_size() * p.inp.numel() + p.tgt.element_size() * p.tgt.numel()
+            for p in self.data
+        )
         avg_len = float(total_elements) / len(self.data) if self.data else 0.0
         avg_bytes = float(total_bytes) / len(self.data) if self.data else 0.0
         return {
@@ -759,7 +783,6 @@ class BitTensorDataset(Dataset):
         for pair in self.data:
             self.pair_pool.release(pair)
         self.data.clear()
-
 
     def save_vocab(self, path: str) -> None:
         if self.vocab is None:
@@ -1190,18 +1213,24 @@ class BitTensorDataset(Dataset):
 
         return _make(train_raw), _make(val_raw), _make(test_raw)
 
-    def merge(self, other: "BitTensorDataset", *, prefer: str = "self") -> "BitTensorDataset":
+    def merge(
+        self, other: "BitTensorDataset", *, prefer: str = "self"
+    ) -> "BitTensorDataset":
         """Merge two datasets resolving conflicts by ``prefer``."""
 
         if prefer not in {"self", "other", "raise"}:
             raise ValueError("prefer must be 'self', 'other' or 'raise'")
 
         result: dict[str, tuple[Any, Any]] = {
-            hashlib.sha256(object_to_bytes(i, serializer=self.serializer)).hexdigest(): (i, t)
+            hashlib.sha256(
+                object_to_bytes(i, serializer=self.serializer)
+            ).hexdigest(): (i, t)
             for i, t in self.iter_decoded()
         }
         for inp, tgt in other.iter_decoded():
-            key = hashlib.sha256(object_to_bytes(inp, serializer=self.serializer)).hexdigest()
+            key = hashlib.sha256(
+                object_to_bytes(inp, serializer=self.serializer)
+            ).hexdigest()
             if key in result:
                 existing = result[key][1]
                 if existing != tgt:
@@ -1268,10 +1297,14 @@ class BitTensorDataset(Dataset):
         return padded_in, padded_out
 
     # --- Modification history helpers ---
-    def _snapshot(self) -> None:
+    def _snapshot(self) -> str:
         self._history = self._history[: self._history_index + 1]
+        self._history_ids = self._history_ids[: self._history_index + 1]
         self._history.append([(a, b) for a, b in self.raw_data])
+        snap_id = uuid.uuid4().hex
+        self._history_ids.append(snap_id)
         self._history_index += 1
+        return snap_id
 
     def _rebuild_from_raw(self) -> None:
         self.data = []
@@ -1300,6 +1333,21 @@ class BitTensorDataset(Dataset):
                 break
             self._history_index += 1
             self.raw_data = [(a, b) for a, b in self._history[self._history_index]]
+        self._rebuild_from_raw()
+
+    def history_ids(self) -> list[str]:
+        """Return list of snapshot identifiers."""
+
+        return list(self._history_ids)
+
+    def revert_to(self, snapshot_id: str) -> None:
+        """Revert dataset state to the snapshot with ``snapshot_id``."""
+
+        if snapshot_id not in self._history_ids:
+            raise ValueError(f"Unknown snapshot id {snapshot_id}")
+        idx = self._history_ids.index(snapshot_id)
+        self._history_index = idx
+        self.raw_data = [(a, b) for a, b in self._history[idx]]
         self._rebuild_from_raw()
 
     # --- Sample level transforms and async save ---
