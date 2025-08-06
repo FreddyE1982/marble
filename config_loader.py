@@ -4,6 +4,7 @@ import yaml
 
 import tensor_backend as tb
 from config_schema import validate_config_schema
+from logging_utils import configure_structured_logging
 from marble_core import TIER_REGISTRY, MemorySystem
 from marble_main import MARBLE
 from meta_parameter_controller import MetaParameterController
@@ -72,6 +73,20 @@ def create_marble_from_config(
     if overrides:
         _deep_update(cfg, overrides)
     validate_global_config(cfg)
+
+    log_cfg = cfg.get("logging", {})
+    configure_structured_logging(
+        log_cfg.get("structured", False),
+        log_cfg.get("log_file"),
+        level=log_cfg.get("level", "INFO"),
+        format=log_cfg.get("format", "%(levelname)s:%(name)s:%(message)s"),
+        datefmt=log_cfg.get("datefmt", "%Y-%m-%d %H:%M:%S"),
+        propagate=log_cfg.get("propagate", False),
+        rotate=log_cfg.get("rotate", False),
+        max_bytes=log_cfg.get("max_bytes", 10_000_000),
+        backup_count=log_cfg.get("backup_count", 5),
+        encoding=log_cfg.get("encoding", "utf-8"),
+    )
 
     plugin_dirs = cfg.get("plugins", [])
     if plugin_dirs:
