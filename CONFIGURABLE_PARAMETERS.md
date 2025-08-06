@@ -584,6 +584,8 @@ Each entry is listed under its section heading.
 - episodes
 - dream_cycles
 - dream_strength
+- dream_interval
+- dream_cycle_duration
 
 ## continuous_weight_field_learning
 - enabled

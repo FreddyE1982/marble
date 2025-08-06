@@ -1635,7 +1635,7 @@ Run `python project21_quantum_flux.py` to experiment with quantum flux updates.
 
 **Goal:** Combine dreaming with reinforcement-like updates.**
 
-1. **Enable dream reinforcement** by setting `dream_reinforcement_learning.enabled: true` in the YAML file and configure `episodes`, `dream_cycles` and `dream_strength`.
+1. **Enable dream reinforcement** by setting `dream_reinforcement_learning.enabled: true` in the YAML file and configure `episodes`, `dream_cycles`, `dream_strength`, `dream_interval` and `dream_cycle_duration`.
 2. **Instantiate the learner**:
    ```python
    from dream_reinforcement_learning import DreamReinforcementLearner
@@ -1659,7 +1659,7 @@ Run `python project21_quantum_flux.py` to experiment with quantum flux updates.
            yield obs, reward
            obs = next_obs
    ```
-5. **Train episodes** by repeatedly calling `learner.train_episode(inp, tgt)` for each step. Imaginary updates occur after each real step; `dream_cycles` controls how many of these dreaming iterations happen.
+5. **Train episodes** by repeatedly calling `learner.train_episode(inp, tgt)` for each step. Imaginary updates occur periodically based on `dream_interval`; `dream_cycles` controls how many dream iterations run once triggered, and `dream_cycle_duration` sets an optional pause after each dream step.
 
 **Complete Example**
 ```python
