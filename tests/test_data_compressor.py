@@ -61,3 +61,20 @@ def test_plugin_algorithm():
     dc = DataCompressor(algorithm="reverse")
     data = b"plugin-data"
     assert dc.decompress(dc.compress(data)) == data
+
+
+def test_quantized_array_roundtrip():
+    dc = DataCompressor(quantization_bits=4)
+    arr = np.linspace(-1, 1, 16, dtype=np.float32)
+    comp = dc.compress_array(arr)
+    restored = dc.decompress_array(comp)
+    assert np.allclose(restored, arr, atol=0.1)
+
+
+def test_sparse_array_roundtrip():
+    arr = np.zeros((10, 10), dtype=np.float32)
+    arr[0, 1] = 1.0
+    dc = DataCompressor(sparse_threshold=0.2)
+    comp = dc.compress_array(arr)
+    restored = dc.decompress_array(comp)
+    assert np.array_equal(restored, arr)

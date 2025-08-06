@@ -1286,23 +1286,23 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Define bit-packing strategy for tensors.
         - [x] Implement conversion methods for CPU and GPU.
         - [x] Provide serialization helpers.
-    - [ ] Add optional quantization in `DataCompressor` using `core.quantization_bits` and document parameter.
-        - [ ] Integrate `QuantizedTensor` into compression pipeline.
-        - [ ] Add configuration option for bit width.
-        - [ ] Update docs outlining trade-offs.
-    - [ ] Use `scipy.sparse` for large synapse matrices.
-        - [ ] Convert eligible matrices to sparse format.
-        - [ ] Provide utilities to switch between dense and sparse.
-        - [ ] Benchmark memory savings.
-    - [ ] Validate lossless forward pass for common operations.
-        - [ ] Compare quantized and dense outputs on sample layers.
-        - [ ] Track numerical error and performance.
-    - [ ] Add CLI flag `--quantize` for toggling quantization.
-        - [ ] Parse flag and map to configuration value.
-        - [ ] Document usage in CLI help and README.
-    - [ ] Write unit tests verifying quantization correctness.
-        - [ ] Test bit conversion round-trips.
-        - [ ] Validate sparse and dense paths produce same results.
+    - [x] Add optional quantization in `DataCompressor` using `core.quantization_bits` and document parameter.
+        - [x] Integrate `QuantizedTensor` into compression pipeline.
+        - [x] Add configuration option for bit width.
+        - [x] Update docs outlining trade-offs.
+    - [x] Use `scipy.sparse` for large synapse matrices.
+        - [x] Convert eligible matrices to sparse format.
+        - [x] Provide utilities to switch between dense and sparse.
+        - [x] Benchmark memory savings.
+    - [x] Validate lossless forward pass for common operations.
+        - [x] Compare quantized and dense outputs on sample layers.
+        - [x] Track numerical error and performance.
+    - [x] Add CLI flag `--quantize` for toggling quantization.
+        - [x] Parse flag and map to configuration value.
+        - [x] Document usage in CLI help and README.
+    - [x] Write unit tests verifying quantization correctness.
+        - [x] Test bit conversion round-trips.
+        - [x] Validate sparse and dense paths produce same results.
 
 322. [x] Implement causal attention and gating.
     - [x] Add `core.attention_causal` to configuration and document it.

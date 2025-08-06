@@ -122,6 +122,8 @@ def create_marble_from_config(
     compressor_cfg = cfg.get("data_compressor", {})
     compression_level = compressor_cfg.get("compression_level", 6)
     compression_enabled = compressor_cfg.get("compression_enabled", True)
+    sparse_threshold = compressor_cfg.get("sparse_threshold")
+    comp_qbits = compressor_cfg.get("quantization_bits", qbits)
     dataloader_cfg = cfg.get("dataloader", {})
     tensor_dtype = dataloader_cfg.get("tensor_dtype", "uint8")
     dataloader_params = {
@@ -131,7 +133,10 @@ def create_marble_from_config(
         "track_metadata": dataloader_cfg.get("track_metadata", True),
         "enable_round_trip_check": dataloader_cfg.get("enable_round_trip_check", False),
         "round_trip_penalty": dataloader_cfg.get("round_trip_penalty", 0.0),
+        "quantization_bits": comp_qbits,
     }
+    if sparse_threshold is not None:
+        dataloader_params["sparse_threshold"] = sparse_threshold
     for key in ["tokenizer_type", "tokenizer_json", "tokenizer_vocab_size"]:
         if key in dataloader_cfg:
             dataloader_params[key] = dataloader_cfg[key]

@@ -380,6 +380,7 @@ data_compressor:
   compression_enabled: true
   delta_encoding: false
   compression_algorithm: "zlib"
+  sparse_threshold: null
 dataloader:
   tensor_dtype: "uint8"
   track_metadata: true
