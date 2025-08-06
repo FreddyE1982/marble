@@ -1,29 +1,29 @@
-import os
-import hashlib
-import zipfile
-import pickle
 import csv
+import hashlib
 import json
-import requests
-import torch.distributed as dist
-import requests_cache
-import pandas as pd
-import threading
+import os
+import pickle
 import sys
+import threading
+import zipfile
 from typing import Any, List
-from memory_pool import MemoryPool
-from memory_manager import MemoryManager
-from marble_base import MetricsVisualizer
-from marble import DataLoader
-from tokenizer_utils import tokenize_line
+
+import pandas as pd
+import requests_cache
+import torch.distributed as dist
+from tqdm import tqdm
+
 from event_bus import global_event_bus
 from kuzu_interface import KuzuGraphDatabase
+from marble import DataLoader
+from marble_base import MetricsVisualizer
+from memory_manager import MemoryManager
+from memory_pool import MemoryPool
+from tokenizer_utils import tokenize_line
 
 _SESSION = requests_cache.CachedSession("http_cache", expire_after=86400)
 _DATASET_CACHE: dict[str, list[tuple[Any, Any]]] = {}
 _DATASET_POOL = MemoryPool(list, max_size=32)
-
-from tqdm import tqdm
 
 
 def distributed_shard(pairs: list[tuple[Any, Any]]) -> list[tuple[Any, Any]]:
@@ -55,9 +55,10 @@ def _download_file(url: str, path: str) -> None:
         r.raise_for_status()
         total = int(r.headers.get("content-length", 0))
         desc = f"Downloading {os.path.basename(path)}"
-        with open(path, "wb") as f, tqdm(
-            total=total, unit="B", unit_scale=True, desc=desc
-        ) as pbar:
+        with (
+            open(path, "wb") as f,
+            tqdm(total=total, unit="B", unit_scale=True, desc=desc) as pbar,
+        ):
             for chunk in r.iter_content(chunk_size=8192):
                 f.write(chunk)
                 pbar.update(len(chunk))
@@ -167,7 +168,10 @@ def load_dataset(
         cache_key = f"{source}:{limit}:{input_col}:{target_col}"
 
     if offline and (source.startswith("http://") or source.startswith("https://")):
-        name = os.path.basename(source) or hashlib.md5(source.encode("utf-8")).hexdigest() + ".dat"
+        name = (
+            os.path.basename(source)
+            or hashlib.md5(source.encode("utf-8")).hexdigest() + ".dat"
+        )
         cached = os.path.join(cache_dir, name)
         if not os.path.exists(cached):
             raise FileNotFoundError(f"{cached} not available in offline mode")
@@ -210,7 +214,11 @@ def load_dataset(
                             raise ValueError("Unsupported dataset format inside zip")
                 break
             except zipfile.BadZipFile:
-                if attempt == 0 and (source.startswith("http://") or source.startswith("https://")) and not offline:
+                if (
+                    attempt == 0
+                    and (source.startswith("http://") or source.startswith("https://"))
+                    and not offline
+                ):
                     _download_file(source, path)
                 else:
                     raise
@@ -249,7 +257,10 @@ def load_dataset(
         if filter_expr is None or eval(
             filter_expr,
             {"__builtins__": {}},
-            {"input": inp if dataloader is None else dataloader.decode(inp), "target": tgt if dataloader is None else dataloader.decode(tgt)},
+            {
+                "input": inp if dataloader is None else dataloader.decode(inp),
+                "target": tgt if dataloader is None else dataloader.decode(tgt),
+            },
         ):
             pairs.append((inp, tgt))
             deps.append(
@@ -278,9 +289,7 @@ def load_dataset(
         memory_manager.notify_allocation(est)
 
     if metrics_visualizer:
-        metrics_visualizer.log_event(
-            "dataset_load_end", {"pairs": len(pairs)}
-        )
+        metrics_visualizer.log_event("dataset_load_end", {"pairs": len(pairs)})
     global_event_bus.publish("dataset_load_end", {"pairs": len(pairs)})
     if return_deps:
         return pairs, deps
@@ -378,7 +387,14 @@ def load_training_data_from_config(
         if key in dataset_cfg:
             kwargs[key] = dataset_cfg[key]
 
-    return load_dataset(source, dataloader=dataloader, **kwargs)
+    pairs = load_dataset(source, dataloader=dataloader, **kwargs)
+    registry = dataset_cfg.get("version_registry")
+    version = dataset_cfg.get("version")
+    if registry and version:
+        from dataset_versioning import apply_version
+
+        pairs = apply_version(pairs, registry, version)
+    return pairs
 
 
 class StreamingCSVLoader:
@@ -390,8 +406,13 @@ class StreamingCSVLoader:
     ids is added to each row using :func:`tokenize_line`.
     """
 
-    def __init__(self, path: str, *, tokenizer: "Tokenizer | None" = None,
-                 meta_suffix: str = ".meta.json") -> None:
+    def __init__(
+        self,
+        path: str,
+        *,
+        tokenizer: Any | None = None,
+        meta_suffix: str = ".meta.json",
+    ) -> None:
         self.path = path
         self.meta_path = path + meta_suffix
         self.tokenizer = tokenizer
@@ -442,4 +463,3 @@ def clear_dataset_cache() -> None:
         data.clear()
         _DATASET_POOL.release(data)
     _DATASET_CACHE.clear()
-

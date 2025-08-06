@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import time
 from dataclasses import asdict, dataclass
-from typing import Callable, Iterable, Literal
+from typing import Callable, Iterable, List, Literal, Tuple
+
 
 class EventBus:
     """Publish/subscribe system for MARBLE events.
@@ -36,25 +37,25 @@ class EventBus:
             {"callback": callback, "filter": filt, "rate": rate_limit_hz, "last": 0.0}
         )
 
-    def publish(self, name: str, data: dict | None = None) -> None:
-        """Publish an event to all subscribers."""
-        if not self._subscribers:
-            return
-        payload = data or {}
-        now = time.time()
+    def publish(self, name: str, data: dict | None = None) -> dict:
+        """Publish an event to all subscribers and return the event payload."""
+        if not self._subscribers and data is None:
+            return {"name": name, "timestamp": time.time()}
+        event = standardise_event(name, data)
         for sub in self._subscribers:
             filt = sub["filter"]
             if filt and name not in filt:
                 continue
             rate = sub["rate"]
-            if rate and now - sub["last"] < 1.0 / rate:
+            if rate and event["timestamp"] - sub["last"] < 1.0 / rate:
                 continue
-            sub["last"] = now
+            sub["last"] = event["timestamp"]
             try:
-                sub["callback"](name, payload)
+                sub["callback"](name, event)
             except Exception:
                 # Swallow subscriber errors to avoid disrupting the main flow
                 pass
+        return event
 
 
 # ---------------------------------------------------------------------------
@@ -88,6 +89,31 @@ class ProgressEvent:
     def as_dict(self) -> dict:
         """Return the event as a regular dictionary for publishing."""
         return asdict(self)
+
+
+@dataclass
+class Event:
+    """Unified event schema for pipeline and dataset logs."""
+
+    name: str
+    timestamp: float
+    payload: dict
+
+    def to_dict(self) -> dict:
+        return {"name": self.name, "timestamp": self.timestamp, **self.payload}
+
+
+def standardise_event(name: str, data: dict | None = None) -> dict:
+    """Return a schema-compliant event dictionary."""
+
+    ev = Event(name, time.time(), data or {})
+    return ev.to_dict()
+
+
+def convert_legacy_events(records: Iterable[Tuple[str, dict]]) -> List[dict]:
+    """Convert legacy ``(name, payload)`` records to the unified schema."""
+
+    return [standardise_event(name, payload) for name, payload in records]
 
 
 # Event name used for pipeline progress notifications

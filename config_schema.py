@@ -58,6 +58,8 @@ CONFIG_SCHEMA = {
                 "encryption_key": {"type": ["string", "null"]},
                 "source": {"type": ["string", "null"]},
                 "use_kuzu_graph": {"type": "boolean"},
+                "version_registry": {"type": ["string", "null"]},
+                "version": {"type": ["string", "null"]},
                 "kuzu_graph": {
                     "type": "object",
                     "properties": {
@@ -77,6 +79,10 @@ CONFIG_SCHEMA = {
                 "log_file": {"type": ["string", "null"]},
             },
         },
+        "scheduler": {
+            "type": "object",
+            "properties": {"plugin": {"type": "string"}},
+        },
         "data_compressor": {
             "type": "object",
             "properties": {
@@ -85,7 +91,11 @@ CONFIG_SCHEMA = {
                 "delta_encoding": {"type": "boolean"},
                 "compression_algorithm": {"type": "string", "enum": ["zlib", "lzma"]},
                 "quantization_bits": {"type": "integer", "minimum": 0, "maximum": 8},
-                "sparse_threshold": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+                "sparse_threshold": {
+                    "type": ["number", "null"],
+                    "minimum": 0,
+                    "maximum": 1,
+                },
             },
         },
         "dataloader": {

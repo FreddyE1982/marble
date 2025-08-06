@@ -9,5 +9,5 @@ def test_dataset_events(tmp_path):
     vis = MetricsVisualizer(track_memory_usage=False, track_cpu_usage=False)
     mem = MemoryManager()
     load_dataset(str(path), metrics_visualizer=vis, memory_manager=mem)
-    assert any(e[0] == "dataset_load_start" for e in vis.events)
-    assert any(e[0] == "dataset_load_end" for e in vis.events)
+    assert any(e["name"] == "dataset_load_start" for e in vis.events)
+    assert any(e["name"] == "dataset_load_end" for e in vis.events)

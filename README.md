@@ -96,7 +96,8 @@ Example usage:
 
 ```bash
 python cli.py --config config.yaml --train data.csv --epochs 5 \
-    --lr-scheduler cosine --scheduler-steps 10 --save marble.pkl
+    --lr-scheduler cosine --scheduler-steps 10 --scheduler-plugin thread \
+    --save marble.pkl
 ```
 
 See ``python cli.py --help`` for the full list of options.
@@ -777,6 +778,14 @@ python highlevel_pipeline_cli.py checkpoint my_pipe.json my_pipe.pkl \
 
 python highlevel_pipeline_cli.py resume my_pipe.pkl --config config.yaml \
     --device gpu
+```
+
+Dataset diffs are created and applied using ``dataset_version_cli.py``:
+
+```bash
+python dataset_version_cli.py create base.csv new.csv --registry versions/
+python dataset_version_cli.py list --registry versions/
+python dataset_version_cli.py switch base.csv <version_id> patched.csv --registry versions/
 ```
 
 ``checkpoint`` executes the pipeline and writes a checkpoint containing the

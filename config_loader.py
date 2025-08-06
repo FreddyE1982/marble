@@ -77,6 +77,12 @@ def create_marble_from_config(
     if plugin_dirs:
         load_plugins(plugin_dirs)
 
+    # Configure asynchronous task scheduler
+    from scheduler_plugins import configure_scheduler
+
+    sched_cfg = cfg.get("scheduler", {})
+    configure_scheduler(sched_cfg.get("plugin", "thread"))
+
     core_params = cfg.get("core", {})
     tb.set_backend(core_params.get("backend", "numpy"))
     qbits = core_params.get("quantization_bits", 0)

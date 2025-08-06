@@ -33,6 +33,11 @@ def main() -> None:
     parser.add_argument(
         "--scheduler-gamma", type=float, help="Gamma for exponential scheduler"
     )
+    parser.add_argument(
+        "--scheduler-plugin",
+        choices=["thread", "asyncio"],
+        help="Plugin used to schedule asynchronous tasks",
+    )
     parser.add_argument("--min-lr", type=float, help="Minimum learning rate")
     parser.add_argument("--max-lr", type=float, help="Maximum learning rate")
     parser.add_argument(
@@ -124,6 +129,8 @@ def main() -> None:
         overrides["neuronenblitz"]["scheduler_steps"] = args.scheduler_steps
     if args.scheduler_gamma is not None:
         overrides["neuronenblitz"]["scheduler_gamma"] = args.scheduler_gamma
+    if args.scheduler_plugin:
+        overrides.setdefault("scheduler", {})["plugin"] = args.scheduler_plugin
     if args.min_lr is not None:
         overrides["neuronenblitz"]["min_learning_rate"] = args.min_lr
     if args.max_lr is not None:
