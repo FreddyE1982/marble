@@ -1470,6 +1470,17 @@ theory_of_mind:
   prediction_horizon: How many future steps are predicted when observations are
     not supplied. Small values like ``1`` or ``2`` are typical for short-term
     planning.
+  memory_slots: Number of key-value slots available for storing beliefs about
+    other agents. Each slot holds an encoded key and value vector of size
+    ``hidden_size``. Larger capacities retain more beliefs but consume more
+    memory.
+  attention_hops: How many sequential attention passes are used when querying
+    belief memory. More hops allow complex reasoning chains but increase
+    compute time. Values between ``1`` and ``3`` balance accuracy and speed.
+  mismatch_threshold: Mean squared error threshold between retrieved belief and
+    provided belief value that triggers mismatch logging. Lower values record
+    smaller discrepancies at the cost of more frequent logs. Typical range is
+    ``0.05`` to ``1.0``.
 
 predictive_coding:
   num_layers: Number of predictive coding layers arranged hierarchically.

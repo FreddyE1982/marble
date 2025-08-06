@@ -600,6 +600,9 @@ theory_of_mind:
   hidden_size: 16
   num_layers: 1
   prediction_horizon: 1
+  memory_slots: 16
+  attention_hops: 1
+  mismatch_threshold: 0.1
 
 predictive_coding:
   num_layers: 2

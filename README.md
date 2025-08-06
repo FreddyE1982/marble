@@ -844,8 +844,10 @@ closest matches and prune old entries directly from the playground.
 
 Additional plugins such as **Theory of Mind** and **Predictive Coding** can be
 activated through the YAML configuration. These modules allow MARBLE to model
-other agents' behaviour and build hierarchical predictions over time. Enable
-them by adding `theory_of_mind` or `predictive_coding` sections to
+other agents' behaviour and build hierarchical predictions over time. The
+Theory of Mind plugin now maintains a belief memory per agent with multi-hop
+attention and logs mismatches between expected and observed beliefs. Enable
+these modules by adding `theory_of_mind` or `predictive_coding` sections to
 `config.yaml` and calling the respective `activate` functions in your scripts.
 
 ## Possible MARBLE Backcronyms

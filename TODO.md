@@ -1331,22 +1331,22 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Document streaming loader in tutorials and config manuals.
     - [x] Add tests for streaming tokenization and loader functionality.
 
-324. [ ] Enhance Theory of Mind module.
-    - [ ] Add `agent_id` and `belief_state` fields to input.
-        - [ ] Extend input schemas and validation.
-        - [ ] Update serialization/deserialization logic.
-    - [ ] Encode beliefs as key-value memory slots in a new `ToMModule`.
-        - [ ] Define memory slot structure and capacity.
-        - [ ] Integrate module into existing pipeline.
-    - [ ] Add multi-hop attention over belief states.
-        - [ ] Implement attention layers supporting multiple hops.
-        - [ ] Tune hop count for efficiency.
-    - [ ] Log belief mismatches during evaluation.
-        - [ ] Define mismatch metric and thresholds.
-        - [ ] Store mismatches for post-run analysis.
-    - [ ] Write tests for belief encoding and attention.
-        - [ ] Unit test memory slot creation and retrieval.
-        - [ ] Validate attention selects correct belief states.
+324. [x] Enhance Theory of Mind module.
+    - [x] Add `agent_id` and `belief_state` fields to input.
+        - [x] Extend input schemas and validation.
+        - [x] Update serialization/deserialization logic.
+    - [x] Encode beliefs as key-value memory slots in a new `ToMModule`.
+        - [x] Define memory slot structure and capacity.
+        - [x] Integrate module into existing pipeline.
+    - [x] Add multi-hop attention over belief states.
+        - [x] Implement attention layers supporting multiple hops.
+        - [x] Tune hop count for efficiency.
+    - [x] Log belief mismatches during evaluation.
+        - [x] Define mismatch metric and thresholds.
+        - [x] Store mismatches for post-run analysis.
+    - [x] Write tests for belief encoding and attention.
+        - [x] Unit test memory slot creation and retrieval.
+        - [x] Validate attention selects correct belief states.
 
 325. [x] Implement self-distillation over time.
     - [x] Save `logits.pkl` after each epoch.
