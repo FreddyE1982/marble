@@ -98,6 +98,11 @@ def test_load_config_defaults():
     assert cfg["data_compressor"]["compression_enabled"] is True
     assert cfg["brain"]["loss_growth_threshold"] == 0.1
     assert cfg["brain"]["dream_cycle_sleep"] == 0.1
+    assert cfg["brain"]["dream_replay_buffer_size"] == 100
+    assert cfg["brain"]["dream_replay_batch_size"] == 8
+    assert cfg["brain"]["dream_replay_weighting"] == "linear"
+    assert cfg["brain"]["dream_instant_buffer_size"] == 10
+    assert cfg["brain"]["dream_housekeeping_threshold"] == 0.05
     assert cfg["lobe_manager"]["attention_increase_factor"] == 1.05
     assert cfg["lobe_manager"]["attention_decrease_factor"] == 0.95
     assert cfg["network"]["remote_server"]["enabled"] is False
@@ -157,6 +162,11 @@ def test_create_marble_from_config():
     assert marble.core.synapse_weight_decay == 0.0
     assert marble.brain.loss_growth_threshold == 0.1
     assert marble.brain.dream_cycle_sleep == 0.1
+    assert marble.brain.dream_buffer.capacity == 100
+    assert marble.brain.dream_replay_batch_size == 8
+    assert marble.brain.dream_buffer.weighting == "linear"
+    assert marble.brain.dream_buffer.instant_capacity == 10
+    assert marble.brain.dream_buffer.housekeeping_threshold == 0.05
     assert marble.brain.lobe_manager.attention_increase_factor == 1.05
     assert marble.brain.lobe_manager.attention_decrease_factor == 0.95
     assert marble.brain.super_evolution_mode is False

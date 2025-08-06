@@ -779,6 +779,17 @@ brain:
     salience items. ``"quadratic"`` squares the salience for a strong bias,
     ``"sqrt"`` uses the square root to soften differences and ``"uniform"``
     treats all memories equally.
+  dream_instant_buffer_size: Size of the short-term buffer that holds newly
+    observed experiences before consolidation. When the instant buffer reaches
+    this size it is merged into the main replay buffer. Values between ``1`` and
+    ``50`` work well in practice; larger sizes reduce merge frequency at the cost
+    of delayed consolidation.
+  dream_housekeeping_threshold: Minimum salience required for an experience to
+    remain after housekeeping during dreams. Salience is computed from reward,
+    emotion, arousal and stress and ranges from ``0`` (unimportant) to ``1``
+    (highly important). Experiences below this threshold are pruned to keep the
+    buffer focused on meaningful memories. Set to ``0`` to disable pruning
+    entirely.
   tier_decision_params:
     vram_usage_threshold: Fraction of VRAM usage that triggers migration of
       neurons to a lower tier.

@@ -534,7 +534,7 @@ URL or loading routine changes.
    mutated, pruned = marble.brain.evolve(mutation_rate=0.02, prune_threshold=0.05)
    ```
    Mutations add noise to synapses while pruning removes the least useful ones.
-10. **Enable dreaming** by setting `dream_enabled: true` in `config.yaml`. Parameters like `dream_num_cycles`, `dream_interval`, and the new `dream_replay_buffer_size` and `dream_replay_batch_size` control how frequently dream cycles run and how many past experiences they consolidate.
+10. **Enable dreaming** by setting `dream_enabled: true` in `config.yaml`. Parameters like `dream_num_cycles`, `dream_interval`, `dream_replay_buffer_size`, `dream_replay_batch_size`, `dream_instant_buffer_size`, and `dream_housekeeping_threshold` control how frequently dream cycles run, how many past experiences they consolidate, how long recent memories stay in the instant buffer, and the salience required to keep memories during housekeeping.
 
 **Complete Example**
 ```python
@@ -2865,15 +2865,22 @@ Run `python project41_chat_training.py` to experiment with live conversation fin
 2. **Enable dream replay** in the configuration:
    ```yaml
    dream_enabled: true
- dream_replay_buffer_size: 50
- dream_replay_batch_size: 8
-  dream_replay_weighting: quadratic  # linear, exponential, quadratic, sqrt or uniform
+dream_replay_buffer_size: 50
+dream_replay_batch_size: 8
+ dream_replay_weighting: quadratic  # linear, exponential, quadratic, sqrt or uniform
+ dream_instant_buffer_size: 5
+ dream_housekeeping_threshold: 0.05
   ```
    The ``dream_replay_weighting`` option controls how salience biases sampling
    from the buffer. Use ``linear`` for proportional weighting, ``exponential``
    for a sharper focus on important memories, ``quadratic`` for an even
    stronger bias, ``sqrt`` to soften differences or ``uniform`` to sample
    experiences evenly.
+   The ``dream_instant_buffer_size`` option controls how many recent
+   experiences are temporarily staged before merging into the long-term replay
+   buffer. ``dream_housekeeping_threshold`` specifies the minimum salience
+   (between ``0`` and ``1``) an experience must have to survive the pruning step
+   that runs after each merge, allowing low-importance memories to be discarded.
 
 3. **Train and trigger dreaming** to observe consolidation:
    ```python

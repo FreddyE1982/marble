@@ -1,10 +1,15 @@
+"""Core brain implementation for MARBLE."""
+
+# ruff: noqa: F401, F403, F405
 import asyncio
 import os
+import random
 import time
 
 import torch
 
 from backup_utils import BackupScheduler
+from dream_replay_buffer import DreamReplayBuffer
 from marble_core import TIER_REGISTRY, MemorySystem
 from marble_imports import *
 from marble_lobes import LobeManager
@@ -132,6 +137,11 @@ class Brain:
         loss_growth_threshold: float = 0.1,
         auto_neurogenesis_prob: float = 0.0,
         dream_cycle_sleep: float = 0.1,
+        dream_replay_buffer_size: int = 100,
+        dream_replay_batch_size: int = 8,
+        dream_replay_weighting: str = "linear",
+        dream_instant_buffer_size: int = 10,
+        dream_housekeeping_threshold: float = 0.05,
         lobe_attention_increase: float = 1.05,
         lobe_attention_decrease: float = 0.95,
         model_name: str = "marble_default",
@@ -242,6 +252,15 @@ class Brain:
         self.loss_growth_threshold = loss_growth_threshold
         self.auto_neurogenesis_prob = auto_neurogenesis_prob
         self.dream_cycle_sleep = dream_cycle_sleep
+        self.dream_buffer = DreamReplayBuffer(
+            dream_replay_buffer_size,
+            weighting=dream_replay_weighting,
+            instant_capacity=dream_instant_buffer_size,
+            housekeeping_threshold=dream_housekeeping_threshold,
+        )
+        self.dream_replay_batch_size = dream_replay_batch_size
+        self.dream_instant_buffer_size = dream_instant_buffer_size
+        self.dream_housekeeping_threshold = dream_housekeeping_threshold
         self.model_name = model_name
         self.checkpoint_format = checkpoint_format
         self.checkpoint_compress = checkpoint_compress
@@ -357,7 +376,7 @@ class Brain:
         status = self.core.get_detailed_status()
         vram_status = status.get("vram", {})
         ram_status = status.get("ram", {})
-        file_status = status.get("file", {})
+        status.get("file", {})
 
         vram_usage = vram_status.get("memory_mb", 0)
         ram_usage = ram_status.get("memory_mb", 0)
@@ -446,7 +465,12 @@ class Brain:
             if self.profiler and epoch % self.profile_interval == 0:
                 self.profiler.start_epoch()
             start_time = time.time()
-            self.neuronenblitz.train(train_examples, epochs=1)
+            try:
+                self.neuronenblitz.train(
+                    train_examples, epochs=1, dream_buffer=self.dream_buffer
+                )
+            except TypeError:
+                self.neuronenblitz.train(train_examples, epochs=1)
             self.neuronenblitz.modulate_plasticity(
                 self.neuromodulatory_system.get_context()
             )
@@ -781,6 +805,9 @@ class Brain:
     def dream(self, num_cycles=10):
         print("Dreaming started...")
         for cycle in range(num_cycles):
+            batch = self.dream_buffer.sample(self.dream_replay_batch_size)
+            for exp in batch:
+                self.neuronenblitz.train_example(exp.input_value, exp.target_value)
             random_input = random.uniform(0.0, 1.0)
             output, path = self.neuronenblitz.dynamic_wander(random_input)
             for syn in path:

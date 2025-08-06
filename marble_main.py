@@ -1,5 +1,6 @@
 # ruff: noqa: F401, F403, F405
 import os
+
 from marble import MarbleConverter
 from marble_autograd import MarbleAutogradLayer
 from marble_base import MetricsVisualizer
@@ -54,7 +55,10 @@ class MARBLE:
         }
         if mv_params is not None:
             mv_defaults.update(mv_params)
-        disable_metrics = os.environ.get("MARBLE_DISABLE_METRICS", "").lower() in ("1", "true")
+        disable_metrics = os.environ.get("MARBLE_DISABLE_METRICS", "").lower() in (
+            "1",
+            "true",
+        )
         self.metrics_visualizer = None
         if not disable_metrics:
             self.metrics_visualizer = MetricsVisualizer(
@@ -223,6 +227,11 @@ class MARBLE:
             "super_evolution_mode": False,
             "dream_decay_arousal_scale": 0.0,
             "dream_decay_stress_scale": 0.0,
+            "dream_replay_buffer_size": 100,
+            "dream_replay_batch_size": 8,
+            "dream_replay_weighting": "linear",
+            "dream_instant_buffer_size": 10,
+            "dream_housekeeping_threshold": 0.05,
         }
         if brain_params is not None:
             brain_defaults.update(brain_params)
@@ -351,7 +360,9 @@ def insert_into_torch_model(
         marble = MARBLE(config["core"])
 
     train_in_graph = mode != "transparent"
-    hooked = attach_marble_layer(model, marble, after=position, train_in_graph=train_in_graph)
+    hooked = attach_marble_layer(
+        model, marble, after=position, train_in_graph=train_in_graph
+    )
     return hooked, marble
 
 

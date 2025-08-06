@@ -311,6 +311,8 @@ brain:
   dream_replay_buffer_size: 100
   dream_replay_batch_size: 8
   dream_replay_weighting: "linear"
+  dream_instant_buffer_size: 10
+  dream_housekeeping_threshold: 0.05
   tier_decision_params:
     vram_usage_threshold: 0.9
     ram_usage_threshold: 0.9
