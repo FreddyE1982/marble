@@ -190,7 +190,9 @@ Each entry is listed under its section heading.
 - min_learning_rate
 - max_learning_rate
 - top_k_paths
-- parallel_wanderers
+- parallel_wanderers: Number of Neuronenblitz worker threads used for
+  ``train_in_parallel`` and parallel wanderers. Default ``1``; values
+  below ``1`` are treated as ``1``.
 - parallel_update_strategy
 - beam_width
 - wander_cache_ttl

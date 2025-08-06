@@ -36,6 +36,11 @@ def main() -> None:
     parser.add_argument("--min-lr", type=float, help="Minimum learning rate")
     parser.add_argument("--max-lr", type=float, help="Maximum learning rate")
     parser.add_argument(
+        "--parallel-wanderers",
+        type=int,
+        help="Number of parallel Neuronenblitz worker threads",
+    )
+    parser.add_argument(
         "--sync-interval-ms",
         type=int,
         help="Milliseconds between cross-device tensor synchronizations",
@@ -123,6 +128,8 @@ def main() -> None:
         overrides["neuronenblitz"]["min_learning_rate"] = args.min_lr
     if args.max_lr is not None:
         overrides["neuronenblitz"]["max_learning_rate"] = args.max_lr
+    if args.parallel_wanderers is not None:
+        overrides["neuronenblitz"]["parallel_wanderers"] = args.parallel_wanderers
     if args.sync_interval_ms is not None:
         overrides["sync"]["interval_ms"] = args.sync_interval_ms
     if args.early_stopping_patience is not None:

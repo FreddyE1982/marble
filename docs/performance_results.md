@@ -17,3 +17,16 @@ Ratio of second run time to first run time for five cached steps:
 |--------|------------------------|
 | CPU    | 0 additional calls |
 | GPU    | N/A |
+
+## Neuronenblitz Parallel Workers
+
+Benchmark comparing single vs two worker threads training 200 examples:
+
+| Workers | Time (s) | Throughput (examples/s) |
+|---------|---------:|-----------------------:|
+| 1       | 0.0027   | 74853.55 |
+| 2       | 0.0140   | 14243.54 |
+
+While the small benchmark shows limited benefit from two workers due to
+threading overhead, larger workloads with heavier `train_example` logic can
+observe notable speedups on multi-core CPUs.
