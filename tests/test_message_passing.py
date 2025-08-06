@@ -114,6 +114,32 @@ def test_attention_dropout_blocks_all_messages():
     assert all(np.allclose(b, a) for b, a in zip(before, after))
 
 
+def test_attention_causal_blocks_future_messages():
+    tb.set_backend("numpy")
+    np.random.seed(0)
+    params = minimal_params()
+    core = Core(params)
+    for s in core.synapses:
+        s.weight = 0.0
+    core.add_synapse(core.neurons[2].id, core.neurons[1].id, weight=1.0)
+    core.neurons[2].representation = np.ones(4)
+    core.neurons[1].representation = np.zeros(4)
+    perform_message_passing(core)
+    changed = np.linalg.norm(core.neurons[1].representation) > 0
+
+    params["attention_causal"] = True
+    core2 = Core(params)
+    for s in core2.synapses:
+        s.weight = 0.0
+    core2.add_synapse(core2.neurons[2].id, core2.neurons[1].id, weight=1.0)
+    core2.neurons[2].representation = np.ones(4)
+    core2.neurons[1].representation = np.zeros(4)
+    perform_message_passing(core2)
+    blocked = np.allclose(core2.neurons[1].representation, 0.0)
+
+    assert changed and blocked
+
+
 def test_representation_activation_relu():
     tb.set_backend("numpy")
     np.random.seed(0)
