@@ -63,6 +63,7 @@ evolution:
 # Core
 # =====
 core:
+  backend: numpy               # Tensor backend: "numpy" or "jax"
   xmin: -2.0                    # Mandelbrot minimum x value
   xmax: 1.0                     # Mandelbrot maximum x value
   ymin: -1.5                    # Mandelbrot minimum y value

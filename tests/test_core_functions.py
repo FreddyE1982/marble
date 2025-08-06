@@ -4,8 +4,10 @@ import numpy as np
 import random
 import pytest
 from marble_imports import cp
+import tensor_backend as tb
 import marble_core
 from marble_core import compute_mandelbrot, DataLoader, Core
+tb.set_backend("numpy")
 from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain
 

@@ -1,11 +1,12 @@
 import os
-from marble_core import Core
+import tensor_backend as tb
+from marble_core import Core, perform_message_passing
 from tests.test_core_functions import minimal_params
-from marble_core import perform_message_passing
 from activation_visualization import plot_activation_heatmap
 
 
 def test_activation_heatmap(tmp_path):
+    tb.set_backend("numpy")
     params = minimal_params()
     core = Core(params)
     perform_message_passing(core)

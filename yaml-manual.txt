@@ -180,6 +180,13 @@ evolution:
     to the number of local CPU cores.
 
 core:
+  backend: Selects the tensor computation library used throughout MARBLE's core
+    operations. ``numpy`` provides maximum compatibility and is the default
+    choice. ``jax`` enables differentiable execution and JIT compilation when the
+    JAX library is installed. Both backends run on CPU or GPU depending on the
+    environment. Switching this parameter changes the behaviour of seed
+    generation and message passing at runtime, allowing like-for-like experiments
+    across backends.
   xmin: Minimum X coordinate for the Mandelbrot seed. Defines the left boundary
     of the complex plane used when initializing neuron values.
   xmax: Maximum X coordinate for the seed. Together with ``xmin`` this sets the

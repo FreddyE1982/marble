@@ -5,6 +5,7 @@ import math
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import numpy as np
+import tensor_backend as tb
 
 from marble_base import MetricsVisualizer
 from marble_core import Core, perform_message_passing
@@ -13,6 +14,7 @@ from tests.test_core_functions import minimal_params
 
 
 def test_message_passing_updates_representation():
+    tb.set_backend("numpy")
     np.random.seed(0)
     params = minimal_params()
     core = Core(params)
@@ -27,6 +29,7 @@ def test_message_passing_updates_representation():
 
 
 def test_message_passing_alpha_configurable():
+    tb.set_backend("numpy")
     np.random.seed(0)
     params = minimal_params()
     params["message_passing_alpha"] = 1.0
@@ -41,6 +44,7 @@ def test_message_passing_alpha_configurable():
 
 
 def test_message_passing_no_nan(recwarn):
+    tb.set_backend("numpy")
     np.random.seed(0)
     params = minimal_params()
     core = Core(params)
@@ -54,6 +58,7 @@ def test_message_passing_no_nan(recwarn):
 
 def test_energy_threshold_blocks_neurons():
     params = minimal_params()
+    tb.set_backend("numpy")
     params["energy_threshold"] = 1.0
     core = Core(params)
     for n in core.neurons:
@@ -66,6 +71,7 @@ def test_energy_threshold_blocks_neurons():
 
 
 def test_representation_noise_applied():
+    tb.set_backend("numpy")
     np.random.seed(0)
     params = minimal_params()
     params["representation_noise_std"] = 0.5
@@ -79,6 +85,7 @@ def test_representation_noise_applied():
 
 
 def test_message_passing_dropout():
+    tb.set_backend("numpy")
     random.seed(0)
     np.random.seed(0)
     params = minimal_params()
@@ -93,6 +100,7 @@ def test_message_passing_dropout():
 
 
 def test_attention_dropout_blocks_all_messages():
+    tb.set_backend("numpy")
     random.seed(0)
     np.random.seed(0)
     params = minimal_params()
@@ -107,6 +115,7 @@ def test_attention_dropout_blocks_all_messages():
 
 
 def test_representation_activation_relu():
+    tb.set_backend("numpy")
     np.random.seed(0)
     params = minimal_params()
     params["message_passing_alpha"] = 0.0
@@ -120,6 +129,7 @@ def test_representation_activation_relu():
 
 
 def test_message_passing_beta_effect():
+    tb.set_backend("numpy")
     np.random.seed(0)
     params = minimal_params()
     params["message_passing_beta"] = 0.0
@@ -134,6 +144,7 @@ def test_message_passing_beta_effect():
 
 
 def test_run_message_passing_iterations():
+    tb.set_backend("numpy")
     np.random.seed(0)
     params = minimal_params()
     params["message_passing_iterations"] = 2
@@ -167,6 +178,7 @@ def test_layer_norm_functionality():
 
 
 def test_representation_variance_metric_updated():
+    tb.set_backend("numpy")
     np.random.seed(0)
     params = minimal_params()
     core = Core(params)
@@ -179,6 +191,7 @@ def test_representation_variance_metric_updated():
 
 def test_gating_blocks_zero_signal():
     params = minimal_params()
+    tb.set_backend("numpy")
     core = Core(params)
     for n in core.neurons:
         n.representation = np.random.rand(4)
@@ -192,6 +205,7 @@ def test_gating_blocks_zero_signal():
 
 def test_global_phase_rate_updates_phase():
     params = minimal_params()
+    tb.set_backend("numpy")
     params["global_phase_rate"] = 0.5
     core = Core(params)
     initial = core.global_phase

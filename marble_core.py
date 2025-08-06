@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import contextlib
 import copy
-import functools
 import os
 import pickle
 import random
@@ -23,6 +22,8 @@ from event_bus import global_event_bus
 from marble_base import MetricsVisualizer
 from marble_imports import *  # noqa: F401,F403,F405
 from memory_pool import MemoryPool
+from core.init_seed import compute_mandelbrot, generate_seed
+from core.message_passing import AttentionModule, perform_message_passing
 
 
 def init_distributed(world_size: int, rank: int = 0, backend: str = "gloo") -> bool:
@@ -214,141 +215,6 @@ def _simple_mlp(
     if not np.all(np.isfinite(out)):
         raise ValueError("NaN or Inf encountered in MLP output")
     return out
-
-
-class AttentionModule:
-    """Compute attention weights for message passing."""
-
-    def __init__(self, temperature: float = 1.0) -> None:
-        self.temperature = temperature
-
-    def compute(self, query: np.ndarray, keys: list[np.ndarray]) -> np.ndarray:
-        if not keys:
-            return np.array([])
-        q = np.nan_to_num(query, nan=0.0, posinf=0.0, neginf=0.0)
-        ks = [np.nan_to_num(k, nan=0.0, posinf=0.0, neginf=0.0) for k in keys]
-        dots = np.dot(ks, q) / max(self.temperature, 1e-6)
-        shifted = np.clip(dots - np.max(dots), -50, 50)
-        exps = np.exp(shifted)
-        denom = exps.sum()
-        if not np.isfinite(denom) or denom == 0:
-            return np.ones(len(ks)) / len(ks)
-        return exps / denom
-
-
-def perform_message_passing(
-    core,
-    alpha: float | None = None,
-    metrics_visualizer: "MetricsVisualizer | None" = None,
-    attention_module: "AttentionModule | None" = None,
-    *,
-    global_phase: float | None = None,
-    show_progress: bool = False,
-) -> float:
-    """Propagate representations across synapses using attention.
-
-    Parameters
-    ----------
-    core : Core
-        The :class:`Core` instance containing neurons and synapses.
-    alpha : float, optional
-        Mixing factor between the current representation and the message-passing
-        update. If ``None`` the value is read from ``core.params`` using the
-        ``message_passing_alpha`` key (default ``0.5``).
-    global_phase : float, optional
-        Phase offset applied to all synapse weights to enable oscillatory gating.
-        When omitted the value from ``core.global_phase`` is used.
-    show_progress : bool, optional
-        When ``True`` a progress bar visualises per-neuron updates.
-    """
-
-    if alpha is None:
-        alpha = core.params.get("message_passing_alpha", 0.5)
-    if attention_module is None:
-        temp = core.params.get("attention_temperature", 1.0)
-        attention_module = AttentionModule(temperature=temp)
-    if global_phase is None:
-        global_phase = getattr(core, "global_phase", 0.0)
-
-    beta = core.params.get("message_passing_beta", 1.0)
-    dropout = core.params.get("message_passing_dropout", 0.0)
-    activation = core.params.get("representation_activation", "tanh")
-    attn_dropout = core.params.get("attention_dropout", 0.0)
-    energy_thr = core.params.get("energy_threshold", 0.0)
-    noise_std = core.params.get("representation_noise_std", 0.0)
-
-    new_reps = [n.representation.copy() for n in core.neurons]
-    old_reps = [n.representation.copy() for n in core.neurons]
-    targets = core.neurons
-    pbar = None
-    if show_progress:
-        pbar = tqdm(targets, desc="MsgPass", ncols=80)
-        targets = pbar
-    for target in targets:
-        if target.energy < energy_thr:
-            continue
-        incoming = [
-            s
-            for s in core.synapses
-            if s.target == target.id and core.neurons[s.source].energy >= energy_thr
-        ]
-        if not incoming:
-            continue
-        neigh_reps = []
-        for s in incoming:
-            if dropout > 0 and random.random() < dropout:
-                continue
-            w = s.effective_weight(global_phase=global_phase)
-            neigh_reps.append(core.neurons[s.source].representation * w)
-            s.apply_side_effects(core, core.neurons[s.source].representation)
-        if not neigh_reps:
-            continue
-        target_rep = target.representation
-        attn = attention_module.compute(target_rep, neigh_reps)
-        if attn.size == 0:
-            continue
-        if attn_dropout > 0:
-            mask = np.random.rand(attn.size) >= attn_dropout
-            if not np.any(mask):
-                continue
-            attn = attn * mask
-            sum_attn = attn.sum()
-            if sum_attn == 0:
-                continue
-            attn = attn / sum_attn
-        agg = sum(attn[i] * neigh_reps[i] for i in range(len(neigh_reps)))
-        ln_enabled = core.params.get("apply_layer_norm", True)
-        mp_enabled = core.params.get("use_mixed_precision", False)
-        interm = alpha * target.representation + (1 - alpha) * _simple_mlp(
-            agg, activation, apply_layer_norm=ln_enabled, mixed_precision=mp_enabled
-        )
-        mag = float(np.linalg.norm(agg))
-        gate = 1.0 - np.exp(-mag)
-        if alpha == 0:
-            gate = 1.0 if mag > 0 else 0.0
-        interm = gate * interm + (1 - gate) * target.representation
-        updated = beta * interm + (1 - beta) * target.representation
-        if noise_std > 0:
-            updated = updated + np.random.randn(*updated.shape) * noise_std
-        new_reps[target.id] = updated
-    for idx, rep in enumerate(new_reps):
-        core.neurons[idx].representation = rep
-    diffs = [
-        float(np.linalg.norm(new_reps[i] - old_reps[i])) for i in range(len(new_reps))
-    ]
-    avg_change = float(np.mean(diffs)) if diffs else 0.0
-    if metrics_visualizer is not None:
-        rep_matrix = np.stack([n.representation for n in core.neurons])
-        variance = float(np.var(rep_matrix))
-        metrics_visualizer.update(
-            {
-                "message_passing_change": avg_change,
-                "representation_variance": variance,
-            }
-        )
-    if pbar is not None:
-        pbar.close()
-    return avg_change
 
 
 # List of supported neuron types including layer-mimicking variants
@@ -1257,60 +1123,6 @@ class Synapse:
         return out
 
 
-@functools.lru_cache(maxsize=32)
-def compute_mandelbrot(
-    xmin,
-    xmax,
-    ymin,
-    ymax,
-    width,
-    height,
-    max_iter: int = 256,
-    escape_radius: float = 2.0,
-    power: int = 2,
-    *,
-    as_numpy: bool = False,
-):
-    """Return a Mandelbrot set fragment as a 2D array.
-
-    Results are cached so repeated calls with the same parameters reuse
-    the previously computed array.
-
-    Parameters
-    ----------
-    xmin, xmax, ymin, ymax : float
-        Bounds of the complex plane section.
-    width, height : int
-        Resolution of the output grid.
-    max_iter : int, optional
-        Maximum iteration count before declaring divergence.
-    escape_radius : float, optional
-        Absolute value beyond which points are marked as diverging.
-    power : int, optional
-        Exponent applied during iteration, allowing fractal variations.
-    as_numpy : bool, optional
-        When ``True`` the result is returned as a NumPy array even if GPU
-        acceleration is available. ``False`` by default.
-    """
-
-    x = cp.linspace(xmin, xmax, width)
-    y = cp.linspace(ymin, ymax, height)
-    X, Y = cp.meshgrid(x, y)
-    C = X + 1j * Y
-    Z = cp.zeros_like(C, dtype=cp.complex64)
-    mandelbrot = cp.zeros(C.shape, dtype=cp.int32)
-    esc_sq = escape_radius * escape_radius
-    for i in range(max_iter):
-        mask = (Z.real * Z.real + Z.imag * Z.imag) <= esc_sq
-        if not mask.any():
-            break
-        Z[mask] = Z[mask] ** power + C[mask]
-        mandelbrot[mask] = i
-    if as_numpy and hasattr(cp, "asnumpy"):
-        return cp.asnumpy(mandelbrot)
-    return mandelbrot
-
-
 from data_compressor import DataCompressor
 
 
@@ -1689,21 +1501,7 @@ class Core:
                 self.neurons.append(neuron)
                 nid += 1
         else:
-            mandel_gpu = compute_mandelbrot(
-                params["xmin"],
-                params["xmax"],
-                params["ymin"],
-                params["ymax"],
-                params["width"],
-                params["height"],
-                params.get("max_iter", 256),
-                escape_radius=self.mandelbrot_escape_radius,
-                power=self.mandelbrot_power,
-            )
-            mandel_cpu = cp.asnumpy(mandel_gpu)
-            noise_std = params.get("init_noise_std", 0.0)
-            if noise_std:
-                mandel_cpu = mandel_cpu + np.random.randn(*mandel_cpu.shape) * noise_std
+            mandel_cpu = generate_seed(params)
             for val in mandel_cpu.flatten():
                 neuron = self.neuron_pool.allocate()
                 neuron.__init__(

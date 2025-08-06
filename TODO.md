@@ -1246,14 +1246,14 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 319. [ ] Integrate JAX backend for differentiability.
     - [x] Create backend abstraction layer (`tensor_backend.py`) with functions like `matmul`, `sigmoid`, and `relu`.
     - [x] Implement NumPy and JAX backend versions.
-    - [ ] Refactor Mandelbrot seed generation (`core/init_seed.py`) to use backend functions.
-        - [ ] Replace direct NumPy operations with backend wrappers.
-        - [ ] Ensure random seeds are produced via the selected backend.
-        - [ ] Add unit tests confirming identical seeds across backends.
-    - [ ] Update message passing (`core/message_passing.py`) to rely on the abstraction.
-        - [ ] Swap low-level tensor ops for backend calls.
-        - [ ] Enable runtime selection of NumPy or JAX paths.
-        - [ ] Verify message delivery equivalence with tests.
+    - [x] Refactor Mandelbrot seed generation (`core/init_seed.py`) to use backend functions.
+        - [x] Replace direct NumPy operations with backend wrappers.
+        - [x] Ensure random seeds are produced via the selected backend.
+        - [x] Add unit tests confirming identical seeds across backends.
+    - [x] Update message passing (`core/message_passing.py`) to rely on the abstraction.
+        - [x] Swap low-level tensor ops for backend calls.
+        - [x] Enable runtime selection of NumPy or JAX paths.
+        - [x] Verify message delivery equivalence with tests.
     - [x] Add `core.backend` to `config.yaml` with fallback to NumPy and document in `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
     - [x] Test Mandelbrot output consistency across backends.
 
