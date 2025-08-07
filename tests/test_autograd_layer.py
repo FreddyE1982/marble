@@ -68,3 +68,22 @@ def test_autograd_scheduler():
     loss2 = (out2 - 1.0) ** 2
     loss2.backward()
     assert layer.learning_rate < lr_before
+
+
+def test_autograd_nd_tensor_device():
+    torch.manual_seed(0)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    brain = Brain(core, nb, DataLoader())
+    layer = MarbleAutogradLayer(brain, learning_rate=0.1).to(device)
+    inp = torch.tensor([[0.5, -0.3]], device=device, requires_grad=True)
+    out = layer(inp)
+    assert out.shape == inp.shape
+    assert out.device == device
+    loss = out.sum()
+    before = [s.weight for s in core.synapses]
+    loss.backward()
+    changed = any(abs(syn.weight - before[i]) > 1e-6 for i, syn in enumerate(core.synapses))
+    assert changed

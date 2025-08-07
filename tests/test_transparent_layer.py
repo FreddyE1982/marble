@@ -5,6 +5,7 @@ from marble_core import Core, DataLoader
 from marble_neuronenblitz import Neuronenblitz
 from marble_brain import Brain
 from marble_interface import attach_marble_layer
+from marble_autograd import TransparentMarbleLayer
 from tests.test_core_functions import minimal_params
 
 
@@ -38,3 +39,19 @@ def test_attach_layer_from_file(tmp_path):
     save_path = tmp_path / "hooked.pt"
     torch.save(hooked, save_path)
     assert save_path.exists()
+
+
+def test_transparent_layer_mix_weight():
+    torch.manual_seed(0)
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    brain = Brain(core, nb, DataLoader())
+    layer = TransparentMarbleLayer(brain, train_in_graph=True).to(device)
+    inp = torch.tensor([[0.4, -0.1]], device=device)
+    out_identity = layer(inp, mix_weight=0.0)
+    out_mixed = layer(inp, mix_weight=0.5)
+    assert torch.allclose(out_identity, inp)
+    assert not torch.allclose(out_mixed, inp)
+    assert out_mixed.device == device

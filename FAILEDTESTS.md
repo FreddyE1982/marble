@@ -16,3 +16,4 @@ No failing tests.
 - tests/test_theory_of_mind_beliefs.py::test_memory_slot_creation_and_retrieval: AssertionError [resolved]
 - tests/test_pretraining_and_clustering.py::test_pretraining_epochs_runs_once: AttributeError: 'range' object has no attribute 'set_postfix' [resolved]
 - tests/test_pretraining_and_clustering.py::test_pretraining_epochs_runs_once: AttributeError: '_DummyPbar' object has no attribute 'close' [resolved]
+- tests/test_marble_interface.py::test_save_and_load_marble: TypeError: cannot pickle '_thread.lock' object

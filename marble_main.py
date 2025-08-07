@@ -310,6 +310,8 @@ class MARBLE:
         state["metrics_visualizer"] = None
         state["benchmark_manager"] = None
         state["hybrid_memory"] = None
+        state["autograd_layer"] = None
+        state["dataloader"] = None
         return state
 
     def __setstate__(self, state):
@@ -321,6 +323,8 @@ class MARBLE:
                 pass
         if self.metrics_visualizer is None:
             self.metrics_visualizer = MetricsVisualizer()
+        if self.dataloader is None:
+            self.dataloader = DataLoader()
         if self.hybrid_memory is not None:
             try:
                 self.hybrid_memory.core = self.core
