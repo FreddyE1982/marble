@@ -74,14 +74,20 @@
         - [x] Compare outputs against PyTorch reference.
     - [ ] Persistent hidden state mapping
       - [ ] Serialize initial hidden states with layer metadata.
+        - [ ] Define serialization schema for hidden state tensors.
         - [ ] Embed state tensors into converter output.
         - [ ] Record correspondence to layer identifiers.
+        - [ ] Document serialization logic for future contributors.
       - [ ] Restore hidden states during MARBLE execution.
+        - [ ] Map serialized states to runtime modules.
         - [ ] Load serialized states into runtime structures.
         - [ ] Verify shapes match original expectations.
+        - [ ] Warn when states are missing or mismatched.
+        - [ ] Document runtime loading process.
       - [ ] Provide tests verifying state persistence across runs.
+        - [ ] Create minimal RNN example with saved hidden state.
         - [ ] Save model, reload, and compare hidden states.
-        - [ ] Ensure no drift after multiple executions.
+        - [ ] Reload model multiple times to check for drift.
 - [x] Normalization layers (LayerNorm, GroupNorm)
   - [x] ``LayerNorm`` converter
   - [x] ``GroupNorm`` converter
