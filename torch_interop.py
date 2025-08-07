@@ -5,20 +5,64 @@ import marble_core
 from marble_core import _B1, _B2, _W1, _W2, Core, configure_representation_size
 
 
+class LinearLayer(torch.nn.Module):
+    """Simple linear layer using explicit weight and bias parameters."""
+
+    def __init__(
+        self, weight: torch.Tensor, bias: torch.Tensor, device: torch.device
+    ) -> None:
+        super().__init__()
+        self.weight = torch.nn.Parameter(weight.to(device))
+        self.bias = torch.nn.Parameter(bias.to(device))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:  # pragma: no cover - simple
+        return x @ self.weight + self.bias
+
+
+class GraphLayer(torch.nn.Module):
+    """Layer performing message passing based on a synapse adjacency matrix."""
+
+    def __init__(self, adjacency: np.ndarray, device: torch.device) -> None:
+        super().__init__()
+        weight = torch.tensor(adjacency, dtype=torch.float32, device=device)
+        self.weight = torch.nn.Parameter(weight)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:  # pragma: no cover - simple
+        return x @ self.weight
+
+
 class MarbleTorchAdapter(torch.nn.Module):
     """PyTorch module mirroring Marble's message passing MLP."""
 
-    def __init__(self, core: Core) -> None:
+    def __init__(self, core: Core, device: torch.device | None = None) -> None:
         super().__init__()
         self.core = core
-        self.w1 = torch.nn.Parameter(torch.tensor(_W1, dtype=torch.float32))
-        self.b1 = torch.nn.Parameter(torch.tensor(_B1, dtype=torch.float32))
-        self.w2 = torch.nn.Parameter(torch.tensor(_W2, dtype=torch.float32))
-        self.b2 = torch.nn.Parameter(torch.tensor(_B2, dtype=torch.float32))
+        device = device or torch.device("cpu")
+        layer_params = core.params.get("mlp_layers")
+        if layer_params is None:
+            layer_params = [
+                {"weight": _W1, "bias": _B1},
+                {"weight": _W2, "bias": _B2},
+            ]
+        self.layers = torch.nn.ModuleList()
+        for lp in layer_params:
+            w = torch.tensor(lp["weight"], dtype=torch.float32)
+            b = torch.tensor(lp["bias"], dtype=torch.float32)
+            self.layers.append(LinearLayer(w, b, device))
+
+        # Convenience handles for the classic 2-layer case
+        if len(self.layers) > 0:
+            self.w1 = self.layers[0].weight
+            self.b1 = self.layers[0].bias
+        if len(self.layers) > 1:
+            self.w2 = self.layers[1].weight
+            self.b2 = self.layers[1].bias
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:  # pragma: no cover
-        h = torch.tanh(x @ self.w1 + self.b1)
-        return torch.tanh(h @ self.w2 + self.b2)
+        h = x
+        for layer in self.layers:
+            h = torch.tanh(layer(h))
+        return h
 
 
 def core_to_torch(core: Core) -> MarbleTorchAdapter:
@@ -27,42 +71,50 @@ def core_to_torch(core: Core) -> MarbleTorchAdapter:
 
 
 def torch_to_core(model: torch.nn.Module, core: Core) -> None:
-    """Update Marble's global MLP weights from a PyTorch model.
+    """Update Marble's MLP weights from a PyTorch model.
 
     Parameters
     ----------
     model : torch.nn.Module
-        Module containing ``w1``, ``b1``, ``w2`` and ``b2`` parameters.
+        Module containing linear layers with ``weight`` and ``bias``.
     core : Core
         Core instance whose representation size will be adjusted to match
         ``model``.
     """
-    rep_size = model.w1.shape[0]
+    first_weight = next(model.parameters()).detach()
+    rep_size = first_weight.shape[0]
     configure_representation_size(rep_size)
-    marble_core._W1 = np.round(
-        model.w1.detach().cpu().numpy().astype(np.float64), 8
-    )
-    marble_core._B1 = np.round(
-        model.b1.detach().cpu().numpy().astype(np.float64), 8
-    )
-    marble_core._W2 = np.round(
-        model.w2.detach().cpu().numpy().astype(np.float64), 8
-    )
-    marble_core._B2 = np.round(
-        model.b2.detach().cpu().numpy().astype(np.float64), 8
-    )
+    layers = []
+    for layer in getattr(model, "layers", []):
+        w = layer.weight.detach().cpu().numpy().astype(np.float64)
+        b = layer.bias.detach().cpu().numpy().astype(np.float64)
+        layers.append({"weight": np.round(w, 8), "bias": np.round(b, 8)})
+    if layers:
+        core.params["mlp_layers"] = layers
+        if len(layers) > 0:
+            marble_core._W1 = layers[0]["weight"]
+            marble_core._B1 = layers[0]["bias"]
+        if len(layers) > 1:
+            marble_core._W2 = layers[1]["weight"]
+            marble_core._B2 = layers[1]["bias"]
     for n in core.neurons:
         if n.representation.shape != (rep_size,):
             n.representation = np.zeros(rep_size, dtype=float)
 
 
-def core_to_torch_graph(core: Core) -> tuple[torch.Tensor, torch.Tensor]:
+def core_to_torch_graph(
+    core: Core, device: torch.device | None = None
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Return edge indices and node features as torch tensors."""
-    edge_index = []
-    for s in core.synapses:
-        edge_index.append([s.source, s.target])
-    edge_tensor = torch.tensor(edge_index, dtype=torch.long).t().contiguous()
-    feats = torch.tensor([n.representation for n in core.neurons], dtype=torch.float32)
+    edge_index = [[s.source, s.target] for s in core.synapses]
+    edge_tensor = (
+        torch.tensor(edge_index, dtype=torch.long, device=device).t().contiguous()
+        if edge_index
+        else torch.zeros((2, 0), dtype=torch.long, device=device)
+    )
+    feats = torch.tensor(
+        [n.representation for n in core.neurons], dtype=torch.float32, device=device
+    )
     return edge_tensor, feats
 
 
@@ -77,9 +129,33 @@ def torch_graph_to_core(
         n = marble_core.Neuron(i, rep_size=features.shape[1])
         n.representation = feat.detach().cpu().numpy().astype(float)
         core.neurons.append(n)
-    edge_index = edge_index.t().tolist()
-    for src, tgt in edge_index:
-        syn = marble_core.Synapse(src, tgt)
+    for src, tgt in edge_index.t().tolist():
+        syn = marble_core.Synapse(int(src), int(tgt))
         core.synapses.append(syn)
-        core.neurons[src].synapses.append(syn)
+        core.neurons[int(src)].synapses.append(syn)
+    return core
+
+
+def graph_to_module(core: Core, device: torch.device | None = None) -> GraphLayer:
+    """Translate a core's graph into a ``GraphLayer`` module."""
+    num = len(core.neurons)
+    adj = np.zeros((num, num), dtype=np.float32)
+    for s in core.synapses:
+        adj[s.source, s.target] = float(s.weight)
+    return GraphLayer(adj, device or torch.device("cpu"))
+
+
+def module_to_graph(module: GraphLayer, params: dict) -> Core:
+    """Create a ``Core`` from a ``GraphLayer``'s adjacency matrix."""
+    core = Core(params)
+    weight = module.weight.detach().cpu().numpy()
+    n = weight.shape[0]
+    core.neurons = [marble_core.Neuron(i, rep_size=core.rep_size) for i in range(n)]
+    core.synapses = []
+    for i in range(n):
+        for j in range(weight.shape[1]):
+            if weight[i, j] != 0.0:
+                syn = marble_core.Synapse(i, j, weight=float(weight[i, j]))
+                core.synapses.append(syn)
+                core.neurons[i].synapses.append(syn)
     return core

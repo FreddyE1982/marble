@@ -51,6 +51,8 @@ def test_torch_to_core_updates_weights():
     assert (marble_core._B1 == 0.5).all()
     assert (marble_core._W2 == 2.0).all()
     assert (marble_core._B2 == 0.1).all()
+    layers = core.params["mlp_layers"]
+    assert layers[0]["bias"].shape[0] == layers[0]["weight"].shape[1]
 
 
 def test_core_to_torch_graph_roundtrip():
