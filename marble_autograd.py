@@ -6,23 +6,34 @@ from typing import Callable, Optional
 class MarbleAutogradFunction(torch.autograd.Function):
     @staticmethod
     def forward(ctx, wrapper, input_tensor: torch.Tensor) -> torch.Tensor:
-        input_value = float(input_tensor.item())
-        output, path = wrapper.brain.neuronenblitz.dynamic_wander(input_value)
+        device = input_tensor.device
+        flat_input = input_tensor.reshape(-1)
+        outputs = []
+        paths = []
+        for val in flat_input:
+            scalar = val.detach().cpu().numpy().reshape(-1)[0]
+            out, path = wrapper.brain.neuronenblitz.dynamic_wander(scalar)
+            outputs.append(out)
+            paths.append(path)
         ctx.wrapper = wrapper
-        ctx.path = path
+        ctx.paths = paths
         ctx.save_for_backward(input_tensor)
-        return torch.tensor(output, dtype=input_tensor.dtype)
+        output_tensor = torch.tensor(outputs, dtype=input_tensor.dtype, device=device)
+        return output_tensor.reshape_as(input_tensor)
 
     @staticmethod
     def backward(ctx, grad_output: torch.Tensor):
         input_tensor, = ctx.saved_tensors
         wrapper = ctx.wrapper
-        for syn in ctx.path:
-            source_val = wrapper.brain.core.neurons[syn.source].value
-            if source_val is None:
-                source_val = 0.0
-            grad = float(grad_output) * source_val
-            wrapper._grad_buffer[syn] = wrapper._grad_buffer.get(syn, 0.0) + grad
+        flat_grads = grad_output.reshape(-1)
+        for path, grad_out in zip(ctx.paths, flat_grads):
+            grad_val = grad_out.detach().cpu().numpy().reshape(-1)[0]
+            for syn in path:
+                source_val = wrapper.brain.core.neurons[syn.source].value
+                if source_val is None:
+                    source_val = 0.0
+                grad = grad_val * source_val
+                wrapper._grad_buffer[syn] = wrapper._grad_buffer.get(syn, 0.0) + grad
         wrapper._accum_counter += 1
         if wrapper._accum_counter >= wrapper.accumulation_steps:
             for syn, total in wrapper._grad_buffer.items():
@@ -59,20 +70,22 @@ class MarbleAutogradLayer(nn.Module):
         return MarbleAutogradFunction.apply(self, x)
 
 class TransparentMarbleLayer(nn.Module):
-    """Insert MARBLE into a PyTorch model without altering activations."""
+    """Insert MARBLE into a PyTorch model and optionally mix its output."""
 
-    def __init__(self, brain: Brain, train_in_graph: bool = True) -> None:
+    def __init__(self, brain: Brain, train_in_graph: bool = True, mix_weight: float = 0.0) -> None:
         super().__init__()
         self.marble_layer = MarbleAutogradLayer(brain)
         self.train_in_graph = train_in_graph
+        self.mix_weight = mix_weight
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, mix_weight: Optional[float] = None) -> torch.Tensor:
+        weight = self.mix_weight if mix_weight is None else mix_weight
         if self.train_in_graph:
             marble_out = self.marble_layer(x)
-            return x + marble_out * 0
-        with torch.no_grad():
-            self.marble_layer(x)
-        return x
+        else:
+            with torch.no_grad():
+                marble_out = self.marble_layer(x)
+        return x + marble_out * weight
 
     def train_marble(self, examples, epochs: int = 1) -> None:
         self.marble_layer.brain.train(examples, epochs=epochs)
