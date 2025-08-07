@@ -322,6 +322,12 @@ Persistent failures propagate the original exception after the retry budget is
 exhausted, ensuring fatal errors surface clearly while transient problems are
 handled gracefully.
 
+The client sends periodic ``/ping`` heartbeats to verify connectivity. The
+``network.remote_client.heartbeat_timeout`` field controls how long these
+checks wait for a response and ``connect_retry_interval`` specifies the pause
+between connection attempts. SSL certificates are verified by default and can
+be disabled for self-signed setups via ``network.remote_client.ssl_verify``.
+
 The lightweight ``DatasetCacheServer`` shares preprocessed dataset files between
 nodes to avoid repeated downloads. Memory usage during these workflows can be
 tracked using ``memory_manager.MemoryManager`` while

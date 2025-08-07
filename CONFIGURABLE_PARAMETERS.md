@@ -373,9 +373,9 @@ Each entry is listed under its section heading.
 - backoff_factor
 - track_latency
 - auth_token
-- ssl_verify
-- connect_retry_interval
-- heartbeat_timeout
+- ssl_verify: Verify HTTPS certificates.
+- connect_retry_interval: Delay between connection retry attempts.
+- heartbeat_timeout: Time to wait for heartbeat responses.
 - use_compression
 
 ## network.torrent_client
