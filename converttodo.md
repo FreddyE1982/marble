@@ -78,16 +78,20 @@
         - [ ] Embed state tensors into converter output.
         - [ ] Record correspondence to layer identifiers.
         - [ ] Document serialization logic for future contributors.
+        - [ ] Choose storage format (e.g., JSON or binary) and justify selection.
+        - [ ] Include device information within metadata.
       - [ ] Restore hidden states during MARBLE execution.
         - [ ] Map serialized states to runtime modules.
         - [ ] Load serialized states into runtime structures.
         - [ ] Verify shapes match original expectations.
         - [ ] Warn when states are missing or mismatched.
         - [ ] Document runtime loading process.
+        - [ ] Add CLI flag to enable or disable hidden state restoration.
       - [ ] Provide tests verifying state persistence across runs.
         - [ ] Create minimal RNN example with saved hidden state.
         - [ ] Save model, reload, and compare hidden states.
         - [ ] Reload model multiple times to check for drift.
+        - [ ] Corrupt state file intentionally and ensure loader fails gracefully.
 - [x] Normalization layers (LayerNorm, GroupNorm)
   - [x] ``LayerNorm`` converter
   - [x] ``GroupNorm`` converter
