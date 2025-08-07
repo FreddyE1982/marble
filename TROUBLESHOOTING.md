@@ -49,6 +49,7 @@ not covered by the test suite and some optional features may be unavailable.
 * **Dataset cache server not reachable** – Start `DatasetCacheServer` on the host machine and set `dataset.cache_url` correctly in `config.yaml`.
 * **Distributed training hangs** – Verify all workers can connect to the master address and that `init_distributed` uses a unique port.
 * **Remote offload timeouts** – Confirm `RemoteBrainServer` is running and any authentication token matches the client configuration.
+* **MCP server not reachable** – Start `mcp_server.py` with the same `config.yaml` and ensure `mcp_server.port` is accessible. If `mcp_server.auth` is set, clients must supply matching credentials.
 
 ## Web API Issues
 * **HTTP `/infer` endpoint returns 500** – Validate that the input JSON contains an `"input"` field and that the active brain can handle the value type.

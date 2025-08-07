@@ -64,6 +64,14 @@ serve_model:
   host: "localhost"
   port: 5000
 
+mcp_server:
+  host: "localhost"
+  port: 5080
+  auth:
+    token: null        # Optional bearer token clients must supply
+    username: null     # Optional username for basic authentication
+    password: null     # Optional password for basic authentication
+
 sync:
   interval_ms: 1000     # Interval in milliseconds between cross-device tensor synchronization cycles (100-10000 recommended)
 

@@ -196,6 +196,27 @@ serve_model:
     ``ServeModelPlugin`` consults this section for default ``host`` and ``port``
     values when a pipeline step omits explicit parameters.
 
+mcp_server:
+  host: Network interface where the standalone MCP server binds. Use
+    ``"localhost"`` to accept only local connections or ``"0.0.0.0"`` so remote
+    machines can reach the service. The server automatically selects CPU or GPU
+    execution based on the active device.
+  port: TCP port number for the MCP protocol endpoint. Values must be between
+    ``1`` and ``65535`` and should not conflict with other services. Each
+    concurrent server instance requires a unique port.
+  auth:
+    token: Optional bearer token that clients must include in the
+      ``Authorization`` header. When ``null`` the server does not require token
+      authentication. Tokens allow simple shared-secret authentication without
+      managing user accounts.
+    username: Optional username for HTTP basic authentication. If set, a
+      matching ``password`` must also be provided. Both fields may be ``null``
+      to disable basic authentication.
+    password: Password paired with ``username`` when basic authentication is in
+      use. Choose strong, random values when exposing the server on untrusted
+      networks. When both ``username`` and ``password`` are ``null`` basic
+      authentication is disabled.
+
 sync:
   interval_ms: Number of milliseconds between background tensor synchronization cycles
     across devices in distributed training. Synchronization uses delta encoding

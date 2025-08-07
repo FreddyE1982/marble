@@ -615,6 +615,20 @@ info = pipe.execute(marble)[0]
 info['server'].stop()
 ```
 
+#### MCP Server
+
+The Model Context Protocol (MCP) server exposes the active MARBLE brain to
+external MCP clients. Launch it directly:
+
+```bash
+python mcp_server.py --config config.yaml
+```
+
+The server listens on the interface and port specified in ``mcp_server`` of
+``config.yaml``. Define ``mcp_server.auth.token`` or a ``username``/``password``
+pair to require client authentication. The ``serve_model_mcp`` pipeline plugin
+can also start the MCP server as part of a pipeline.
+
 
 ### System Metrics and Profiling
 
