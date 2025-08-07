@@ -409,7 +409,10 @@ class Brain:
             else:
                 chosen = "ram"
         else:
-            chosen = "vram"
+            default = self.core.params.get("default_growth_tier", "vram")
+            if default not in TIER_REGISTRY:
+                default = "vram"
+            chosen = default
 
         print(
             f"[Brain] Growth decision: '{chosen}' tier (VRAM: {vram_usage:.2f}MB/{vram_limit}MB, age: {vram_neuron_age:.1f}s)"

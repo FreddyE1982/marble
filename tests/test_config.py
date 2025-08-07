@@ -36,6 +36,7 @@ def test_load_config_defaults():
     assert cfg["core"]["synapse_weight_decay"] == 0.0
     assert cfg["core"]["message_passing_iterations"] == 1
     assert cfg["core"]["cluster_algorithm"] == "kmeans"
+    assert cfg["core"]["default_growth_tier"] == "vram"
     assert cfg["brain"]["save_threshold"] == 0.05
     assert cfg["meta_controller"]["history_length"] == 5
     assert cfg["neuromodulatory_system"]["initial"]["emotion"] == "neutral"

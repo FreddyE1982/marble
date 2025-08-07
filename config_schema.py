@@ -20,6 +20,7 @@ CONFIG_SCHEMA = {
                 },
                 "use_mixed_precision": {"type": "boolean"},
                 "quantization_bits": {"type": "integer", "minimum": 0, "maximum": 16},
+                "default_growth_tier": {"type": "string"},
                 "attention_gating": {
                     "type": "object",
                     "properties": {

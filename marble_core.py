@@ -1911,6 +1911,15 @@ class Core:
 
     def choose_new_tier(self):
         available_tiers = sorted(TIER_REGISTRY.values(), key=lambda t: t.order)
+
+        # Honour an explicitly configured preferred tier first
+        preferred = self.params.get("default_growth_tier")
+        if preferred in TIER_REGISTRY:
+            limit_key = f"{preferred.lower()}_limit_mb"
+            limit = self.params.get(limit_key, TIER_REGISTRY[preferred].limit_mb)
+            if limit is None or self.get_usage_by_tier(preferred) < limit:
+                return preferred
+
         for tier in available_tiers:
             limit_key = f"{tier.name.lower()}_limit_mb"
             limit = self.params.get(limit_key, tier.limit_mb)
