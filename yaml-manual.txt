@@ -223,6 +223,12 @@ evolution:
     of available devices the evaluations queue until resources free up. Defaults
     to the number of local CPU cores.
 
+  To launch an evolutionary search with these defaults call
+  ``evolution_trainer.run_evolution`` providing a base configuration, a
+  training function and a mutation space. Any omitted arguments are
+  populated from this section of ``config.yaml`` and the search runs on
+  CPU or GPU depending on availability.
+
 core:
   backend: Selects the tensor computation library used throughout MARBLE's core
     operations. ``numpy`` provides maximum compatibility and is the default

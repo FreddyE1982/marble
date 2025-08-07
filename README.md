@@ -936,6 +936,28 @@ scores = cross_validate(train, metric, dataset, folds=5, seed=42)
 print('scores', scores)
 ```
 
+## Evolutionary Hyperparameter Search
+
+Explore configuration spaces using evolutionary strategies. The
+`evolution_trainer.run_evolution` helper constructs an
+`EvolutionTrainer` and fills missing arguments from the `evolution`
+section of `config.yaml`. The search executes on CPU or GPU depending
+on availability.
+
+```python
+from evolution_trainer import run_evolution
+
+def train(cfg, steps, device):
+    import torch
+    x = torch.tensor(cfg["x"], device=device)
+    target = torch.tensor(1.0, device=device)
+    return torch.abs(x - target).item()
+
+space = {"x": {"type": "float", "min": 0.0, "max": 2.0, "sigma": 0.2}}
+best = run_evolution({"x": 0.5}, train, space)
+print('best fitness', best.fitness)
+```
+
 ## Experiment Tracking
 
 The `experiment_tracker` module provides a simple abstraction for logging metrics
