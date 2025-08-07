@@ -312,6 +312,7 @@ class MARBLE:
         state["hybrid_memory"] = None
         state["autograd_layer"] = None
         state["dataloader"] = None
+        state["tensor_sync_service"] = None
         return state
 
     def __setstate__(self, state):
@@ -335,6 +336,10 @@ class MARBLE:
             self.benchmark_manager = BenchmarkManager(self)
         else:
             self.benchmark_manager.marble = self
+        if self.tensor_sync_service is None:
+            from tensor_sync_service import TensorSyncService
+
+            self.tensor_sync_service = TensorSyncService()
 
 
 def insert_into_torch_model(
