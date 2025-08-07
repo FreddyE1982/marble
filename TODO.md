@@ -1426,9 +1426,15 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
     - [x] Render graph with `plotly.graph_objects.Sankey` or `pyvis.network` and add sliders for filtering.
         - [x] Build reusable visualization component.
         - [x] Provide sliders for weight and degree thresholds.
-    - [x] Update GUI tests for graph visualization.
-        - [x] Confirm endpoint availability in tests.
-        - [x] Validate sliders adjust visible graph elements.
+      - [x] Update GUI tests for graph visualization.
+          - [x] Confirm endpoint availability in tests.
+          - [x] Validate sliders adjust visible graph elements.
+      - [ ] Support real-time graph updates via WebSocket streaming.
+          - [ ] Push neuron and synapse changes from backend to front-end.
+          - [ ] Ensure updates respect CPU/GPU device transitions.
+      - [ ] Benchmark rendering performance on large graphs.
+          - [ ] Measure frame rates for 10k+ nodes on CPU and GPU setups.
+          - [ ] Document optimization strategies in README and TUTORIAL.
 
 330. [x] Introduce multi-agent MARBLE.
     - [x] Define `MARBLEAgent` wrapper with its own config and brain.
@@ -1465,15 +1471,20 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Integration test over multiple generations.
 
 332. [ ] Document new configuration parameters and tutorials.
-    - [ ] Update `yaml-manual.txt` with detailed explanations and examples.
-        - [ ] Describe new parameters and their ranges.
-        - [ ] Include practical usage examples.
-    - [ ] Add entries to `CONFIGURABLE_PARAMETERS.md`.
-        - [ ] List default values and descriptions.
-        - [ ] Cross-reference related parameters.
-    - [ ] Extend `TUTORIAL.md` with projects for new features (e.g., self-distillation).
-        - [ ] Create step-by-step project showcasing feature.
-        - [ ] Link to dataset download and preparation code.
+      - [ ] Update `yaml-manual.txt` with detailed explanations and examples.
+          - [ ] Describe new parameters and their ranges.
+          - [ ] Include practical usage examples.
+          - [ ] Cross-link related sections for quick navigation.
+          - [ ] Verify examples run on both CPU and GPU configurations.
+      - [ ] Add entries to `CONFIGURABLE_PARAMETERS.md`.
+          - [ ] List default values and descriptions.
+          - [ ] Cross-reference related parameters.
+          - [ ] Validate entries against current `config.yaml`.
+      - [ ] Extend `TUTORIAL.md` with projects for new features (e.g., self-distillation).
+          - [ ] Create step-by-step project showcasing feature.
+          - [ ] Link to dataset download and preparation code.
+          - [ ] Provide complete CPU and GPU execution commands.
+          - [ ] Add expected output screenshots.
 
 333. [ ] Add unit tests and verify CUDA fallbacks.
     - [ ] Write tests for quantization correctness, parallel wanderers, and prompt cache behavior.
@@ -1511,13 +1522,35 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 - [x] Create integration tests verifying dreaming state survives save/load cycles.
 - [x] Benchmark learning performance with and without dream consolidation.
 334. [ ] Audit config.yaml for unused parameters and implement missing ones.
-    - [ ] Identify parameters defined in config.yaml but not referenced in code.
-    - [ ] Implement missing parameters or prune outdated ones.
+      - [ ] Identify parameters defined in config.yaml but not referenced in code.
+          - [ ] Write utility script to list all configuration keys.
+          - [ ] Scan codebase with ripgrep to detect usages.
+          - [ ] Compile report of unused parameters.
+      - [ ] Implement missing parameters or prune outdated ones.
+          - [ ] For each unused parameter, decide to implement or remove.
+          - [ ] Add tests verifying newly implemented parameters on CPU and GPU.
+          - [ ] Remove deprecated parameters and update defaults.
+          - [ ] Update documentation in `CONFIGURABLE_PARAMETERS.md` and `yaml-manual.txt`.
 335. [ ] Implement persistent hidden state mapping in RNN converter.
-    - [ ] Define serialization schema for hidden states.
-    - [ ] Embed and restore states within converter and runtime.
-    - [ ] Write unit and integration tests for state persistence.
+      - [ ] Define serialization schema for hidden states.
+          - [ ] Specify file format compatible with CPU and GPU tensors.
+          - [ ] Document versioning and backward compatibility.
+      - [ ] Embed and restore states within converter and runtime.
+          - [ ] Implement save logic in converter output.
+          - [ ] Integrate load routine in runtime initialization.
+          - [ ] Ensure operations work on CPU and GPU.
+      - [ ] Write unit and integration tests for state persistence.
+          - [ ] Test single-layer and multi-layer RNNs.
+          - [ ] Validate persistence across CPU/GPU transfers.
+          - [ ] Benchmark overhead of serialization/deserialization.
 336. [ ] Add dynamic attention span module to Neuronenblitz.
-    - [ ] Implement adaptive span computation and layer integration.
-    - [ ] Expose span configuration in YAML and documentation.
-    - [ ] Benchmark and test span behavior on CPU and GPU.
+      - [ ] Implement adaptive span computation and layer integration.
+          - [ ] Design API for span modules.
+          - [ ] Ensure computation falls back to CPU when GPU unavailable.
+      - [ ] Expose span configuration in YAML and documentation.
+          - [ ] Add `attention.dynamic_span` parameter to `config.yaml`.
+          - [ ] Describe parameter in `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
+      - [ ] Benchmark and test span behavior on CPU and GPU.
+          - [ ] Create unit tests for varying span lengths.
+          - [ ] Measure performance impact on both devices.
+          - [ ] Add tutorial section demonstrating span tuning.
