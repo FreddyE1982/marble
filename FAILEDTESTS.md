@@ -14,3 +14,5 @@ No failing tests.
 - tests/test_hybrid_memory_kuzu.py::test_kuzu_memory_separate_from_topology: RuntimeError: Catalog exception: function DATETIME does not exist [resolved]
 - tests/test_pipeline_cache_stress.py::test_cache_stress_cpu: assert 1.3928057014807302 < 1 [resolved]
 - tests/test_theory_of_mind_beliefs.py::test_memory_slot_creation_and_retrieval: AssertionError [resolved]
+- tests/test_pretraining_and_clustering.py::test_pretraining_epochs_runs_once: AttributeError: 'range' object has no attribute 'set_postfix' [resolved]
+- tests/test_pretraining_and_clustering.py::test_pretraining_epochs_runs_once: AttributeError: '_DummyPbar' object has no attribute 'close' [resolved]

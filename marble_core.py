@@ -2090,6 +2090,8 @@ class Core:
     def cluster_neurons(self, k=3):
         if not self.neurons:
             return
+        min_k = int(self.params.get("min_cluster_k", 1))
+        k = int(max(k, min_k))
         processed_vals = []
         for n in self.neurons:
             val = n.value
@@ -2104,7 +2106,7 @@ class Core:
         values = np.array(processed_vals, dtype=float)
         values[~np.isfinite(values)] = 0.0
         k = int(min(k, len(values)))
-        if k == 0:
+        if k < 1:
             return
         centers = [np.random.choice(values)]
         for _ in range(1, k):
