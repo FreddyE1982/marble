@@ -22,8 +22,17 @@ This document outlines upcoming milestones for future Marble releases.
 
 ## v0.2.0 – Planned
 - Streamlined GUI integration across all features
+  - Audit existing GUI components and identify duplication.
+  - Ensure every feature toggles correctly on CPU and GPU.
+  - Add automated tests covering each tab and widget.
 - Additional tutorials and educational projects
+  - Curate real-world datasets with download scripts.
+  - Write step-by-step guides with full code listings.
+  - Provide expected results for CPU and GPU runs.
 - Extended hardware plugin catalog
+  - Research upcoming accelerators (e.g., TPU, custom ASICs).
+  - Prototype plugin interface for each device with CPU fallback.
+  - Document installation and testing procedures.
 
 Further versions will refine the API and add more tutorials based on
 community feedback.
