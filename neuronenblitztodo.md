@@ -824,13 +824,21 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
        - [ ] Determine signals for span adjustment.
    - [ ] Implement dynamic attention spans for context-sensitive wandering within Neuronenblitz.
        - [ ] Add module calculating attention span per step.
+           - [ ] Define span scoring function using context history.
+           - [ ] Cache recent span decisions for stability.
+           - [ ] Document algorithm within module.
        - [ ] Integrate span selection into attention layer.
+           - [ ] Expose span parameter in layer configuration.
+           - [ ] Modify forward pass to apply computed span.
+           - [ ] Update YAML manual and configs for new span options.
    - [ ] Evaluate dynamic attention spans for context-sensitive wandering on benchmark tasks and document results.
        - [ ] Benchmark on tasks requiring varying context lengths.
        - [ ] Report computational savings.
+       - [ ] Collect attention span statistics during training.
    - [ ] Create tests covering dynamic attention spans for context-sensitive wandering.
        - [ ] Unit test span computation logic.
        - [ ] Integration test dynamic span on GPU.
+       - [ ] Ensure span parameter persists across CPU and GPU paths.
 95. Introduce continual exploration strategies during long runs.
    - [ ] Research approaches for continual exploration strategies during long runs.
        - [ ] Explore exploration strategies resilient to stagnation.

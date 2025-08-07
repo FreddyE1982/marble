@@ -1513,3 +1513,11 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 334. [ ] Audit config.yaml for unused parameters and implement missing ones.
     - [ ] Identify parameters defined in config.yaml but not referenced in code.
     - [ ] Implement missing parameters or prune outdated ones.
+335. [ ] Implement persistent hidden state mapping in RNN converter.
+    - [ ] Define serialization schema for hidden states.
+    - [ ] Embed and restore states within converter and runtime.
+    - [ ] Write unit and integration tests for state persistence.
+336. [ ] Add dynamic attention span module to Neuronenblitz.
+    - [ ] Implement adaptive span computation and layer integration.
+    - [ ] Expose span configuration in YAML and documentation.
+    - [ ] Benchmark and test span behavior on CPU and GPU.
