@@ -3163,6 +3163,24 @@ device used during execution.
    # ``folds`` and ``seed`` fall back to ``config.yaml`` when omitted
    ```
 
+4. **Accelerate preprocessing with remote worker pool** to parallelise
+   expensive transformations:
+
+   ```python
+   from preprocessing_pipeline import PreprocessingPipeline
+   from remote_worker_pool import RemoteWorkerPool
+
+   def normalize(x: float) -> float:
+       return x / 100.0
+
+   pool = RemoteWorkerPool(num_workers=2)
+   pre = PreprocessingPipeline([normalize], worker_pool=pool)
+   data = [1.0, 2.0, 3.0]
+   processed = pre.process(data, "demo")
+   pool.shutdown()
+   print(processed)
+   ```
+
    The Iris dataset originates from the UCI repository: https://archive.ics.uci.edu/dataset/53/iris
 
 4. **Serve a model through the pipeline API**:

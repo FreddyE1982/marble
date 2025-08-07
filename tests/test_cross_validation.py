@@ -71,3 +71,14 @@ def test_cross_validate_uses_config_defaults(tmp_path, monkeypatch):
     scores2 = cross_validate(_train, _metric, dataset)
     assert len(scores1) == 3
     assert scores1 == scores2
+
+
+def test_cross_validate_aggregates_mean():
+    dataset = [
+        (torch.tensor([float(i)]), torch.tensor([float(i * 3)])) for i in range(12)
+    ]
+    scores = cross_validate(
+        _train, _metric, dataset, folds=3, seed=0, device=torch.device("cpu")
+    )
+    avg = sum(scores) / len(scores)
+    assert avg < 1e-6

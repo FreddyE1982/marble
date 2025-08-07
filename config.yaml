@@ -45,6 +45,9 @@ pipeline:
   cache_dir: null       # Directory for cached step outputs; defaults to pipeline_cache_gpu or pipeline_cache_cpu
   default_step_memory_limit_mb: null  # Maximum memory per step in megabytes; null disables enforcement
 
+preprocessing:
+  workers: 0  # Number of remote workers for dataset preprocessing; 0 disables pool
+
 tool_manager:
   enabled: false        # When true the ToolManagerPlugin allows external tool use
   policy: "heuristic"    # Strategy for selecting tools; only "heuristic" is currently available

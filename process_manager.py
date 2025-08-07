@@ -81,7 +81,14 @@ class ProcessManager:
         device: str | None = None,
     ) -> List[torch.Tensor]:
         device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        start = "spawn" if device.startswith("cuda") else "fork"
+        # ``fork`` can lead to socket deadlocks or ``ConnectionResetError`` on
+        # some platforms when combined with multi-threaded parents.  Using the
+        # ``spawn`` start method is slower to initialise but is the most robust
+        # choice and works for both CPU and GPU execution.  We still allow
+        # overriding the start method through the ``MARBLE_MP_START``
+        # environment variable so advanced users can opt back into ``fork`` or
+        # ``forkserver`` when desired.
+        start = os.getenv("MARBLE_MP_START", "spawn")
         try:
             ctx = mp.get_context(start)
             idx_queue: mp.Queue = ctx.Queue()

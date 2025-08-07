@@ -1,6 +1,6 @@
 No failing tests.
 - tests/test_streamlit_all_buttons.py: ValueError: Instance 'main' already exists
-- tests/test_multiprocessing_dataset.py::test_multiprocessing_cpu: ConnectionResetError [resolved]
+- tests/test_multiprocessing_dataset.py::test_multiprocessing_cpu: ConnectionResetError [resolved by enforcing spawn start method]
 - tests/test_streamlit_gui.py: multiple failures (StopIteration, IndexError, ImportError)
  - tests/test_streamlit_gui.py: unexpected failures during dataset history integration
 - tests/test_streamlit_gui.py::test_step_export_and_metrics_desktop: IndexError: list index out of range

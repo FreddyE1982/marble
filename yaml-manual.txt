@@ -134,6 +134,16 @@ pipeline:
     ``default_step_memory_limit_mb`` and causes a ``MemoryError`` when the
     allocation is exceeded.
 
+preprocessing:
+  workers: Number of remote preprocessing workers spawned via
+    :class:`remote_worker_pool.RemoteWorkerPool`. Each worker runs in a separate
+    process and receives transformation jobs over an internal RPC channel. This
+    parallelises CPU-heavy dataset preparation on both CPU-only and GPU-enabled
+    systems. Setting the value to ``0`` disables the worker pool and executes
+    all preprocessing steps in the calling process. Workers automatically
+    restart if they crash while processing an item ensuring robustness during
+    large scale data ingestion.
+
 tool_manager:
   enabled: Toggle that activates the ``ToolManagerPlugin``. When ``true`` the
     pipeline can autonomously route natural language queries to external tools
