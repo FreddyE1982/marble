@@ -505,12 +505,17 @@ class Brain:
                     validation_fn=validation_fn,
                 )
             except TypeError:
-                self.neuronenblitz.train(
-                    train_examples,
-                    epochs=1,
-                    loss_fn=loss_fn,
-                    validation_fn=validation_fn,
-                )
+                # Fall back gracefully for simpler implementations that do not
+                # accept ``dream_buffer`` or loss/validation callables.
+                try:
+                    self.neuronenblitz.train(
+                        train_examples,
+                        epochs=1,
+                        loss_fn=loss_fn,
+                        validation_fn=validation_fn,
+                    )
+                except TypeError:
+                    self.neuronenblitz.train(train_examples, epochs=1)
             self.neuronenblitz.modulate_plasticity(
                 self.neuromodulatory_system.get_context()
             )
