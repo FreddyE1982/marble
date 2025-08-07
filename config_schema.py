@@ -195,7 +195,16 @@ CONFIG_SCHEMA = {
                 "remote_server": {
                     "type": "object",
                     "properties": {
+                        "enabled": {"type": "boolean"},
+                        "host": {"type": "string"},
+                        "port": {"type": "integer", "minimum": 1},
+                        "remote_url": {"type": ["string", "null"]},
                         "auth_token": {"type": ["string", "null"]},
+                        "ssl_enabled": {"type": "boolean"},
+                        "ssl_cert_file": {"type": ["string", "null"]},
+                        "ssl_key_file": {"type": ["string", "null"]},
+                        "compression_level": {"type": "integer", "minimum": 0, "maximum": 9},
+                        "compression_enabled": {"type": "boolean"},
                     },
                 },
                 "remote_client": {

@@ -8,6 +8,7 @@ import base64
 import json
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import ssl
 import time
 import requests
 from collections import deque
@@ -24,6 +25,9 @@ class RemoteBrainServer:
         compression_enabled: bool = True,
         compression_algorithm: str = "zlib",
         auth_token: str | None = None,
+        ssl_enabled: bool = False,
+        ssl_cert_file: str | None = None,
+        ssl_key_file: str | None = None,
     ) -> None:
         self.host = host
         self.port = port
@@ -44,6 +48,9 @@ class RemoteBrainServer:
             algorithm=compression_algorithm,
         )
         self.use_compression = compression_enabled
+        self.ssl_enabled = ssl_enabled
+        self.ssl_cert_file = ssl_cert_file
+        self.ssl_key_file = ssl_key_file
         self.core = None
         self.neuronenblitz = None
         self.brain = None
@@ -133,6 +140,12 @@ class RemoteBrainServer:
                     self.end_headers()
 
         self.httpd = HTTPServer((self.host, self.port), Handler)
+        if self.ssl_enabled:
+            if not self.ssl_cert_file or not self.ssl_key_file:
+                raise ValueError("ssl_cert_file and ssl_key_file required when ssl_enabled")
+            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+            context.load_cert_chain(self.ssl_cert_file, self.ssl_key_file)
+            self.httpd.socket = context.wrap_socket(self.httpd.socket, server_side=True)
         self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
         self.thread.start()
 
