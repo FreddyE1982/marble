@@ -37,6 +37,7 @@ def test_load_config_defaults():
     assert cfg["core"]["message_passing_iterations"] == 1
     assert cfg["core"]["cluster_algorithm"] == "kmeans"
     assert cfg["core"]["default_growth_tier"] == "vram"
+    assert cfg["core"]["interconnection_prob"] == 0.05
     assert cfg["brain"]["save_threshold"] == 0.05
     assert cfg["meta_controller"]["history_length"] == 5
     assert cfg["neuromodulatory_system"]["initial"]["emotion"] == "neutral"
@@ -161,6 +162,7 @@ def test_create_marble_from_config():
     assert marble.core.rep_size == 4
     assert marble.core.params["message_passing_alpha"] == 0.5
     assert marble.core.params["workspace_broadcast"] is False
+    assert marble.core.interconnection_prob == 0.05
     assert marble.core.synapse_weight_decay == 0.0
     assert marble.brain.loss_growth_threshold == 0.1
     assert marble.brain.dream_cycle_sleep == 0.1

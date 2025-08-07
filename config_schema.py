@@ -32,6 +32,11 @@ CONFIG_SCHEMA = {
                         "chaos": {"type": "number", "minimum": 0, "maximum": 4},
                     },
                 },
+                "interconnection_prob": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                },
             },
         },
         "neuronenblitz": {"type": "object"},

@@ -462,9 +462,14 @@ core:
   synapse_echo_decay: Multiplicative factor applied to incoming activations
     before they are appended to the echo buffer. Values in ``0.0``–``1.0``
     gradually forget older activity.
-  interconnection_prob: Probability of creating an interconnection synapse when
-    multiple cores are combined. ``0.0`` keeps cores isolated while higher
-    values densely link neurons across cores.
+  interconnection_prob: Probability in the range ``0.0``–``1.0`` of creating an
+    interconnection synapse when multiple cores are combined. ``0.0`` keeps
+    cores isolated while ``1.0`` connects every neuron in one core to every
+    neuron in the others. When functions such as ``core_interconnect.
+    interconnect_cores`` are called without an explicit probability this value
+    (averaged across all provided cores) is used. The default ``0.05`` yields a
+    sparse cross-core connectivity while values above ``0.2`` lead to dense
+    coupling.
 
 neuronenblitz:
   backtrack_probability: Probability between 0 and 1 that the wandering
