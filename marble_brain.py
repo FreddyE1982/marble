@@ -345,6 +345,8 @@ class Brain:
                 metrics_visualizer=self.metrics_visualizer,
             )
 
+        self._pretrained = False
+
     def set_autograd_layer(self, layer):
         """Attach an autograd layer for benchmarking."""
         self.autograd_layer = layer
@@ -466,6 +468,17 @@ class Brain:
             else None
         )
 
+        pre_epochs = int(self.core.params.get("pretraining_epochs", 0))
+        if pre_epochs > 0 and not self._pretrained:
+            pre_data = [(inp, inp) for inp, _ in train_examples]
+            try:
+                self.neuronenblitz.train(
+                    pre_data, epochs=pre_epochs, dream_buffer=self.dream_buffer
+                )
+            except TypeError:
+                self.neuronenblitz.train(pre_data, epochs=pre_epochs)
+            self._pretrained = True
+
         if self.precompile_graphs:
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             example = torch.zeros(1, self.core.rep_size, device=device)
@@ -558,7 +571,8 @@ class Brain:
                     target_tier=new_tier,
                 )
                 self.perform_neurogenesis(use_combined_attention=True)
-            self.core.cluster_neurons(k=self.cluster_k)
+            min_k = int(self.core.params.get("min_cluster_k", 1))
+            self.core.cluster_neurons(k=max(self.cluster_k, min_k))
             self.core.relocate_clusters(
                 high=self.cluster_high_threshold,
                 medium=self.cluster_medium_threshold,

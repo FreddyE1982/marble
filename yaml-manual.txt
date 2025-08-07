@@ -402,9 +402,15 @@ core:
   early_cleanup_enabled: If ``true``, unused neurons are removed before normal
     cleanup intervals, reducing memory usage.
   pretraining_epochs: Number of unsupervised epochs to run before regular
-    training begins.
+    training begins. During this phase the system performs an autoencoding
+    warm-up where each input is used as its own target, stabilising weights
+    prior to supervised updates. Set to ``0`` to disable. Recommended range is
+    ``0``–``10`` depending on dataset size.
   min_cluster_k: Smallest number of clusters allowed when ``cluster_neurons``
-    is invoked automatically.
+    is invoked automatically. This lower bound prevents the topology from
+    collapsing into a single cluster. If the network contains fewer neurons
+    than ``min_cluster_k`` the number of neurons is used instead. Typical
+    values are between ``2`` and ``10``.
   diffusion_steps: Number of denoising iterations performed during diffusion
     sampling. Values above ``1`` produce smoother results but increase
     computation time.
