@@ -25,8 +25,10 @@ class BitTensorStreamingDataset(IterableDataset):
     batch_size:
         Number of consecutive samples yielded together when iterating.
     virtual_batch_size:
-        Size of the batches returned by :meth:`get_virtual_batch`. When not
-        provided virtual batching is disabled.
+        Size of the batches returned by :meth:`get_virtual_batch` and yielded
+        by :meth:`__iter__` when configured. When not provided virtual
+        batching is disabled and iteration falls back to ``batch_size``
+        handling.
     kwargs:
         Forwarded to :class:`BitTensorDataset` for encoding configuration.
     """
@@ -89,6 +91,22 @@ class BitTensorStreamingDataset(IterableDataset):
     # ------------------------------------------------------------------
     # Iteration
     def __iter__(self) -> Iterator[tuple[torch.Tensor, torch.Tensor]]:
+        if self.virtual_batch_size is not None:
+            batch_idx = self.position // self.virtual_batch_size
+            while True:
+                records = list(self.get_virtual_batch(batch_idx, stream=True))
+                if not records:
+                    break
+                inputs = [r[0] for r in records]
+                targets = [r[1] for r in records]
+                if len(inputs) == 1:
+                    yield inputs[0], targets[0]
+                else:
+                    yield torch.stack(inputs), torch.stack(targets)
+                batch_idx += 1
+            self.position = batch_idx * self.virtual_batch_size
+            return
+
         idx = self.position
         while True:
             inputs: list[torch.Tensor] = []
@@ -118,16 +136,16 @@ class BitTensorStreamingDataset(IterableDataset):
             raise ValueError("virtual_batch_size not configured")
         start = batch_index * self.virtual_batch_size
         end = start + self.virtual_batch_size
-        subset = self.dataset.select(range(start, end))
 
-        def _generator() -> Iterator[tuple[torch.Tensor, torch.Tensor]]:
-            for record in subset:
-                inp_raw, tgt_raw = self._normalise_record(record)
+        def _iterator() -> Iterator[tuple[torch.Tensor, torch.Tensor]]:
+            for idx in range(start, end):
+                try:
+                    inp_raw, tgt_raw = self._fetch_index(idx)
+                except IndexError:
+                    break
                 yield (
                     self.encoder.encode_object(inp_raw),
                     self.encoder.encode_object(tgt_raw),
                 )
 
-        if stream:
-            return _generator()
-        return list(_generator())
+        return _iterator() if stream else list(_iterator())
