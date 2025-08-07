@@ -3206,12 +3206,12 @@ device used during execution.
 This project demonstrates how to mirror MARBLE's evolving network structure
 into a persistent Kùzu graph database during training.
 
-1. **Enable topology tracking** by editing `config.yaml` and setting:
+1. **Enable live tracking** by editing `config.yaml` and setting:
 
    ```yaml
-   topology_graph:
+   live_kuzu:
      enabled: true
-     db_path: "topology.kuzu"
+     db_path: "live.kuzu"
    ```
 
 2. **Create and train a small system** on the Iris dataset. The following code
@@ -3228,7 +3228,7 @@ into a persistent Kùzu graph database during training.
    y = data.target.values.astype("float32")
 
    cfg = load_config("config.yaml")
-   cfg["topology_graph"]["enabled"] = True
+   cfg["live_kuzu"]["enabled"] = True
    marble = create_marble_from_config(config=cfg)
 
    inputs = add_neuron_group(marble.core, X.shape[1])
@@ -3242,7 +3242,7 @@ into a persistent Kùzu graph database during training.
 
    ```python
    from kuzu_interface import KuzuGraphDatabase
-   db = KuzuGraphDatabase("topology.kuzu")
+   db = KuzuGraphDatabase("live.kuzu")
    print(db.execute("MATCH (n:Neuron) RETURN count(n) AS neurons"))
    print(db.execute("MATCH ()-[r:SYNAPSE]->() RETURN count(r) AS synapses"))
    ```
@@ -3250,6 +3250,38 @@ into a persistent Kùzu graph database during training.
 The Kùzu database updates live whenever new neurons or synapses are created or
 the representation size changes, enabling external graph analytics while the
 model trains.
+
+## Project: Live Kùzu training
+
+This project extends the previous example by streaming training metrics into the
+same Kùzu database for real-time visualization.
+
+1. **Ensure live tracking is enabled** in `config.yaml` under `live_kuzu` as
+   shown above.
+2. **Run a quick training loop** and emit a dummy metric:
+
+   ```python
+   from config_loader import create_marble_from_config, load_config
+   from pipeline import Pipeline
+   import torch
+
+   cfg = load_config("config.yaml")
+   cfg["live_kuzu"]["enabled"] = True
+   marble = create_marble_from_config(config=cfg)
+
+   mv = marble.metrics_visualizer
+   mv.update({"loss": 0.5})
+
+   pipe = Pipeline()
+   dev = "cuda" if torch.cuda.is_available() else "cpu"
+   pipe.add_step(func=lambda device: torch.tensor([1], device=device).sum().item(),
+                 module=None, params={"device": dev})
+   pipe.execute()
+   ```
+
+3. **Open Kùzu Explorer** and connect to `live.kuzu`. The `Metric` and `Event`
+   tables update alongside the `Neuron` and `SYNAPSE` graph, providing a unified
+   view of both topology and training progress.
 
 ## Project 20 – Tool‑Enhanced Queries (Exploratory)
 

@@ -41,6 +41,90 @@ class WandbTracker(ExperimentTracker):
         wandb.finish()
 
 
+class KuzuExperimentTracker(ExperimentTracker):
+    """Persist metrics and events inside a Kùzu graph database."""
+
+    def __init__(self, db_path: str) -> None:
+        from kuzu_interface import KuzuGraphDatabase
+
+        self.db = KuzuGraphDatabase(db_path)
+        self._metric_id = 0
+        self._event_id = 0
+        self._init_schema()
+
+    def _init_schema(self) -> None:
+        try:
+            self.db.create_node_table(
+                "Metric",
+                {
+                    "id": "INT64",
+                    "name": "STRING",
+                    "step": "INT64",
+                    "value": "DOUBLE",
+                    "timestamp": "TIMESTAMP",
+                },
+                "id",
+            )
+        except Exception:
+            pass
+        try:
+            self.db.create_node_table(
+                "Event",
+                {
+                    "id": "INT64",
+                    "name": "STRING",
+                    "step": "INT64",
+                    "payload": "STRING",
+                    "timestamp": "TIMESTAMP",
+                },
+                "id",
+            )
+        except Exception:
+            pass
+
+    def log_metrics(self, metrics: dict[str, float], step: int) -> None:
+        import datetime as _dt
+        import torch
+
+        ts = _dt.datetime.now(_dt.timezone.utc)
+        for name, value in metrics.items():
+            if isinstance(value, torch.Tensor):
+                value = float(value.detach().cpu())
+            else:
+                value = float(value)
+            self._metric_id += 1
+            self.db.add_node(
+                "Metric",
+                {
+                    "id": self._metric_id,
+                    "name": name,
+                    "step": step,
+                    "value": value,
+                    "timestamp": ts,
+                },
+            )
+
+    def log_event(self, name: str, data: dict) -> None:
+        import datetime as _dt
+        import json
+
+        ts = _dt.datetime.now(_dt.timezone.utc)
+        self._event_id += 1
+        self.db.add_node(
+            "Event",
+            {
+                "id": self._event_id,
+                "name": name,
+                "step": int(data.get("index", data.get("step", 0))),
+                "payload": json.dumps(data, default=str),
+                "timestamp": ts,
+            },
+        )
+
+    def finish(self) -> None:
+        self.db.close()
+
+
 def attach_tracker_to_events(
     tracker: ExperimentTracker, *, events: list[str] | None = None
 ) -> callable:

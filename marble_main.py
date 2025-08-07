@@ -52,6 +52,7 @@ class MARBLE:
             "csv_log_path": None,
             "json_log_path": None,
             "anomaly_std_threshold": 3.0,
+            "tracker": None,
         }
         if mv_params is not None:
             mv_defaults.update(mv_params)
@@ -74,6 +75,7 @@ class MARBLE:
                 csv_log_path=mv_defaults["csv_log_path"],
                 json_log_path=mv_defaults["json_log_path"],
                 anomaly_std_threshold=mv_defaults["anomaly_std_threshold"],
+                tracker=mv_defaults["tracker"],
             )
         self.metrics_dashboard = None
         if (

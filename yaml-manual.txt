@@ -83,18 +83,15 @@ scheduler:
     performed by the scheduled function. The scheduler can also be overridden at
     runtime using the ``--scheduler-plugin`` CLI flag.
 
-topology_graph:
-  enabled: Activates live topology tracking backed by a persistent Kùzu graph.
-    When ``true`` every change to the neuron or synapse structure is mirrored
-    into a local Kùzu database. External tools can query this graph to observe
-    how MARBLE grows during training. Disable when graph logging is not
-    required to avoid additional overhead.
-  db_path: Filesystem location where the Kùzu database is stored. The path may
-    be relative or absolute; when the file does not exist it is created. The
-    database contains one node per neuron and a ``SYNAPSE`` relationship for
-    every connection, allowing full reconstruction of the topology at any time.
-    Ensure the directory has sufficient free space as large networks can
-    generate substantial graph data.
+live_kuzu:
+  enabled: When set to ``true`` MARBLE streams both its evolving network
+    topology and all logged training metrics into a persistent Kùzu database.
+    This allows real-time inspection with tools like Kùzu Explorer while
+    training continues on the GPU. Disable to avoid the extra disk I/O.
+  db_path: Filesystem location for the Kùzu database. A new database is created
+    if the path does not yet exist. The database stores neuron and synapse
+    nodes alongside ``Metric`` and ``Event`` records, so ensure the directory
+    has enough free space for long training runs.
 
 pipeline:
   async_enabled: When set to ``true`` the ``HighLevelPipeline`` executes its

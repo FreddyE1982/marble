@@ -36,9 +36,9 @@ plugins: []           # Additional plugin modules to load
 scheduler:
   plugin: thread       # Asynchronous task scheduler plugin (thread or asyncio)
 
-topology_graph:
-  enabled: false        # Mirror core topology into a persistent Kùzu graph
-  db_path: "topology.kuzu"  # Filesystem path of the Kùzu database
+live_kuzu:
+  enabled: false        # Stream topology and training metrics into a live Kùzu database
+  db_path: "live.kuzu"  # Filesystem path of the Kùzu database
 
 pipeline:
   async_enabled: false  # Execute HighLevelPipeline steps asynchronously when true

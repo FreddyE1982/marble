@@ -34,7 +34,7 @@ Each entry is listed under its section heading.
 ## plugins
 - (list of module import paths to load)
 
-## topology_graph
+## live_kuzu
 - enabled
 - db_path
 
