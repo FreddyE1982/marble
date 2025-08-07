@@ -102,7 +102,9 @@ def add_fully_connected_layer(
 
     if bias is not None:
         bias_id = len(core.neurons)
-        core.neurons.append(Neuron(bias_id, value=1.0, tier="vram"))
+        core.neurons.append(
+            Neuron(bias_id, value=1.0, tier="vram", neuron_type="bias")
+        )
         for j, out_id in enumerate(out_ids):
             w = float(bias[j])
             syn = Synapse(bias_id, out_id, weight=w)
