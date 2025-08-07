@@ -148,6 +148,15 @@ tool_manager:
     tool whose :meth:`can_handle` method returns ``True``. Other policies may be
     added in the future and should be referenced here by name. Invalid values
     raise a configuration error.
+  mode: Controls how the manager accepts queries. ``"direct"`` executes a
+    single query supplied to :meth:`execute`. ``"mcp"`` enables integration with
+    the :class:`MessageBus`, listening for incoming tool requests from
+    components such as :class:`MCPToolBridge` and replying with tool outputs.
+    Use ``"mcp"`` when exposing MARBLE tools to external MCP clients.
+  agent_id: Identifier used on the :class:`MessageBus` when ``mode`` is
+    ``"mcp"``. Multiple managers can run concurrently provided each uses a
+    unique ``agent_id``. The identifier is also used by bridges to address
+    messages to the correct manager instance.
   tools: Mapping of tool identifiers to configuration dictionaries. Each key
     must correspond to a registered tool plugin and its value supplies keyword
     arguments passed to the tool's constructor. For example:

@@ -48,6 +48,8 @@ pipeline:
 tool_manager:
   enabled: false        # When true the ToolManagerPlugin allows external tool use
   policy: "heuristic"    # Strategy for selecting tools; only "heuristic" is currently available
+  mode: "direct"         # "direct" executes immediately; "mcp" listens on the MessageBus
+  agent_id: "tool_manager"  # Identifier used when communicating via the MessageBus
   tools:                # Mapping of tool names to configuration dictionaries
     web_search: {}
     database_query:

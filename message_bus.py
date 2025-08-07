@@ -64,6 +64,28 @@ class MessageBus:
                 q.put(msg)
                 self._history.append(msg)
                 global_event_bus.publish("agent_message", msg.__dict__)
+    def reply(self, original: Message, content: dict) -> None:
+        """Send a direct reply to ``original`` sender.
+
+        Parameters
+        ----------
+        original:
+            The :class:`Message` being responded to. The reply will be queued
+            for ``original.sender`` and will appear as sent from
+            ``original.recipient``.
+        content:
+            Payload dictionary for the reply message.
+        """
+        recipient = original.sender
+        if recipient is None:
+            raise KeyError("Original message has no sender to reply to")
+        msg = Message(original.recipient or "", recipient, content, time.time())
+        with self._lock:
+            if recipient not in self._queues:
+                raise KeyError(f"Unknown recipient '{recipient}'")
+            self._queues[recipient].put(msg)
+            self._history.append(msg)
+        global_event_bus.publish("agent_message", msg.__dict__)
     # ------------------------------------------------------------------
     # Receiving
     def receive(self, agent_id: str, timeout: Optional[float] = None) -> Message:

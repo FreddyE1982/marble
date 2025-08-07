@@ -3240,7 +3240,9 @@ model trains.
 
 This project demonstrates how the new ``ToolManagerPlugin`` allows MARBLE to
 autonomously call external services such as web search APIs and graph
-databases.
+databases. The plugin supports a ``"mcp"`` mode that listens on the
+``MessageBus`` for requests originating from the :class:`MCPToolBridge`, making
+it possible to invoke MARBLE tools from external MCP clients.
 
 1. **Download a dataset** to populate the database used by the
    ``DatabaseQueryTool``. Here we use the classic Iris flower dataset:

@@ -15,6 +15,17 @@ def test_message_exchange():
     assert msg2.content == {"all": 1}
 
 
+def test_message_reply():
+    bus = MessageBus()
+    bus.register("a")
+    bus.register("b")
+    bus.send("a", "b", {"ping": 1})
+    incoming = bus.receive("b", timeout=1.0)
+    bus.reply(incoming, {"pong": 2})
+    reply = bus.receive("a", timeout=1.0)
+    assert reply.content["pong"] == 2
+
+
 def test_environment_simulation_no_deadlock():
     bus = MessageBus()
     agents = {
