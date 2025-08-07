@@ -223,6 +223,53 @@ class ServeModelPlugin(PipelinePlugin):
 register_plugin("serve_model", ServeModelPlugin)
 
 
+class MCPServeModelPlugin(PipelinePlugin):
+    """Launch an MCPServer for MARBLE inference.
+
+    This plugin mirrors :class:`ServeModelPlugin` but exposes the model via the
+    MCP protocol. The server is started during :meth:`initialise` and remains
+    running after the pipeline completes. The :meth:`execute` method simply
+    returns connection information for clients.
+    """
+
+    def __init__(self, host: str | None = None, port: int | None = None) -> None:
+        from config_loader import load_config
+
+        cfg = load_config()
+        defaults = cfg.get("serve_model", {})
+        host = host if host is not None else defaults.get("host", "localhost")
+        port = port if port is not None else defaults.get("port", 5000)
+        super().__init__(host=host, port=port)
+        self.host = host
+        self.port = port
+        self.server = None
+
+    def initialise(self, device: torch.device, marble=None) -> None:
+        from mcp_server import MCPServer
+
+        if marble is None:
+            raise ValueError("No model available for serving")
+        brain = (
+            marble.get_brain()
+            if hasattr(marble, "get_brain")
+            else getattr(marble, "brain", marble)
+        )
+        if hasattr(brain, "neuronenblitz") and hasattr(brain.neuronenblitz, "device"):
+            brain.neuronenblitz.device = device
+        self.server = MCPServer(brain, host=self.host, port=self.port)
+        self.server.start()
+
+    def execute(self, device: torch.device, marble=None):
+        return {"host": self.host, "port": self.port, "server": self.server}
+
+    def teardown(self) -> None:
+        # Server intentionally left running for external use.
+        pass
+
+
+register_plugin("serve_model_mcp", MCPServeModelPlugin)
+
+
 class AsyncGradientAccumulationPlugin(PipelinePlugin):
     """Train a model using :class:`AsyncGradientAccumulator`.
 
