@@ -12,16 +12,18 @@ class BitTensorStreamingDataset(IterableDataset):
     """Stream ``(input, target)`` pairs as bit tensors with random access.
 
     The class is a lightweight wrapper around a HuggingFace dataset object that
-    exposes ``select`` for random access. Only the requested records are pulled
-    from the underlying dataset which keeps the implementation compatible with
-    ``datasets.load_dataset(..., streaming=True)``.
+    exposes ``select`` for random access or the ``skip``/``take`` streaming
+    interface. Only the requested records are pulled from the underlying
+    dataset which keeps the implementation compatible with
+    ``datasets.load_dataset(..., streaming=True)`` without materialising the
+    entire dataset in memory.
 
     Parameters
     ----------
     dataset:
-        HuggingFace dataset object supporting ``select``. Each sample must be a
-        ``(input, target)`` tuple or a mapping with ``"input"`` and
-        ``"target"`` fields.
+        HuggingFace dataset object supporting ``select`` or the streaming
+        ``skip``/``take`` API. Each sample must be a ``(input, target)`` tuple
+        or a mapping with ``"input"`` and ``"target"`` fields.
     batch_size:
         Number of consecutive samples yielded together when iterating.
     virtual_batch_size:
@@ -41,8 +43,13 @@ class BitTensorStreamingDataset(IterableDataset):
         virtual_batch_size: int | None = None,
         **kwargs: Any,
     ) -> None:
-        if not hasattr(dataset, "select"):
-            raise TypeError("dataset must provide a 'select' method")
+        if not (
+            hasattr(dataset, "select")
+            or (hasattr(dataset, "skip") and hasattr(dataset, "take"))
+        ):
+            raise TypeError(
+                "dataset must provide 'select' or streaming 'skip'/'take' methods"
+            )
         self.dataset = dataset
         self.batch_size = int(batch_size)
         if self.batch_size <= 0:
@@ -66,9 +73,17 @@ class BitTensorStreamingDataset(IterableDataset):
         raise TypeError("record must be tuple or dict with 'input'/'target'")
 
     def _fetch_index(self, index: int) -> tuple[Any, Any]:
-        subset = self.dataset.select([index])
+        if hasattr(self.dataset, "select"):
+            subset = self.dataset.select([index])
+        elif hasattr(self.dataset, "skip") and hasattr(self.dataset, "take"):
+            subset = self.dataset.skip(index).take(1)
+        else:  # pragma: no cover - guarded in __init__
+            raise TypeError(
+                "dataset must provide 'select' or streaming 'skip'/'take' methods"
+            )
+        iterator = iter(subset)
         try:
-            record = next(iter(subset))
+            record = next(iterator)
         except StopIteration as exc:  # dataset exhausted
             raise IndexError(index) from exc
         return self._normalise_record(record)

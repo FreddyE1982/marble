@@ -37,6 +37,22 @@ class CountingHFStreamingDataset(MockHFStreamingDataset):
         return gen()
 
 
+class SkipTakeDataset:
+    """Dataset exposing ``skip``/``take`` like HuggingFace ``IterableDataset``."""
+
+    def __init__(self, data):
+        self._data = list(data)
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def skip(self, n):
+        return SkipTakeDataset(self._data[n:])
+
+    def take(self, n):
+        return SkipTakeDataset(self._data[:n])
+
+
 def test_seek_operations():
     ds = BitTensorStreamingDataset(make_dataset(), batch_size=1)
     ds.seek_to(2)
@@ -106,3 +122,16 @@ def test_iterates_over_virtual_batches():
         ds.encoder.decode_tensor(second[0][i]) for i in range(second[0].shape[0])
     ]
     assert decoded == [2, 3]
+
+
+def test_skip_take_dict_records():
+    data = [{"input": i, "target": i + 1} for i in range(6)]
+    base = SkipTakeDataset(data)
+    ds = BitTensorStreamingDataset(base, virtual_batch_size=2)
+    batch = ds.get_virtual_batch(1)
+    decoded = [ds.encoder.decode_tensor(x[0]) for x in batch]
+    assert decoded == [2, 3]
+    ds.seek_to(4)
+    batch2 = ds.get_virtual_batch(2)
+    assert ds.encoder.decode_tensor(batch2[0][0]) == 4
+    assert ds.encoder.decode_tensor(batch2[0][1]) == 5
