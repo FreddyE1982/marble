@@ -991,6 +991,13 @@ remote dashboards to display real-time step updates alongside metrics.
 Dataset utilities likewise publish `dataset_load_start` and `dataset_load_end`
 events so interfaces can surface dataset activity next to pipeline progress.
 
+The repository also ships with a `KuzuExperimentTracker` that stores both
+metrics and training events inside a local Kùzu graph database. Enable the
+tracker and live topology mirroring by setting `live_kuzu.enabled: true` in
+`config.yaml`. During training all metrics from `MetricsVisualizer` as well as
+pipeline progress events are written to `live_kuzu.db_path`, which can then be
+explored interactively using [Kùzu Explorer](https://kuzudb.com/).
+
 ## Dataset Versioning and Replication
 
 Datasets can be tracked over time with `dataset_versioning`. The

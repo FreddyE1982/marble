@@ -3,7 +3,12 @@ from streamlit.testing.v1 import AppTest
 import types, sys
 
 
-def _setup_pipeline(device: str) -> tuple[AppTest, any]:
+def _stub_marble():
+    """Return a lightweight stand-in for a MARBLE instance."""
+    return types.SimpleNamespace(get_metrics_visualizer=lambda: None)
+
+
+def _setup_pipeline(device: str, monkeypatch) -> tuple[AppTest, any]:
     dummy = types.ModuleType("dummy_gui_mod")
 
     def square(x: int) -> int:
@@ -11,6 +16,8 @@ def _setup_pipeline(device: str) -> tuple[AppTest, any]:
 
     dummy.square = square
     sys.modules["dummy_gui_mod"] = dummy
+
+    monkeypatch.setattr(sp, "new_marble_system", lambda *a, **k: _stub_marble())
 
     at = AppTest.from_file("streamlit_playground.py")
     at.query_params["device"] = device
@@ -28,12 +35,12 @@ def _setup_pipeline(device: str) -> tuple[AppTest, any]:
     return at, pipe_tab
 
 
-def test_progress_desktop():
-    at, pipe_tab = _setup_pipeline("desktop")
+def test_progress_desktop(monkeypatch):
+    at, pipe_tab = _setup_pipeline("desktop", monkeypatch)
     assert getattr(at.session_state, "last_progress", "").startswith("completed")
 
 
-def test_progress_mobile():
-    at, pipe_tab = _setup_pipeline("mobile")
+def test_progress_mobile(monkeypatch):
+    at, pipe_tab = _setup_pipeline("mobile", monkeypatch)
     assert getattr(at.session_state, "last_progress", "").startswith("completed")
     assert any("Pipeline complete" in md.value for md in pipe_tab.markdown)

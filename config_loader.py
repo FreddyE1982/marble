@@ -238,6 +238,19 @@ def create_marble_from_config(
         torrent_client.connect()
 
     mv_params = cfg.get("metrics_visualizer", {})
+    live_cfg = cfg.get("live_kuzu", {})
+    kuzu_tracker = None
+    if live_cfg.get("enabled", False):
+        from experiment_tracker import (
+            KuzuExperimentTracker,
+            attach_tracker_to_events,
+        )
+        from topology_kuzu import TopologyKuzuTracker
+
+        db_path = live_cfg.get("db_path", "live.kuzu")
+        kuzu_tracker = KuzuExperimentTracker(db_path)
+        mv_params = dict(mv_params)
+        mv_params["tracker"] = kuzu_tracker
     dashboard_params = cfg.get("metrics_dashboard", {})
 
     marble = MARBLE(
@@ -255,6 +268,15 @@ def create_marble_from_config(
         pytorch_challenge_params=pytorch_challenge_params,
         hybrid_memory_params=hybrid_memory_params,
     )
+    if kuzu_tracker is not None:
+        from event_bus import PROGRESS_EVENT
+
+        marble.experiment_tracker = kuzu_tracker
+        marble.topology_tracker = TopologyKuzuTracker(marble.core, db_path)
+        marble._tracker_detach = attach_tracker_to_events(
+            kuzu_tracker, events=[PROGRESS_EVENT]
+        )
+
     # Optional tool manager instantiation
     tool_cfg = cfg.get("tool_manager", {})
     if tool_cfg.get("enabled"):
@@ -276,12 +298,6 @@ def create_marble_from_config(
         marble.tensor_sync_service = TensorSyncService(
             interval_ms=int(sync_cfg.get("interval_ms", 1000))
         )
-    topo_cfg = cfg.get("topology_graph", {})
-    if topo_cfg.get("enabled", False):
-        from topology_kuzu import TopologyKuzuTracker
-
-        db_path = topo_cfg.get("db_path", "topology.kuzu")
-        marble.topology_tracker = TopologyKuzuTracker(marble.core, db_path)
     if gw_cfg.get("enabled", False):
         from global_workspace import activate as activate_global_workspace
 

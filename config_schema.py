@@ -182,7 +182,7 @@ CONFIG_SCHEMA = {
                 },
             },
         },
-        "topology_graph": {
+        "live_kuzu": {
             "type": "object",
             "properties": {
                 "enabled": {"type": "boolean"},
