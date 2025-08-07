@@ -1546,6 +1546,7 @@ class Core:
         self.cluster_algorithm = params.get("cluster_algorithm", "kmeans")
         self.synapse_echo_length = params.get("synapse_echo_length", 5)
         self.synapse_echo_decay = params.get("synapse_echo_decay", 0.9)
+        self.interconnection_prob = params.get("interconnection_prob", 0.05)
         self.global_phase_rate = params.get("global_phase_rate", 0.0)
         self.global_phase = 0.0
         self.vram_limit_mb = params.get("vram_limit_mb", 100)

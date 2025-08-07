@@ -3,7 +3,7 @@ import random
 from marble_core import Core, Synapse
 
 
-def interconnect_cores(cores: list[Core], prob: float = 0.05) -> Core:
+def interconnect_cores(cores: list[Core], prob: float | None = None) -> Core:
     """Return a new :class:`Core` combining ``cores`` with interconnection synapses.
 
     Parameters
@@ -11,11 +11,16 @@ def interconnect_cores(cores: list[Core], prob: float = 0.05) -> Core:
     cores:
         List of cores to merge.
     prob:
-        Probability of creating an interconnection synapse between any pair of
-        neurons belonging to different cores.
+        Optional probability of creating an interconnection synapse between any
+        pair of neurons belonging to different cores. When ``None`` the average
+        ``interconnection_prob`` from the provided cores' parameters is used.
     """
     if not cores:
         raise ValueError("No cores provided")
+
+    if prob is None:
+        probs = [c.params.get("interconnection_prob", 0.05) for c in cores]
+        prob = sum(probs) / len(probs)
 
     # clone first core as base
     base_params = cores[0].params.copy()
