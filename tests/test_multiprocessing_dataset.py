@@ -1,5 +1,5 @@
-import torch
 import pytest
+import torch
 
 from process_manager import ProcessManager, SharedDataset
 

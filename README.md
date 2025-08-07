@@ -209,7 +209,11 @@ When a ``Pipeline`` or ``HighLevelPipeline`` is executed with a
 ``Neuronenblitz`` instance, these streamed batches are fed directly into
 training. Each shard is moved to the active CPU or GPU before invoking
 ``Neuronenblitz.train`` so large datasets can be learned from without keeping
-all pairs in memory.
+all pairs in memory. For standalone training the
+:class:`~marble_neuronenblitz.Neuronenblitz` class provides
+``train_streaming_shards`` which consumes an iterable of
+``BitTensorDataset`` shards using background prefetching to keep the model
+responsive.
 
 Both ``Neuronenblitz.train`` and the higher level ``train_marble_system`` helper
 accept custom ``loss_fn`` and ``validation_fn`` callables.  ``loss_fn``
@@ -330,7 +334,9 @@ standard learning code unchanged.
 For heterogeneous hardware, ``remote_offload.RemoteBrainServer`` and
 ``RemoteBrainClient`` allow parts of a brain to run on another machine. Values
 are compressed with ``DataCompressor`` and transmitted over HTTP with optional
-authentication.
+authentication. ``RemoteBrainServer`` can serve HTTPS when
+``network.remote_server.ssl_enabled`` is set, using the certificate and key
+files specified in ``ssl_cert_file`` and ``ssl_key_file``.
 
 Both the HTTP client and the gRPC-based ``GrpcRemoteTier`` include retry
 handlers that automatically recover from transient network or hardware glitches.

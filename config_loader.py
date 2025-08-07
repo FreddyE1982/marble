@@ -215,6 +215,11 @@ def create_marble_from_config(
             port=server_cfg.get("port", 8000),
             remote_url=server_cfg.get("remote_url"),
             auth_token=server_cfg.get("auth_token"),
+            ssl_enabled=server_cfg.get("ssl_enabled", False),
+            ssl_cert_file=server_cfg.get("ssl_cert_file"),
+            ssl_key_file=server_cfg.get("ssl_key_file"),
+            compression_level=server_cfg.get("compression_level", 6),
+            compression_enabled=server_cfg.get("compression_enabled", True),
         )
         remote_server.start()
 

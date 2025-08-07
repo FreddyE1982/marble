@@ -9,6 +9,7 @@ import random
 import threading
 from collections import deque
 from datetime import datetime, timezone
+import asyncio
 
 import numpy as np
 
@@ -22,6 +23,7 @@ from marble_core import (
     perform_message_passing,
 )
 from marble_imports import *  # noqa: F401,F403
+from streaming_dataset_step import StreamingDatasetStep
 
 from . import learning as _learning
 from . import memory as _memory
@@ -1813,6 +1815,51 @@ class Neuronenblitz:
                 self.loss_fn = old_loss
             if old_val is not None:
                 self.validation_fn = old_val
+
+    async def _train_streaming_epoch(
+        self,
+        datasets,
+        batch_size: int,
+        prefetch: int,
+        device,
+    ) -> None:
+        for ds in datasets:
+            step = StreamingDatasetStep(
+                ds, batch_size=batch_size, prefetch=prefetch, device=device
+            )
+            async for batch in step:
+                for inp, tgt in zip(batch["inputs"], batch["targets"]):
+                    self.train_example(
+                        float(inp.float().mean().item()),
+                        float(tgt.float().mean().item()),
+                    )
+            step.close()
+
+    def train_streaming_shards(
+        self,
+        datasets,
+        epochs: int = 1,
+        *,
+        batch_size: int = 1,
+        prefetch: int = 2,
+        device: str | None = None,
+    ) -> None:
+        """Stream training data from ``BitTensorDataset`` shards.
+
+        Shards are consumed sequentially using :class:`StreamingDatasetStep` which
+        prefetches batches on a background task to keep the model responsive on
+        both CPU and GPU.
+        """
+
+        datasets = list(datasets)
+
+        async def runner():
+            for _ in range(int(epochs)):
+                await self._train_streaming_epoch(
+                    datasets, batch_size, prefetch, device
+                )
+
+        asyncio.run(runner())
 
     def get_training_history(self):
         return self.training_history

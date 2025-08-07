@@ -275,6 +275,18 @@ processing.
    print("Trained on", len(nb.training_history), "batches")
    ```
 
+5. **Stream shards directly into Neuronenblitz** without building a pipeline:
+
+   ```python
+   shards = [
+       BitTensorDataset([(i, i + 1) for i in range(0, 4)], device="cpu"),
+       BitTensorDataset([(i, i + 1) for i in range(4, 8)], device="cpu"),
+   ]
+   nb = Neuronenblitz(Core({}))
+   nb.train_streaming_shards(shards, batch_size=2, device="cuda")
+   print("Examples processed:", len(nb.training_history))
+   ```
+
 ### Customising Steps with Hooks
 
 The :class:`pipeline.Pipeline` supports registering callables that run before
@@ -731,10 +743,15 @@ from marble import DataLoader
 
 # Run this on the remote machine
 server = RemoteBrainServer(port=8000)
+# For HTTPS supply certificate and key:
+# server = RemoteBrainServer(port=8000, ssl_enabled=True,
+#                            ssl_cert_file="server.crt", ssl_key_file="server.key")
 server.start()
 
 # On the training machine
 cfg = load_config()
+# Use "https://" and disable verification for self-signed certs
+# client = RemoteBrainClient('https://remote_host:8000', ssl_verify=False)
 client = RemoteBrainClient('http://remote_host:8000')
 marble = MARBLE(cfg['core'], remote_client=client)
 from sklearn.datasets import load_digits

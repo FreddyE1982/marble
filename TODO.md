@@ -727,11 +727,11 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Implement Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements with CPU/GPU support.
    - [x] Add tests validating Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements.
    - [x] Document Integrate HighLevelPipeline with the forthcoming Neuronenblitz improvements in README and TUTORIAL.
-217. [ ] Support streaming dataset shards during Neuronenblitz training to keep the model responsive.
-   - [ ] Outline design for Support streaming dataset shards during Neuronenblitz training to keep the model responsive.
-   - [ ] Implement Support streaming dataset shards during Neuronenblitz training to keep the model responsive with CPU/GPU support.
-   - [ ] Add tests validating Support streaming dataset shards during Neuronenblitz training to keep the model responsive.
-   - [ ] Document Support streaming dataset shards during Neuronenblitz training to keep the model responsive in README and TUTORIAL.
+217. [x] Support streaming dataset shards during Neuronenblitz training to keep the model responsive.
+   - [x] Outline design for Support streaming dataset shards during Neuronenblitz training to keep the model responsive.
+   - [x] Implement Support streaming dataset shards during Neuronenblitz training to keep the model responsive with CPU/GPU support.
+   - [x] Add tests validating Support streaming dataset shards during Neuronenblitz training to keep the model responsive.
+   - [x] Document Support streaming dataset shards during Neuronenblitz training to keep the model responsive in README and TUTORIAL.
 218. [x] Allow learning modules to be swapped in and out through a plugin interface.
    - [x] Outline design for Allow learning modules to be swapped in and out through a plugin interface.
    - [x] Implement Allow learning modules to be swapped in and out through a plugin interface with CPU/GPU support.

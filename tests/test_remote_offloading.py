@@ -1,4 +1,4 @@
-import os, sys, time
+import os, sys, time, subprocess
 import requests
 import pytest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -170,3 +170,39 @@ def test_bandwidth_and_route(monkeypatch):
     assert new_url == "http://b"
     client.process(0.3)
     assert client.average_bandwidth > 0
+
+
+def test_remote_server_ssl(tmp_path):
+    cert = tmp_path / "cert.pem"
+    key = tmp_path / "key.pem"
+    subprocess.run(
+        [
+            "openssl",
+            "req",
+            "-x509",
+            "-nodes",
+            "-newkey",
+            "rsa:2048",
+            "-keyout",
+            str(key),
+            "-out",
+            str(cert),
+            "-subj",
+            "/CN=localhost",
+            "-days",
+            "1",
+        ],
+        check=True,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    server = RemoteBrainServer(
+        port=8007,
+        ssl_enabled=True,
+        ssl_cert_file=str(cert),
+        ssl_key_file=str(key),
+    )
+    server.start()
+    client = RemoteBrainClient("https://localhost:8007", ssl_verify=False, compression_enabled=False)
+    client.ping()
+    server.stop()
