@@ -151,6 +151,21 @@ CONFIG_SCHEMA = {
                 "interval_ms": {"type": "integer", "minimum": 1},
             },
         },
+        "mcp_server": {
+            "type": "object",
+            "properties": {
+                "host": {"type": "string"},
+                "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+                "auth": {
+                    "type": "object",
+                    "properties": {
+                        "token": {"type": ["string", "null"]},
+                        "username": {"type": ["string", "null"]},
+                        "password": {"type": ["string", "null"]},
+                    },
+                },
+            },
+        },
         "plugins": {
             "type": ["array", "string"],
             "items": {"type": "string"},

@@ -63,6 +63,12 @@ Each entry is listed under its section heading.
 ## serve_model
 - host
 - port
+## mcp_server
+- host
+- port
+- auth.token: Bearer token clients must present.
+- auth.username: Basic auth username.
+- auth.password: Basic auth password.
 ## sync
 - interval_ms: Interval in milliseconds between cross-device tensor
   synchronisation cycles. Recommended 100–10_000 depending on network speed.

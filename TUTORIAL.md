@@ -3186,6 +3186,21 @@ device used during execution.
    Omitting the ``params`` block makes the plugin look up ``host`` and ``port``
    in ``config.yaml``.
 
+   To expose the model via the Model Context Protocol use ``serve_model_mcp``:
+
+   ```python
+   pipe = Pipeline([
+       {'plugin': 'serve_model_mcp', 'params': {'host': 'localhost', 'port': 5083}}
+   ])
+   info = pipe.execute(type('M', (), {'get_brain': lambda self=brain: brain, 'brain': brain})())[0]
+   # interact with the MCP server then stop
+   info['server'].stop()
+   ```
+
+   When ``host`` or ``port`` are omitted the plugin reads defaults from the
+   ``mcp_server`` section of ``config.yaml``. Set ``mcp_server.auth.token`` to
+   require clients to present a bearer token.
+
 ## Project: Tracking the MARBLE Topology in Kùzu
 
 This project demonstrates how to mirror MARBLE's evolving network structure
