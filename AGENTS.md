@@ -15,9 +15,12 @@ a FAILEDTESTS.md that is persisted.
 the agent is NOT to run ANY tests if the agent has not made any changes to code yet
 if the user says "relevant tests only", then the agent is to run tests that are relevant to the changed code pieces ONLY even if that contradicts another rule
 
+<IMPORTANT DO NOT SKIP>
 0.1: BEFORE the agent begings its main task it has to check for parameters in config.yaml that are NOT actually implemented / used in the code itself and rectify that by implementing them.
 BEFORE the agent begins its main task it has to check FAILEDTESTS.md for any failed tests and fix ONE of them
-0.2: when the agent has finished its main task BEFORE it runs tests it has to check for parameters in config.yaml that are NOT actually implemented / used in the code itself and rectify that by implementing them
+0.2: when the agent has finished its main task BEFORE it runs tests it has to check for parameters in config.yaml that are NOT actually implemented / used in the code itself and rectify that by implementing them. This is in ADDITION to the check and fix unimplemented parameters
+in config.yaml in 0.1
+</IMPORTANT>
 
 
 
