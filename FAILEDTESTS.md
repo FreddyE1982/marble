@@ -1,5 +1,5 @@
 No failing tests.
-- tests/test_streamlit_all_buttons.py: ValueError: Instance 'main' already exists
+- tests/test_streamlit_all_buttons.py::test_click_all_buttons: RuntimeError: AppTest script run timed out after 10(s)
 - tests/test_multiprocessing_dataset.py::test_multiprocessing_cpu: ConnectionResetError [resolved by enforcing spawn start method]
 - tests/test_streamlit_gui.py: multiple failures (StopIteration, IndexError, ImportError)
  - tests/test_streamlit_gui.py: unexpected failures during dataset history integration

@@ -3578,3 +3578,41 @@ shared environment.
 Both agents share reward when they take the same action. The message bus can be
 used for further coordination or competition scenarios and all interactions are
 logged for later visualisation in the dashboard.
+
+## Project 100 – Custom Training and Validation Functions
+
+**Goal:** Use bespoke `loss_fn` and `validation_fn` during Neuronenblitz training.
+
+1. **Download a real dataset** – this example uses the UCI Wine Quality set:
+
+```python
+import pandas as pd
+url = "https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
+df = pd.read_csv(url, sep=";")
+pairs = list(zip(df["density"].tolist(), df["alcohol"].tolist()))
+```
+
+2. **Define custom functions** controlling optimisation and per-example validation:
+
+```python
+def squared_loss(target, output):
+    return (target - output) ** 2
+
+def clip_validation(target, output):
+    # ignore updates when the prediction is within 0.1 of the target
+    return 0.0 if abs(target - output) < 0.1 else 1.0
+```
+
+3. **Train with the custom functions** so invalid samples do not influence the model:
+
+```python
+from marble_core import Core
+from marble_neuronenblitz import Neuronenblitz
+from tests.test_core_functions import minimal_params
+
+core = Core(minimal_params())
+nb = Neuronenblitz(core)
+nb.train(pairs, epochs=5, loss_fn=squared_loss, validation_fn=clip_validation)
+```
+
+This project demonstrates how domain-specific validation logic can directly influence plasticity during training while using a fully customised loss function.

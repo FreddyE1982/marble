@@ -64,6 +64,16 @@ def default_loss_fn(target: float, output: float) -> float:
     return target - output
 
 
+def default_validation_fn(target: float, output: float) -> float:
+    """Return a scaling factor for weight updates.
+
+    Returning ``1.0`` leaves training unchanged while other values can modulate
+    the applied loss based on the relationship between ``target`` and
+    ``output``.
+    """
+    return 1.0
+
+
 def default_weight_update_fn(
     source: float | None, error: float | None, path_len: int
 ) -> float:
@@ -104,6 +114,7 @@ class Neuronenblitz:
         loss_fn=None,
         loss_module=None,
         weight_update_fn=None,
+        validation_fn=None,
         plasticity_threshold=10.0,
         continue_decay_rate=0.85,
         struct_weight_multiplier1=1.5,
@@ -307,6 +318,9 @@ class Neuronenblitz:
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             loss_module = LOSS_MODULES[loss_module]().to(device)
         self.loss_module = loss_module
+        self.validation_fn = (
+            validation_fn if validation_fn is not None else default_validation_fn
+        )
         self.weight_update_fn = (
             weight_update_fn
             if weight_update_fn is not None
@@ -1698,7 +1712,8 @@ class Neuronenblitz:
                             raw_error += self.dataloader.round_trip_penalty_for(
                                 input_value
                             )
-                    weighted_error = raw_error * sample_weight
+                    validation_factor = self.validation_fn(target_value, output_value)
+                    weighted_error = raw_error * sample_weight * validation_factor
                     path_length = self.apply_weight_updates_and_attention(
                         path, weighted_error
                     )
@@ -1714,7 +1729,8 @@ class Neuronenblitz:
                     raw_error = self._compute_loss(target_value, output_value)
                     if self.dataloader is not None:
                         raw_error += self.dataloader.round_trip_penalty_for(input_value)
-                weighted_error = raw_error * sample_weight
+                validation_factor = self.validation_fn(target_value, output_value)
+                weighted_error = raw_error * sample_weight * validation_factor
                 path_length = self.apply_weight_updates_and_attention(
                     path, weighted_error
                 )
@@ -1728,49 +1744,75 @@ class Neuronenblitz:
                     "output": output_value,
                     "error": error,
                     "path_length": path_length,
+                    "validation": validation_factor,
                 }
             )
-            return output_value, error, path
+            return output_value, error, path_length
 
-    def train(self, examples, epochs=1):
-        for epoch in range(epochs):
-            epoch_errors = []
-            for input_val, target_val in examples:
-                output, error, _ = self.train_example(input_val, target_val)
-                epoch_errors.append(
-                    abs(error) if isinstance(error, (int, float)) else 0
+    def train(self, examples, epochs=1, *, loss_fn=None, validation_fn=None):
+        """Train on ``examples`` for ``epochs``.
+
+        ``loss_fn`` and ``validation_fn`` temporarily override the instance
+        functions for the duration of this call.
+        """
+        if loss_fn is not None:
+            old_loss = self.loss_fn
+            self.loss_fn = loss_fn
+        else:
+            old_loss = None
+        if validation_fn is not None:
+            old_val = self.validation_fn
+            self.validation_fn = validation_fn
+        else:
+            old_val = None
+
+        try:
+            for epoch in range(epochs):
+                epoch_errors = []
+                epoch_valid = []
+                for input_val, target_val in examples:
+                    output, error, _ = self.train_example(input_val, target_val)
+                    epoch_errors.append(abs(error) if isinstance(error, (int, float)) else 0)
+                    epoch_valid.append(self.validation_fn(target_val, output))
+                avg_error = sum(epoch_errors) / len(epoch_errors) if epoch_errors else 0
+                avg_valid = sum(epoch_valid) / len(epoch_valid) if epoch_valid else 0
+                print(
+                    f"Epoch {epoch+1}/{epochs} - Average error: {avg_error:.4f} - Validation: {avg_valid:.4f}"
                 )
-            avg_error = sum(epoch_errors) / len(epoch_errors) if epoch_errors else 0
-            print(f"Epoch {epoch+1}/{epochs} - Average error: {avg_error:.4f}")
-            if avg_error > 0.1:
-                self.core.expand(
-                    num_new_neurons=10,
-                    num_new_synapses=15,
-                    alternative_connection_prob=self.alternative_connection_prob,
+                if avg_error > 0.1:
+                    self.core.expand(
+                        num_new_neurons=10,
+                        num_new_synapses=15,
+                        alternative_connection_prob=self.alternative_connection_prob,
+                    )
+                self.core.synapses = [
+                    s for s in self.core.synapses if abs(s.weight) >= 0.05
+                ]
+                change = perform_message_passing(
+                    self.core,
+                    metrics_visualizer=self.metrics_visualizer,
+                    attention_module=self.core.attention_module,
                 )
-            self.core.synapses = [
-                s for s in self.core.synapses if abs(s.weight) >= 0.05
-            ]
-            change = perform_message_passing(
-                self.core,
-                metrics_visualizer=self.metrics_visualizer,
-                attention_module=self.core.attention_module,
-            )
-            self.last_message_passing_change = change
-            self.decide_synapse_action()
-            self.adjust_learning_rate()
-            if (
-                self.use_experience_replay
-                and len(self.replay_buffer) >= self.replay_batch_size
-            ):
-                samples = self.sample_replay_batch(self.replay_batch_size)
-                for i, w in samples:
-                    inp, tgt, *_ = self.replay_buffer[i]
-                    _, err, _ = self.train_example(inp, tgt, sample_weight=w)
-                    self.replay_priorities[i] = abs(err) + 1e-6
-            self.update_exploration_schedule()
-            self.adjust_dropout_rate(avg_error)
-            self.freeze_low_impact_synapses()
+                self.last_message_passing_change = change
+                self.decide_synapse_action()
+                self.adjust_learning_rate()
+                if (
+                    self.use_experience_replay
+                    and len(self.replay_buffer) >= self.replay_batch_size
+                ):
+                    samples = self.sample_replay_batch(self.replay_batch_size)
+                    for i, w in samples:
+                        inp, tgt, *_ = self.replay_buffer[i]
+                        _, err, _ = self.train_example(inp, tgt, sample_weight=w)
+                        self.replay_priorities[i] = abs(err) + 1e-6
+                self.update_exploration_schedule()
+                self.adjust_dropout_rate(avg_error)
+                self.freeze_low_impact_synapses()
+        finally:
+            if old_loss is not None:
+                self.loss_fn = old_loss
+            if old_val is not None:
+                self.validation_fn = old_val
 
     def get_training_history(self):
         return self.training_history

@@ -29,3 +29,15 @@ def test_registry_duplicate(tmp_path):
     assert set(reg.list()) == {"base", "copy"}
     assert reg.get("copy") is not reg.get("base")
 
+
+def test_registry_create_overwrite(tmp_path):
+    cfg = create_cfg(tmp_path)
+    reg = MarbleRegistry()
+    first = reg.create("main", cfg_path=cfg)
+    # Creating again without overwrite returns existing instance
+    same = reg.create("main", cfg_path=cfg)
+    assert first is same
+    # Forcing overwrite replaces the instance
+    replacement = reg.create("main", cfg_path=cfg, overwrite=True)
+    assert replacement is not first
+

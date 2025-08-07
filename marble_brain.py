@@ -460,6 +460,9 @@ class Brain:
         epochs: int = 1,
         validation_examples=None,
         progress_callback=None,
+        *,
+        loss_fn=None,
+        validation_fn=None,
     ):
         train_examples = _normalize_examples(train_examples)
         validation_examples = (
@@ -495,15 +498,31 @@ class Brain:
             start_time = time.time()
             try:
                 self.neuronenblitz.train(
-                    train_examples, epochs=1, dream_buffer=self.dream_buffer
+                    train_examples,
+                    epochs=1,
+                    dream_buffer=self.dream_buffer,
+                    loss_fn=loss_fn,
+                    validation_fn=validation_fn,
                 )
             except TypeError:
-                self.neuronenblitz.train(train_examples, epochs=1)
+                self.neuronenblitz.train(
+                    train_examples,
+                    epochs=1,
+                    loss_fn=loss_fn,
+                    validation_fn=validation_fn,
+                )
             self.neuronenblitz.modulate_plasticity(
                 self.neuromodulatory_system.get_context()
             )
             if validation_examples is not None:
-                val_loss = self.validate(validation_examples)
+                if validation_fn is not None:
+                    vals = []
+                    for inp, tgt in validation_examples:
+                        out, _ = self.neuronenblitz.dynamic_wander(inp)
+                        vals.append(validation_fn(tgt, out))
+                    val_loss = sum(vals) / len(vals) if vals else 0.0
+                else:
+                    val_loss = self.validate(validation_examples)
             else:
                 val_loss = None
             if val_loss is not None:

@@ -211,6 +211,13 @@ training. Each shard is moved to the active CPU or GPU before invoking
 ``Neuronenblitz.train`` so large datasets can be learned from without keeping
 all pairs in memory.
 
+Both ``Neuronenblitz.train`` and the higher level ``train_marble_system`` helper
+accept custom ``loss_fn`` and ``validation_fn`` callables.  ``loss_fn``
+computes the optimisation error, while ``validation_fn`` returns a scaling
+factor applied to each weight update, enabling arbitrary validation logic during
+training.  This allows experiments with domain specific losses or runtime
+filters that compare generated outputs against training targets.
+
 Datasets can now be cached on disk using ``BitTensorDataset.cached`` to avoid
 re-encoding pairs on subsequent runs. Deterministic splitting into training,
 validation and test sets is available via ``split_deterministic`` which hashes

@@ -168,6 +168,9 @@ def train_marble_system(
     epochs: int = 1,
     validation_examples: Iterable[Any] | None = None,
     progress_callback=None,
+    *,
+    loss_fn=None,
+    validation_fn=None,
 ) -> None:
     """Train ``marble`` on ``train_examples`` for ``epochs``."""
     marble.get_brain().train(
@@ -175,6 +178,8 @@ def train_marble_system(
         epochs=epochs,
         validation_examples=validation_examples,
         progress_callback=progress_callback,
+        loss_fn=loss_fn,
+        validation_fn=validation_fn,
     )
 
 
