@@ -3517,6 +3517,34 @@ inspect the results within the Streamlit playground.
    * *Best Configuration* – expander listing the top-performing parameters with a
      download button to export them as ``best_params.yaml`` for future runs.
 
+## Project 24 – Text-to-Music Training
+
+**Goal:** Train a MARBLE system to generate music from textual metadata using the
+`sleeping-ai/Udio-24MX1` dataset.
+
+1. **Install dependencies and run the example**:
+
+   ```bash
+   pip install -r requirements.txt
+   python examples/project24_text_to_music.py
+   ```
+
+2. **Inside the script** the dataset is streamed and wrapped so metadata becomes
+   the input and raw audio the target:
+
+   ```python
+   hf_stream = load_dataset("sleeping-ai/Udio-24MX1", split="train", streaming=True)
+   formatted_stream = hf_stream.map(format_record, remove_columns=hf_stream.column_names)
+   dataset = BitTensorStreamingDataset(formatted_stream, virtual_batch_size=2)
+   HighLevelPipeline().marble_interface.new_marble_system().marble_interface.train_marble_system(
+       train_examples=dataset, epochs=1
+   ).execute()
+   ```
+
+   The `format_record` function packs the `lyrics`, `prompt`, `tags`, and
+   `duration` fields into the input while decoding the referenced `song_path`
+   into the audio waveform target.
+
 ## Project 99 – Custom Loss Module Plugin
 
 **Goal:** Register a custom loss function through the plugin system and use it
