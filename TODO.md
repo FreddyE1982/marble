@@ -1510,3 +1510,6 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 - [x] Persist replay buffers and neuromodulatory state in model snapshots.
 - [x] Create integration tests verifying dreaming state survives save/load cycles.
 - [x] Benchmark learning performance with and without dream consolidation.
+334. [ ] Audit config.yaml for unused parameters and implement missing ones.
+    - [ ] Identify parameters defined in config.yaml but not referenced in code.
+    - [ ] Implement missing parameters or prune outdated ones.
