@@ -1191,11 +1191,18 @@ Supported layers currently include ``Linear``, ``Conv2d`` (multi-channel),
 ``BatchNorm1d``, ``BatchNorm2d``, ``LayerNorm``, ``GroupNorm``, ``Dropout``,
 ``Flatten``, ``MaxPool2d``, ``AvgPool2d``, ``GlobalAvgPool2d`` and the adaptive
 pooling variants ``AdaptiveAvgPool2d`` and ``AdaptiveMaxPool2d`` as well as the
-element-wise activations ``ReLU``, ``Sigmoid``, ``Tanh`` and ``GELU``. ``Embedding`` and
-``EmbeddingBag`` layers are supported, including their ``padding_idx`` and ``max_norm`` options.
-Recurrent modules ``RNN``, ``LSTM`` and ``GRU`` are handled as well. Functional reshaping
-operations via ``view`` or ``torch.reshape`` are also recognized. In addition,
-``Sequential`` containers and ``ModuleList`` objects are expanded recursively during conversion.
+element-wise activations ``ReLU``, ``Sigmoid``, ``Tanh``, ``GELU`` and ``Softmax``.
+Element-wise tensor operations such as ``torch.add`` (including residual
+connections) and ``torch.mul`` are converted when the operand shapes match.
+``Embedding`` and ``EmbeddingBag`` layers are supported, including their
+``padding_idx`` and ``max_norm`` options. Recurrent modules ``RNN``, ``LSTM``
+and ``GRU`` are handled as well. Functional reshaping operations via ``view`` or
+``torch.reshape`` are also recognized. In addition, ``Sequential`` containers
+and ``ModuleList`` objects are expanded recursively during conversion.
+
+Unsupported operations or mismatched tensor shapes will raise
+``UnsupportedLayerError``. Custom converters can be registered to extend the
+coverage for project-specific modules.
 
 ```bash
 python convert_model.py --pytorch my_model.pt --output marble_model.json

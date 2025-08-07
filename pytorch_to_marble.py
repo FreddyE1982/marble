@@ -1,5 +1,6 @@
 import argparse
 import logging
+import operator
 from typing import Callable, Dict, List, Type
 
 import numpy as np
@@ -322,6 +323,31 @@ def _add_recurrent_layer(
     return out_ids
 
 
+def _elementwise_binary_op(
+    core: Core,
+    left: List[int],
+    right: List[int],
+    op_type: str,
+) -> List[int]:
+    """Create neurons performing an element-wise binary operation."""
+    if len(left) != len(right):
+        raise UnsupportedLayerError(
+            f"{op_type} requires tensors of equal length for conversion"
+        )
+    out: List[int] = []
+    for a, b in zip(left, right):
+        nid = len(core.neurons)
+        neuron = Neuron(nid, value=0.0, tier="vram", neuron_type="linear")
+        neuron.params["op"] = op_type
+        core.neurons.append(neuron)
+        for src in (a, b):
+            syn = Synapse(src, nid, weight=1.0)
+            core.neurons[src].synapses.append(syn)
+            core.synapses.append(syn)
+        out.append(nid)
+    return out
+
+
 @register_converter(torch.nn.Linear)
 def _convert_linear(
     layer: torch.nn.Linear, core: Core, inputs: List[int], *args, **kwargs
@@ -372,6 +398,18 @@ def _convert_gelu(
     return inputs
 
 
+@register_converter(torch.nn.Softmax)
+def _convert_softmax(
+    layer: torch.nn.Softmax, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    """Convert a ``Softmax`` layer."""
+    for nid in inputs:
+        n = core.neurons[nid]
+        n.neuron_type = "softmax"
+        n.params["dim"] = int(layer.dim)
+    return inputs
+
+
 @register_function_converter(F.relu)
 @register_method_converter("relu")
 def _convert_f_relu(
@@ -396,6 +434,38 @@ def _convert_f_tanh(
     func: Callable, core: Core, inputs: List[int], *args, **kwargs
 ) -> List[int]:
     return _convert_tanh(torch.nn.Tanh(), core, inputs)
+
+
+@register_function_converter(F.softmax)
+@register_function_converter(torch.softmax)
+@register_method_converter("softmax")
+def _convert_f_softmax(
+    func: Callable, core: Core, inputs: List[int], *args, **kwargs
+) -> List[int]:
+    dim = kwargs.get("dim", args[0] if args else -1)
+    return _convert_softmax(torch.nn.Softmax(dim=dim), core, inputs)
+
+
+@register_function_converter(torch.add)
+@register_function_converter(operator.add)
+@register_method_converter("add")
+def _convert_add(
+    func: Callable, core: Core, inputs: List[int], other, *args, **kwargs
+) -> List[int]:
+    if not isinstance(other, list):
+        raise UnsupportedLayerError("add expects tensor input")
+    return _elementwise_binary_op(core, inputs, other, "add")
+
+
+@register_function_converter(torch.mul)
+@register_function_converter(operator.mul)
+@register_method_converter("mul")
+def _convert_mul(
+    func: Callable, core: Core, inputs: List[int], other, *args, **kwargs
+) -> List[int]:
+    if not isinstance(other, list):
+        raise UnsupportedLayerError("mul expects tensor input")
+    return _elementwise_binary_op(core, inputs, other, "mul")
 
 
 @register_converter(torch.nn.Dropout)
@@ -694,8 +764,14 @@ def convert_model(
                 getattr(node.target, "__name__", str(node.target)),
             )
             converter = _get_function_converter(node.target)
-            inp = node_outputs[node.args[0].name]
-            extra_args = [a for a in node.args[1:]]
+            resolved_args: List = []
+            for arg in node.args:
+                if isinstance(arg, torch.fx.Node):
+                    resolved_args.append(node_outputs[arg.name])
+                else:
+                    resolved_args.append(arg)
+            inp = resolved_args[0]
+            extra_args = resolved_args[1:]
             pre_syn = len(core.synapses)
             out = converter(node.target, core, inp, *extra_args, **node.kwargs)
             layer_synapses[node.name] = len(core.synapses) - pre_syn
@@ -706,8 +782,14 @@ def convert_model(
         elif node.op == "call_method":
             logger.info("Converting method %s", node.target)
             converter = _get_method_converter(node.target)
-            inp = node_outputs[node.args[0].name]
-            extra_args = [a for a in node.args[1:]]
+            resolved_args: List = []
+            for arg in node.args:
+                if isinstance(arg, torch.fx.Node):
+                    resolved_args.append(node_outputs[arg.name])
+                else:
+                    resolved_args.append(arg)
+            inp = resolved_args[0]
+            extra_args = resolved_args[1:]
             pre_syn = len(core.synapses)
             out = converter(node.target, core, inp, *extra_args, **node.kwargs)
             layer_synapses[node.name] = len(core.synapses) - pre_syn
