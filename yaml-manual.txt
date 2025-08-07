@@ -1038,6 +1038,8 @@ network:
     # Configuration for forwarding parts of the brain to a remote server. When
     # ``offload_enabled`` is true the brain serializes a subcore and sends it to
     # this endpoint for processing.
+    # The client first performs a ``/ping`` heartbeat to ensure the server is
+    # reachable before attempting any offload requests.
     url: Base URL for the remote HTTP brain server.
     timeout: Seconds to wait for remote requests before they are aborted. Values
       between 5 and 30 are typical depending on network latency.

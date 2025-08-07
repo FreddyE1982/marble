@@ -14,6 +14,7 @@ from plugin_system import load_plugins
 from remote_hardware import load_remote_tier_plugin
 from remote_offload import RemoteBrainClient, RemoteBrainServer
 from torrent_offload import BrainTorrentClient, BrainTorrentTracker
+import requests
 
 DEFAULT_CONFIG_FILE = Path(__file__).resolve().parent / "config.yaml"
 
@@ -197,7 +198,14 @@ def create_marble_from_config(
             max_retries=remote_cfg.get("max_retries", 3),
             auth_token=remote_cfg.get("auth_token"),
             backoff_factor=remote_cfg.get("backoff_factor", 0.5),
+            connect_retry_interval=remote_cfg.get("connect_retry_interval", 5.0),
+            heartbeat_timeout=remote_cfg.get("heartbeat_timeout", 10.0),
+            ssl_verify=remote_cfg.get("ssl_verify", True),
         )
+        try:
+            remote_client.connect()
+        except requests.RequestException:
+            pass
 
     remote_server = None
     server_cfg = network_cfg.get("remote_server", {})

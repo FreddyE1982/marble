@@ -156,6 +156,10 @@ class RemoteBrainClient:
         backoff_factor: float = 0.5,
         track_latency: bool = True,
         auth_token: str | None = None,
+        *,
+        connect_retry_interval: float = 5.0,
+        heartbeat_timeout: float = 10.0,
+        ssl_verify: bool = True,
     ) -> None:
         self.url = url.rstrip('/')
         self.timeout = timeout
@@ -173,6 +177,37 @@ class RemoteBrainClient:
         self.bytes_sent = 0
         self.bytes_received = 0
         self._bandwidth_start = time.monotonic()
+        self.connect_retry_interval = connect_retry_interval
+        self.heartbeat_timeout = heartbeat_timeout
+        self.ssl_verify = ssl_verify
+        self._connected = False
+
+    def ping(self, timeout: float | None = None) -> None:
+        """Send a heartbeat request to the remote server."""
+        ping_timeout = timeout if timeout is not None else self.heartbeat_timeout
+        headers = {}
+        if self.auth_token is not None:
+            headers["Authorization"] = f"Bearer {self.auth_token}"
+        resp = requests.get(
+            self.url + "/ping",
+            timeout=ping_timeout,
+            headers=headers,
+            verify=self.ssl_verify,
+        )
+        if resp.status_code >= 400:
+            resp.raise_for_status()
+
+    def connect(self) -> None:
+        """Ensure the remote server is reachable by pinging with retries."""
+        for attempt in range(self.max_retries):
+            try:
+                self.ping()
+                self._connected = True
+                return
+            except requests.RequestException:
+                if attempt == self.max_retries - 1:
+                    raise
+                time.sleep(self.connect_retry_interval)
 
     def _post(
         self,
@@ -211,7 +246,11 @@ class RemoteBrainClient:
                 if self.auth_token is not None:
                     headers["Authorization"] = f"Bearer {self.auth_token}"
                 resp = requests.post(
-                    self.url + path, json=payload, timeout=timeout, headers=headers
+                    self.url + path,
+                    json=payload,
+                    timeout=timeout,
+                    headers=headers,
+                    verify=self.ssl_verify,
                 )
                 if resp.status_code >= 400:
                     resp.raise_for_status()
