@@ -51,6 +51,8 @@ Each entry is listed under its section heading.
 ## tool_manager
 - enabled
 - policy
+- mode
+- agent_id
 - tools (mapping of tool identifiers to parameter dictionaries)
 
 
