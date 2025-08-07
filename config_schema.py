@@ -21,6 +21,8 @@ CONFIG_SCHEMA = {
                 "use_mixed_precision": {"type": "boolean"},
                 "quantization_bits": {"type": "integer", "minimum": 0, "maximum": 16},
                 "default_growth_tier": {"type": "string"},
+                "pretraining_epochs": {"type": "integer", "minimum": 0},
+                "min_cluster_k": {"type": "integer", "minimum": 1},
                 "attention_gating": {
                     "type": "object",
                     "properties": {
