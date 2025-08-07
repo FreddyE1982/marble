@@ -291,8 +291,16 @@ core:
   init_noise_std: Standard deviation of Gaussian noise added to the initial
     Mandelbrot values. ``0.0`` keeps deterministic seeds while larger values
     create varied starting states.
-  default_growth_tier: Preferred tier used when new neurons are created and no
-    tier choice is provided explicitly.
+  default_growth_tier: Preferred memory tier used for newly created neurons when
+    ``Core.expand`` is called without an explicit ``target_tier``. Valid options
+    are names present in ``TIER_REGISTRY`` such as ``"vram"``, ``"ram"``,
+    ``"disk"`` or ``"file"`` (when the ``FileTier`` is enabled). The tier is
+    only selected if sufficient capacity remains under the corresponding
+    ``<tier>_limit_mb`` setting; otherwise the core falls back to the next tier
+    based on availability. By default the system prefers ``"vram"`` so growth
+    happens on the fastest memory when possible. Override this to ``"ram`` or
+    ``"disk"`` when operating on machines without reliable GPU memory or to
+    force new allocations to cheaper storage.
   random_seed: Seed used for random operations in the core. Keeping this fixed
     ensures reproducible initialization.
   backend: Selects the tensor math library for core operations. ``"numpy"``
