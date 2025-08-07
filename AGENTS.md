@@ -15,6 +15,9 @@ a FAILEDTESTS.md that is persisted.
 the agent is NOT to run ANY tests if the agent has not made any changes to code yet
 if the user says "relevant tests only", then the agent is to run tests that are relevant to the changed code pieces ONLY even if that contradicts another rule
 
+0.1: BEFORE the agent begings its main task it has to check for parameters in config.yaml that are NOT actually implemented / used in the code itself and rectify that by implementing them
+0.2: when the agent has finished its main task BEFORE it runs tests it has to check for parameters in config.yaml that are NOT actually implemented / used in the code itself and rectify that by implementing them
+
 
 
 1. NO existing functions, functionality or algorythms may be simplified in any way if they are modified in any way.
