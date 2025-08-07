@@ -302,6 +302,7 @@ NEURON_TYPES = [
     "flatten",
     "convtranspose1d",
     "convtranspose2d",
+    "bias",
     "lstm",
     "gru",
     "layernorm",

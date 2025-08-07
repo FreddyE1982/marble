@@ -313,10 +313,10 @@
       - [x] Detect tensor device during extraction.
       - [x] Move GPU tensors to CPU when necessary.
       - [x] Preserve original device information for reconstruction.
-  - [ ] Inject bias neurons with correct values
-      - [ ] Create bias neuron nodes within graph builder.
-      - [ ] Populate bias nodes with corresponding weights.
-      - [ ] Validate bias application through unit tests.
+  - [x] Inject bias neurons with correct values
+      - [x] Create bias neuron nodes within graph builder.
+      - [x] Populate bias nodes with corresponding weights.
+      - [x] Validate bias application through unit tests.
   - [ ] Conversion CLI and API enhancements
    - [ ] Option to produce .marble snapshot directly
        - [ ] Add CLI flag enabling snapshot output.

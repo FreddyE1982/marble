@@ -852,8 +852,13 @@ def test_bias_synapses_values():
     params = minimal_params()
     core = convert_model(model, core_params=params)
     # find bias neurons (value 1.0) created by add_fully_connected_layer
-    bias_neuron_indices = [i for i, n in enumerate(core.neurons) if n.value == 1.0]
+    bias_neuron_indices = [
+        i for i, n in enumerate(core.neurons) if n.value == 1.0
+    ]
     assert len(bias_neuron_indices) == 2
+    # ensure bias neurons are tagged correctly
+    for idx in bias_neuron_indices:
+        assert core.neurons[idx].neuron_type == "bias"
     # check weights from bias neurons match layer biases
     first_bias_weight = model.seq[0].bias.detach().cpu().numpy()[0]
     syn = next(s for s in core.synapses if s.source == bias_neuron_indices[0])
