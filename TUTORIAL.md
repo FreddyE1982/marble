@@ -626,6 +626,22 @@ tasks.
    ```
    Mutations add noise to synapses while pruning removes the least useful ones.
 10. **Enable dreaming** by setting `dream_enabled: true` in `config.yaml`. Parameters like `dream_num_cycles`, `dream_interval`, `dream_replay_buffer_size`, `dream_replay_batch_size`, `dream_instant_buffer_size`, and `dream_housekeeping_threshold` control how frequently dream cycles run, how many past experiences they consolidate, how long recent memories stay in the instant buffer, and the salience required to keep memories during housekeeping.
+11. **Search hyperparameters** automatically using evolutionary strategies:
+    ```python
+    from evolution_trainer import run_evolution
+
+    def fitness(cfg, steps, device):
+        import torch
+        x = torch.tensor(cfg["x"], device=device)
+        target = torch.tensor(1.0, device=device)
+        return torch.abs(x - target).item()
+
+    space = {"x": {"type": "float", "min": 0.0, "max": 2.0, "sigma": 0.2}}
+    best = run_evolution({"x": 0.5}, fitness, space)
+    print("best", best.fitness)
+    ```
+    The helper pulls defaults such as population size from the `evolution` section of
+    `config.yaml` and runs on CPU or GPU automatically.
 
 **Complete Example**
 ```python

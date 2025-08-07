@@ -170,3 +170,60 @@ class EvolutionTrainer:
     def export_lineage_graph(self, path: str) -> None:
         """Write the evolution graph to ``path`` in GraphML format."""
         nx.write_graphml(self.graph, path)
+
+
+def run_evolution(
+    base_config: Dict[str, Any],
+    train_func: Callable[[Dict[str, Any], int, str], float],
+    mutation_space: Dict[str, Dict[str, Any]],
+    *,
+    population_size: int | None = None,
+    selection_size: int | None = None,
+    generations: int | None = None,
+    steps_per_candidate: int | None = None,
+    mutation_rate: float | None = None,
+    parallelism: int | None = None,
+) -> Candidate:
+    """Run an evolutionary search using configuration defaults.
+
+    Any ``None`` arguments are filled from the ``evolution`` section of
+    ``config.yaml``.  The search runs on CPU or GPU depending on availability.
+    """
+
+    if (
+        population_size is None
+        or selection_size is None
+        or generations is None
+        or steps_per_candidate is None
+        or mutation_rate is None
+        or parallelism is None
+    ):
+        from config_loader import load_config
+
+        cfg = load_config()
+        evo_cfg = cfg.get("evolution", {})
+        if population_size is None:
+            population_size = int(evo_cfg.get("population_size", 4))
+        if selection_size is None:
+            selection_size = int(evo_cfg.get("selection_size", 2))
+        if generations is None:
+            generations = int(evo_cfg.get("generations", 2))
+        if steps_per_candidate is None:
+            steps_per_candidate = int(evo_cfg.get("steps_per_candidate", 1))
+        if mutation_rate is None:
+            mutation_rate = float(evo_cfg.get("mutation_rate", 0.1))
+        if parallelism is None:
+            parallelism = int(evo_cfg.get("parallelism", os.cpu_count() or 1))
+
+    trainer = EvolutionTrainer(
+        base_config,
+        train_func,
+        mutation_space,
+        population_size,
+        selection_size,
+        generations,
+        mutation_rate=mutation_rate,
+        steps_per_candidate=steps_per_candidate,
+        parallelism=parallelism,
+    )
+    return trainer.evolve()
