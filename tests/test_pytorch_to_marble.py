@@ -9,6 +9,7 @@ import pytest
 import torch
 
 from marble_core import Core, Neuron
+from marble_utils import core_from_json, core_to_json
 from pytorch_to_marble import (
     LAYER_CONVERTERS,
     GlobalAvgPool2d,
@@ -199,6 +200,51 @@ class UnflattenModel(torch.nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.seq(x)
+
+
+class SoftmaxModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.seq = torch.nn.Sequential(
+            torch.nn.Linear(2, 2),
+            torch.nn.Softmax(dim=1),
+        )
+        self.input_size = 2
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.seq(x)
+
+
+class AddModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.fc1 = torch.nn.Linear(2, 2)
+        self.fc2 = torch.nn.Linear(2, 2)
+        self.input_size = 2
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.add(self.fc1(x), self.fc2(x))
+
+
+class MulModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.fc1 = torch.nn.Linear(2, 2)
+        self.fc2 = torch.nn.Linear(2, 2)
+        self.input_size = 2
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.mul(self.fc1(x), self.fc2(x))
+
+
+class ResidualModel(torch.nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.fc = torch.nn.Linear(2, 2)
+        self.input_size = 2
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.add(x, self.fc(x))
 
 
 class MaxPoolModel(torch.nn.Module):
@@ -401,6 +447,50 @@ def test_adaptivemaxpool2d_conversion():
     params = minimal_params()
     core = convert_model(model, core_params=params)
     assert any(n.neuron_type == "maxpool2d" for n in core.neurons)
+
+
+def _round_trip(core: Core) -> None:
+    js = core_to_json(core)
+    new_core = core_from_json(js)
+    assert core_to_json(new_core) == js
+
+
+def test_softmax_round_trip():
+    model = SoftmaxModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(n.neuron_type == "softmax" for n in core.neurons)
+    _round_trip(core)
+
+
+def test_add_round_trip():
+    model = AddModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(
+        n.neuron_type == "linear" and n.params.get("op") == "add" for n in core.neurons
+    )
+    _round_trip(core)
+
+
+def test_mul_round_trip():
+    model = MulModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(
+        n.neuron_type == "linear" and n.params.get("op") == "mul" for n in core.neurons
+    )
+    _round_trip(core)
+
+
+def test_residual_round_trip():
+    model = ResidualModel()
+    params = minimal_params()
+    core = convert_model(model, core_params=params)
+    assert any(
+        n.neuron_type == "linear" and n.params.get("op") == "add" for n in core.neurons
+    )
+    _round_trip(core)
 
 
 def test_dry_run_summary(capsys):
