@@ -650,10 +650,20 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Add tests validating Relay dataset events to pipeline notifications.
    - [x] Document Relay dataset events to pipeline notifications in README and TUTORIAL.
 197. [ ] Update Neuronenblitz models automatically when datasets change.
-   - [ ] Outline design for Update Neuronenblitz models automatically when datasets change.
-   - [ ] Implement Update Neuronenblitz models automatically when datasets change with CPU/GPU support.
-   - [ ] Add tests validating Update Neuronenblitz models automatically when datasets change.
-   - [ ] Document Update Neuronenblitz models automatically when datasets change in README and TUTORIAL.
+    - [ ] Outline design for Update Neuronenblitz models automatically when datasets change.
+        - [ ] Determine dataset change detection mechanism (version files or checksum watcher).
+        - [ ] Specify model refresh strategy (full retrain vs incremental update).
+        - [ ] Plan configuration flag enabling or disabling auto-updates.
+    - [ ] Implement Update Neuronenblitz models automatically when datasets change with CPU/GPU support.
+        - [ ] Build dataset watcher to trigger updates.
+        - [ ] Invoke retrain or reload routine when changes are detected.
+        - [ ] Confirm implementation works on both CPU and GPU.
+    - [ ] Add tests validating Update Neuronenblitz models automatically when datasets change.
+        - [ ] Simulate dataset modification and verify model refresh.
+        - [ ] Ensure stable runs when dataset remains unchanged.
+    - [ ] Document Update Neuronenblitz models automatically when datasets change in README and TUTORIAL.
+        - [ ] Explain auto-update workflow and configuration options.
+        - [ ] Provide example commands demonstrating dataset swaps.
 198. [x] Provide built-in cross-validation loops using deterministic dataset splits.
    - [x] Outline design for Provide built-in cross-validation loops using deterministic dataset splits.
        - Introduce `k_fold_split` generating stable folds from a fixed seed.
@@ -1471,32 +1481,38 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Integration test over multiple generations.
 
 332. [ ] Document new configuration parameters and tutorials.
-      - [ ] Update `yaml-manual.txt` with detailed explanations and examples.
-          - [ ] Describe new parameters and their ranges.
-          - [ ] Include practical usage examples.
-          - [ ] Cross-link related sections for quick navigation.
-          - [ ] Verify examples run on both CPU and GPU configurations.
-      - [ ] Add entries to `CONFIGURABLE_PARAMETERS.md`.
-          - [ ] List default values and descriptions.
-          - [ ] Cross-reference related parameters.
-          - [ ] Validate entries against current `config.yaml`.
-      - [ ] Extend `TUTORIAL.md` with projects for new features (e.g., self-distillation).
-          - [ ] Create step-by-step project showcasing feature.
-          - [ ] Link to dataset download and preparation code.
-          - [ ] Provide complete CPU and GPU execution commands.
-          - [ ] Add expected output screenshots.
+        - [ ] Update `yaml-manual.txt` with detailed explanations and examples.
+            - [ ] Describe new parameters and their ranges.
+            - [ ] Include practical usage examples.
+            - [ ] Cross-link related sections for quick navigation.
+            - [ ] Verify examples run on both CPU and GPU configurations.
+            - [ ] Run link checker to ensure all references resolve.
+            - [ ] Request peer review for clarity.
+        - [ ] Add entries to `CONFIGURABLE_PARAMETERS.md`.
+            - [ ] List default values and descriptions.
+            - [ ] Cross-reference related parameters.
+            - [ ] Validate entries against current `config.yaml`.
+            - [ ] Keep parameter list sorted alphabetically.
+            - [ ] Reference related examples or tutorials.
+        - [ ] Extend `TUTORIAL.md` with projects for new features (e.g., self-distillation).
+            - [ ] Create step-by-step project showcasing feature.
+            - [ ] Link to dataset download and preparation code.
+            - [ ] Provide complete CPU and GPU execution commands.
+            - [ ] Add expected output screenshots.
+            - [ ] Include troubleshooting tips for common errors.
+            - [ ] Verify instructions on a clean environment.
 
 333. [ ] Add unit tests and verify CUDA fallbacks.
     - [ ] Write tests for quantization correctness, parallel wanderers, and prompt cache behavior.
-        - [x] Cover QuantizedTensor round-trip accuracy.
-            - [x] Create quantized tensors with known values.
-            - [x] Convert to float and back and assert equality.
-        - [x] Ensure parallel wanderers yield consistent results.
-            - [x] Set up small world simulation with multiple wanderers.
-            - [x] Compare outputs and convergence metrics.
-        - [x] Test prompt cache operations under load.
-            - [x] Fill cache with synthetic prompts.
-            - [x] Measure latency and eviction behaviour.
+          - [x] Cover QuantizedTensor round-trip accuracy.
+              - [x] Create quantized tensors with known values.
+              - [x] Convert to float and back and assert equality.
+          - [x] Ensure parallel wanderers yield consistent results.
+              - [x] Set up small world simulation with multiple wanderers.
+              - [x] Compare outputs and convergence metrics.
+          - [x] Test prompt cache operations under load.
+              - [x] Fill cache with synthetic prompts.
+              - [x] Measure latency and eviction behaviour.
     - [ ] Verify CUDA fallbacks for all new modules.
         - [x] QuantizedTensor CPU path.
             - [x] Force CPU execution for quantized tensor tests.
@@ -1510,6 +1526,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Document any GPU-only limitations.
             - [x] Record modules lacking CPU implementation.
             - [x] Update README with limitation notes.
+        - [ ] Add fallback tests for newly introduced modules.
+        - [ ] Create CI job that runs full suite with CUDA disabled.
+        - [ ] Summarize fallback strategy in developer docs.
 
 ### Dream Replay Enhancements
 
@@ -1522,35 +1541,47 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 - [x] Create integration tests verifying dreaming state survives save/load cycles.
 - [x] Benchmark learning performance with and without dream consolidation.
 334. [ ] Audit config.yaml for unused parameters and implement missing ones.
-      - [ ] Identify parameters defined in config.yaml but not referenced in code.
-          - [ ] Write utility script to list all configuration keys.
-          - [ ] Scan codebase with ripgrep to detect usages.
-          - [ ] Compile report of unused parameters.
-      - [ ] Implement missing parameters or prune outdated ones.
-          - [ ] For each unused parameter, decide to implement or remove.
-          - [ ] Add tests verifying newly implemented parameters on CPU and GPU.
-          - [ ] Remove deprecated parameters and update defaults.
-          - [ ] Update documentation in `CONFIGURABLE_PARAMETERS.md` and `yaml-manual.txt`.
+        - [ ] Identify parameters defined in config.yaml but not referenced in code.
+            - [ ] Write utility script to list all configuration keys.
+            - [ ] Scan codebase with ripgrep to detect usages.
+            - [ ] Compile report of unused parameters.
+            - [ ] Add unit test ensuring the script flags future unused parameters.
+            - [ ] Integrate script into CI pipeline.
+        - [ ] Implement missing parameters or prune outdated ones.
+            - [ ] For each unused parameter, decide to implement or remove.
+            - [ ] Add tests verifying newly implemented parameters on CPU and GPU.
+            - [ ] Remove deprecated parameters and update defaults.
+            - [ ] Update documentation in `CONFIGURABLE_PARAMETERS.md` and `yaml-manual.txt`.
+            - [ ] Emit deprecation warnings for parameters scheduled for removal.
 335. [ ] Implement persistent hidden state mapping in RNN converter.
-      - [ ] Define serialization schema for hidden states.
-          - [ ] Specify file format compatible with CPU and GPU tensors.
-          - [ ] Document versioning and backward compatibility.
-      - [ ] Embed and restore states within converter and runtime.
-          - [ ] Implement save logic in converter output.
-          - [ ] Integrate load routine in runtime initialization.
-          - [ ] Ensure operations work on CPU and GPU.
-      - [ ] Write unit and integration tests for state persistence.
-          - [ ] Test single-layer and multi-layer RNNs.
-          - [ ] Validate persistence across CPU/GPU transfers.
-          - [ ] Benchmark overhead of serialization/deserialization.
+        - [ ] Define serialization schema for hidden states.
+            - [ ] Specify file format compatible with CPU and GPU tensors.
+            - [ ] Document versioning and backward compatibility.
+            - [ ] Create dataclass capturing shape, dtype and device.
+        - [ ] Embed and restore states within converter and runtime.
+            - [ ] Implement save logic in converter output.
+            - [ ] Integrate load routine in runtime initialization.
+            - [ ] Ensure operations work on CPU and GPU.
+            - [ ] Add error handling for corrupted or mismatched state files.
+        - [ ] Write unit and integration tests for state persistence.
+            - [ ] Test single-layer and multi-layer RNNs.
+            - [ ] Validate persistence across CPU/GPU transfers.
+            - [ ] Benchmark overhead of serialization/deserialization.
+            - [ ] Inject corrupted state files to verify graceful failure.
 336. [ ] Add dynamic attention span module to Neuronenblitz.
-      - [ ] Implement adaptive span computation and layer integration.
-          - [ ] Design API for span modules.
-          - [ ] Ensure computation falls back to CPU when GPU unavailable.
-      - [ ] Expose span configuration in YAML and documentation.
-          - [ ] Add `attention.dynamic_span` parameter to `config.yaml`.
-          - [ ] Describe parameter in `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
-      - [ ] Benchmark and test span behavior on CPU and GPU.
-          - [ ] Create unit tests for varying span lengths.
-          - [ ] Measure performance impact on both devices.
-          - [ ] Add tutorial section demonstrating span tuning.
+        - [ ] Implement adaptive span computation and layer integration.
+            - [ ] Design API for span modules.
+            - [ ] Ensure computation falls back to CPU when GPU unavailable.
+            - [ ] Prototype span scoring on synthetic data.
+            - [ ] Optimize span selection for batched inputs.
+        - [ ] Expose span configuration in YAML and documentation.
+            - [ ] Add `attention.dynamic_span` parameter to `config.yaml`.
+            - [ ] Describe parameter in `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
+            - [ ] Provide example YAML snippet enabling the feature.
+            - [ ] Validate config loader handles missing values gracefully.
+        - [ ] Benchmark and test span behavior on CPU and GPU.
+            - [ ] Create unit tests for varying span lengths.
+            - [ ] Measure performance impact on both devices.
+            - [ ] Add tutorial section demonstrating span tuning.
+            - [ ] Profile memory usage across span settings.
+            - [ ] Add regression test ensuring default span matches static mode.
