@@ -565,6 +565,7 @@ class Neuronenblitz:
         loss_fn=None,
         loss_module=None,
         weight_update_fn=None,
+        validation_fn=None,
         plasticity_threshold=10.0,
         parallel_wanderers: int = 1,
     ):
@@ -594,6 +595,9 @@ class Neuronenblitz:
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             loss_module = LOSS_MODULES[loss_module]().to(device)
         self.loss_module = loss_module
+        self.validation_fn = (
+            validation_fn if validation_fn is not None else (lambda t, o: 1.0)
+        )
         self.weight_update_fn = (
             weight_update_fn
             if weight_update_fn is not None
@@ -738,11 +742,12 @@ class Neuronenblitz:
         error = self._compute_loss(target_value, output_value)
         if self.dataloader is not None:
             error += self.dataloader.round_trip_penalty_for(input_value)
+        validation_factor = self.validation_fn(target_value, output_value)
         path_length = len(path)
         with self._lock:
             for syn in path:
                 source_value = self.core.neurons[syn.source].value
-                delta = self.weight_update_fn(source_value, error, path_length)
+                delta = self.weight_update_fn(source_value, error * validation_factor, path_length)
                 syn.weight += delta
                 if random.random() < self.consolidation_probability:
                     syn.weight *= self.consolidation_strength
@@ -764,6 +769,7 @@ class Neuronenblitz:
                     "output": output_value,
                     "error": error,
                     "path_length": path_length,
+                    "validation": validation_factor,
                 }
             )
         return output_value, error, path
@@ -823,27 +829,46 @@ class Neuronenblitz:
             )
         return summaries
 
-    def train(self, examples, epochs=1, dream_buffer=None):
-        for epoch in range(epochs):
-            epoch_errors = []
-            for input_val, target_val in examples:
-                output, error, _ = self.train_example(
-                    input_val, target_val, dream_buffer=dream_buffer
+    def train(self, examples, epochs=1, dream_buffer=None, *, loss_fn=None, validation_fn=None):
+        if loss_fn is not None:
+            old_loss = self.loss_fn
+            self.loss_fn = loss_fn
+        else:
+            old_loss = None
+        if validation_fn is not None:
+            old_val = self.validation_fn
+            self.validation_fn = validation_fn
+        else:
+            old_val = None
+        try:
+            for epoch in range(epochs):
+                epoch_errors = []
+                epoch_valid = []
+                for input_val, target_val in examples:
+                    output, error, _ = self.train_example(
+                        input_val, target_val, dream_buffer=dream_buffer
+                    )
+                    epoch_errors.append(abs(error) if isinstance(error, (int, float)) else 0)
+                    epoch_valid.append(self.validation_fn(target_val, output))
+                avg_error = sum(epoch_errors) / len(epoch_errors) if epoch_errors else 0
+                avg_valid = sum(epoch_valid) / len(epoch_valid) if epoch_valid else 0
+                print(
+                    f"Epoch {epoch+1}/{epochs} - Average error: {avg_error:.4f} - Validation: {avg_valid:.4f}"
                 )
-                epoch_errors.append(
-                    abs(error) if isinstance(error, (int, float)) else 0
-                )
-            avg_error = sum(epoch_errors) / len(epoch_errors) if epoch_errors else 0
-            print(f"Epoch {epoch+1}/{epochs} - Average error: {avg_error:.4f}")
-            if avg_error > 0.1:
-                self.core.expand(
-                    num_new_neurons=10,
-                    num_new_synapses=15,
-                    alternative_connection_prob=self.alternative_connection_prob,
-                )
-            self.core.synapses = [
-                s for s in self.core.synapses if abs(s.weight) >= 0.05
-            ]
+                if avg_error > 0.1:
+                    self.core.expand(
+                        num_new_neurons=10,
+                        num_new_synapses=15,
+                        alternative_connection_prob=self.alternative_connection_prob,
+                    )
+                self.core.synapses = [
+                    s for s in self.core.synapses if abs(s.weight) >= 0.05
+                ]
+        finally:
+            if old_loss is not None:
+                self.loss_fn = old_loss
+            if old_val is not None:
+                self.validation_fn = old_val
 
     def get_training_history(self):
         return self.training_history
@@ -897,14 +922,33 @@ class Brain:
         self.best_validation_loss = float("inf")
         self.saved_model_paths = []
 
-    def train(self, train_examples, epochs=1, validation_examples=None):
+    def train(
+        self,
+        train_examples,
+        epochs=1,
+        validation_examples=None,
+        *,
+        loss_fn=None,
+        validation_fn=None,
+    ):
         pbar = tqdm(range(epochs), desc="Epochs", ncols=100)
         for epoch in pbar:
             self.neuronenblitz.train(
-                train_examples, epochs=1, dream_buffer=self.dream_buffer
+                train_examples,
+                epochs=1,
+                dream_buffer=self.dream_buffer,
+                loss_fn=loss_fn,
+                validation_fn=validation_fn,
             )
             if validation_examples is not None:
-                val_loss = self.validate(validation_examples)
+                if validation_fn is not None:
+                    vals = []
+                    for inp, tgt in validation_examples:
+                        out, _ = self.neuronenblitz.dynamic_wander(inp)
+                        vals.append(validation_fn(tgt, out))
+                    val_loss = sum(vals) / len(vals) if vals else 0.0
+                else:
+                    val_loss = self.validate(validation_examples)
             else:
                 val_loss = None
             metrics = {

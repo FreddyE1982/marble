@@ -20,10 +20,30 @@ class MarbleRegistry:
             raise ValueError("Either cfg_path or yaml_text must be provided")
         return marble_interface.new_marble_system(cfg_path)
 
-    def create(self, name: str, cfg_path: str | None = None, yaml_text: str | None = None) -> marble_interface.MARBLE:
-        """Create a new MARBLE instance and register it under ``name``."""
-        if name in self.instances:
-            raise ValueError(f"Instance {name!r} already exists")
+    def create(
+        self,
+        name: str,
+        cfg_path: str | None = None,
+        yaml_text: str | None = None,
+        *,
+        overwrite: bool = False,
+    ) -> marble_interface.MARBLE:
+        """Create or replace a MARBLE instance named ``name``.
+
+        Parameters
+        ----------
+        name:
+            Identifier of the instance.
+        cfg_path / yaml_text:
+            Configuration for the new instance.  ``yaml_text`` takes precedence
+            over ``cfg_path`` when both are provided.
+        overwrite:
+            When ``True`` an existing instance with the same ``name`` is
+            replaced.  Otherwise the existing instance is returned unchanged.
+        """
+
+        if name in self.instances and not overwrite:
+            return self.instances[name]
         marble = self._initialize(cfg_path, yaml_text)
         self.instances[name] = marble
         if self.active is None:
