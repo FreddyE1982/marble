@@ -27,6 +27,7 @@ from marble_neuronenblitz import Neuronenblitz
 from memory_manager import MemoryManager
 from pipeline_schema import validate_step_schema
 from run_profiler import RunProfiler
+from cross_validation import cross_validate
 
 
 class PreStepHook(Protocol):
@@ -268,6 +269,36 @@ class Pipeline:
         hooks = self._post_hooks.get(step_name)
         if hooks and hook in hooks:
             hooks.remove(hook)
+
+    # ------------------------------------------------------------------
+    # Cross-validation convenience
+
+    def run_cross_validation(
+        self,
+        train_fn: Callable[[Iterable, torch.device], Any],
+        metric_fn: Callable[[Any, Iterable, torch.device], float],
+        dataset: Sequence,
+        *,
+        folds: int | None = None,
+        seed: int | None = None,
+        device: torch.device | None = None,
+    ) -> List[float]:
+        """Execute ``train_fn``/``metric_fn`` across cross-validation folds.
+
+        This helper delegates to :func:`cross_validation.cross_validate` but is
+        provided as a method on :class:`Pipeline` to simplify reuse inside
+        pipeline-driven experiments. Both functions must respect the supplied
+        :class:`torch.device` to maintain CPU/GPU parity.
+        """
+
+        return cross_validate(
+            train_fn,
+            metric_fn,
+            dataset,
+            folds=folds,
+            seed=seed,
+            device=device,
+        )
 
     def enable_interactive_debugging(
         self, *, interactive: bool = True

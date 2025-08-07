@@ -110,6 +110,8 @@ def main() -> None:
         type=int,
         help="Quantize tensors to the specified bit width (1-8)",
     )
+    parser.add_argument("--cv-folds", type=int, help="Number of folds for k-fold cross-validation")
+    parser.add_argument("--cv-seed", type=int, help="Random seed for cross-validation splits")
     args = parser.parse_args()
 
     if args.sync_config:
@@ -127,6 +129,7 @@ def main() -> None:
         "sync": {},
         "network": {"remote_client": {}},
         "core": {},
+        "cross_validation": {},
     }
     if args.lr_scheduler:
         overrides["neuronenblitz"]["lr_scheduler"] = args.lr_scheduler
@@ -154,6 +157,10 @@ def main() -> None:
         overrides["network"]["remote_client"]["backoff_factor"] = args.remote_backoff
     if args.quantize is not None:
         overrides["core"]["quantization_bits"] = args.quantize
+    if args.cv_folds is not None:
+        overrides["cross_validation"]["folds"] = args.cv_folds
+    if args.cv_seed is not None:
+        overrides["cross_validation"]["seed"] = args.cv_seed
     if args.causal_attention:
         overrides["core"]["attention_causal"] = True
     if args.precompile_graphs:

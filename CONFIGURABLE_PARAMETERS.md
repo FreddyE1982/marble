@@ -60,6 +60,10 @@ Each entry is listed under its section heading.
 - folds
 - seed
 
+## preprocessing
+- workers: Number of remote preprocessing workers. When set to ``0`` all
+  transformations execute in the main process.
+
 ## serve_model
 - host
 - port

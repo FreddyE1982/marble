@@ -1140,16 +1140,16 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 299. [x] Cache downloaded datasets at the network level.
     - [x] Implement DatasetCacheServer to share downloads.
     - [x] Modify load_dataset to query remote cache.
-300. [ ] Orchestrate cross-validation using core utilities and dataset splits.
-    - [ ] Implement K-fold dataset splitter producing training and validation subsets.
-    - [ ] Add cross-validation runner to training pipeline.
-    - [ ] Expose CLI and YAML options to select number of folds.
-    - [ ] Add tests verifying aggregated metrics across folds.
-301. [ ] Spawn remote workers to handle dataset transformations.
-    - [ ] Define worker API for preprocessing jobs.
-    - [ ] Implement remote worker pool using RPC.
-    - [ ] Dispatch pipeline transformations to worker pool.
-    - [ ] Provide tests simulating worker failures and recoveries.
+300. [x] Orchestrate cross-validation using core utilities and dataset splits.
+    - [x] Implement K-fold dataset splitter producing training and validation subsets.
+    - [x] Add cross-validation runner to training pipeline.
+    - [x] Expose CLI and YAML options to select number of folds.
+    - [x] Add tests verifying aggregated metrics across folds.
+301. [x] Spawn remote workers to handle dataset transformations.
+    - [x] Define worker API for preprocessing jobs.
+    - [x] Implement remote worker pool using RPC.
+    - [x] Dispatch pipeline transformations to worker pool.
+    - [x] Provide tests simulating worker failures and recoveries.
 302. [ ] Serialise pipeline definitions through a portable format.
     - [ ] Define JSON schema capturing pipeline steps and parameters.
     - [ ] Implement serializer and deserializer utilities.

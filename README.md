@@ -58,6 +58,24 @@ Activation heatmaps for each run can be written by setting
 ``activation_output_dir`` and selecting a colour map with
 ``activation_colormap`` (e.g. ``"plasma"``) in the configuration.
 
+## Cross-validation and Preprocessing Workers
+
+MARBLE includes utilities for deterministic k-fold cross-validation. The
+``cross_validation`` module provides a ``k_fold_split`` helper and a
+``cross_validate`` function that accepts training and metric callables. The
+``Pipeline.run_cross_validation`` method exposes the same functionality for
+pipeline-driven experiments and respects CPU or GPU execution depending on the
+active device. The number of folds and random seed are configured via the
+``cross_validation`` section of ``config.yaml`` and can be overridden through
+CLI flags.
+
+Large datasets can be preprocessed in parallel by enabling the
+``preprocessing.workers`` option in ``config.yaml``. This spawns a pool of
+remote worker processes communicating through a lightweight RPC protocol. Each
+worker executes transformation steps independently and the pool transparently
+restarts workers that crash during processing, providing fault tolerance during
+data preparation.
+
 MARBLE can train on datasets provided as lists of ``(input, target)`` pairs or using PyTorch-style ``Dataset``/``DataLoader`` objects. Each sample must expose an ``input`` and ``target`` field. After training and saving a model, ``Brain.infer`` generates outputs when given only an input value.
 For quick experiments without external files you can generate synthetic regression pairs using ``synthetic_dataset.generate_sine_wave_dataset``.
 
