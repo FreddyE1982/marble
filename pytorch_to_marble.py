@@ -306,7 +306,9 @@ def _add_recurrent_layer(
                 b_device = bih_device
 
             state_tensor = np.zeros(layer.hidden_size, dtype=np.float32)
-            core.params.setdefault("hidden_states", []).append(
+            core.params.setdefault("hidden_states", [])
+            core.params.setdefault("hidden_state_version", 1)
+            core.params["hidden_states"].append(
                 asdict(
                     HiddenState(
                         layer_index=layer_idx,
