@@ -699,14 +699,36 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Document Run pipeline sections in isolated processes for fault tolerance in README and TUTORIAL.
 209. [ ] Connect with remote wanderers for asynchronous exploration phases.
    - [ ] Outline design for Connect with remote wanderers for asynchronous exploration phases.
+       - [ ] Define communication protocol for wanderer coordination.
+       - [ ] Specify authentication and session management.
+       - [ ] Draft message formats for exchanging exploration results.
    - [ ] Implement Connect with remote wanderers for asynchronous exploration phases with CPU/GPU support.
+       - [ ] Build client and server components leveraging the MessageBus.
+       - [ ] Integrate asynchronous dispatcher to handle incoming updates.
+       - [ ] Ensure device context (CPU/GPU) is transmitted with payloads.
    - [ ] Add tests validating Connect with remote wanderers for asynchronous exploration phases.
+       - [ ] Simulate multiple remote wanderers exchanging updates.
+       - [ ] Verify synchronization under intermittent connectivity.
+       - [ ] Measure latency impact on exploration performance.
    - [ ] Document Connect with remote wanderers for asynchronous exploration phases in README and TUTORIAL.
+       - [ ] Provide configuration examples for enabling remote wanderers.
+       - [ ] Include troubleshooting steps for network failures.
 210. [ ] Secure pipeline data flow by integrating dataset encryption routines.
    - [ ] Outline design for Secure pipeline data flow by integrating dataset encryption routines.
+       - [ ] Choose encryption algorithm and key management strategy.
+       - [ ] Identify integration points within dataset loader and saver.
+       - [ ] Determine configuration flags to toggle encryption.
    - [ ] Implement Secure pipeline data flow by integrating dataset encryption routines with CPU/GPU support.
+       - [ ] Implement encryption and decryption utilities operating on CPU/GPU tensors.
+       - [ ] Embed encryption hooks into DataLoader and cache server.
+       - [ ] Expose `dataset.encryption_key` and related options in config files.
    - [ ] Add tests validating Secure pipeline data flow by integrating dataset encryption routines.
+       - [ ] Encrypt and decrypt sample datasets verifying integrity.
+       - [ ] Benchmark performance overhead on CPU and GPU.
+       - [ ] Confirm failures occur with incorrect or missing keys.
    - [ ] Document Secure pipeline data flow by integrating dataset encryption routines in README and TUTORIAL.
+       - [ ] Document enabling encryption in config and CLI.
+       - [ ] Provide guidance for key management and rotation.
 211. [x] Route memory allocations through the memory pool for every operation.
    - [x] Outline design for Route memory allocations through the memory pool for every operation.
        - Introduce an ``ArrayMemoryPool`` capable of preallocating tensor buffers
