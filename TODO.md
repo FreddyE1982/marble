@@ -1527,8 +1527,17 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [x] Record modules lacking CPU implementation.
             - [x] Update README with limitation notes.
         - [ ] Add fallback tests for newly introduced modules.
+            - [ ] Catalog modules lacking CPU fallback tests.
+            - [ ] Write parity tests verifying CPU and GPU execution.
+            - [ ] Integrate new tests into existing suites.
         - [ ] Create CI job that runs full suite with CUDA disabled.
+            - [ ] Configure workflow to force CPU execution.
+            - [ ] Add job to the CI pipeline definition.
+            - [ ] Verify sample run completes without CUDA.
         - [ ] Summarize fallback strategy in developer docs.
+            - [ ] Draft section describing fallback approach.
+            - [ ] Enumerate modules with verified fallbacks.
+            - [ ] Link to new tests and CI job for reference.
 
 ### Dream Replay Enhancements
 
