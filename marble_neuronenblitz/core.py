@@ -24,6 +24,7 @@ from marble_core import (
 )
 from marble_imports import *  # noqa: F401,F403
 from streaming_dataset_step import StreamingDatasetStep
+from dataset_watcher import DatasetWatcher
 
 from . import learning as _learning
 from . import memory as _memory
@@ -2214,3 +2215,24 @@ class Neuronenblitz:
             self._grad_sq.clear()
             for syn in self.core.synapses:
                 syn.frozen = False
+
+    def refresh_on_dataset_change(self, watcher: DatasetWatcher) -> bool:
+        """Reset learning state when the dataset monitored by ``watcher`` changes.
+
+        Parameters
+        ----------
+        watcher:
+            The :class:`DatasetWatcher` tracking the dataset directory.
+
+        Returns
+        -------
+        bool
+            ``True`` if a change was detected and the state was reset,
+            otherwise ``False``.
+        """
+
+        if watcher.has_changed():
+            logging.info("Dataset changed detected; resetting Neuronenblitz state")
+            self.reset_learning_state()
+            return True
+        return False

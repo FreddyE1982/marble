@@ -651,9 +651,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Document Relay dataset events to pipeline notifications in README and TUTORIAL.
 197. [ ] Update Neuronenblitz models automatically when datasets change.
     - [ ] Outline design for Update Neuronenblitz models automatically when datasets change.
-        - [ ] Determine dataset change detection mechanism (version files or checksum watcher).
+        - [x] Determine dataset change detection mechanism (version files or checksum watcher).
         - [ ] Specify model refresh strategy (full retrain vs incremental update).
-        - [ ] Plan configuration flag enabling or disabling auto-updates.
+        - [x] Plan configuration flag enabling or disabling auto-updates.
     - [ ] Implement Update Neuronenblitz models automatically when datasets change with CPU/GPU support.
         - [ ] Build dataset watcher to trigger updates.
         - [ ] Invoke retrain or reload routine when changes are detected.

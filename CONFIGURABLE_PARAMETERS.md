@@ -193,6 +193,7 @@ Each entry is listed under its section heading.
 - exploration_decay
 - reward_scale
 - stress_scale
+- auto_update
 - remote_fallback
 - noise_injection_std
 - dynamic_attention_enabled

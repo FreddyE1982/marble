@@ -203,6 +203,7 @@ neuronenblitz:
   exploration_decay: 0.99
   reward_scale: 1.0
   stress_scale: 1.0
+  auto_update: false
   remote_fallback: false
   noise_injection_std: 0.0
   dynamic_attention_enabled: true

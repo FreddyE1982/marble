@@ -88,6 +88,9 @@ shards training data:
 - `shard_index` – the shard index handled by this process.
 - `offline` – disable remote downloads for fully local operation.
 - `encryption_key` – optional key used to encrypt on-disk dataset caches.
+Neuronenblitz can also monitor datasets for changes. Enable
+``neuronenblitz.auto_update`` in ``config.yaml`` and use ``DatasetWatcher`` to
+reset learning state whenever files within the dataset directory are modified.
 When pipelines use parallel branches, the framework automatically assigns each
 branch a unique ``shard_index`` so dataset shards are distributed evenly across
 branches. This keeps parallel pipelines processing disjoint data without manual
