@@ -1576,7 +1576,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [x] Write utility script to list all configuration keys.
             - [x] Scan codebase with ripgrep to detect usages.
             - [x] Compile report of unused parameters.
-            - [ ] Add unit test ensuring the script flags future unused parameters.
+             - [x] Add unit test ensuring the script flags future unused parameters.
             - [ ] Integrate script into CI pipeline.
         - [ ] Implement missing parameters or prune outdated ones.
             - [ ] For each unused parameter, decide to implement or remove.
