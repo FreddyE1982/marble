@@ -206,6 +206,8 @@ Each entry is listed under its section heading.
 - exploration_bonus
 - synapse_potential_cap
 - attention_update_scale
+- attention_span_threshold
+- max_attention_span
 - plasticity_modulation
 - wander_depth_noise
 - reward_decay

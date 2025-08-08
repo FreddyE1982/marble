@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 import asyncio
 
 import numpy as np
+import torch
 
 from contrastive_learning import ContrastiveLearner
 from imitation_learning import ImitationLearner
@@ -25,6 +26,7 @@ from marble_core import (
 from marble_imports import *  # noqa: F401,F403
 from streaming_dataset_step import StreamingDatasetStep
 from dataset_watcher import DatasetWatcher
+from .attention_span import DynamicSpanModule
 
 from . import learning as _learning
 from . import memory as _memory
@@ -131,6 +133,8 @@ class Neuronenblitz:
         exploration_decay=0.99,
         reward_scale=1.0,
         stress_scale=1.0,
+        auto_update=False,
+        dataset_path=None,
         remote_fallback=False,
         noise_injection_std=0.0,
         dynamic_attention_enabled=True,
@@ -142,6 +146,9 @@ class Neuronenblitz:
         exploration_bonus=0.0,
         synapse_potential_cap=100.0,
         attention_update_scale=1.0,
+        attention_span_threshold=0.9,
+        max_attention_span=None,
+        span_module=None,
         plasticity_modulation=1.0,
         wander_depth_noise=0.0,
         reward_decay=1.0,
@@ -248,6 +255,13 @@ class Neuronenblitz:
         self.exploration_decay = exploration_decay
         self.reward_scale = reward_scale
         self.stress_scale = stress_scale
+        self.auto_update = auto_update
+        self._dataset_watcher = (
+            DatasetWatcher(dataset_path) if auto_update and dataset_path else None
+        )
+        self.span_module = span_module or DynamicSpanModule(
+            max_attention_span, attention_span_threshold
+        )
         self.remote_fallback = remote_fallback
         self.noise_injection_std = noise_injection_std
         self.dynamic_attention_enabled = dynamic_attention_enabled
@@ -1222,6 +1236,8 @@ class Neuronenblitz:
                     final_path = [(entry_neuron, None), (next_neuron, syn)]
                 else:
                     final_path = initial_path
+            if final_path:
+                final_path = self._apply_attention_span(final_path)
             self.global_activation_count += 1
             if self.global_activation_count % self.route_visit_decay_interval == 0:
                 for syn in self.core.synapses:
@@ -1771,6 +1787,7 @@ class Neuronenblitz:
 
         try:
             for epoch in range(epochs):
+                self._maybe_refresh_dataset()
                 epoch_errors = []
                 epoch_valid = []
                 for input_val, target_val in examples:
@@ -2236,3 +2253,22 @@ class Neuronenblitz:
             self.reset_learning_state()
             return True
         return False
+
+    def _maybe_refresh_dataset(self) -> None:
+        """Reset learning state if the watched dataset has changed."""
+
+        if self.auto_update and self._dataset_watcher is not None:
+            self.refresh_on_dataset_change(self._dataset_watcher)
+
+    def _apply_attention_span(self, path):
+        """Trim ``path`` based on the dynamic attention span."""
+
+        if self.span_module is None or not path:
+            return path
+        scores = torch.tensor(
+            [abs(n.attention_score) for n, _ in path],
+            dtype=torch.float32,
+            device=self.span_module.device,
+        ).unsqueeze(0)
+        mask = self.span_module(scores)[0].bool().tolist()
+        return [p for p, keep in zip(path, mask) if keep]

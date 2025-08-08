@@ -216,6 +216,8 @@ neuronenblitz:
   exploration_bonus: 0.0
   synapse_potential_cap: 100.0
   attention_update_scale: 1.0
+  attention_span_threshold: 0.9
+  max_attention_span: null
   plasticity_modulation: 1.0
   wander_depth_noise: 0.0
   reward_decay: 1.0

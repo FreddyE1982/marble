@@ -571,6 +571,14 @@ neuronenblitz:
     :meth:`Neuronenblitz.reset_learning_state` whenever files are modified.
     Set to ``false`` to disable this behaviour. The watcher performs all work
     on the CPU so it behaves identically on GPU and CPU environments.
+  attention_span_threshold: Cumulative attention mass (0.0–1.0) determining
+    how many high-scoring elements are kept when trimming a path. Lower values
+    yield shorter spans while ``1.0`` retains all elements. Span computation is
+    fully vectorised, supports batched inputs and automatically falls back to
+    CPU when CUDA is unavailable.
+  max_attention_span: Optional hard limit on the number of elements retained
+    after applying ``attention_span_threshold``. ``null`` disables the cap.
+    Use this to bound memory usage for very long sequences.
   remote_fallback: When true, neurons attempting remote execution fall back to
     local processing if the remote call fails.
   noise_injection_std: Standard deviation of Gaussian noise injected into neuron

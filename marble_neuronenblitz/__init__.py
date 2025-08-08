@@ -8,6 +8,7 @@ from .core import (
 )
 from .learning import disable_rl, enable_rl, rl_select_action, rl_update
 from .memory import decay_memory_gates
+from .attention_span import DynamicSpanModule
 
 __all__ = [
     "Neuronenblitz",
@@ -21,5 +22,6 @@ __all__ = [
     "rl_update",
     "decay_memory_gates",
     "ContextAwareAttention",
+    "DynamicSpanModule",
 ]
 
