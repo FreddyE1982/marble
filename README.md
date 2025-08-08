@@ -94,10 +94,27 @@ reset learning state whenever files within the dataset directory are modified.
 The watcher records individual file checksums and exposes
 ``changed_files()``/``total_files()`` for inspection.  Combine it with
 ``model_refresh.auto_refresh`` to automatically retrain or incrementally update
-a model when the dataset changes:
+a model when the dataset changes. ``auto_refresh`` accepts a ``strategy``
+(``"full"`` or ``"incremental"``) and a ``change_threshold`` fraction used when
+``strategy="auto"`` to decide whether to retrain from scratch.  A ``device``
+argument selects CPU or GPU execution:
 
 ```python
+from dataset_watcher import DatasetWatcher
 from model_refresh import auto_refresh
+
+watcher = DatasetWatcher("data/iris")
+model, refreshed = auto_refresh(
+    model,
+    dataset,
+    watcher,
+    strategy="auto",
+    change_threshold=0.4,
+)
+
+# Swap or modify dataset files
+# $ touch data/iris/extra.csv
+# Refresh again to pick up the change
 model, refreshed = auto_refresh(model, dataset, watcher)
 ```
 

@@ -658,16 +658,16 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [x] Draft API for incremental update routine.
             - [x] Document strategy comparison.
         - [x] Plan configuration flag enabling or disabling auto-updates.
-    - [ ] Implement Update Neuronenblitz models automatically when datasets change with CPU/GPU support.
+    - [x] Implement Update Neuronenblitz models automatically when datasets change with CPU/GPU support.
         - [x] Build dataset watcher to trigger updates.
         - [x] Invoke retrain or reload routine when changes are detected.
-        - [ ] Confirm implementation works on both CPU and GPU.
+        - [x] Confirm implementation works on both CPU and GPU.
     - [ ] Add tests validating Update Neuronenblitz models automatically when datasets change.
         - [ ] Simulate dataset modification and verify model refresh.
         - [ ] Ensure stable runs when dataset remains unchanged.
-    - [ ] Document Update Neuronenblitz models automatically when datasets change in README and TUTORIAL.
-        - [ ] Explain auto-update workflow and configuration options.
-        - [ ] Provide example commands demonstrating dataset swaps.
+    - [x] Document Update Neuronenblitz models automatically when datasets change in README and TUTORIAL.
+        - [x] Explain auto-update workflow and configuration options.
+        - [x] Provide example commands demonstrating dataset swaps.
 198. [x] Provide built-in cross-validation loops using deterministic dataset splits.
    - [x] Outline design for Provide built-in cross-validation loops using deterministic dataset splits.
        - Introduce `k_fold_split` generating stable folds from a fixed seed.
