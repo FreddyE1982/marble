@@ -1948,6 +1948,39 @@ class Neuronenblitz:
                     self.core.synapses.remove(syn)
                     break
 
+    def compute_gradient_prune_mask(self, ratio: float) -> list[bool]:
+        """Return mask selecting synapses with lowest gradient magnitudes.
+
+        Parameters
+        ----------
+        ratio:
+            Fraction of synapses to mark for pruning. ``0`` leaves the
+            network unchanged while ``1`` marks all synapses.  Values outside
+            the inclusive ``[0, 1]`` range are clamped.
+
+        The method uses the stored gradients in :attr:`_prev_gradients` and
+        operates entirely on CPU so behaviour is identical on systems without
+        GPUs.  Synapses missing gradient information default to ``0`` and are
+        thus more likely to be pruned.
+        """
+
+        if not self.core.synapses:
+            return []
+        ratio = float(max(0.0, min(1.0, ratio)))
+        if ratio == 0.0:
+            return [False] * len(self.core.synapses)
+
+        grads = np.array(
+            [abs(self._prev_gradients.get(s, 0.0)) for s in self.core.synapses],
+            dtype=float,
+        )
+        k = int(len(grads) * ratio)
+        if k <= 0:
+            return [False] * len(self.core.synapses)
+
+        threshold = float(np.partition(grads, k - 1)[k - 1])
+        return [g <= threshold for g in grads]
+
     def prune_low_potential_synapses(self, threshold=0.05):
         """Remove synapses with low potential or very small weights."""
         to_keep = []
