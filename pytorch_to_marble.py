@@ -740,8 +740,23 @@ def convert_model(
     core_params: Dict | None = None,
     dry_run: bool = False,
     return_summary: bool = False,
+    restore_hidden: bool = False,
 ) -> Core | tuple[Core, Dict[str, Dict]]:
-    """Convert ``model`` into a MARBLE ``Core``."""
+    """Convert ``model`` into a MARBLE ``Core``.
+
+    Parameters
+    ----------
+    model:
+        PyTorch module to convert.
+    core_params:
+        Optional parameters used to initialise the :class:`Core`.
+    dry_run:
+        When ``True`` the core is constructed but not serialised.
+    return_summary:
+        If set, layer statistics are returned alongside the core.
+    restore_hidden:
+        Restore any serialised RNN hidden states into the resulting core.
+    """
     if core_params is None:
         core_params = {
             "xmin": -2.0,
@@ -850,7 +865,8 @@ def convert_model(
     }
     if dry_run or return_summary:
         _print_dry_run_summary(core, node_outputs, layer_synapses)
-    restore_hidden_states(core)
+    if restore_hidden:
+        restore_hidden_states(core)
     if return_summary:
         return core, summary
     return core
@@ -860,12 +876,17 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Convert PyTorch model to MARBLE JSON")
     parser.add_argument("--pytorch", required=True, help="Path to PyTorch model")
     parser.add_argument("--output", required=True, help="Output JSON path")
+    parser.add_argument(
+        "--restore-hidden",
+        action="store_true",
+        help="Restore serialised RNN hidden states into the converted core",
+    )
     args = parser.parse_args()
 
     from torch_model_io import load_model_auto
 
     model = load_model_auto(args.pytorch)
-    core = convert_model(model)
+    core = convert_model(model, restore_hidden=args.restore_hidden)
     js = core_to_json(core)
     with open(args.output, "w", encoding="utf-8") as f:
         f.write(js)

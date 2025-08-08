@@ -1273,6 +1273,10 @@ python convert_model.py --pytorch my_model.pt --output marble_model.marble
 Specify ``--dry-run`` to see the resulting graph statistics without writing a
 file. You can also call ``convert_model`` directly:
 
+If your PyTorch checkpoint contains serialised RNN hidden states, pass
+``--restore-hidden`` to reinstate them within the generated MARBLE core. This
+allows experiments to resume from the exact stored hidden configuration.
+
 For a quick overview without producing an output file you can use ``--summary``
 to print the neuron and synapse counts. ``--summary-output`` writes the same
 information to a JSON file. The ``--summary-plot`` option saves a bar chart of
