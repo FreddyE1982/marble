@@ -188,6 +188,26 @@ objects before writing them to disk and automatically decrypts them when
 loading. Use the same key on every machine that processes the dataset to handle
 them correctly.
 
+#### Automatically refresh models when datasets change
+
+During experimentation datasets may be edited or replaced. Set
+``neuronenblitz.auto_update: true`` in ``config.yaml`` and monitor the dataset
+directory with ``DatasetWatcher``. The watcher computes a checksum over all
+files and resets the ``Neuronenblitz`` learning state whenever a change is
+detected:
+
+```python
+from dataset_watcher import DatasetWatcher
+from marble_neuronenblitz import Neuronenblitz
+
+watcher = DatasetWatcher("data/iris")
+nb = Neuronenblitz(core)
+nb.refresh_on_dataset_change(watcher)
+```
+
+This process runs entirely on CPU so the behaviour is identical on systems with
+or without GPUs.
+
 Set ``dataloader.tokenizer_type: bert_wordpiece`` or ``tokenizer_json`` in
 ``config.yaml`` to use the same tokenizer when constructing ``MARBLE``. Each
 project example assumes a ``dataloader`` prepared this way and passes it to

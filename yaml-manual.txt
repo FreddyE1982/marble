@@ -565,6 +565,12 @@ neuronenblitz:
     plasticity.
   stress_scale: Multiplier applied to stress signals before they reduce
     plasticity.
+  auto_update: Boolean flag controlling automatic refresh of the learning
+    state when the dataset changes. When ``true`` a checksum based
+    :class:`DatasetWatcher` monitors the dataset directory and triggers
+    :meth:`Neuronenblitz.reset_learning_state` whenever files are modified.
+    Set to ``false`` to disable this behaviour. The watcher performs all work
+    on the CPU so it behaves identically on GPU and CPU environments.
   remote_fallback: When true, neurons attempting remote execution fall back to
     local processing if the remote call fails.
   noise_injection_std: Standard deviation of Gaussian noise injected into neuron
