@@ -18,7 +18,7 @@ from torch.nn.modules.pooling import (
 
 from marble_core import Core, Neuron, Synapse
 from marble_graph_builder import add_fully_connected_layer as gb_add_fc
-from marble_utils import core_to_json
+from marble_utils import core_to_json, restore_hidden_states
 
 logger = logging.getLogger(__name__)
 
@@ -850,6 +850,7 @@ def convert_model(
     }
     if dry_run or return_summary:
         _print_dry_run_summary(core, node_outputs, layer_synapses)
+    restore_hidden_states(core)
     if return_summary:
         return core, summary
     return core
