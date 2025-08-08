@@ -24,3 +24,19 @@ Continues training from existing weights using only the new or modified data.
 - **Pros:** faster, preserves learned features.
 - **Cons:** risk of accumulating bias if data drift is large; incompatible with
   structural changes.
+
+## API
+
+The :mod:`model_refresh` module provides helpers for both strategies.  They
+automatically use a GPU when available but fall back to CPU execution so the
+same call works across hardware tiers.
+
+```python
+from model_refresh import full_retrain, incremental_update
+
+# Retrain from scratch on the entire dataset
+full_retrain(model, full_dataset, epochs=5)
+
+# Continue training with only new samples
+incremental_update(model, new_samples, epochs=2)
+```
