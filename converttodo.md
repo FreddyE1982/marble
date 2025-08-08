@@ -82,12 +82,15 @@
             - Chose JSON for portability and compatibility with ``core_to_json``.
         - [x] Include device information within metadata.
       - [ ] Restore hidden states during MARBLE execution.
-        - [ ] Map serialized states to runtime modules.
-        - [ ] Load serialized states into runtime structures.
-        - [ ] Verify shapes match original expectations.
-        - [ ] Warn when states are missing or mismatched.
-        - [ ] Document runtime loading process.
+        - [x] Map serialized states to runtime modules.
+        - [x] Load serialized states into runtime structures.
+        - [x] Verify shapes match original expectations.
+        - [x] Warn when states are missing or mismatched.
+        - [x] Document runtime loading process.
         - [ ] Add CLI flag to enable or disable hidden state restoration.
+            - [ ] Update converter CLI to accept `--restore-hidden`.
+            - [ ] Wire flag to call `restore_hidden_states` after loading.
+            - [ ] Document flag usage in converter README.
       - [ ] Provide tests verifying state persistence across runs.
         - [ ] Create minimal RNN example with saved hidden state.
         - [ ] Save model, reload, and compare hidden states.

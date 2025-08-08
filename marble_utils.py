@@ -1,4 +1,5 @@
 import json
+import logging
 import numpy as np
 from marble_core import (
     Core,
@@ -12,6 +13,7 @@ from marble_core import (
     _simple_mlp,
 )
 import torch
+from marble_imports import cp, CUDA_AVAILABLE
 
 def get_default_device() -> torch.device:
     """Return CUDA device if available else CPU."""
@@ -42,6 +44,8 @@ def core_to_json(core: Core) -> str:
             for s in core.synapses
         ],
     }
+    if core.params.get("hidden_states"):
+        data["hidden_states"] = core.params["hidden_states"]
     return json.dumps(data)
 
 
@@ -81,7 +85,42 @@ def core_from_json(json_str: str) -> Core:
         syn.potential = s.get("potential", 1.0)
         core.synapses.append(syn)
         core.neurons[syn.source].synapses.append(syn)
+    if "hidden_states" in payload:
+        core.params["hidden_states"] = payload["hidden_states"]
+        restore_hidden_states(core)
     return core
+
+
+def restore_hidden_states(core: Core) -> None:
+    """Populate neuron ``hidden_state`` values from serialized metadata."""
+    entries = core.params.get("hidden_states")
+    if not entries:
+        return
+    mapping: dict[tuple[int, str], list[Neuron]] = {}
+    for neuron in core.neurons:
+        layer = neuron.params.get("layer_index")
+        direction = neuron.params.get("direction")
+        if layer is None or direction is None:
+            continue
+        mapping.setdefault((int(layer), str(direction)), []).append(neuron)
+    for entry in entries:
+        key = (int(entry.get("layer_index", 0)), str(entry.get("direction", "forward")))
+        neurons = mapping.get(key, [])
+        tensor = np.asarray(entry.get("tensor", []), dtype=entry.get("dtype", "float32"))
+        if len(neurons) != len(tensor):
+            logging.warning(
+                "Hidden state length mismatch for layer %s: expected %d, got %d",
+                key,
+                len(neurons),
+                len(tensor),
+            )
+            continue
+        device = str(entry.get("device", "cpu"))
+        for value, neuron in zip(tensor, neurons):
+            if device.startswith("cuda") and CUDA_AVAILABLE:
+                neuron.hidden_state = cp.asarray(value, dtype=tensor.dtype)
+            else:
+                neuron.hidden_state = float(value)
 
 
 def export_neuron_state(core: Core, path: str) -> None:
