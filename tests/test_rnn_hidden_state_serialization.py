@@ -1,17 +1,26 @@
+import json
+import logging
+
+import pytest
 import torch
 from torch import nn
 
 from pytorch_to_marble import convert_model
+from marble_utils import core_to_json, core_from_json, restore_hidden_states
 
 
 class TinyRNN(nn.Module):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.rnn = nn.RNN(input_size=3, hidden_size=2, num_layers=1, bias=False)
 
     def forward(self, x, h=None):  # pragma: no cover - placeholder forward
         out, h = self.rnn(x, h)
         return out
+
+
+def _hidden_values(core):
+    return [float(n.hidden_state) for n in core.neurons if hasattr(n, "hidden_state")]
 
 
 def test_hidden_state_serialization():
@@ -28,3 +37,37 @@ def test_hidden_state_serialization():
     assert entry["dtype"] == "float32"
     assert entry["device"] == expected_device
     assert entry["tensor"] == [0.0, 0.0]
+
+
+devices = ["cpu"]
+if torch.cuda.is_available():
+    devices.append("cuda")
+
+
+@pytest.mark.parametrize("device", devices)
+def test_hidden_state_persistence_roundtrip(device: str):
+    model = TinyRNN().to(device)
+    core = convert_model(model, restore_hidden=True)
+    core.params["hidden_states"][0]["tensor"] = [1.0, -1.0]
+    core.params["hidden_states"][0]["device"] = device
+    restore_hidden_states(core)
+    json_str = core_to_json(core)
+    core2 = core_from_json(json_str)
+    assert _hidden_values(core2) == _hidden_values(core)
+    json_str2 = core_to_json(core2)
+    core3 = core_from_json(json_str2)
+    assert _hidden_values(core3) == _hidden_values(core)
+
+
+@pytest.mark.parametrize("device", devices)
+def test_hidden_state_corruption_handled(device: str, caplog: pytest.LogCaptureFixture):
+    model = TinyRNN().to(device)
+    core = convert_model(model)
+    json_str = core_to_json(core)
+    data = json.loads(json_str)
+    data["hidden_states"][0]["tensor"] = [0.0]
+    corrupted = json.dumps(data)
+    with caplog.at_level(logging.WARNING):
+        core_bad = core_from_json(corrupted)
+        assert "Hidden state length mismatch" in caplog.text
+    assert all(not hasattr(n, "hidden_state") for n in core_bad.neurons)

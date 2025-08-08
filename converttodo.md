@@ -91,11 +91,11 @@
             - [x] Update converter CLI to accept `--restore-hidden`.
             - [x] Wire flag to call `restore_hidden_states` after loading.
             - [x] Document flag usage in converter README.
-      - [ ] Provide tests verifying state persistence across runs.
-        - [ ] Create minimal RNN example with saved hidden state.
-        - [ ] Save model, reload, and compare hidden states.
-        - [ ] Reload model multiple times to check for drift.
-        - [ ] Corrupt state file intentionally and ensure loader fails gracefully.
+      - [x] Provide tests verifying state persistence across runs.
+        - [x] Create minimal RNN example with saved hidden state.
+        - [x] Save model, reload, and compare hidden states.
+        - [x] Reload model multiple times to check for drift.
+        - [x] Corrupt state file intentionally and ensure loader fails gracefully.
 - [x] Normalization layers (LayerNorm, GroupNorm)
   - [x] ``LayerNorm`` converter
   - [x] ``GroupNorm`` converter
