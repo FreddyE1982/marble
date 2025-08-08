@@ -1585,12 +1585,12 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [ ] Update documentation in `CONFIGURABLE_PARAMETERS.md` and `yaml-manual.txt`.
             - [ ] Emit deprecation warnings for parameters scheduled for removal.
 335. [ ] Implement persistent hidden state mapping in RNN converter.
-        - [ ] Define serialization schema for hidden states.
-            - [ ] Specify file format compatible with CPU and GPU tensors.
+        - [x] Define serialization schema for hidden states.
+            - [x] Specify file format compatible with CPU and GPU tensors. (JSON chosen for portability)
             - [ ] Document versioning and backward compatibility.
-            - [ ] Create dataclass capturing shape, dtype and device.
+            - [x] Create dataclass capturing shape, dtype and device.
         - [ ] Embed and restore states within converter and runtime.
-            - [ ] Implement save logic in converter output.
+            - [x] Implement save logic in converter output.
             - [ ] Integrate load routine in runtime initialization.
             - [ ] Ensure operations work on CPU and GPU.
             - [ ] Add error handling for corrupted or mismatched state files.
