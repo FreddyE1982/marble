@@ -208,6 +208,18 @@ nb.refresh_on_dataset_change(watcher)
 This process runs entirely on CPU so the behaviour is identical on systems with
 or without GPUs.
 
+#### Adaptive attention span
+
+`Neuronenblitz` can trim low-salience portions of a path to focus computation.
+Control this behaviour via ``neuronenblitz.attention_span_threshold`` (fraction
+of cumulative attention to keep) and ``neuronenblitz.max_attention_span``
+(optional maximum number of elements). The span module operates on CUDA when
+available and otherwise falls back to CPU automatically:
+
+```python
+nb = Neuronenblitz(core, max_attention_span=5, attention_span_threshold=0.8)
+```
+
 Set ``dataloader.tokenizer_type: bert_wordpiece`` or ``tokenizer_json`` in
 ``config.yaml`` to use the same tokenizer when constructing ``MARBLE``. Each
 project example assumes a ``dataloader`` prepared this way and passes it to

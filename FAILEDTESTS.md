@@ -8,7 +8,7 @@ No failing tests.
 - tests/test_streamlit_progress.py::test_progress_desktop: IndexError: list index out of range
 - tests/test_streamlit_progress.py::test_progress_mobile: IndexError: list index out of range
 - tests/test_streamlit_all_buttons.py::test_click_all_buttons: IndexError: list index out of range
-- tests/test_streamlit_playground.py: multiple failures (TypeError: Brain.__init__() got an unexpected keyword argument 'dream_replay_buffer_size')
+- tests/test_streamlit_playground.py::test_initialize_marble: TypeError: Neuronenblitz.__init__() got an unexpected keyword argument 'auto_update' [resolved]
 - tests/test_streamlit_gui.py::test_pipeline_tab_add_and_run: IndexError: list index out of range
 - tests/test_streamlit_gui.py::test_pipeline_reorder_and_remove: IndexError: list index out of range
 - tests/test_hybrid_memory_kuzu.py::test_kuzu_memory_separate_from_topology: RuntimeError: Catalog exception: function DATETIME does not exist [resolved]

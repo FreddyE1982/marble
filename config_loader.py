@@ -112,6 +112,10 @@ def create_marble_from_config(
     neuro_base_synapses = brain_params.pop("neurogenesis_base_synapses", 10)
     super_evolution_mode = brain_params.pop("super_evolution_mode", False)
 
+    dataset_path = cfg.get("dataset", {}).get("source")
+    if nb_params.get("auto_update") and dataset_path:
+        nb_params.setdefault("dataset_path", dataset_path)
+
     formula = cfg.get("formula")
     formula_num_neurons = cfg.get("formula_num_neurons", 100)
 
