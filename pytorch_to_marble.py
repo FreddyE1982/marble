@@ -1,6 +1,7 @@
 import argparse
 import logging
 import operator
+from dataclasses import asdict, dataclass
 from typing import Callable, Dict, List, Type
 
 import numpy as np
@@ -36,6 +37,28 @@ LayerConverter = Callable[..., List[int]]
 LAYER_CONVERTERS: Dict[Type[torch.nn.Module], LayerConverter] = {}
 FUNCTION_CONVERTERS: Dict[Callable, LayerConverter] = {}
 METHOD_CONVERTERS: Dict[str, LayerConverter] = {}
+
+
+@dataclass
+class HiddenState:
+    """Serializable description of an RNN hidden state tensor."""
+
+    layer_index: int
+    direction: str
+    tensor: np.ndarray
+    dtype: str
+    device: str
+
+    def to_dict(self) -> Dict[str, object]:
+        """Return a JSON-serializable representation."""
+        return {
+            "layer_index": self.layer_index,
+            "direction": self.direction,
+            "tensor": self.tensor.tolist(),
+            "shape": list(self.tensor.shape),
+            "dtype": self.dtype,
+            "device": self.device,
+        }
 
 
 def _extract_tensor(t: torch.Tensor) -> tuple[np.ndarray, str]:
@@ -281,6 +304,19 @@ def _add_recurrent_layer(
                 )
                 bias = bias_ih + bias_hh
                 b_device = bih_device
+
+            state_tensor = np.zeros(layer.hidden_size, dtype=np.float32)
+            core.params.setdefault("hidden_states", []).append(
+                asdict(
+                    HiddenState(
+                        layer_index=layer_idx,
+                        direction="forward" if d == 0 else "reverse",
+                        tensor=state_tensor,
+                        dtype="float32",
+                        device=wih_device,
+                    )
+                )
+            )
 
             ids: List[int] = []
             for j in range(layer.hidden_size):

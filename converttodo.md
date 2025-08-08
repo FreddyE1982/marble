@@ -73,13 +73,14 @@
         - [x] Build example network with two bidirectional layers.
         - [x] Compare outputs against PyTorch reference.
     - [ ] Persistent hidden state mapping
-      - [ ] Serialize initial hidden states with layer metadata.
-        - [ ] Define serialization schema for hidden state tensors.
-        - [ ] Embed state tensors into converter output.
-        - [ ] Record correspondence to layer identifiers.
-        - [ ] Document serialization logic for future contributors.
-        - [ ] Choose storage format (e.g., JSON or binary) and justify selection.
-        - [ ] Include device information within metadata.
+      - [x] Serialize initial hidden states with layer metadata.
+        - [x] Define serialization schema for hidden state tensors.
+        - [x] Embed state tensors into converter output.
+        - [x] Record correspondence to layer identifiers.
+        - [x] Document serialization logic for future contributors.
+        - [x] Choose storage format (e.g., JSON or binary) and justify selection.
+            - Chose JSON for portability and compatibility with ``core_to_json``.
+        - [x] Include device information within metadata.
       - [ ] Restore hidden states during MARBLE execution.
         - [ ] Map serialized states to runtime modules.
         - [ ] Load serialized states into runtime structures.
