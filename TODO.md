@@ -659,8 +659,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [x] Document strategy comparison.
         - [x] Plan configuration flag enabling or disabling auto-updates.
     - [ ] Implement Update Neuronenblitz models automatically when datasets change with CPU/GPU support.
-        - [ ] Build dataset watcher to trigger updates.
-        - [ ] Invoke retrain or reload routine when changes are detected.
+        - [x] Build dataset watcher to trigger updates.
+        - [x] Invoke retrain or reload routine when changes are detected.
         - [ ] Confirm implementation works on both CPU and GPU.
     - [ ] Add tests validating Update Neuronenblitz models automatically when datasets change.
         - [ ] Simulate dataset modification and verify model refresh.

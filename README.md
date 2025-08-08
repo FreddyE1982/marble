@@ -91,6 +91,16 @@ shards training data:
 Neuronenblitz can also monitor datasets for changes. Enable
 ``neuronenblitz.auto_update`` in ``config.yaml`` and use ``DatasetWatcher`` to
 reset learning state whenever files within the dataset directory are modified.
+The watcher records individual file checksums and exposes
+``changed_files()``/``total_files()`` for inspection.  Combine it with
+``model_refresh.auto_refresh`` to automatically retrain or incrementally update
+a model when the dataset changes:
+
+```python
+from model_refresh import auto_refresh
+model, refreshed = auto_refresh(model, dataset, watcher)
+```
+
 When pipelines use parallel branches, the framework automatically assigns each
 branch a unique ``shard_index`` so dataset shards are distributed evenly across
 branches. This keeps parallel pipelines processing disjoint data without manual

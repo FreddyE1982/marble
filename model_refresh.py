@@ -6,10 +6,12 @@ CUDA when available but gracefully fall back to CPU execution.
 """
 from __future__ import annotations
 
-from typing import Iterable, Callable
+from typing import Iterable, Callable, Tuple
 
 import torch
 from torch.utils.data import DataLoader
+
+from dataset_watcher import DatasetWatcher
 
 
 def _detect_device(device: str | torch.device | None = None) -> torch.device:
@@ -112,4 +114,53 @@ def incremental_update(
             loss.backward()
             optimizer.step()
     return model
+
+
+def auto_refresh(
+    model: torch.nn.Module,
+    dataset: Iterable,
+    watcher: DatasetWatcher,
+    strategy: str = "auto",
+    change_threshold: float = 0.5,
+    **kwargs,
+) -> Tuple[torch.nn.Module, bool]:
+    """Refresh ``model`` when ``watcher`` detects dataset changes.
+
+    Parameters
+    ----------
+    model:
+        Model instance to refresh.
+    dataset:
+        Iterable yielding training samples for refresh routines.
+    watcher:
+        :class:`DatasetWatcher` monitoring the dataset directory.
+    strategy:
+        ``"full"`` forces :func:`full_retrain`, ``"incremental"`` forces
+        :func:`incremental_update` and ``"auto"`` selects the routine based on
+        ``change_threshold``.
+    change_threshold:
+        Fraction of changed files above which a full retrain is triggered
+        when ``strategy="auto"``.
+    **kwargs:
+        Forwarded to :func:`full_retrain` or :func:`incremental_update`.
+
+    Returns
+    -------
+    tuple
+        The (possibly) updated model and a flag indicating whether a refresh
+        occurred.
+    """
+
+    if not watcher.has_changed():
+        return model, False
+
+    changed = watcher.changed_files()
+    total = watcher.total_files() or 1
+    ratio = len(changed) / total
+
+    if strategy == "full" or (strategy == "auto" and ratio > change_threshold):
+        model = full_retrain(model, dataset, **kwargs)
+    else:
+        model = incremental_update(model, dataset, **kwargs)
+    return model, True
 

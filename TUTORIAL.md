@@ -203,6 +203,8 @@ from marble_neuronenblitz import Neuronenblitz
 watcher = DatasetWatcher("data/iris")
 nb = Neuronenblitz(core)
 nb.refresh_on_dataset_change(watcher)
+from model_refresh import auto_refresh
+auto_refresh(nb, dataset, watcher)
 ```
 
 This process runs entirely on CPU so the behaviour is identical on systems with
