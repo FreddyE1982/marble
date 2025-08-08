@@ -1574,8 +1574,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 334. [ ] Audit config.yaml for unused parameters and implement missing ones.
         - [ ] Identify parameters defined in config.yaml but not referenced in code.
             - [x] Write utility script to list all configuration keys.
-            - [ ] Scan codebase with ripgrep to detect usages.
-            - [ ] Compile report of unused parameters.
+            - [x] Scan codebase with ripgrep to detect usages.
+            - [x] Compile report of unused parameters.
             - [ ] Add unit test ensuring the script flags future unused parameters.
             - [ ] Integrate script into CI pipeline.
         - [ ] Implement missing parameters or prune outdated ones.
