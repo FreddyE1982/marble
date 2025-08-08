@@ -122,6 +122,7 @@ def auto_refresh(
     watcher: DatasetWatcher,
     strategy: str = "auto",
     change_threshold: float = 0.5,
+    device: str | torch.device | None = None,
     **kwargs,
 ) -> Tuple[torch.nn.Module, bool]:
     """Refresh ``model`` when ``watcher`` detects dataset changes.
@@ -141,6 +142,10 @@ def auto_refresh(
     change_threshold:
         Fraction of changed files above which a full retrain is triggered
         when ``strategy="auto"``.
+    device:
+        Optional device on which refresh routines should run.  When ``None``
+        the helper selects ``"cuda"`` if available and falls back to CPU
+        otherwise.
     **kwargs:
         Forwarded to :func:`full_retrain` or :func:`incremental_update`.
 
@@ -153,6 +158,9 @@ def auto_refresh(
 
     if not watcher.has_changed():
         return model, False
+
+    dev = _detect_device(device)
+    kwargs.setdefault("device", dev)
 
     changed = watcher.changed_files()
     total = watcher.total_files() or 1

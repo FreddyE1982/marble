@@ -194,21 +194,36 @@ During experimentation datasets may be edited or replaced. Set
 ``neuronenblitz.auto_update: true`` in ``config.yaml`` and monitor the dataset
 directory with ``DatasetWatcher``. The watcher computes a checksum over all
 files and resets the ``Neuronenblitz`` learning state whenever a change is
-detected:
+detected. Call ``model_refresh.auto_refresh`` to retrain the model when files
+change. ``auto_refresh`` decides between a full retrain and an incremental
+update based on the ``strategy`` argument (``"full"``, ``"incremental"`` or
+``"auto"``) and the ``change_threshold`` fraction.  It also accepts an optional
+``device`` argument to control CPU or GPU execution:
 
 ```python
 from dataset_watcher import DatasetWatcher
 from marble_neuronenblitz import Neuronenblitz
+from model_refresh import auto_refresh
 
 watcher = DatasetWatcher("data/iris")
 nb = Neuronenblitz(core)
 nb.refresh_on_dataset_change(watcher)
-from model_refresh import auto_refresh
+
+auto_refresh(
+    nb,
+    dataset,
+    watcher,
+    strategy="auto",
+    change_threshold=0.4,
+)
+
+# Simulate dataset swap
+# $ cp new_samples.csv data/iris/
 auto_refresh(nb, dataset, watcher)
 ```
 
-This process runs entirely on CPU so the behaviour is identical on systems with
-or without GPUs.
+This process runs on GPU when available and gracefully falls back to CPU when
+CUDA is absent.
 
 #### Adaptive attention span
 
