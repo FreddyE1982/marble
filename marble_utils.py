@@ -46,6 +46,8 @@ def core_to_json(core: Core) -> str:
     }
     if core.params.get("hidden_states"):
         data["hidden_states"] = core.params["hidden_states"]
+        if core.params.get("hidden_state_version") is not None:
+            data["hidden_state_version"] = core.params["hidden_state_version"]
     return json.dumps(data)
 
 
@@ -87,6 +89,8 @@ def core_from_json(json_str: str) -> Core:
         core.neurons[syn.source].synapses.append(syn)
     if "hidden_states" in payload:
         core.params["hidden_states"] = payload["hidden_states"]
+        if "hidden_state_version" in payload:
+            core.params["hidden_state_version"] = payload["hidden_state_version"]
         restore_hidden_states(core)
     return core
 
@@ -95,6 +99,10 @@ def restore_hidden_states(core: Core) -> None:
     """Populate neuron ``hidden_state`` values from serialized metadata."""
     entries = core.params.get("hidden_states")
     if not entries:
+        return
+    version = int(core.params.get("hidden_state_version", 1))
+    if version != 1:
+        logging.warning("Unknown hidden state format version %s", version)
         return
     mapping: dict[tuple[int, str], list[Neuron]] = {}
     for neuron in core.neurons:

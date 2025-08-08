@@ -26,6 +26,7 @@ def _hidden_values(core):
 def test_hidden_state_serialization():
     model = TinyRNN()
     core = convert_model(model)
+    assert core.params.get("hidden_state_version") == 1
     assert "hidden_states" in core.params
     hs = core.params["hidden_states"]
     assert len(hs) == 1
@@ -71,3 +72,26 @@ def test_hidden_state_corruption_handled(device: str, caplog: pytest.LogCaptureF
         core_bad = core_from_json(corrupted)
         assert "Hidden state length mismatch" in caplog.text
     assert all(not hasattr(n, "hidden_state") for n in core_bad.neurons)
+
+
+def test_hidden_state_version_roundtrip():
+    model = TinyRNN()
+    core = convert_model(model)
+    json_str = core_to_json(core)
+    data = json.loads(json_str)
+    assert data["hidden_state_version"] == 1
+    core2 = core_from_json(json_str)
+    assert core2.params.get("hidden_state_version") == 1
+
+
+def test_unknown_hidden_state_version(caplog: pytest.LogCaptureFixture):
+    model = TinyRNN()
+    core = convert_model(model)
+    json_str = core_to_json(core)
+    data = json.loads(json_str)
+    data["hidden_state_version"] = 999
+    corrupted = json.dumps(data)
+    with caplog.at_level(logging.WARNING):
+        core2 = core_from_json(corrupted)
+        assert "Unknown hidden state format version" in caplog.text
+    assert all(not hasattr(n, "hidden_state") for n in core2.neurons)

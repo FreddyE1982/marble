@@ -1591,7 +1591,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
 335. [ ] Implement persistent hidden state mapping in RNN converter.
         - [x] Define serialization schema for hidden states.
             - [x] Specify file format compatible with CPU and GPU tensors. (JSON chosen for portability)
-            - [ ] Document versioning and backward compatibility.
+            - [x] Document versioning and backward compatibility.
             - [x] Create dataclass capturing shape, dtype and device.
         - [ ] Embed and restore states within converter and runtime.
             - [x] Implement save logic in converter output.
