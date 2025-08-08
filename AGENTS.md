@@ -5,7 +5,7 @@ as extensive and enhanced as possible! ALL code parts must work with CPU AND GPU
 When the user has given the agent a task that involves working on the gui only (for example: enhance and expand the gui tests) then the agent is to ONLY run tests related to the gui NOT ALL tests. 
 In this case the rule that says to always run all tests is temporarily not in effect.
 
-Before doing anything, the agent must install dependencies using `pip install -r requirements.txt`.
+Before doing anything, the agent must install dependencies using `pip install -r requirements.txt`, unless user mentions QUICKMODE
 If there are conflicts with in requirements.txt the agent must fix them.
 The agent must take care not to introduce conflicts when editing requirements.txt
 
@@ -15,14 +15,16 @@ a FAILEDTESTS.md that is persisted.
 the agent is NOT to run ANY tests if the agent has not made any changes to code yet
 if the user says "relevant tests only", then the agent is to run tests that are relevant to the changed code pieces ONLY even if that contradicts another rule
 
-IMPORTANT DO NOT SKIP-------------
+IMPORTANT DO NOT SKIP UNLESS USER MENTIONS QUICKMODE
 0.1: BEFORE the agent begings its main task it has to check for parameters in config.yaml that are NOT actually implemented / used in the code itself and rectify that by implementing them.
 BEFORE the agent begins its main task it has to check FAILEDTESTS.md for any failed tests and fix ONE of them
 0.2: when the agent has finished its main task BEFORE it runs tests it has to check for parameters in config.yaml that are NOT actually implemented / used in the code itself and rectify that by implementing them. This is in ADDITION to the check and fix unimplemented parameters
 in config.yaml in 0.1
 --------------------
 
-
+If the user mentions QUICKMODE, do not do the config.yaml check and
+do not run any tests. You are allowed to create new tests in QUICKMODE but
+not run any. 
 
 1. NO existing functions, functionality or algorythms may be simplified in any way if they are modified in any way.
 2. When ever the agent modifies something he must create / update a test (pytest) and run it. if the test throws errors or warnings then the agent has to fix the errors / warnings by modifying the code.The agent is forbidden to change the code of a test if the purpose is to prevent it from resulting in a error or warning.
