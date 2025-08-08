@@ -361,11 +361,16 @@
 - [ ] Validation suite comparing PyTorch and MARBLE outputs
   - [ ] Per-layer unit tests
       - [ ] Select representative layers for testing.
-      - [ ] Verify converted outputs match PyTorch results.
+      - [ ] Build minimal fixture models for each layer.
+      - [ ] Verify converted outputs match PyTorch results on CPU.
+      - [ ] Repeat verification on GPU where available.
+      - [ ] Document acceptable numerical tolerances.
   - [ ] End-to-end comparison for simple models
       - [ ] Convert small reference model to MARBLE.
-      - [ ] Execute model in both frameworks on sample data.
-      - [ ] Compare predictions and document parity.
+      - [ ] Prepare sample dataset and inputs.
+      - [ ] Execute model in both frameworks on the sample data.
+      - [ ] Record accuracy and latency metrics for each run.
+      - [ ] Compare predictions and document parity in README.
 
 ### 13. Dynamic message passing integration
 - [ ] Store activation behavior metadata in neurons for runtime evaluation
