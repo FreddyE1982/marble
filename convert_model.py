@@ -47,6 +47,11 @@ def main() -> None:
         "--summary-graph",
         help="Path to save dry-run graph HTML",
     )
+    parser.add_argument(
+        "--restore-hidden",
+        action="store_true",
+        help="Restore serialised RNN hidden states after conversion",
+    )
     args = parser.parse_args()
 
     if args.config:
@@ -79,7 +84,9 @@ def main() -> None:
         or args.summary_plot
         or args.summary_csv
     ):
-        core, summary = convert_model(model, dry_run=True, return_summary=True)
+        core, summary = convert_model(
+            model, dry_run=True, return_summary=True, restore_hidden=args.restore_hidden
+        )
         if args.summary_output:
             import json
 
@@ -93,7 +100,9 @@ def main() -> None:
             _graph_to_html(core, args.summary_graph)
         return
 
-    core = convert_model(model, dry_run=args.dry_run)
+    core = convert_model(
+        model, dry_run=args.dry_run, restore_hidden=args.restore_hidden
+    )
 
     if args.dry_run:
         return
