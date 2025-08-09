@@ -721,11 +721,12 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
              in ``wanderer_messages.py`` with explicit device metadata and
              path payload structures for serialization.
    - [ ] Implement Connect with remote wanderers for asynchronous exploration phases with CPU/GPU support.
-       - [ ] Build client and server components leveraging the MessageBus.
+       - [x] Build client and server components leveraging the MessageBus.
        - [x] Integrate asynchronous dispatcher to handle incoming updates.
        - [x] Ensure device context (CPU/GPU) is transmitted with payloads.
        - [x] Provide ``SessionManager`` handling token renewal and cleanup.
    - [ ] Add tests validating Connect with remote wanderers for asynchronous exploration phases.
+       - [x] Basic client-server round-trip.
        - [ ] Simulate multiple remote wanderers exchanging updates.
        - [ ] Verify synchronization under intermittent connectivity.
        - [ ] Measure latency impact on exploration performance.
