@@ -269,7 +269,9 @@ Each entry is listed under its section heading.
 - entropy_epsilon_enabled
 - gradient_score_scale
 - memory_gate_decay
-- memory_gate_strength
+- memory_gate_strength: Additive boost to a synapse's gating score after a
+  successful path. Default ``1.0`` with a recommended range of ``0.1`` to
+  ``5.0``.
 - episodic_memory_size
 - episodic_memory_threshold
 - episodic_memory_prob

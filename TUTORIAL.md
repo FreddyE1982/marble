@@ -2697,6 +2697,36 @@ plugins and components.
   ```
   The list ``rewards`` contains predicted outcomes for the top episodes.
 
+### Tuning Memory Gate Strength
+
+1. Download the Iris dataset so the effect of gating can be observed on real
+   data:
+   ```bash
+   wget https://raw.githubusercontent.com/uiuc-cse/data-fa14/gh-pages/data/iris.csv -O iris.csv
+   ```
+2. Increase ``memory_gate_strength`` in ``config.yaml`` to bias wandering
+   toward paths that previously produced low error:
+   ```yaml
+   memory_gate_strength: 2.5
+   ```
+3. Train a small model using the CLI. The parameter applies on both CPU and
+   GPU:
+   ```bash
+   python cli.py --config config.yaml --train iris.csv --epochs 3 --save iris_nb.pkl
+   ```
+4. After training, inspect the stored gating scores to see which synapses were
+   reinforced:
+   ```python
+   import pickle
+
+   with open("iris_nb.pkl", "rb") as f:
+       nb = pickle.load(f).neuronenblitz
+   print(nb.memory_gates)
+   ```
+   Larger values focus exploration on successful paths. Values above ``5.0``
+   often cause premature exploitation, while values below ``0.1`` make the
+   effect negligible.
+
 ## Project 31 – Diffusion Core (Advanced)
 
 **Goal:** Generate samples using MARBLE's dedicated diffusion engine.

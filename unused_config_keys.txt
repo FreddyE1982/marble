@@ -421,7 +421,6 @@ neuronenblitz.max_attention_span
 neuronenblitz.max_learning_rate
 neuronenblitz.max_wander_depth
 neuronenblitz.memory_gate_decay
-neuronenblitz.memory_gate_strength
 neuronenblitz.merge_tolerance
 neuronenblitz.min_learning_rate
 neuronenblitz.momentum_coefficient
