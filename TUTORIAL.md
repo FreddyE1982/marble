@@ -1144,7 +1144,9 @@ For entropy-regularised control, switch ``reinforcement_learning.algorithm`` to
 ``"sac"`` and adjust the ``sac.temperature`` value in ``config.yaml``. Higher
 temperatures weight the policy's log-probability term more strongly, promoting
 exploration, while lower temperatures drive the agent toward deterministic
-actions.
+actions. The implementation automatically tunes this coefficient toward a
+target entropy of ``-action_dim`` for stable learning. To keep the temperature
+fixed, pass ``tune_entropy=False`` when calling ``enable_sac``.
 
 **Complete Example**
 ```python
