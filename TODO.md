@@ -727,7 +727,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
        - [x] Provide ``SessionManager`` handling token renewal and cleanup.
    - [ ] Add tests validating Connect with remote wanderers for asynchronous exploration phases.
        - [x] Basic client-server round-trip.
-       - [ ] Simulate multiple remote wanderers exchanging updates.
+       - [x] Simulate multiple remote wanderers exchanging updates.
        - [ ] Verify synchronization under intermittent connectivity.
        - [ ] Measure latency impact on exploration performance.
    - [ ] Document Connect with remote wanderers for asynchronous exploration phases in README and TUTORIAL.
