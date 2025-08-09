@@ -1569,10 +1569,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [x] Record modules lacking CPU implementation.
             - [x] Update README with limitation notes.
         - [ ] Add fallback tests for newly introduced modules.
-            - [ ] Catalog modules lacking CPU fallback tests.
+            - [x] Catalog modules lacking CPU fallback tests.
                 - [x] Scan repository for modules using CUDA-specific code paths.
-                - [ ] Cross-reference existing tests for CPU coverage.
-                - [ ] Produce markdown report listing modules lacking CPU fallback tests.
+                - [x] Cross-reference existing tests for CPU coverage.
+                - [x] Produce markdown report listing modules lacking CPU fallback tests.
             - [ ] Write parity tests verifying CPU and GPU execution.
             - [ ] Integrate new tests into existing suites.
         - [ ] Create CI job that runs full suite with CUDA disabled.
