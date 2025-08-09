@@ -701,8 +701,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Implement Run pipeline sections in isolated processes for fault tolerance with CPU/GPU support.
    - [x] Add tests validating Run pipeline sections in isolated processes for fault tolerance.
    - [x] Document Run pipeline sections in isolated processes for fault tolerance in README and TUTORIAL.
-209. [ ] Connect with remote wanderers for asynchronous exploration phases.
-   - [ ] Outline design for Connect with remote wanderers for asynchronous exploration phases.
+209. [x] Connect with remote wanderers for asynchronous exploration phases.
+   - [x] Outline design for Connect with remote wanderers for asynchronous exploration phases.
        - [x] Define communication protocol for wanderer coordination.
            - Use the existing `MessageBus` as transport with a dedicated topic per wanderer.
            - Clients establish a WebSocket connection and register using a unique `wanderer_id`.
@@ -720,12 +720,12 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
            - Introduced dataclasses ``ExplorationRequest`` and ``ExplorationResult``
              in ``wanderer_messages.py`` with explicit device metadata and
              path payload structures for serialization.
-   - [ ] Implement Connect with remote wanderers for asynchronous exploration phases with CPU/GPU support.
+   - [x] Implement Connect with remote wanderers for asynchronous exploration phases with CPU/GPU support.
        - [x] Build client and server components leveraging the MessageBus.
        - [x] Integrate asynchronous dispatcher to handle incoming updates.
        - [x] Ensure device context (CPU/GPU) is transmitted with payloads.
        - [x] Provide ``SessionManager`` handling token renewal and cleanup.
-   - [ ] Add tests validating Connect with remote wanderers for asynchronous exploration phases.
+   - [x] Add tests validating Connect with remote wanderers for asynchronous exploration phases.
        - [x] Basic client-server round-trip.
        - [x] Simulate multiple remote wanderers exchanging updates.
        - [x] Verify synchronization under intermittent connectivity.
@@ -736,9 +736,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
                - Benchmark script ``benchmark_remote_wanderer_latency.py`` shows
                  round-trip times increasing roughly linearly with injected
                  delay (≈200 ms overhead for 100 ms delay).
-   - [ ] Document Connect with remote wanderers for asynchronous exploration phases in README and TUTORIAL.
-       - [ ] Provide configuration examples for enabling remote wanderers.
-       - [ ] Include troubleshooting steps for network failures.
+   - [x] Document Connect with remote wanderers for asynchronous exploration phases in README and TUTORIAL.
+       - [x] Provide configuration examples for enabling remote wanderers.
+       - [x] Include troubleshooting steps for network failures.
 210. [ ] Secure pipeline data flow by integrating dataset encryption routines.
    - [ ] Outline design for Secure pipeline data flow by integrating dataset encryption routines.
        - [ ] Choose encryption algorithm and key management strategy.
