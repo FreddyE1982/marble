@@ -5,8 +5,8 @@ import pytest
 import torch
 from torch import nn
 
+from marble_utils import core_from_json, core_to_json, restore_hidden_states
 from pytorch_to_marble import convert_model
-from marble_utils import core_to_json, core_from_json, restore_hidden_states
 
 
 class TinyRNN(nn.Module):
@@ -61,17 +61,15 @@ def test_hidden_state_persistence_roundtrip(device: str):
 
 
 @pytest.mark.parametrize("device", devices)
-def test_hidden_state_corruption_handled(device: str, caplog: pytest.LogCaptureFixture):
+def test_hidden_state_corruption_raises(device: str):
     model = TinyRNN().to(device)
     core = convert_model(model)
     json_str = core_to_json(core)
     data = json.loads(json_str)
     data["hidden_states"][0]["tensor"] = [0.0]
     corrupted = json.dumps(data)
-    with caplog.at_level(logging.WARNING):
-        core_bad = core_from_json(corrupted)
-        assert "Hidden state length mismatch" in caplog.text
-    assert all(not hasattr(n, "hidden_state") for n in core_bad.neurons)
+    with pytest.raises(ValueError):
+        core_from_json(corrupted)
 
 
 def test_hidden_state_version_roundtrip():

@@ -1,24 +1,26 @@
 import json
 import logging
+
 import numpy as np
+import torch
+
 from marble_core import (
+    _B1,
+    _B2,
+    _REP_SIZE,
+    _W1,
+    _W2,
     Core,
     Neuron,
     Synapse,
-    _W1,
-    _B1,
-    _W2,
-    _B2,
-    _REP_SIZE,
     _simple_mlp,
 )
-import torch
-from marble_imports import cp, CUDA_AVAILABLE
+from marble_imports import CUDA_AVAILABLE, cp
+
 
 def get_default_device() -> torch.device:
     """Return CUDA device if available else CPU."""
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
 
 def core_to_json(core: Core) -> str:
@@ -55,16 +57,16 @@ def core_from_json(json_str: str) -> Core:
     """Create a Core instance from a JSON string."""
     payload = json.loads(json_str)
     params = {
-        'xmin': -2.0,
-        'xmax': 1.0,
-        'ymin': -1.5,
-        'ymax': 1.5,
-        'width': 1,
-        'height': 1,
-        'max_iter': 1,
-        'vram_limit_mb': 0.1,
-        'ram_limit_mb': 0.1,
-        'disk_limit_mb': 0.1,
+        "xmin": -2.0,
+        "xmax": 1.0,
+        "ymin": -1.5,
+        "ymax": 1.5,
+        "width": 1,
+        "height": 1,
+        "max_iter": 1,
+        "vram_limit_mb": 0.1,
+        "ram_limit_mb": 0.1,
+        "disk_limit_mb": 0.1,
     }
     core = Core(params, formula=None, formula_num_neurons=0)
     core.neurons = []
@@ -113,16 +115,15 @@ def restore_hidden_states(core: Core) -> None:
         mapping.setdefault((int(layer), str(direction)), []).append(neuron)
     for entry in entries:
         key = (int(entry.get("layer_index", 0)), str(entry.get("direction", "forward")))
-        neurons = mapping.get(key, [])
-        tensor = np.asarray(entry.get("tensor", []), dtype=entry.get("dtype", "float32"))
-        if len(neurons) != len(tensor):
-            logging.warning(
-                "Hidden state length mismatch for layer %s: expected %d, got %d",
-                key,
-                len(neurons),
-                len(tensor),
+        neurons = mapping.get(key)
+        try:
+            tensor = np.asarray(entry["tensor"], dtype=entry.get("dtype", "float32"))
+        except Exception as exc:  # pragma: no cover - defensive branch
+            raise ValueError(f"Corrupted hidden state tensor for layer {key}") from exc
+        if neurons is None or len(neurons) != len(tensor):
+            raise ValueError(
+                f"Hidden state length mismatch for layer {key}: expected {len(neurons or [])}, got {len(tensor)}"
             )
-            continue
         device = str(entry.get("device", "cpu"))
         for value, neuron in zip(tensor, neurons):
             if device.startswith("cuda") and CUDA_AVAILABLE:
@@ -167,7 +168,9 @@ def export_core_to_onnx(core: Core, path: str) -> None:
     device = get_default_device()
     model = MPModel().to(device)
     dummy = torch.randn(len(core.neurons), core.rep_size, device=device)
-    torch.onnx.export(model, dummy, path, input_names=["x"], output_names=["out"], opset_version=17)
+    torch.onnx.export(
+        model, dummy, path, input_names=["x"], output_names=["out"], opset_version=17
+    )
 
 
 def is_gpu_available() -> bool:
@@ -184,5 +187,3 @@ def check_gpu_compatibility() -> bool:
     x_gpu = torch.tensor(x_np, device="cuda")
     gpu_out = _simple_mlp(x_gpu).cpu().numpy()
     return np.allclose(cpu_out, gpu_out, atol=1e-6)
-
-
