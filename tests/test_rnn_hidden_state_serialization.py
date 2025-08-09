@@ -1,5 +1,7 @@
 import json
+import json
 import logging
+import time
 
 import pytest
 import torch
@@ -118,3 +120,29 @@ def test_unknown_hidden_state_version(caplog: pytest.LogCaptureFixture):
         core2 = core_from_json(corrupted)
         assert "Unknown hidden state format version" in caplog.text
     assert all(not hasattr(n, "hidden_state") for n in core2.neurons)
+
+
+@pytest.mark.parametrize("device", devices)
+def test_hidden_state_serialization_overhead(device: str) -> None:
+    """Benchmark hidden state (de)serialization to ensure low overhead."""
+    model = TinyRNN().to(device)
+    core = convert_model(model, restore_hidden=True)
+    core.params["hidden_states"][0]["tensor"] = [1.0, -1.0]
+    core.params["hidden_states"][0]["device"] = device
+    restore_hidden_states(core)
+
+    iterations = 100
+
+    start = time.perf_counter()
+    for _ in range(iterations):
+        json_str = core_to_json(core)
+    ser_time = (time.perf_counter() - start) / iterations
+
+    start = time.perf_counter()
+    for _ in range(iterations):
+        core_from_json(json_str)
+    deser_time = (time.perf_counter() - start) / iterations
+
+    # ensure serialization overhead stays within tight bounds for interactivity
+    assert ser_time < 0.01, f"serialization too slow: {ser_time}"
+    assert deser_time < 0.01, f"deserialization too slow: {deser_time}"
