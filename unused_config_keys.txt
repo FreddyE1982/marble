@@ -370,7 +370,9 @@ neuromodulatory_system.initial.stress
 neuronenblitz.activity_gate_exponent
 neuronenblitz.alternative_connection_prob
 neuronenblitz.attention_decay
+neuronenblitz.attention_span_threshold
 neuronenblitz.attention_update_scale
+neuronenblitz.auto_update
 neuronenblitz.backtrack_depth_limit
 neuronenblitz.backtrack_enabled
 neuronenblitz.backtrack_probability
@@ -415,6 +417,7 @@ neuronenblitz.loss_module
 neuronenblitz.loss_scale
 neuronenblitz.lr_adjustment_factor
 neuronenblitz.lr_scheduler
+neuronenblitz.max_attention_span
 neuronenblitz.max_learning_rate
 neuronenblitz.max_wander_depth
 neuronenblitz.memory_gate_decay
@@ -506,6 +509,7 @@ remote_hardware.grpc.address
 remote_hardware.grpc.backoff_factor
 remote_hardware.grpc.max_retries
 remote_hardware.tier_plugin
+sac.temperature
 scheduler.plugin
 semi_supervised_learning.batch_size
 semi_supervised_learning.enabled

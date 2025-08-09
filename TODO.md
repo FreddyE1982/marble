@@ -1573,8 +1573,24 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
                 - [x] Scan repository for modules using CUDA-specific code paths.
                 - [x] Cross-reference existing tests for CPU coverage.
                 - [x] Produce markdown report listing modules lacking CPU fallback tests.
-            - [ ] Write parity tests verifying CPU and GPU execution.
-            - [ ] Integrate new tests into existing suites.
+            - [ ] attention_utils.py
+                - [x] Write parity tests verifying CPU and GPU execution.
+                - [x] Integrate new tests into existing suites.
+            - [ ] benchmark_graph_precompile.py
+                - [ ] Write parity tests verifying CPU and GPU execution.
+                - [ ] Integrate new tests into existing suites.
+            - [ ] exampletrain.py
+                - [ ] Write parity tests verifying CPU and GPU execution.
+                - [ ] Integrate new tests into existing suites.
+            - [ ] neuronenblitz_kernel.py
+                - [ ] Write parity tests verifying CPU and GPU execution.
+                - [ ] Integrate new tests into existing suites.
+            - [ ] run_profiler.py
+                - [ ] Write parity tests verifying CPU and GPU execution.
+                - [ ] Integrate new tests into existing suites.
+            - [ ] soft_actor_critic.py
+                - [ ] Write parity tests verifying CPU and GPU execution.
+                - [ ] Integrate new tests into existing suites.
         - [ ] Create CI job that runs full suite with CUDA disabled.
             - [ ] Configure workflow to force CPU execution.
             - [ ] Add job to the CI pipeline definition.
@@ -1600,7 +1616,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [x] Scan codebase with ripgrep to detect usages.
             - [x] Compile report of unused parameters.
              - [x] Add unit test ensuring the script flags future unused parameters.
-            - [ ] Integrate script into CI pipeline.
+            - [x] Integrate script into CI pipeline.
         - [ ] Implement missing parameters or prune outdated ones.
             - [ ] For each unused parameter, decide to implement or remove.
             - [ ] Add tests verifying newly implemented parameters on CPU and GPU.
