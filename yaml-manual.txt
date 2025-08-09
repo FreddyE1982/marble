@@ -1372,6 +1372,14 @@ reinforcement_learning:
     During updates one table selects the greedy action while the other
     evaluates it. This reduces overestimation bias at the cost of extra memory.
 
+sac:
+  temperature: Entropy temperature coefficient for Soft Actor-Critic. This
+    positive scalar multiplies the policy's log-probability term, trading off
+    exploration and exploitation. Larger values yield more stochastic actions,
+    while smaller values make the policy more deterministic. Typical values
+    range from ``0.01`` to ``1.0``; set to ``0`` to disable entropy regularisation.
+    The coefficient is device agnostic and behaves the same on CPU and GPU.
+
 contrastive_learning:
   # Self-supervised contrastive representation learning using the
   # ``ContrastiveLearner``. Two augmented views of each sample are

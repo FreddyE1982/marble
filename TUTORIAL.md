@@ -1085,6 +1085,12 @@ to ``"policy_gradient"`` and run ``project06b_policy_gradient.py``. This file
 trains ``MarblePolicyGradientAgent`` using a policy network wrapped with
 ``MarbleAutogradLayer``. Rewards should steadily increase across episodes.
 
+For entropy-regularised control, switch ``reinforcement_learning.algorithm`` to
+``"sac"`` and adjust the ``sac.temperature`` value in ``config.yaml``. Higher
+temperatures weight the policy's log-probability term more strongly, promoting
+exploration, while lower temperatures drive the agent toward deterministic
+actions.
+
 **Complete Example**
 ```python
 # project6_reinforcement_learning.py

@@ -40,6 +40,12 @@ CONFIG_SCHEMA = {
             },
         },
         "neuronenblitz": {"type": "object"},
+        "sac": {
+            "type": "object",
+            "properties": {
+                "temperature": {"type": "number", "minimum": 0},
+            },
+        },
         "evolution": {
             "type": "object",
             "properties": {

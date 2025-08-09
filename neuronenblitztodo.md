@@ -7,7 +7,7 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
 3. Integrate gradient-based path scoring to accelerate learning. (Completed with optional RMS gradient scoring)
 4. Employ soft actor-critic for reinforcement-driven wandering.
    - [ ] Implement actor and critic networks within wander policy.
-       - [ ] Define neural architectures for actor and critic.
+       - [x] Define neural architectures for actor and critic.
        - [ ] Integrate networks with wander policy update loop.
        - [ ] Validate forward and backward passes on toy data.
    - [ ] Integrate entropy regularization into loss.
@@ -17,8 +17,8 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
            - [ ] Summarize entropy metrics before and after regularization.
            - [ ] Include visualization of policy entropy over training.
    - [ ] Add temperature parameter to config and docs.
-       - [ ] Introduce `sac.temperature` in configuration files.
-       - [ ] Explain parameter in YAML manual and tutorial.
+       - [x] Introduce `sac.temperature` in configuration files.
+       - [x] Explain parameter in YAML manual and tutorial.
    - [ ] Test wandering with SAC on small environment.
        - [ ] Build minimal environment for SAC evaluation.
            - [ ] Define state and action spaces for toy environment.
