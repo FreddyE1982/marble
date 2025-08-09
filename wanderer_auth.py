@@ -66,13 +66,17 @@ class SessionManager:
     def __init__(self, secret: str, session_timeout: float = 300.0) -> None:
         self.secret = secret
         self.session_timeout = session_timeout
-        self._sessions: dict[str, float] = {}
+        # Mapping of wanderer_id -> (token, expiration timestamp)
+        self._sessions: dict[str, tuple[str, float]] = {}
 
     def start(self, wanderer_id: str) -> str:
         """Create a new session token for ``wanderer_id``."""
 
         token = generate_token(self.secret, wanderer_id)
-        self._sessions[wanderer_id] = time.time() + self.session_timeout
+        self._sessions[wanderer_id] = (
+            token,
+            time.time() + self.session_timeout,
+        )
         return token
 
     def verify(self, token: str) -> bool:
@@ -81,7 +85,13 @@ class SessionManager:
         if not verify_token(self.secret, token, self.session_timeout):
             return False
         _, wanderer_id, _ = token.split(":", 2)
-        self._sessions[wanderer_id] = time.time() + self.session_timeout
+        stored = self._sessions.get(wanderer_id)
+        if stored is None or stored[0] != token:
+            return False
+        self._sessions[wanderer_id] = (
+            token,
+            time.time() + self.session_timeout,
+        )
         return True
 
     def renew(self, token: str) -> str | None:
@@ -96,6 +106,20 @@ class SessionManager:
         """Remove expired sessions from the internal store."""
 
         now = time.time()
-        expired = [wid for wid, exp in self._sessions.items() if exp < now]
+        expired = [wid for wid, (_, exp) in self._sessions.items() if exp < now]
         for wid in expired:
             del self._sessions[wid]
+
+    def active_sessions(self) -> dict[str, float]:
+        """Return a mapping of active wanderer IDs to expiration timestamps."""
+
+        return {wid: exp for wid, (_, exp) in self._sessions.items()}
+
+    def revoke(self, token: str) -> bool:
+        """Invalidate the session identified by ``token``."""
+
+        for wid, (stored_token, _) in list(self._sessions.items()):
+            if stored_token == token:
+                del self._sessions[wid]
+                return True
+        return False
