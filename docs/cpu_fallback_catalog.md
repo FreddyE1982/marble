@@ -38,7 +38,6 @@ Generated list of modules referencing CUDA-specific code paths.
 - reinforcement_learning.py
 - run_profiler.py
 - scripts/optimize.py
-- soft_actor_critic.py
 - streaming_dataset_step.py
 - streamlit_playground.py
 - system_metrics.py
