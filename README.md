@@ -924,6 +924,50 @@ Individual pipeline steps can target these tiers by adding a ``tier`` field to
 their specification. When present, the step executes on the named remote tier
 while other steps continue locally, allowing seamless mixing of local CPU/GPU
 work and specialised hardware.
+
+### Remote Wanderers
+
+Remote wanderers execute exploration on external machines and report discovered
+paths back to a coordinator. Each payload carries the active CPU or GPU device
+so results can be routed correctly.
+
+Add a ``remote_wanderer`` section to ``config.yaml`` to share authentication
+details:
+
+```yaml
+remote_wanderer:
+  secret: "change-me"
+  session_timeout: 300  # seconds
+```
+
+Example usage:
+
+```python
+from message_bus import MessageBus
+from remote_wanderer import RemoteWandererClient, RemoteWandererServer
+from wanderer_messages import PathUpdate
+
+bus = MessageBus()
+server = RemoteWandererServer(bus, "coord")
+client = RemoteWandererClient(
+    bus,
+    "w1",
+    lambda seed, steps, device=None: [PathUpdate(nodes=list(range(steps)), score=1.0)],
+)
+client.start()
+result = server.request_exploration("w1", seed=0, max_steps=3)
+client.stop()
+```
+
+**Troubleshooting**
+
+- **Timeouts:** increase the server ``timeout`` value or verify that the wanderer
+  registered with the correct ``wanderer_id``.
+- **Token errors:** ensure all machines use the same ``remote_wanderer.secret``
+  and that system clocks are synchronised.
+- **Dropped sessions:** remote clients must send heartbeats within the
+  ``session_timeout`` window; restart clients that remain idle.
+
 A dedicated **Metrics** tab graphs loss, memory usage and other statistics in
 real time inside the browser. A **System Stats** tab displays current CPU and
 GPU memory usage. Another **Documentation** tab provides quick access to the

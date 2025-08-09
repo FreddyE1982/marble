@@ -870,6 +870,61 @@ a minimal web API.
    listed when the file changes.
 3. **Stop the service** with `svc.stop()` once synchronisation is no longer required.
 
+## Project 3d – Remote Wanderers (Medium)
+
+**Goal:** Dispatch exploration requests to remote wanderers over the
+`MessageBus` and collect discovered paths asynchronously.
+
+1. **Download the Iris dataset** on each machine so a common dataset is available:
+   ```bash
+   wget https://raw.githubusercontent.com/uiuc-cse/data-fa14/gh-pages/data/iris.csv -O iris.csv
+   ```
+2. **Add a configuration block** to `config.yaml` sharing authentication details:
+   ```yaml
+   remote_wanderer:
+     secret: "change-me"
+     session_timeout: 300  # seconds
+   ```
+3. **Start a remote wanderer client** on the exploration machine:
+   ```python
+   from message_bus import MessageBus
+   from remote_wanderer import RemoteWandererClient
+   from wanderer_messages import PathUpdate
+   from wanderer_auth import SessionManager
+
+   bus = MessageBus()
+   session = SessionManager(secret="change-me")
+   session.start("w1")
+
+   def explore(seed, max_steps, device=None):
+       import numpy as np
+       rng = np.random.default_rng(seed)
+       yield PathUpdate(nodes=list(range(max_steps)), score=float(rng.random()))
+
+   client = RemoteWandererClient(bus, "w1", explore)
+   client.start()
+   ```
+4. **Send exploration requests** from the coordinator machine and collect results:
+   ```python
+   from remote_wanderer import RemoteWandererServer
+   from message_bus import MessageBus
+
+   bus = MessageBus()
+   server = RemoteWandererServer(bus, "coord")
+   result = server.request_exploration("w1", seed=42, max_steps=4)
+   print(result.paths[0].nodes, result.device)
+   ```
+5. **Stop the wanderer** after exploration:
+   ```python
+   client.stop()
+   ```
+6. **Troubleshooting:**
+   - If `request_exploration` times out, ensure the client registered with the
+     correct `wanderer_id` and that ports are open.
+   - Expired tokens are rejected; regenerate them if sessions exceed
+     `session_timeout`.
+   - High latency links can be simulated via the `network_latency` parameter on
+     both client and server to benchmark performance.
 
 ## Project 4 – Autograd and PyTorch Challenge (Advanced)
 
