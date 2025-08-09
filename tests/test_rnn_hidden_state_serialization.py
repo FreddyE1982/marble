@@ -19,6 +19,16 @@ class TinyRNN(nn.Module):
         return out
 
 
+class TwoLayerRNN(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.rnn = nn.RNN(input_size=3, hidden_size=2, num_layers=2, bias=False)
+
+    def forward(self, x, h=None):  # pragma: no cover - placeholder forward
+        out, h = self.rnn(x, h)
+        return out
+
+
 def _hidden_values(core):
     return [float(n.hidden_state) for n in core.neurons if hasattr(n, "hidden_state")]
 
@@ -58,6 +68,21 @@ def test_hidden_state_persistence_roundtrip(device: str):
     json_str2 = core_to_json(core2)
     core3 = core_from_json(json_str2)
     assert _hidden_values(core3) == _hidden_values(core)
+
+
+@pytest.mark.parametrize("device", devices)
+def test_multi_layer_hidden_state_persistence(device: str):
+    model = TwoLayerRNN().to(device)
+    core = convert_model(model, restore_hidden=True)
+    assert len(core.params["hidden_states"]) == 2
+    core.params["hidden_states"][0]["tensor"] = [1.0, -1.0]
+    core.params["hidden_states"][1]["tensor"] = [2.0, -2.0]
+    for entry in core.params["hidden_states"]:
+        entry["device"] = device
+    restore_hidden_states(core)
+    json_str = core_to_json(core)
+    core2 = core_from_json(json_str)
+    assert _hidden_values(core2) == _hidden_values(core)
 
 
 @pytest.mark.parametrize("device", devices)
