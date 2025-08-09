@@ -708,12 +708,15 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
            - Clients establish a WebSocket connection and register using a unique `wanderer_id`.
            - Heartbeat pings keep sessions alive and allow the coordinator to detect disconnects.
        - [ ] Specify authentication and session management.
-           - [x] Define token format and generation algorithm.
-           - [x] Implement token verification routine.
-           - [x] Outline session timeout and renewal strategy.
-               - Sessions expire after ``session_timeout`` seconds of inactivity.
-               - A ``SessionManager`` issues refreshed tokens and purges idle entries.
-       - [ ] Draft message formats for exchanging exploration results.
+       - [x] Define token format and generation algorithm.
+       - [x] Implement token verification routine.
+       - [x] Outline session timeout and renewal strategy.
+           - Sessions expire after ``session_timeout`` seconds of inactivity.
+           - A ``SessionManager`` issues refreshed tokens and purges idle entries.
+       - [x] Draft message formats for exchanging exploration results.
+           - Introduced dataclasses ``ExplorationRequest`` and ``ExplorationResult``
+             in ``wanderer_messages.py`` with explicit device metadata and
+             path payload structures for serialization.
    - [ ] Implement Connect with remote wanderers for asynchronous exploration phases with CPU/GPU support.
        - [ ] Build client and server components leveraging the MessageBus.
        - [ ] Integrate asynchronous dispatcher to handle incoming updates.
