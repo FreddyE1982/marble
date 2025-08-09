@@ -1,5 +1,23 @@
-# Modules requiring CPU fallback tests
+# CPU Fallback Strategy and Catalog
 
+## Fallback strategy
+Marble provides GPU acceleration when available but every module must
+offer an equivalent CPU execution path. Each component guards CUDA
+usage with `torch.cuda.is_available()` and routes tensors accordingly
+so behaviour remains consistent regardless of device. Parity tests
+assert that CPU and GPU paths produce matching results, and the CI
+workflow `.github/workflows/ci.yml` runs on CPU-only runners to detect
+regressions in fallback logic.
+
+## Verified CPU/GPU parity
+The following modules currently have explicit tests confirming parity
+between devices:
+- `attention_utils.py` – see `tests/test_attention_utils_cpu_fallback.py`,
+- `benchmark_graph_precompile.py` – see `tests/test_benchmark_graph_precompile_cpu_gpu.py`,
+- `run_profiler.py` – see `tests/test_run_profiler_cpu_gpu.py`,
+- `soft_actor_critic.py` – see `tests/test_soft_actor_critic.py`.
+
+## Modules requiring CPU fallback tests
 Generated list of modules referencing CUDA-specific code paths.
 
 - adversarial_dataset.py
