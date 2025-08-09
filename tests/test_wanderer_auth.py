@@ -36,3 +36,13 @@ def test_session_lifecycle():
     # Expire the session
     time.sleep(0.2)
     assert not mgr.verify(new_token)
+
+
+def test_active_and_revoke_session():
+    mgr = SessionManager("abc", session_timeout=1.0)
+    token = mgr.start("w1")
+    assert "w1" in mgr.active_sessions()
+    assert mgr.revoke(token)
+    assert "w1" not in mgr.active_sessions()
+    # Revoking again should fail
+    assert not mgr.revoke(token)
