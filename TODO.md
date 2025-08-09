@@ -662,8 +662,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Build dataset watcher to trigger updates.
         - [x] Invoke retrain or reload routine when changes are detected.
         - [x] Confirm implementation works on both CPU and GPU.
-    - [ ] Add tests validating Update Neuronenblitz models automatically when datasets change.
-        - [ ] Simulate dataset modification and verify model refresh.
+    - [x] Add tests validating Update Neuronenblitz models automatically when datasets change.
+        - [x] Simulate dataset modification and verify model refresh.
         - [x] Ensure stable runs when dataset remains unchanged.
     - [x] Document Update Neuronenblitz models automatically when datasets change in README and TUTORIAL.
         - [x] Explain auto-update workflow and configuration options.
@@ -708,6 +708,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
            - Clients establish a WebSocket connection and register using a unique `wanderer_id`.
            - Heartbeat pings keep sessions alive and allow the coordinator to detect disconnects.
        - [ ] Specify authentication and session management.
+           - [x] Define token format and generation algorithm.
+           - [x] Implement token verification routine.
+           - [ ] Outline session timeout and renewal strategy.
        - [ ] Draft message formats for exchanging exploration results.
    - [ ] Implement Connect with remote wanderers for asynchronous exploration phases with CPU/GPU support.
        - [ ] Build client and server components leveraging the MessageBus.
