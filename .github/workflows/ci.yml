@@ -22,5 +22,9 @@ jobs:
           pip install -r requirements.txt
       - name: Run pre-commit
         run: pre-commit run --files $(git diff --name-only HEAD)
+      - name: Check unused config keys
+        run: |
+          python scripts/list_config_keys.py config.yaml --unused --report unused_config_keys.txt
+          git diff --exit-code unused_config_keys.txt
       - name: Run tests
         run: pytest -n auto
