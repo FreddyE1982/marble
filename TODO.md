@@ -729,10 +729,13 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
        - [x] Basic client-server round-trip.
        - [x] Simulate multiple remote wanderers exchanging updates.
        - [x] Verify synchronization under intermittent connectivity.
-       - [ ] Measure latency impact on exploration performance.
-           - [ ] Introduce artificial message delays.
-           - [ ] Record exploration completion times under varying latencies.
-           - [ ] Analyze performance degradation and report findings.
+       - [x] Measure latency impact on exploration performance.
+           - [x] Introduce artificial message delays.
+           - [x] Record exploration completion times under varying latencies.
+           - [x] Analyze performance degradation and report findings.
+               - Benchmark script ``benchmark_remote_wanderer_latency.py`` shows
+                 round-trip times increasing roughly linearly with injected
+                 delay (≈200 ms overhead for 100 ms delay).
    - [ ] Document Connect with remote wanderers for asynchronous exploration phases in README and TUTORIAL.
        - [ ] Provide configuration examples for enabling remote wanderers.
        - [ ] Include troubleshooting steps for network failures.
