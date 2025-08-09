@@ -1576,18 +1576,18 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [ ] attention_utils.py
                 - [x] Write parity tests verifying CPU and GPU execution.
                 - [x] Integrate new tests into existing suites.
-            - [ ] benchmark_graph_precompile.py
-                - [ ] Write parity tests verifying CPU and GPU execution.
-                - [ ] Integrate new tests into existing suites.
+            - [x] benchmark_graph_precompile.py
+                - [x] Write parity tests verifying CPU and GPU execution.
+                - [x] Integrate new tests into existing suites.
             - [ ] exampletrain.py
                 - [ ] Write parity tests verifying CPU and GPU execution.
                 - [ ] Integrate new tests into existing suites.
             - [ ] neuronenblitz_kernel.py
                 - [ ] Write parity tests verifying CPU and GPU execution.
                 - [ ] Integrate new tests into existing suites.
-            - [ ] run_profiler.py
-                - [ ] Write parity tests verifying CPU and GPU execution.
-                - [ ] Integrate new tests into existing suites.
+            - [x] run_profiler.py
+                - [x] Write parity tests verifying CPU and GPU execution.
+                - [x] Integrate new tests into existing suites.
             - [ ] soft_actor_critic.py
                 - [ ] Write parity tests verifying CPU and GPU execution.
                 - [ ] Integrate new tests into existing suites.
