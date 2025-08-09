@@ -72,7 +72,7 @@
       - [x] Add tests converting multi-layer bidirectional models.
         - [x] Build example network with two bidirectional layers.
         - [x] Compare outputs against PyTorch reference.
-    - [ ] Persistent hidden state mapping
+    - [x] Persistent hidden state mapping
       - [x] Serialize initial hidden states with layer metadata.
         - [x] Define serialization schema for hidden state tensors.
         - [x] Embed state tensors into converter output.

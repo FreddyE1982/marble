@@ -1608,16 +1608,17 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [x] Specify file format compatible with CPU and GPU tensors. (JSON chosen for portability)
             - [x] Document versioning and backward compatibility.
             - [x] Create dataclass capturing shape, dtype and device.
-        - [ ] Embed and restore states within converter and runtime.
+        - [x] Embed and restore states within converter and runtime.
             - [x] Implement save logic in converter output.
-            - [ ] Integrate load routine in runtime initialization.
-            - [ ] Ensure operations work on CPU and GPU.
+            - [x] Integrate load routine in runtime initialization.
+            - [x] Ensure operations work on CPU and GPU.
             - [x] Add error handling for corrupted or mismatched state files.
         - [ ] Write unit and integration tests for state persistence.
-            - [ ] Test single-layer and multi-layer RNNs.
-            - [ ] Validate persistence across CPU/GPU transfers.
+            - [x] Test single-layer RNNs.
+            - [x] Test multi-layer RNNs.
+            - [x] Validate persistence across CPU/GPU transfers.
             - [ ] Benchmark overhead of serialization/deserialization.
-            - [ ] Inject corrupted state files to verify graceful failure.
+            - [x] Inject corrupted state files to verify graceful failure.
 336. [ ] Add dynamic attention span module to Neuronenblitz.
         - [ ] Implement adaptive span computation and layer integration.
             - [ ] Design API for span modules.
