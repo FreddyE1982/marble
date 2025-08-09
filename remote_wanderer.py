@@ -5,13 +5,15 @@ includes the sender's execution device (CPU or GPU).  This allows
 coordinator and wanderers to route tensors appropriately when working in
 heterogeneous environments.
 """
+
 from __future__ import annotations
 
+import time
 from typing import Callable, Iterable
 
 import torch
 
-from message_bus import MessageBus, Message, AsyncDispatcher
+from message_bus import AsyncDispatcher, Message, MessageBus
 from wanderer_messages import ExplorationRequest, ExplorationResult, PathUpdate
 
 __all__ = [
@@ -43,6 +45,7 @@ def send_exploration_request(
     seed: int,
     max_steps: int,
     device: str | None = None,
+    delay: float = 0.0,
 ) -> None:
     """Send an :class:`ExplorationRequest` to ``recipient``.
 
@@ -61,6 +64,9 @@ def send_exploration_request(
     device:
         Optional device string.  If ``None`` the current device is detected
         automatically.
+    delay:
+        Artificial delay in seconds before dispatching the request. Useful for
+        simulating network latency during benchmarks.
     """
 
     if device is None:
@@ -71,6 +77,8 @@ def send_exploration_request(
         max_steps=max_steps,
         device=device,
     )
+    if delay:
+        time.sleep(delay)
     bus.send(sender, recipient, request.to_payload())
 
 
@@ -87,6 +95,7 @@ def send_exploration_result(
     paths: Iterable[PathUpdate],
     *,
     device: str | None = None,
+    delay: float = 0.0,
 ) -> None:
     """Send an :class:`ExplorationResult` to ``recipient``.
 
@@ -103,11 +112,16 @@ def send_exploration_result(
     device:
         Optional execution device of the wanderer.  Detected automatically when
         omitted.
+    delay:
+        Artificial delay in seconds before sending the result. Allows latency
+        simulations.
     """
 
     if device is None:
         device = current_device()
     result = ExplorationResult(wanderer_id=sender, paths=list(paths), device=device)
+    if delay:
+        time.sleep(delay)
     bus.send(sender, recipient, result.to_payload())
 
 
@@ -126,6 +140,8 @@ class RemoteWandererClient:
     resulting paths are returned to the coordinator via
     :class:`ExplorationResult` messages.  Device information is transmitted with
     every payload so coordinators can route tensors correctly on CPU or GPU.
+    A configurable ``network_latency`` can be supplied to simulate slow network
+    links for benchmarking purposes.
     """
 
     def __init__(
@@ -136,11 +152,13 @@ class RemoteWandererClient:
         *,
         device: str | None = None,
         poll_interval: float = 0.1,
+        network_latency: float = 0.0,
     ) -> None:
         self._bus = bus
         self._wanderer_id = wanderer_id
         self._explore = explore
         self._device = device
+        self._latency = network_latency
         self._dispatcher = AsyncDispatcher(
             bus, wanderer_id, self._handle_request, poll_interval=poll_interval
         )
@@ -173,18 +191,29 @@ class RemoteWandererClient:
             recipient,
             paths,
             device=self._device or current_device(),
+            delay=self._latency,
         )
 
 
 class RemoteWandererServer:
-    """Coordinator dispatching exploration requests to remote wanderers."""
+    """Coordinator dispatching exploration requests to remote wanderers.
+
+    The server optionally delays outgoing requests using ``network_latency`` to
+    emulate slow communication channels during benchmarks.
+    """
 
     def __init__(
-        self, bus: MessageBus, coordinator_id: str, *, timeout: float = 5.0
+        self,
+        bus: MessageBus,
+        coordinator_id: str,
+        *,
+        timeout: float = 5.0,
+        network_latency: float = 0.0,
     ) -> None:
         self._bus = bus
         self._coordinator_id = coordinator_id
         self._timeout = timeout
+        self._latency = network_latency
         self._bus.register(coordinator_id)
 
     # ------------------------------------------------------------------
@@ -206,8 +235,7 @@ class RemoteWandererServer:
             seed=seed,
             max_steps=max_steps,
             device=device,
+            delay=self._latency,
         )
-        msg = self._bus.receive(
-            self._coordinator_id, timeout=timeout or self._timeout
-        )
+        msg = self._bus.receive(self._coordinator_id, timeout=timeout or self._timeout)
         return receive_exploration_result(msg)
