@@ -9,6 +9,9 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
    - [ ] Implement actor and critic networks within wander policy.
        - [x] Define neural architectures for actor and critic.
        - [ ] Integrate networks with wander policy update loop.
+           - [x] Instantiate actor and critic within Neuronenblitz via `enable_sac`.
+           - [ ] Sample actions from actor during dynamic_wander.
+           - [ ] Evaluate critic for state-action pairs and update networks.
        - [ ] Validate forward and backward passes on toy data.
    - [ ] Integrate entropy regularization into loss.
        - [ ] Add entropy term to objective function.
