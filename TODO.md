@@ -722,7 +722,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
              path payload structures for serialization.
    - [ ] Implement Connect with remote wanderers for asynchronous exploration phases with CPU/GPU support.
        - [ ] Build client and server components leveraging the MessageBus.
-       - [ ] Integrate asynchronous dispatcher to handle incoming updates.
+       - [x] Integrate asynchronous dispatcher to handle incoming updates.
        - [ ] Ensure device context (CPU/GPU) is transmitted with payloads.
        - [x] Provide ``SessionManager`` handling token renewal and cleanup.
    - [ ] Add tests validating Connect with remote wanderers for asynchronous exploration phases.
