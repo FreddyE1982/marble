@@ -1595,10 +1595,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [ ] Configure workflow to force CPU execution.
             - [ ] Add job to the CI pipeline definition.
             - [ ] Verify sample run completes without CUDA.
-        - [ ] Summarize fallback strategy in developer docs.
-            - [ ] Draft section describing fallback approach.
-            - [ ] Enumerate modules with verified fallbacks.
-            - [ ] Link to new tests and CI job for reference.
+        - [x] Summarize fallback strategy in developer docs.
+            - [x] Draft section describing fallback approach.
+            - [x] Enumerate modules with verified fallbacks.
+            - [x] Link to new tests and CI job for reference.
 
 ### Dream Replay Enhancements
 
