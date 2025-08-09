@@ -1570,6 +1570,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [x] Update README with limitation notes.
         - [ ] Add fallback tests for newly introduced modules.
             - [ ] Catalog modules lacking CPU fallback tests.
+                - [x] Scan repository for modules using CUDA-specific code paths.
+                - [ ] Cross-reference existing tests for CPU coverage.
+                - [ ] Produce markdown report listing modules lacking CPU fallback tests.
             - [ ] Write parity tests verifying CPU and GPU execution.
             - [ ] Integrate new tests into existing suites.
         - [ ] Create CI job that runs full suite with CUDA disabled.
@@ -1618,7 +1621,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [x] Test single-layer RNNs.
             - [x] Test multi-layer RNNs.
             - [x] Validate persistence across CPU/GPU transfers.
-            - [ ] Benchmark overhead of serialization/deserialization.
+            - [x] Benchmark overhead of serialization/deserialization.
+                - Added CPU/GPU benchmark test ensuring average (de)serialization
+                  time stays below 10ms per iteration.
             - [x] Inject corrupted state files to verify graceful failure.
 336. [ ] Add dynamic attention span module to Neuronenblitz.
         - [ ] Implement adaptive span computation and layer integration.
