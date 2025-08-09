@@ -336,12 +336,12 @@
        - [x] Add CLI flag enabling snapshot output.
            - [x] Update argparse to include `--snapshot` option.
            - [x] Document flag usage in converter README.
-       - [ ] Serialise converted graph into `.marble` format.
-           - [ ] Implement serializer for graph object to `.marble`.
-           - [ ] Validate snapshot loads correctly in MARBLE runtime.
-       - [ ] Ensure snapshot includes required metadata.
-           - [ ] Embed version and converter information.
-           - [ ] Add integrity checksum to snapshot.
+       - [x] Serialise converted graph into `.marble` format.
+           - [x] Implement serializer for graph object to `.marble`.
+           - [x] Validate snapshot loads correctly in MARBLE runtime.
+       - [x] Ensure snapshot includes required metadata.
+           - [x] Embed version and converter information.
+           - [x] Add integrity checksum to snapshot.
    - [x] Auto-inference mode printing neuron/synapse counts
        - [x] Implement flag triggering automatic inference.
            - [x] Add CLI option and parse value.

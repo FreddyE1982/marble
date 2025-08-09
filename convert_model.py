@@ -3,8 +3,9 @@ from pathlib import Path
 from typing import Dict
 
 import yaml
+import hashlib
 
-from marble_interface import MARBLE, save_marble_system
+from marble_interface import MARBLE, save_marble_system, load_marble_system
 from marble_utils import core_to_json
 from pytorch_to_marble import convert_model
 
@@ -142,16 +143,27 @@ def main() -> None:
         return
 
     out_path = Path(args.output)
+    core_json = core_to_json(core)
     if out_path.suffix == ".json":
-        js = core_to_json(core)
         with open(out_path, "w", encoding="utf-8") as f:
-            f.write(js)
+            f.write(core_json)
     elif out_path.suffix == ".marble":
+        metadata = {
+            "converter": "convert_model",
+            "version": 1,
+            "checksum": hashlib.sha256(core_json.encode("utf-8")).hexdigest(),
+        }
         marble = MARBLE(core.params)
         marble.core = core
         marble.neuronenblitz.core = core
         marble.brain.core = core
+        marble.metadata = metadata
         save_marble_system(marble, str(out_path))
+        # Validate that the snapshot can be loaded back into a MARBLE system
+        try:
+            load_marble_system(str(out_path))
+        except Exception as e:  # pragma: no cover - validation check
+            raise RuntimeError(f"Saved snapshot failed to load: {e}") from e
     else:
         raise ValueError("Output extension must be .json or .marble")
 
