@@ -664,7 +664,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Confirm implementation works on both CPU and GPU.
     - [ ] Add tests validating Update Neuronenblitz models automatically when datasets change.
         - [ ] Simulate dataset modification and verify model refresh.
-        - [ ] Ensure stable runs when dataset remains unchanged.
+        - [x] Ensure stable runs when dataset remains unchanged.
     - [x] Document Update Neuronenblitz models automatically when datasets change in README and TUTORIAL.
         - [x] Explain auto-update workflow and configuration options.
         - [x] Provide example commands demonstrating dataset swaps.
@@ -703,7 +703,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Document Run pipeline sections in isolated processes for fault tolerance in README and TUTORIAL.
 209. [ ] Connect with remote wanderers for asynchronous exploration phases.
    - [ ] Outline design for Connect with remote wanderers for asynchronous exploration phases.
-       - [ ] Define communication protocol for wanderer coordination.
+       - [x] Define communication protocol for wanderer coordination.
+           - Use the existing `MessageBus` as transport with a dedicated topic per wanderer.
+           - Clients establish a WebSocket connection and register using a unique `wanderer_id`.
+           - Heartbeat pings keep sessions alive and allow the coordinator to detect disconnects.
        - [ ] Specify authentication and session management.
        - [ ] Draft message formats for exchanging exploration results.
    - [ ] Implement Connect with remote wanderers for asynchronous exploration phases with CPU/GPU support.
