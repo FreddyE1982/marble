@@ -521,6 +521,9 @@ reinforcement_learning:
   epsilon_min: 0.1
   seed: 0
   double_q: false
+
+sac:
+  temperature: 0.1  # Entropy temperature coefficient for Soft Actor-Critic
 contrastive_learning:
   enabled: false
   temperature: 0.5

@@ -543,6 +543,9 @@ Each entry is listed under its section heading.
 - seed
 - double_q
 
+## sac
+- temperature
+
 ## contrastive_learning
 - enabled
 - temperature
