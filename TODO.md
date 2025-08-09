@@ -728,8 +728,11 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [ ] Add tests validating Connect with remote wanderers for asynchronous exploration phases.
        - [x] Basic client-server round-trip.
        - [x] Simulate multiple remote wanderers exchanging updates.
-       - [ ] Verify synchronization under intermittent connectivity.
+       - [x] Verify synchronization under intermittent connectivity.
        - [ ] Measure latency impact on exploration performance.
+           - [ ] Introduce artificial message delays.
+           - [ ] Record exploration completion times under varying latencies.
+           - [ ] Analyze performance degradation and report findings.
    - [ ] Document Connect with remote wanderers for asynchronous exploration phases in README and TUTORIAL.
        - [ ] Provide configuration examples for enabling remote wanderers.
        - [ ] Include troubleshooting steps for network failures.
