@@ -544,7 +544,10 @@ Each entry is listed under its section heading.
 - double_q
 
 ## sac
-- temperature
+- temperature: Entropy temperature coefficient for Soft Actor-Critic. Default
+  ``0.1``. See ``TUTORIAL.md`` section "Soft Actor-Critic Wandering" for a
+  worked example demonstrating how this parameter influences exploration on CPU
+  and GPU.
 
 ## contrastive_learning
 - enabled

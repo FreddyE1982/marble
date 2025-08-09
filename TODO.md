@@ -1535,6 +1535,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [ ] Validate entries against current `config.yaml`.
             - [ ] Keep parameter list sorted alphabetically.
             - [ ] Reference related examples or tutorials.
+            - [x] Document `sac.temperature` with default value and tutorial link.
         - [ ] Extend `TUTORIAL.md` with projects for new features (e.g., self-distillation).
             - [ ] Create step-by-step project showcasing feature.
             - [ ] Link to dataset download and preparation code.
