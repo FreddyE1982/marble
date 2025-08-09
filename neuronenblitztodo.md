@@ -12,7 +12,7 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
            - [x] Instantiate actor and critic within Neuronenblitz via `enable_sac`.
            - [x] Sample actions from actor during dynamic_wander.
            - [x] Evaluate critic for state-action pairs and update networks.
-       - [ ] Validate forward and backward passes on toy data.
+       - [x] Validate forward and backward passes on toy data.
    - [ ] Integrate entropy regularization into loss.
        - [ ] Add entropy term to objective function.
        - [ ] Tune regularization weight for stability.
