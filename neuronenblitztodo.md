@@ -38,9 +38,9 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
    - [ ] Inject gating weights into attention calculations.
        - [ ] Modify attention module to accept gate values.
        - [ ] Ensure gradients propagate through gating path.
-   - [ ] Expose gate strength hyperparameter in config.
-       - [ ] Add `memory.gate_strength` to configs and docs.
-       - [ ] Provide reasonable default and tuning guidance.
+    - [x] Expose gate strength hyperparameter in config.
+        - [x] Add `memory.gate_strength` to configs and docs.
+        - [x] Provide reasonable default and tuning guidance.
    - [ ] Validate with ablation studies.
        - [ ] Run experiments with and without gating.
        - [ ] Report effects on path diversity and accuracy.

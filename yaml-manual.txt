@@ -771,8 +771,13 @@ neuronenblitz:
     synapse potential during weight updates.
   memory_gate_decay: Multiplicative decay applied to memory-based gating scores
     that bias ``weighted_choice``. Lower values make memories fade quickly.
-  memory_gate_strength: Amount added to a synapse's gating score whenever a
-    path yields an error below ``episodic_memory_threshold``.
+  memory_gate_strength: Additive weight applied to a synapse's gating score
+    each time a traversed path produces an error below
+    ``episodic_memory_threshold``. Higher values bias future wander steps
+    toward synapses that recently led to accurate predictions. ``0`` disables
+    the gating effect entirely. Values between ``0.1`` and ``5.0`` provide a
+    useful trade-off between exploration and exploitation. The default ``1.0``
+    moderately reinforces successful paths on both CPU and GPU backends.
   episodic_memory_size: Number of recent successful paths stored for gating.
   episodic_memory_threshold: Maximum absolute error for a path to be recorded
     in episodic memory.
