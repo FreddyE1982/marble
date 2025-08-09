@@ -342,16 +342,16 @@
        - [ ] Ensure snapshot includes required metadata.
            - [ ] Embed version and converter information.
            - [ ] Add integrity checksum to snapshot.
-   - [ ] Auto-inference mode printing neuron/synapse counts
-       - [ ] Implement flag triggering automatic inference.
-           - [ ] Add CLI option and parse value.
-           - [ ] Provide help text explaining behaviour.
-       - [ ] Compute neuron and synapse counts after conversion.
-           - [ ] Traverse graph nodes to tally counts.
-           - [ ] Output counts to logger or stdout.
-       - [ ] Display counts in CLI output.
-           - [ ] Format table for counts.
-           - [ ] Include CPU/GPU differentiation if available.
+   - [x] Auto-inference mode printing neuron/synapse counts
+       - [x] Implement flag triggering automatic inference.
+           - [x] Add CLI option and parse value.
+           - [x] Provide help text explaining behaviour.
+       - [x] Compute neuron and synapse counts after conversion.
+           - [x] Traverse graph nodes to tally counts.
+           - [x] Output counts to logger or stdout.
+       - [x] Display counts in CLI output.
+           - [x] Format table for counts.
+           - [x] Include CPU/GPU differentiation if available.
    - [ ] Validation mode comparing outputs with PyTorch
        - [ ] Run forward pass on original PyTorch model.
            - [ ] Load sample inputs for evaluation.
