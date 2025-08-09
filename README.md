@@ -1297,6 +1297,21 @@ extension:
 python convert_model.py --pytorch my_model.pt --output marble_model.marble
 ```
 
+Alternatively, you can pass ``--snapshot`` to save a snapshot automatically.
+If ``--output`` is omitted the file is written next to the PyTorch checkpoint
+with a `.marble` extension:
+
+```bash
+python convert_model.py --pytorch my_model.pt --snapshot
+```
+
+Providing ``--output`` alongside ``--snapshot`` lets you choose the destination
+path (the `.marble` suffix is appended automatically):
+
+```bash
+python convert_model.py --pytorch my_model.pt --snapshot --output ./out/model
+```
+
 Specify ``--dry-run`` to see the resulting graph statistics without writing a
 file. You can also call ``convert_model`` directly:
 
