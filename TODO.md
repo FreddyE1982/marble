@@ -1588,9 +1588,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [x] run_profiler.py
                 - [x] Write parity tests verifying CPU and GPU execution.
                 - [x] Integrate new tests into existing suites.
-            - [ ] soft_actor_critic.py
-                - [ ] Write parity tests verifying CPU and GPU execution.
-                - [ ] Integrate new tests into existing suites.
+            - [x] soft_actor_critic.py
+                - [x] Write parity tests verifying CPU and GPU execution.
+                - [x] Integrate new tests into existing suites.
         - [ ] Create CI job that runs full suite with CUDA disabled.
             - [ ] Configure workflow to force CPU execution.
             - [ ] Add job to the CI pipeline definition.
