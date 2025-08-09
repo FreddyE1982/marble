@@ -508,7 +508,6 @@ remote_hardware.grpc.address
 remote_hardware.grpc.backoff_factor
 remote_hardware.grpc.max_retries
 remote_hardware.tier_plugin
-sac.temperature
 scheduler.plugin
 semi_supervised_learning.batch_size
 semi_supervised_learning.enabled

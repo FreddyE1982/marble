@@ -35,8 +35,30 @@ def enable_sac(
     device: str | None = None,
     actor_lr: float = 3e-4,
     critic_lr: float = 3e-4,
+    temperature: float = 0.2,
+    tune_entropy: bool = True,
 ) -> None:
-    """Attach Soft Actor-Critic networks to ``nb`` on the requested device."""
+    """Attach Soft Actor-Critic networks to ``nb`` on the requested device.
+
+    Parameters
+    ----------
+    nb:
+        Target ``Neuronenblitz`` instance.
+    state_dim:
+        Number of observed state features.
+    action_dim:
+        Number of continuous action dimensions.
+    device:
+        Torch device string.  Defaults to CUDA when available.
+    actor_lr / critic_lr:
+        Optimiser learning rates for actor and critic.
+    temperature:
+        Initial entropy temperature controlling exploration.
+    tune_entropy:
+        If ``True`` the temperature is automatically tuned toward a target
+        entropy of ``-action_dim``. When ``False`` the supplied ``temperature``
+        is kept fixed.
+    """
 
     actor, critic = create_sac_networks(state_dim, action_dim, device=device)
     nb.sac_actor = actor
@@ -44,6 +66,18 @@ def enable_sac(
     nb.sac_device = actor.device
     nb.sac_actor_opt = torch.optim.Adam(actor.parameters(), lr=actor_lr)
     nb.sac_critic_opt = torch.optim.Adam(critic.parameters(), lr=critic_lr)
+    nb.sac_auto_temperature = tune_entropy
+    if tune_entropy:
+        nb.sac_target_entropy = -action_dim
+        nb.sac_log_alpha = torch.tensor(
+            float(np.log(max(temperature, 1e-6))),
+            device=actor.device,
+            requires_grad=True,
+        )
+        nb.sac_alpha_opt = torch.optim.Adam([nb.sac_log_alpha], lr=actor_lr)
+        nb.sac_alpha = nb.sac_log_alpha.exp().detach()
+    else:
+        nb.sac_alpha = torch.tensor(temperature, device=actor.device)
 
 
 def sac_select_action(nb: "Neuronenblitz", state: np.ndarray | torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -99,7 +133,6 @@ def sac_update(
     done: bool,
     *,
     gamma: float = 0.99,
-    alpha: float = 0.2,
 ) -> None:
     """Update SAC actor and critic using a single transition."""
     if not hasattr(nb, "sac_actor"):
@@ -108,6 +141,8 @@ def sac_update(
     device = nb.sac_device
     actor, critic = nb.sac_actor, nb.sac_critic
     actor_opt, critic_opt = nb.sac_actor_opt, nb.sac_critic_opt
+    alpha = nb.sac_log_alpha.exp() if nb.sac_auto_temperature else nb.sac_alpha
+    alpha_detached = alpha.detach()
 
     state_t = torch.as_tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
     action_t = torch.as_tensor(action, dtype=torch.float32, device=device).unsqueeze(0)
@@ -119,7 +154,7 @@ def sac_update(
         next_action, next_log_prob = actor(next_state_t)
         q1_next, q2_next = critic(next_state_t, next_action)
         q_target = reward_t + (1 - done_t) * gamma * (
-            torch.min(q1_next, q2_next) - alpha * next_log_prob
+            torch.min(q1_next, q2_next) - alpha_detached * next_log_prob
         )
 
     q1, q2 = critic(state_t, action_t)
@@ -131,7 +166,14 @@ def sac_update(
     new_action, log_prob = actor(state_t)
     q1_new, q2_new = critic(state_t, new_action)
     q_new = torch.min(q1_new, q2_new)
-    actor_loss = (alpha * log_prob - q_new).mean()
+    actor_loss = (alpha_detached * log_prob - q_new).mean()
     actor_opt.zero_grad()
     actor_loss.backward()
     actor_opt.step()
+
+    if nb.sac_auto_temperature:
+        alpha_loss = -(nb.sac_log_alpha * (log_prob + nb.sac_target_entropy).detach()).mean()
+        nb.sac_alpha_opt.zero_grad()
+        alpha_loss.backward()
+        nb.sac_alpha_opt.step()
+        nb.sac_alpha = nb.sac_log_alpha.exp().detach()

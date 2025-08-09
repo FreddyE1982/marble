@@ -14,8 +14,8 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
            - [x] Evaluate critic for state-action pairs and update networks.
        - [x] Validate forward and backward passes on toy data.
    - [ ] Integrate entropy regularization into loss.
-       - [ ] Add entropy term to objective function.
-       - [ ] Tune regularization weight for stability.
+       - [x] Add entropy term to objective function.
+       - [x] Tune regularization weight for stability.
        - [ ] Document impact on exploration.
            - [ ] Summarize entropy metrics before and after regularization.
            - [ ] Include visualization of policy entropy over training.
