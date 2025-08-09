@@ -1308,8 +1308,9 @@ For a quick overview without producing an output file you can use ``--summary``
 to print the neuron and synapse counts. ``--summary-output`` writes the same
 information to a JSON file. The ``--summary-plot`` option saves a bar chart of
 neuron and synapse counts per layer, and ``--summary-csv`` exports the counts
-to a CSV file for further analysis. ``--summary-graph`` exports an interactive
-HTML visualisation of the converted graph using Plotly.
+to a CSV file for further analysis. ``--summary-table`` prints the counts in a
+formatted table along with the active CPU or GPU device. ``--summary-graph``
+exports an interactive HTML visualisation of the converted graph using Plotly.
 
 Neurons created via the converter or the low-level graph builder now expose an
 ``activation_flag`` in their ``params`` dictionary. Runtime evaluators can set

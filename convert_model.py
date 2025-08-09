@@ -44,6 +44,11 @@ def main() -> None:
         help="Path to save dry-run summary CSV",
     )
     parser.add_argument(
+        "--summary-table",
+        action="store_true",
+        help="Print dry-run summary as a formatted table and exit",
+    )
+    parser.add_argument(
         "--summary-graph",
         help="Path to save dry-run graph HTML",
     )
@@ -70,6 +75,7 @@ def main() -> None:
         or args.summary_output
         or args.summary_plot
         or args.summary_csv
+        or args.summary_table
         or args.summary_graph
     ):
         parser.error("--output is required unless running in dry-run or summary mode")
@@ -83,6 +89,8 @@ def main() -> None:
         or args.summary_output
         or args.summary_plot
         or args.summary_csv
+        or args.summary_table
+        or args.summary_graph
     ):
         core, summary = convert_model(
             model, dry_run=True, return_summary=True, restore_hidden=args.restore_hidden
@@ -96,6 +104,8 @@ def main() -> None:
             _plot_summary(summary, args.summary_plot)
         if args.summary_csv:
             _summary_to_csv(summary, args.summary_csv)
+        if args.summary_table:
+            _summary_to_table(summary)
         if args.summary_graph:
             _graph_to_html(core, args.summary_graph)
         return
@@ -150,6 +160,23 @@ def _summary_to_csv(summary: Dict[str, Dict], path: str) -> None:
         writer.writerow(["layer", "neurons", "synapses"])
         for layer, info in summary["layers"].items():
             writer.writerow([layer, info["neurons"], info["synapses"]])
+
+
+def _summary_to_table(summary: Dict[str, Dict]) -> None:
+    """Print ``summary`` as a formatted table with device context."""
+    import torch
+
+    device = "GPU" if torch.cuda.is_available() else "CPU"
+    print(f"Device: {device}")
+    header = f"{'Layer':20} {'Neurons':>10} {'Synapses':>10}"
+    print(header)
+    print("-" * len(header))
+    for layer, info in sorted(summary["layers"].items()):
+        print(f"{layer:20} {info['neurons']:>10} {info['synapses']:>10}")
+    print("-" * len(header))
+    print(
+        f"{'TOTAL':20} {summary['neurons']:>10} {summary['synapses']:>10}"
+    )
 
 
 def _graph_to_html(core, path: str) -> None:
