@@ -85,7 +85,7 @@
         - [x] Map serialized states to runtime modules.
         - [x] Load serialized states into runtime structures.
         - [x] Verify shapes match original expectations.
-        - [x] Warn when states are missing or mismatched.
+        - [x] Raise error when states are missing or mismatched.
         - [x] Document runtime loading process.
         - [x] Add CLI flag to enable or disable hidden state restoration.
             - [x] Update converter CLI to accept `--restore-hidden`.

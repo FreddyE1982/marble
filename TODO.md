@@ -1612,7 +1612,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [x] Implement save logic in converter output.
             - [ ] Integrate load routine in runtime initialization.
             - [ ] Ensure operations work on CPU and GPU.
-            - [ ] Add error handling for corrupted or mismatched state files.
+            - [x] Add error handling for corrupted or mismatched state files.
         - [ ] Write unit and integration tests for state persistence.
             - [ ] Test single-layer and multi-layer RNNs.
             - [ ] Validate persistence across CPU/GPU transfers.
