@@ -405,10 +405,10 @@
   - [ ] Document test scenario.
 
 ### 15. Visualization enhancements
-- [ ] Provide CLI flag to visualize generated MARBLE graph
-  - [ ] Add `--show-graph` option to converter CLI.
-  - [ ] Render graph after conversion when flag is set.
-  - [ ] Include tests verifying flag triggers visualization.
+- [x] Provide CLI flag to visualize generated MARBLE graph
+  - [x] Add `--show-graph` option to converter CLI.
+  - [x] Render graph after conversion when flag is set.
+  - [x] Include tests verifying flag triggers visualization.
 - [x] Save neuron and synapse counts per layer to .csv
   - [x] Implement exporter writing counts to CSV.
   - [x] Add CLI argument for output path.
