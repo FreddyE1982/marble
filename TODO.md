@@ -710,12 +710,15 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
        - [ ] Specify authentication and session management.
            - [x] Define token format and generation algorithm.
            - [x] Implement token verification routine.
-           - [ ] Outline session timeout and renewal strategy.
+           - [x] Outline session timeout and renewal strategy.
+               - Sessions expire after ``session_timeout`` seconds of inactivity.
+               - A ``SessionManager`` issues refreshed tokens and purges idle entries.
        - [ ] Draft message formats for exchanging exploration results.
    - [ ] Implement Connect with remote wanderers for asynchronous exploration phases with CPU/GPU support.
        - [ ] Build client and server components leveraging the MessageBus.
        - [ ] Integrate asynchronous dispatcher to handle incoming updates.
        - [ ] Ensure device context (CPU/GPU) is transmitted with payloads.
+       - [x] Provide ``SessionManager`` handling token renewal and cleanup.
    - [ ] Add tests validating Connect with remote wanderers for asynchronous exploration phases.
        - [ ] Simulate multiple remote wanderers exchanging updates.
        - [ ] Verify synchronization under intermittent connectivity.

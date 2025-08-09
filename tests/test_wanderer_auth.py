@@ -1,6 +1,6 @@
 import time
 
-from wanderer_auth import generate_token, verify_token
+from wanderer_auth import SessionManager, generate_token, verify_token
 
 
 def test_generate_and_verify_token():
@@ -23,3 +23,16 @@ def test_token_tamper_detection():
     parts[2] = "deadbeef"
     bad_token = ":".join(parts)
     assert not verify_token(secret, bad_token)
+
+
+def test_session_lifecycle():
+    mgr = SessionManager("abc", session_timeout=0.1)
+    token = mgr.start("w1")
+    assert mgr.verify(token)
+    # Renewal should extend the session and return a new token
+    new_token = mgr.renew(token)
+    assert new_token is not None
+    assert mgr.verify(new_token)
+    # Expire the session
+    time.sleep(0.2)
+    assert not mgr.verify(new_token)

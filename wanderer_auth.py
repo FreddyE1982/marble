@@ -47,3 +47,55 @@ def verify_token(secret: str, token: str, max_age: float = 300.0) -> bool:
     if not hmac.compare_digest(expected, signature):
         return False
     return (time.time() - timestamp) <= max_age
+
+
+class SessionManager:
+    """Minimal in-memory session tracker.
+
+    Sessions are identified by ``wanderer_id`` and represented by a signed token.
+    The manager keeps track of expiration times and can renew tokens on demand.
+
+    Parameters
+    ----------
+    secret:
+        Shared secret used for HMAC signing.
+    session_timeout:
+        Number of seconds after which an inactive session expires.
+    """
+
+    def __init__(self, secret: str, session_timeout: float = 300.0) -> None:
+        self.secret = secret
+        self.session_timeout = session_timeout
+        self._sessions: dict[str, float] = {}
+
+    def start(self, wanderer_id: str) -> str:
+        """Create a new session token for ``wanderer_id``."""
+
+        token = generate_token(self.secret, wanderer_id)
+        self._sessions[wanderer_id] = time.time() + self.session_timeout
+        return token
+
+    def verify(self, token: str) -> bool:
+        """Validate ``token`` and refresh its expiration."""
+
+        if not verify_token(self.secret, token, self.session_timeout):
+            return False
+        _, wanderer_id, _ = token.split(":", 2)
+        self._sessions[wanderer_id] = time.time() + self.session_timeout
+        return True
+
+    def renew(self, token: str) -> str | None:
+        """Return a new token if the existing ``token`` is still valid."""
+
+        if not self.verify(token):
+            return None
+        _, wanderer_id, _ = token.split(":", 2)
+        return self.start(wanderer_id)
+
+    def cleanup(self) -> None:
+        """Remove expired sessions from the internal store."""
+
+        now = time.time()
+        expired = [wid for wid, exp in self._sessions.items() if exp < now]
+        for wid in expired:
+            del self._sessions[wid]
