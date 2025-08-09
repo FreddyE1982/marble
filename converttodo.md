@@ -333,9 +333,9 @@
       - [x] Validate bias application through unit tests.
   - [ ] Conversion CLI and API enhancements
    - [ ] Option to produce .marble snapshot directly
-       - [ ] Add CLI flag enabling snapshot output.
-           - [ ] Update argparse to include `--snapshot` option.
-           - [ ] Document flag usage in converter README.
+       - [x] Add CLI flag enabling snapshot output.
+           - [x] Update argparse to include `--snapshot` option.
+           - [x] Document flag usage in converter README.
        - [ ] Serialise converted graph into `.marble` format.
            - [ ] Implement serializer for graph object to `.marble`.
            - [ ] Validate snapshot loads correctly in MARBLE runtime.

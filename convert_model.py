@@ -22,6 +22,12 @@ def main() -> None:
         help="Output path (.json or .marble)",
     )
     parser.add_argument(
+        "--snapshot",
+        action="store_true",
+        help="Save converted model as a .marble snapshot. If --output is omitted,"
+        " writes alongside the PyTorch file with a .marble extension",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Run conversion without saving JSON",
@@ -74,7 +80,7 @@ def main() -> None:
     if not args.pytorch:
         parser.error("--pytorch is required (either via CLI or config file)")
 
-    if not args.output and not (
+    if not (args.output or args.snapshot) and not (
         args.dry_run
         or args.summary
         or args.summary_output
@@ -84,7 +90,15 @@ def main() -> None:
         or args.summary_graph
         or args.show_graph
     ):
-        parser.error("--output is required unless running in dry-run or summary mode")
+        parser.error(
+            "--output is required unless running in dry-run or summary mode or --snapshot"
+        )
+
+    if args.snapshot:
+        if args.output:
+            args.output = str(Path(args.output).with_suffix(".marble"))
+        else:
+            args.output = str(Path(args.pytorch).with_suffix(".marble"))
 
     from torch_model_io import load_model_auto
 
