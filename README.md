@@ -1311,6 +1311,8 @@ neuron and synapse counts per layer, and ``--summary-csv`` exports the counts
 to a CSV file for further analysis. ``--summary-table`` prints the counts in a
 formatted table along with the active CPU or GPU device. ``--summary-graph``
 exports an interactive HTML visualisation of the converted graph using Plotly.
+Use ``--show-graph`` to open this visualisation in your browser immediately
+after conversion.
 
 Neurons created via the converter or the low-level graph builder now expose an
 ``activation_flag`` in their ``params`` dictionary. Runtime evaluators can set

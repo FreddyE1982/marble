@@ -53,6 +53,11 @@ def main() -> None:
         help="Path to save dry-run graph HTML",
     )
     parser.add_argument(
+        "--show-graph",
+        action="store_true",
+        help="Render converted graph in a web browser",
+    )
+    parser.add_argument(
         "--restore-hidden",
         action="store_true",
         help="Restore serialised RNN hidden states after conversion",
@@ -77,6 +82,7 @@ def main() -> None:
         or args.summary_csv
         or args.summary_table
         or args.summary_graph
+        or args.show_graph
     ):
         parser.error("--output is required unless running in dry-run or summary mode")
 
@@ -108,13 +114,17 @@ def main() -> None:
             _summary_to_table(summary)
         if args.summary_graph:
             _graph_to_html(core, args.summary_graph)
+        if args.show_graph:
+            _show_graph(core)
         return
 
     core = convert_model(
         model, dry_run=args.dry_run, restore_hidden=args.restore_hidden
     )
 
-    if args.dry_run:
+    if args.show_graph:
+        _show_graph(core)
+    if args.dry_run or not args.output:
         return
 
     out_path = Path(args.output)
@@ -207,6 +217,18 @@ def _graph_to_html(core, path: str) -> None:
     fig = go.Figure(data=[edge_trace, node_trace])
     fig.update_layout(showlegend=False, xaxis=dict(visible=False), yaxis=dict(visible=False))
     fig.write_html(path)
+
+
+def _show_graph(core) -> None:
+    """Render ``core`` to an HTML file and open it in a browser."""
+    from tempfile import NamedTemporaryFile
+    import webbrowser
+
+    with NamedTemporaryFile("w", delete=False, suffix=".html") as tmp:
+        _graph_to_html(core, tmp.name)
+        html_path = tmp.name
+    print(f"Graph HTML saved to {html_path}")
+    webbrowser.open(f"file://{html_path}")
 
 
 if __name__ == "__main__":
