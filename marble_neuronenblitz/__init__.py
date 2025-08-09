@@ -6,7 +6,7 @@ from .core import (
     default_q_encoding,
     default_weight_update_fn,
 )
-from .learning import disable_rl, enable_rl, rl_select_action, rl_update
+from .learning import disable_rl, enable_rl, enable_sac, rl_select_action, rl_update
 from .memory import decay_memory_gates
 from .attention_span import DynamicSpanModule
 
@@ -17,6 +17,7 @@ __all__ = [
     "default_weight_update_fn",
     "default_q_encoding",
     "enable_rl",
+    "enable_sac",
     "disable_rl",
     "rl_select_action",
     "rl_update",

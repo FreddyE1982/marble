@@ -1573,7 +1573,7 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
                 - [x] Scan repository for modules using CUDA-specific code paths.
                 - [x] Cross-reference existing tests for CPU coverage.
                 - [x] Produce markdown report listing modules lacking CPU fallback tests.
-            - [ ] attention_utils.py
+            - [x] attention_utils.py
                 - [x] Write parity tests verifying CPU and GPU execution.
                 - [x] Integrate new tests into existing suites.
             - [x] benchmark_graph_precompile.py

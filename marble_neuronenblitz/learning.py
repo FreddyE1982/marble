@@ -13,6 +13,7 @@ if TYPE_CHECKING:  # pragma: no cover - for type checkers only
     from .core import Neuronenblitz
 
 import numpy as np
+from soft_actor_critic import create_sac_networks
 
 
 def enable_rl(nb: "Neuronenblitz") -> None:
@@ -23,6 +24,21 @@ def enable_rl(nb: "Neuronenblitz") -> None:
 def disable_rl(nb: "Neuronenblitz") -> None:
     """Disable built-in reinforcement learning."""
     nb.rl_enabled = False
+
+
+def enable_sac(
+    nb: "Neuronenblitz",
+    state_dim: int,
+    action_dim: int,
+    *,
+    device: str | None = None,
+) -> None:
+    """Attach Soft Actor-Critic networks to ``nb`` on the requested device."""
+
+    actor, critic = create_sac_networks(state_dim, action_dim, device=device)
+    nb.sac_actor = actor
+    nb.sac_critic = critic
+    nb.sac_device = actor.device
 
 
 def rl_select_action(
