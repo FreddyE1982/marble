@@ -189,7 +189,7 @@ class ServeModelPlugin(PipelinePlugin):
         from config_loader import load_config
 
         cfg = load_config()
-        defaults = cfg.get("mcp_server", {})
+        defaults = cfg.get("serve_model", {})
         host = host if host is not None else defaults.get("host", "localhost")
         port = port if port is not None else defaults.get("port", 5080)
         super().__init__(host=host, port=port)
