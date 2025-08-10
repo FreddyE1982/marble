@@ -217,6 +217,12 @@ def test_prefetch_dataset(tmp_path):
         thread.join()
 
 
+def test_prefetch_dataset_offline_missing(tmp_path):
+    url = "http://example.com/missing.csv"
+    with pytest.raises(FileNotFoundError):
+        prefetch_dataset(url, cache_dir=tmp_path / "cache", offline=True)
+
+
 def test_load_dataset_with_dataloader(tmp_path):
     csv_path = tmp_path / "dl.csv"
     csv_path.write_text("input,target\nhello,world\n")
