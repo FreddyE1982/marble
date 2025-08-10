@@ -153,6 +153,7 @@ class Neuronenblitz:
         wander_depth_noise=0.0,
         reward_decay=1.0,
         synapse_prune_interval=10,
+        gradient_prune_ratio=0.0,
         structural_learning_rate=0.1,
         remote_timeout=2.0,
         gradient_noise_std=0.0,
@@ -277,6 +278,7 @@ class Neuronenblitz:
         self.wander_depth_noise = wander_depth_noise
         self.reward_decay = reward_decay
         self.synapse_prune_interval = synapse_prune_interval
+        self.gradient_prune_ratio = gradient_prune_ratio
         self.structural_learning_rate = structural_learning_rate
         self.remote_timeout = remote_timeout
         self.gradient_noise_std = gradient_noise_std
@@ -1828,6 +1830,9 @@ class Neuronenblitz:
                 self.update_exploration_schedule()
                 self.adjust_dropout_rate(avg_error)
                 self.freeze_low_impact_synapses()
+                if self.gradient_prune_ratio > 0:
+                    mask = self.compute_gradient_prune_mask(self.gradient_prune_ratio)
+                    self.apply_gradient_prune_mask(mask)
         finally:
             if old_loss is not None:
                 self.loss_fn = old_loss
@@ -1980,6 +1985,43 @@ class Neuronenblitz:
 
         threshold = float(np.partition(grads, k - 1)[k - 1])
         return [g <= threshold for g in grads]
+
+    def apply_gradient_prune_mask(self, mask: list[bool]) -> int:
+        """Remove synapses flagged by ``mask``.
+
+        Parameters
+        ----------
+        mask:
+            Boolean list as returned by :meth:`compute_gradient_prune_mask` where
+            ``True`` entries mark synapses that should be pruned.
+
+        Returns
+        -------
+        int
+            Number of synapses removed.
+
+        Notes
+        -----
+        The operation runs entirely on CPU to mirror behaviour on systems
+        without GPUs. Associated optimiser state such as momentum and stored
+        gradients is cleaned up for pruned synapses to keep internal
+        dictionaries consistent.
+        """
+
+        if len(mask) != len(self.core.synapses):
+            raise ValueError("mask length must match number of synapses")
+
+        pruned = 0
+        for syn, drop in list(zip(self.core.synapses, mask)):
+            if drop:
+                self.core.neurons[syn.source].synapses.remove(syn)
+                if syn in self._momentum:
+                    del self._momentum[syn]
+                if syn in self._prev_gradients:
+                    del self._prev_gradients[syn]
+                self.core.synapses.remove(syn)
+                pruned += 1
+        return pruned
 
     def prune_low_potential_synapses(self, threshold=0.05):
         """Remove synapses with low potential or very small weights."""
