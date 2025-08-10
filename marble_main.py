@@ -276,7 +276,11 @@ class MARBLE:
         self.autograd_layer = None
         if autograd_params is not None and autograd_params.get("enabled", False):
             self.autograd_layer = MarbleAutogradLayer(
-                self.brain, learning_rate=autograd_params.get("learning_rate", 0.01)
+                self.brain,
+                learning_rate=autograd_params.get("learning_rate", 0.01),
+                accumulation_steps=autograd_params.get(
+                    "gradient_accumulation_steps", 1
+                ),
             )
             self.brain.set_autograd_layer(self.autograd_layer)
 

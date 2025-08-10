@@ -991,6 +991,10 @@ a minimal web API.
    # before applying them, enabling larger effective batch sizes.
    out = layer(torch.tensor(1.0, requires_grad=True))
    ```
+   You can also configure this behaviour in `config.yaml` via
+   `autograd.gradient_accumulation_steps` so that any instances created
+   through `create_marble_from_config` automatically apply the chosen
+   accumulation factor.
 5. **Inject MARBLE into any PyTorch model** with `attach_marble_layer` to run
    MARBLE side by side without altering the model output.
 6. **Accumulate gradients asynchronously** with

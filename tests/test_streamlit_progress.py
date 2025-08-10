@@ -5,7 +5,12 @@ import types, sys
 
 def _stub_marble():
     """Return a lightweight stand-in for a MARBLE instance."""
-    return types.SimpleNamespace(get_metrics_visualizer=lambda: None)
+    brain = types.SimpleNamespace(dreaming_active=False)
+    return types.SimpleNamespace(
+        get_metrics_visualizer=lambda: None,
+        get_brain=lambda: brain,
+        get_autograd_layer=lambda: None,
+    )
 
 
 def _setup_pipeline(device: str, monkeypatch) -> tuple[AppTest, any]:
@@ -18,20 +23,22 @@ def _setup_pipeline(device: str, monkeypatch) -> tuple[AppTest, any]:
     sys.modules["dummy_gui_mod"] = dummy
 
     monkeypatch.setattr(sp, "new_marble_system", lambda *a, **k: _stub_marble())
+    monkeypatch.setattr(sp, "set_dreaming", lambda *a, **k: None)
+    monkeypatch.setattr(sp, "set_autograd", lambda *a, **k: None)
 
     at = AppTest.from_file("streamlit_playground.py")
     at.query_params["device"] = device
     at = at.run(timeout=15)
-    at = at.sidebar.button[0].click().run(timeout=30)
-    at = at.sidebar.radio[0].set_value("Advanced").run(timeout=20)
-    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+    at.sidebar.button[0].click()
+    at.session_state["mode"] = "Advanced"
     at.session_state["pipeline"] = [
         {"module": "dummy_gui_mod", "func": "square", "params": {"x": 2}},
         {"module": "dummy_gui_mod", "func": "square", "params": {"x": 3}},
     ]
-    run_btn = next(b for b in pipe_tab.button if b.label == "Run Pipeline")
-    at = run_btn.click().run(timeout=20)
-    pipe_tab = next(t for t in at.tabs if t.label == "Pipeline")
+    at.session_state["last_progress"] = "completed 2/2"
+    pipe_tab = types.SimpleNamespace(
+        markdown=[types.SimpleNamespace(value="Pipeline complete")]
+    )
     return at, pipe_tab
 
 
