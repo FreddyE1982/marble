@@ -26,10 +26,10 @@ This document outlines upcoming milestones for future Marble releases.
   - [ ] Ensure every feature toggles correctly on CPU and GPU.
   - [ ] Add automated tests covering each tab and widget.
 - Additional tutorials and educational projects
-  - [ ] Curate real-world datasets with download scripts.
+  - [x] Curate real-world datasets with download scripts.
     - [x] Add script to download the Iris dataset.
-    - [ ] Add script to download the CIFAR-10 dataset.
-    - [ ] Add script to download the IMDB sentiment dataset.
+    - [x] Add script to download the CIFAR-10 dataset.
+    - [x] Add script to download the IMDB sentiment dataset.
   - [ ] Write step-by-step guides with full code listings.
   - [ ] Provide expected results for CPU and GPU runs.
     - [x] Project 2 – Image Classification.

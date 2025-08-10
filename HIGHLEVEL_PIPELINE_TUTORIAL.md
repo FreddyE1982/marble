@@ -120,14 +120,13 @@ PY
 
 1. **Download dataset**
    ```bash
-   curl -L -o cifar-10-python.tar.gz https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
-   tar -xzf cifar-10-python.tar.gz
+   python scripts/download_cifar10.py --output data/cifar10
    ```
 2. **Setup pipeline**
    ```python
    hp = HighLevelPipeline()
    hp.new_marble_system(config_path="config.yaml")
-   hp.train_marble_system(train_examples="cifar-10-batches-py", epochs=10)
+   hp.train_marble_system(train_examples="data/cifar10/cifar-10-batches-py", epochs=10)
    marble, _ = hp.execute()
    ```
 
@@ -135,14 +134,13 @@ PY
 
 1. **Download data**
    ```bash
-   curl -L -o imdb.tar.gz https://ai.stanford.edu/~amaas/data/sentiment/aclImdb_v1.tar.gz
-   tar -xzf imdb.tar.gz
+   python scripts/download_imdb.py --output data/imdb
    ```
 2. **Pipeline steps**
    ```python
    hp = HighLevelPipeline()
    hp.new_marble_system(config_path="config.yaml")
-   hp.train_marble_system(train_examples="aclImdb/train", epochs=5)
+   hp.train_marble_system(train_examples="data/imdb/train.csv", epochs=5)
    marble, _ = hp.execute()
    ```
 
