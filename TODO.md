@@ -313,9 +313,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [x] Compile and analyse speedup results.
     - [x] Document asynchronous pipeline usage in README and TUTORIAL.
     - [ ] Add integration tests for asynchronous execution in multi-node environments.
-        - [ ] Configure multi-node CPU environment for testing.
-        - [ ] Configure multi-node GPU environment for testing.
-        - [ ] Verify asynchronous steps execute correctly across nodes.
+        - [x] Implement CPU-based multi-node integration test covering asynchronous execution across processes.
+        - [ ] Implement GPU-based multi-node integration test covering asynchronous execution across processes.
 168. [x] Cache intermediate results so iterative experiments run faster.
     - [x] Create file based cache storing step outputs keyed by index and function name.
     - [x] Add `clear_cache` method to remove cached files when needed.
