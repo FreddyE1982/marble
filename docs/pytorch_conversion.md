@@ -18,6 +18,20 @@ def convert_linear(layer, core, inputs):
 The registry dictionaries ``LAYER_CONVERTERS``, ``FUNCTION_CONVERTERS`` and
 ``METHOD_CONVERTERS`` hold these mappings. Custom layers can be supported by
 adding new entries using ``register_converter``.
+
+For layers that are not yet implemented you can explicitly mark them as
+unsupported using ``unsupported_layer``. This registers a stub converter that
+raises :class:`UnsupportedLayerError` with a standardised message:
+
+```python
+from pytorch_to_marble import unsupported_layer
+
+unsupported_layer(torch.nn.MaxPool3d)
+```
+
+When ``convert_model`` encounters ``MaxPool3d`` it will now immediately raise a
+clear error indicating the layer is not supported. This makes gaps in converter
+coverage visible while providing guidance for future contributors.
 The shipped registry covers a wide range of core building blocks including:
 
 - Linear, Conv2d and the activations ReLU, Sigmoid, Tanh and GELU

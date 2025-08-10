@@ -755,9 +755,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
        - [x] Embed encryption hooks into dataset cache server.
        - [x] Expose `dataset.encryption_key` and related options in config files.
    - [ ] Add tests validating Secure pipeline data flow by integrating dataset encryption routines.
-       - [ ] Encrypt and decrypt sample datasets verifying integrity.
+       - [x] Encrypt and decrypt sample datasets verifying integrity.
        - [ ] Benchmark performance overhead on CPU and GPU.
-       - [ ] Confirm failures occur with incorrect or missing keys.
+       - [x] Confirm failures occur with incorrect or missing keys.
        - [x] Verify cache server decrypts encrypted files.
    - [x] Document Secure pipeline data flow by integrating dataset encryption routines in README and TUTORIAL.
        - [x] Document enabling encryption in config and CLI.

@@ -301,10 +301,10 @@
       - [ ] List available layers from PyTorch documentation.
       - [ ] Match existing converters to these layers.
       - [ ] Flag layers missing converter implementations.
-  - [ ] Provide template for unsupported layers to raise errors
-      - [ ] Define standard error message format.
-      - [ ] Create helper generating error stubs for new layers.
-      - [ ] Document template usage for contributors.
+  - [x] Provide template for unsupported layers to raise errors
+      - [x] Define standard error message format.
+      - [x] Create helper generating error stubs for new layers.
+      - [x] Document template usage for contributors.
 - [ ] Graph construction utilities bridging to dynamic message passing
   - [x] Helper to spawn neurons for input/output dimensions
   - [x] Helper to connect neurons with weighted synapses
