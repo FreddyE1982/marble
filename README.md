@@ -1266,6 +1266,20 @@ Plugins may freely interact with the active MARBLE instance passed to the
 pipeline.  After execution ``teardown`` is called to release resources,
 ensuring clean shutdown across CPU and GPU contexts.
 
+### Dynamic message passing example
+
+``examples/dynamic_message_passing_example.py`` showcases how synapses can be
+added or removed at runtime and how these structural changes affect
+propagation. Run the script directly:
+
+```bash
+python examples/dynamic_message_passing_example.py
+```
+
+The script prints neuron representations after each update along with synapse
+counts, illustrating how altering the graph topology influences message
+passing on both CPU and GPU backends.
+
 ### Branching pipelines
 
 Complex experiments often require exploring multiple processing strategies in

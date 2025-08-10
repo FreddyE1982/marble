@@ -149,16 +149,16 @@
   - [x] ``linear_layer`` wrapper
   - [x] ``conv2d_layer`` wrapper
 - [x] Documentation for graph builder utilities
-   - [ ] Examples demonstrating dynamic message passing setup
-    - [ ] Create example script building a dynamic message passing graph.
-        - [ ] Showcase runtime addition and removal of edges.
-        - [ ] Include comments explaining each step.
-    - [ ] Document example usage in README.
-        - [ ] Provide command to run the example.
-        - [ ] Explain expected output and graph behavior.
-    - [ ] Add unit test covering dynamic example conversion.
-        - [ ] Verify script executes without errors.
-        - [ ] Assert generated graph matches expected structure.
+   - [x] Examples demonstrating dynamic message passing setup
+    - [x] Create example script building a dynamic message passing graph.
+        - [x] Showcase runtime addition and removal of edges.
+        - [x] Include comments explaining each step.
+    - [x] Document example usage in README.
+        - [x] Provide command to run the example.
+        - [x] Explain expected output and graph behavior.
+    - [x] Add unit test covering dynamic example conversion.
+        - [x] Verify script executes without errors.
+        - [x] Assert generated graph matches expected structure.
 
 ### 3. Weight and activation handling
 - [x] Extract weights and biases from PyTorch layers
