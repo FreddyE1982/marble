@@ -51,3 +51,22 @@ export_dataset([(1,2)], "data.csv", encryption_key=key)
 
 Files are transparently decrypted when loading the dataset as long as the same
 key is supplied.
+
+## Serving Encrypted Datasets
+
+The :class:`DatasetCacheServer` decrypts AES-256-GCM protected files on the fly
+so that clients without direct access to the key can still download plaintext
+datasets. Provide the key explicitly or via the ``DATASET_ENCRYPTION_KEY``
+environment variable when instantiating the server:
+
+```python
+from dataset_cache_server import DatasetCacheServer
+from dataset_encryption import load_key_from_env
+
+key = load_key_from_env()
+server = DatasetCacheServer(encryption_key=key)
+server.start()
+```
+
+Any cached file beginning with ``b"ENC"`` is decrypted before being returned to
+the client. Unencrypted files are served unchanged.
