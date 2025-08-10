@@ -5,8 +5,8 @@ No failing tests.
  - tests/test_streamlit_gui.py: unexpected failures during dataset history integration
 - tests/test_streamlit_gui.py::test_step_export_and_metrics_desktop: IndexError: list index out of range
 - tests/test_streamlit_gui.py::test_step_export_and_metrics_mobile: IndexError: list index out of range
-- tests/test_streamlit_progress.py::test_progress_desktop: IndexError: list index out of range
-- tests/test_streamlit_progress.py::test_progress_mobile: IndexError: list index out of range
+ - tests/test_streamlit_progress.py::test_progress_desktop: IndexError: list index out of range [resolved]
+ - tests/test_streamlit_progress.py::test_progress_mobile: IndexError: list index out of range [resolved]
 - tests/test_streamlit_all_buttons.py::test_click_all_buttons: IndexError: list index out of range [resolved]
 - tests/test_streamlit_playground.py::test_initialize_marble: TypeError: Neuronenblitz.__init__() got an unexpected keyword argument 'auto_update' [resolved]
 - tests/test_streamlit_gui.py::test_pipeline_tab_add_and_run: IndexError: list index out of range

@@ -9,9 +9,6 @@ autoencoder_learning.enabled
 autoencoder_learning.epochs
 autoencoder_learning.noise_decay
 autoencoder_learning.noise_std
-autograd.enabled
-autograd.gradient_accumulation_steps
-autograd.learning_rate
 brain.auto_firing_enabled
 brain.auto_neurogenesis_prob
 brain.auto_offload
