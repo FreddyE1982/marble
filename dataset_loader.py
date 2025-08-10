@@ -1,5 +1,6 @@
 import csv
 import hashlib
+import io
 import json
 import os
 import pickle
@@ -7,13 +8,13 @@ import sys
 import threading
 import zipfile
 from typing import Any, List
-import io
 
 import pandas as pd
 import requests_cache
 import torch.distributed as dist
 from tqdm import tqdm
 
+from crypto_utils import decrypt_bytes, encrypt_bytes
 from event_bus import global_event_bus
 from kuzu_interface import KuzuGraphDatabase
 from marble import DataLoader
@@ -21,7 +22,6 @@ from marble_base import MetricsVisualizer
 from memory_manager import MemoryManager
 from memory_pool import MemoryPool
 from tokenizer_utils import tokenize_line
-from crypto_utils import encrypt_bytes, decrypt_bytes
 
 _SESSION = requests_cache.CachedSession("http_cache", expire_after=86400)
 _DATASET_CACHE: dict[str, list[tuple[Any, Any]]] = {}
@@ -410,7 +410,9 @@ def load_training_data_from_config(
     When ``dataset_cfg`` contains ``use_kuzu_graph: true`` the function reads
     data from a Kùzu graph using :func:`load_kuzu_graph`. Otherwise it falls back
     to :func:`load_dataset` and expects ``dataset_cfg['source']`` to reference a
-    conventional dataset file or URL.
+    conventional dataset file or URL. When ``dataset_cfg['encryption_enabled']``
+    is ``True`` the ``encryption_key`` is forwarded to ``load_dataset`` so
+    downloaded files are encrypted at rest.
     """
 
     if dataset_cfg.get("use_kuzu_graph"):
@@ -445,13 +447,15 @@ def load_training_data_from_config(
         "num_shards",
         "shard_index",
         "cache_url",
-        "encryption_key",
     ]:
         if key in dataset_cfg:
             if key == "cache_url":
                 kwargs["cache_server_url"] = dataset_cfg[key]
             else:
                 kwargs[key] = dataset_cfg[key]
+
+    if dataset_cfg.get("encryption_enabled") and "encryption_key" in dataset_cfg:
+        kwargs["encryption_key"] = dataset_cfg["encryption_key"]
 
     pairs = load_dataset(source, dataloader=dataloader, **kwargs)
     registry = dataset_cfg.get("version_registry")

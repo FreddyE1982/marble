@@ -8,6 +8,7 @@ Each entry is listed under its section heading.
 - num_shards
 - shard_index
 - offline
+- encryption_enabled
 - encryption_key
 - cache_url: Base URL of ``DatasetCacheServer`` to fetch cached files from.
 - use_kuzu_graph
@@ -519,6 +520,7 @@ Each entry is listed under its section heading.
 - num_shards
 - shard_index
 - offline
+- encryption_enabled
 - encryption_key
 - source
 - use_kuzu_graph

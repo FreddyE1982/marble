@@ -1,18 +1,19 @@
 import os
 import sys
 import threading
-from http.server import HTTPServer, SimpleHTTPRequestHandler
 from functools import partial
+from http.server import HTTPServer, SimpleHTTPRequestHandler
+
 import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import dataset_loader
 from dataset_loader import (
-    load_dataset,
-    prefetch_dataset,
     export_dataset,
+    load_dataset,
     load_training_data_from_config,
+    prefetch_dataset,
 )
 from marble import DataLoader
 from tests.dataset_harness import BitTensorDatasetHarness
@@ -81,6 +82,7 @@ def test_load_zipped_csv(tmp_path):
     csv_path.write_text("input,target\n9,10\n")
     zip_path = tmp_path / "archive.zip"
     import zipfile
+
     with zipfile.ZipFile(zip_path, "w") as zf:
         zf.write(csv_path, arcname="inner.csv")
     pairs = load_dataset(str(zip_path))
@@ -92,6 +94,7 @@ def test_load_zipped_json(tmp_path):
     json_path.write_text('[{"input": 1, "target": 2}]')
     zip_path = tmp_path / "archive_json.zip"
     import zipfile
+
     with zipfile.ZipFile(zip_path, "w") as zf:
         zf.write(json_path, arcname="inner.json")
     pairs = load_dataset(str(zip_path))
@@ -103,13 +106,13 @@ def test_corrupted_zip_recovery(tmp_path):
     csv_path.write_text("input,target\n1,2\n")
     good_zip = tmp_path / "good.zip"
     import zipfile
+
     with zipfile.ZipFile(good_zip, "w") as zf:
         zf.write(csv_path, arcname="good.csv")
     cache_dir = tmp_path / "cache"
     os.makedirs(cache_dir, exist_ok=True)
     corrupt_path = cache_dir / good_zip.name
     corrupt_path.write_bytes(b"corrupt")
-    import http.server, threading
     handler = partial(SimpleHTTPRequestHandler, directory=tmp_path)
     httpd = HTTPServer(("localhost", 9090), handler)
     thread = threading.Thread(target=httpd.serve_forever, daemon=True)
@@ -251,3 +254,33 @@ def test_export_dataset_roundtrip(tmp_path):
     loaded = load_dataset(str(path))
     assert loaded == pairs
 
+
+def test_encryption_enabled_flag_controls_usage(monkeypatch, tmp_path):
+    csv_path = tmp_path / "remote.csv"
+    csv_path.write_text("input,target\n5,6\n")
+    httpd, thread = _serve_directory(tmp_path, 9015)
+    url = "http://localhost:9015/remote.csv"
+    called = False
+
+    def fake_encrypt(data, key):
+        nonlocal called
+        called = True
+        return data
+
+    monkeypatch.setattr(dataset_loader, "encrypt_bytes", fake_encrypt)
+
+    cfg = {
+        "source": url,
+        "cache_dir": str(tmp_path / "cache_disabled"),
+        "encryption_key": "secret",
+        "encryption_enabled": False,
+    }
+    load_training_data_from_config(cfg)
+    assert called is False
+
+    called = False
+    cfg["cache_dir"] = str(tmp_path / "cache_enabled")
+    cfg["encryption_enabled"] = True
+    load_training_data_from_config(cfg)
+    assert called is True
+    httpd.shutdown()
