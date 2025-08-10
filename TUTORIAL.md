@@ -3448,7 +3448,9 @@ device used during execution.
 
    When ``host`` or ``port`` are omitted the plugin reads defaults from the
    ``mcp_server`` section of ``config.yaml``. Set ``mcp_server.auth.token`` to
-   require clients to present a bearer token.
+   require clients to present a bearer token or define ``mcp_server.auth.username``
+   and ``mcp_server.auth.password`` for HTTP basic authentication. Requests
+   missing the proper credentials receive a ``401`` status code.
 
 ## Project: Tracking the MARBLE Topology in Kùzu
 

@@ -716,8 +716,9 @@ python mcp_server.py --config config.yaml
 
 The server listens on the interface and port specified in ``mcp_server`` of
 ``config.yaml``. Define ``mcp_server.auth.token`` or a ``username``/``password``
-pair to require client authentication. The ``serve_model_mcp`` pipeline plugin
-can also start the MCP server as part of a pipeline.
+pair to require client authentication. Requests lacking valid credentials are
+rejected with ``401 Unauthorized``. The ``serve_model_mcp`` pipeline plugin can
+also start the MCP server as part of a pipeline.
 
 
 ### System Metrics and Profiling
