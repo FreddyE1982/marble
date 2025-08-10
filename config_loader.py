@@ -377,4 +377,56 @@ def create_marble_from_config(
             batch_size=gpt_cfg.get("batch_size", 1),
             distill_alpha=cfg.get("meta_learning", {}).get("distill_alpha", 0.0),
         )
+
+    rl_cfg = cfg.get("reinforcement_learning", {})
+    if rl_cfg.get("enabled", False):
+        from reinforcement_learning import (
+            MarbleQLearningAgent,
+            MarblePolicyGradientAgent,
+            GridWorld,
+            train_gridworld,
+            train_policy_gradient,
+        )
+
+        env = GridWorld()
+        algorithm = rl_cfg.get("algorithm", "q_learning").lower()
+        episodes = int(rl_cfg.get("episodes", 1))
+        max_steps = int(rl_cfg.get("max_steps", 50))
+        seed = rl_cfg.get("seed", 0)
+        if algorithm == "policy_gradient":
+            agent = MarblePolicyGradientAgent(marble.core, marble.neuronenblitz)
+            train_policy_gradient(agent, env, episodes, max_steps=max_steps, seed=seed)
+        else:
+            agent = MarbleQLearningAgent(
+                marble.core,
+                marble.neuronenblitz,
+                discount=rl_cfg.get("discount_factor", 0.9),
+                epsilon=rl_cfg.get("epsilon_start", 1.0),
+                epsilon_decay=rl_cfg.get("epsilon_decay", 0.95),
+                min_epsilon=rl_cfg.get("epsilon_min", 0.1),
+                double_q=rl_cfg.get("double_q", False),
+            )
+            train_gridworld(agent, env, episodes, max_steps=max_steps, seed=seed)
+        marble.rl_agent = agent
+
+    qf_cfg = cfg.get("quantum_flux_learning", {})
+    if qf_cfg.get("enabled", False):
+        from dataset_loader import load_dataset
+        from quantum_flux_learning import QuantumFluxLearner
+
+        examples = []
+        if dataset_path:
+            try:
+                examples = load_dataset(dataset_path)
+            except Exception:  # pragma: no cover - best effort loading
+                examples = []
+        learner = QuantumFluxLearner(
+            marble.core,
+            marble.neuronenblitz,
+            phase_rate=qf_cfg.get("phase_rate", 0.1),
+        )
+        if examples:
+            learner.train(examples, epochs=int(qf_cfg.get("epochs", 1)))
+        marble.quantum_flux_learner = learner
+
     return marble
