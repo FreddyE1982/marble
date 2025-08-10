@@ -1599,7 +1599,13 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
                 - [x] Integrate new tests into existing suites.
             - [ ] exampletrain.py
                 - [ ] Create lightweight mock Stable Diffusion pipeline for tests.
-                - [ ] Generate synthetic dataset to avoid large downloads.
+                    - [ ] Implement MockTokenizer returning fixed token IDs.
+                    - [ ] Implement MockTextEncoder producing deterministic embeddings.
+                    - [ ] Assemble MockStableDiffusionPipeline exposing tokenizer and text_encoder.
+                    - [ ] Ensure mock pipeline honours selected device (CPU/GPU).
+                - [x] Generate synthetic dataset to avoid large downloads.
+                    - [x] Provide deterministic data generator for CPU/GPU.
+                    - [x] Cover generator with parity test.
                 - [ ] Write CPU and GPU parity test using mocks.
                 - [ ] Integrate new tests into existing suites.
             - [x] neuronenblitz_kernel.py
