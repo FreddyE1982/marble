@@ -314,14 +314,14 @@
       - [x] Document usage for runtime evaluators.
       - [x] Add tests verifying flag presence.
 - [ ] torch.fx integration for arbitrary models
-  - [ ] Trace custom layers and call registered converters
-      - [ ] Extend tracing logic to capture user-defined layers.
-      - [ ] Look up converters via registry and invoke them.
-      - [ ] Raise descriptive errors when converters are missing.
-  - [ ] Allow decorators to register new converters
-      - [ ] Design decorator API for converter registration.
-      - [ ] Register decorated functions at import time.
-      - [ ] Provide examples demonstrating decorator usage.
+  - [x] Trace custom layers and call registered converters
+      - [x] Extend tracing logic to capture user-defined layers.
+      - [x] Look up converters via registry and invoke them.
+      - [x] Raise descriptive errors when converters are missing.
+  - [x] Allow decorators to register new converters
+      - [x] Design decorator API for converter registration.
+      - [x] Register decorated functions at import time.
+      - [x] Provide examples demonstrating decorator usage.
 - [ ] Weight and bias extraction helpers
   - [x] Handle GPU tensors transparently
       - [x] Detect tensor device during extraction.
