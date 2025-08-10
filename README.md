@@ -1453,6 +1453,9 @@ def convert_my_layer(layer, core, inputs):
 Any occurrence of `MyCustomLayer` in the PyTorch model will be converted using
 the provided function.
 
+For a full working script showcasing a custom converter on CPU or GPU, see
+`examples/custom_converter_example.py`.
+
 ## Workflow Templates
 
 Starter pipelines for common workflows can be generated with

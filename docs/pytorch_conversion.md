@@ -29,6 +29,13 @@ from pytorch_to_marble import unsupported_layer
 unsupported_layer(torch.nn.MaxPool3d)
 ```
 
+A complete working example demonstrating how to register and use a custom
+converter can be found in
+``examples/custom_converter_example.py``.  The script defines a
+``DoubleLinear`` module, registers a converter with
+``@register_converter`` and converts the model on CPU or GPU depending on
+availability.
+
 When ``convert_model`` encounters ``MaxPool3d`` it will now immediately raise a
 clear error indicating the layer is not supported. This makes gaps in converter
 coverage visible while providing guidance for future contributors.
