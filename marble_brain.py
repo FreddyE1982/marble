@@ -595,12 +595,13 @@ class Brain:
                     target_tier=new_tier,
                 )
                 self.perform_neurogenesis(use_combined_attention=True)
-            min_k = int(self.core.params.get("min_cluster_k", 1))
-            self.core.cluster_neurons(k=max(self.cluster_k, min_k))
-            self.core.relocate_clusters(
-                high=self.cluster_high_threshold,
-                medium=self.cluster_medium_threshold,
-            )
+            if self.auto_cluster_interval > 0 and (epoch + 1) % self.auto_cluster_interval == 0:
+                min_k = int(self.core.params.get("min_cluster_k", 1))
+                self.core.cluster_neurons(k=max(self.cluster_k, min_k))
+                self.core.relocate_clusters(
+                    high=self.cluster_high_threshold,
+                    medium=self.cluster_medium_threshold,
+                )
             self.lobe_manager.organize()
             self.lobe_manager.self_attention(val_loss)
             if self.offload_enabled:

@@ -19,12 +19,14 @@ class DummyCore:
         self.params = {"pretraining_epochs": pre_epochs, "min_cluster_k": min_k}
         self.neurons = []
         self.synapses = []
+        self.cluster_calls = 0
 
     def get_usage_by_tier(self, tier):
         return 0.0
 
     def cluster_neurons(self, k):
         self.cluster_called_with = k
+        self.cluster_calls += 1
 
     def relocate_clusters(self, high, medium):
         pass
@@ -58,6 +60,29 @@ def test_pretraining_epochs_runs_once():
 def test_min_cluster_k_enforced():
     core = DummyCore(min_k=3)
     nb = DummyNB()
-    brain = Brain(core, nb, None, metrics_visualizer=None, dream_enabled=False, cluster_k=2)
+    brain = Brain(
+        core,
+        nb,
+        None,
+        metrics_visualizer=None,
+        dream_enabled=False,
+        cluster_k=2,
+        auto_cluster_interval=1,
+    )
     brain.train([(0.1, 0.2)], epochs=1)
     assert core.cluster_called_with == 3
+
+
+def test_auto_cluster_interval_respected():
+    core = DummyCore()
+    nb = DummyNB()
+    brain = Brain(
+        core,
+        nb,
+        None,
+        metrics_visualizer=None,
+        dream_enabled=False,
+        auto_cluster_interval=2,
+    )
+    brain.train([(0.1, 0.2)], epochs=5)
+    assert core.cluster_calls == 2

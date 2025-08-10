@@ -908,7 +908,12 @@ brain:
   early_stopping_delta: Minimum drop in validation loss required to reset the
     patience counter. This prevents noise in the validation metric from
     triggering false improvements. Typical ranges are ``1e-4`` to ``1e-3``.
-  auto_cluster_interval: Epoch interval between automatic clustering of neurons.
+  auto_cluster_interval: Number of training epochs between automatic neuron
+    clustering passes. Clustering groups neurons with similar activity and
+    relocates them to specialized lobes. Set to ``1`` to cluster after every
+    epoch for rapid topology adaptation or increase to reduce overhead. Values
+    between ``1`` and ``10`` are typical; ``0`` disables automatic clustering
+    entirely.
   cluster_method: Algorithm used for clustering; ``"kmeans"`` is provided but
     others may be added in future.
   auto_save_enabled: Enables periodic saves controlled by ``auto_save_interval``.
