@@ -209,6 +209,7 @@ Each entry is listed under its section heading.
 - attention_update_scale
 - attention_span_threshold
 - max_attention_span
+- attention.dynamic_span
 - plasticity_modulation
 - wander_depth_noise
 - reward_decay
