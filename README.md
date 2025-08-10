@@ -87,7 +87,36 @@ shards training data:
 - `num_shards` – total number of shards when splitting datasets across workers.
 - `shard_index` – the shard index handled by this process.
 - `offline` – disable remote downloads for fully local operation.
-- `encryption_key` – optional key used to encrypt on-disk dataset caches.
+### Enabling Dataset Encryption
+
+MARBLE secures cached datasets with **AES-256-GCM** so that only authorised
+processes can read them. Generate a 256‑bit key and expose it via the
+`DATASET_ENCRYPTION_KEY` environment variable:
+
+```python
+from dataset_encryption import generate_key
+print(generate_key())
+```
+
+Add the following to `config.yaml` to activate encryption:
+
+```yaml
+dataset:
+  encryption_enabled: true
+  encryption_key: ${DATASET_ENCRYPTION_KEY}
+```
+
+Any CLI entry point, such as `pipeline_cli.py` or `dataset_cache_server.py`,
+uses the key automatically when the environment variable is present. Example:
+
+```bash
+export DATASET_ENCRYPTION_KEY="<base64-key>"
+python pipeline_cli.py --config config.yaml pipeline.json
+```
+
+Rotate keys by generating a new value, re-encrypting cached datasets and
+restarting services with the updated `DATASET_ENCRYPTION_KEY`.
+
 Neuronenblitz can also monitor datasets for changes. Enable
 ``neuronenblitz.auto_update`` in ``config.yaml`` and use ``DatasetWatcher`` to
 reset learning state whenever files within the dataset directory are modified.
