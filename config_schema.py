@@ -112,6 +112,14 @@ CONFIG_SCHEMA = {
                 "encoding": {"type": ["string", "null"]},
             },
         },
+        "predictive_coding": {
+            "type": "object",
+            "properties": {
+                "num_layers": {"type": "integer", "minimum": 1},
+                "latent_dim": {"type": "integer", "minimum": 1},
+                "learning_rate": {"type": "number", "minimum": 0},
+            },
+        },
         "pipeline": {
             "type": "object",
             "properties": {

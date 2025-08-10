@@ -480,9 +480,6 @@ neuronenblitz.weight_limit
 pipeline.async_enabled
 pipeline.cache_dir
 pipeline.default_step_memory_limit_mb
-predictive_coding.latent_dim
-predictive_coding.learning_rate
-predictive_coding.num_layers
 preprocessing.workers
 quantum_flux_learning.enabled
 quantum_flux_learning.epochs

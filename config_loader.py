@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import requests
 import torch
 import yaml
 
@@ -14,7 +15,6 @@ from plugin_system import load_plugins
 from remote_hardware import load_remote_tier_plugin
 from remote_offload import RemoteBrainClient, RemoteBrainServer
 from torrent_offload import BrainTorrentClient, BrainTorrentTracker
-import requests
 
 DEFAULT_CONFIG_FILE = Path(__file__).resolve().parent / "config.yaml"
 
@@ -257,10 +257,7 @@ def create_marble_from_config(
     live_cfg = cfg.get("live_kuzu", {})
     kuzu_tracker = None
     if live_cfg.get("enabled", False):
-        from experiment_tracker import (
-            KuzuExperimentTracker,
-            attach_tracker_to_events,
-        )
+        from experiment_tracker import KuzuExperimentTracker, attach_tracker_to_events
         from topology_kuzu import TopologyKuzuTracker
 
         db_path = live_cfg.get("db_path", "live.kuzu")
@@ -291,6 +288,17 @@ def create_marble_from_config(
         marble.topology_tracker = TopologyKuzuTracker(marble.core, db_path)
         marble._tracker_detach = attach_tracker_to_events(
             kuzu_tracker, events=[PROGRESS_EVENT]
+        )
+
+    pc_cfg = cfg.get("predictive_coding", {})
+    if pc_cfg:
+        import predictive_coding
+
+        marble.core.predictive_coding = predictive_coding.activate(
+            marble.neuronenblitz if hasattr(marble, "neuronenblitz") else None,
+            num_layers=int(pc_cfg.get("num_layers", 2)),
+            latent_dim=int(pc_cfg.get("latent_dim", marble.core.rep_size)),
+            learning_rate=float(pc_cfg.get("learning_rate", 0.001)),
         )
 
     # Optional tool manager instantiation
