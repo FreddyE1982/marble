@@ -2075,6 +2075,11 @@ Run `python project23_omni.py` to test all paradigms together.
    see how each context feature influenced the chosen weights. The method
    returns the original context and weights along with gradient-based
    contributions for every learner.
+   To review how often structural changes occur, set
+   `neuronenblitz.plasticity_history_size` in `config.yaml`. Neuronenblitz
+   records up to this many recent plasticity events—including source and target
+   neurons, new neuron IDs and triggering synapse potentials—in
+   `nb.plasticity_history` for later analysis or meta-learning strategies.
 
 ## Project 24 – Continuous Weight Field Learning (Experimental)
 
