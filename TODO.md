@@ -744,12 +744,15 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
        - [x] Choose encryption algorithm and key management strategy.
            - AES-256-GCM via the ``cryptography`` library.
            - Keys supplied as base64 strings in ``DATASET_ENCRYPTION_KEY``.
-       - [ ] Identify integration points within dataset loader and saver.
+       - [x] Identify integration points within dataset loader.
+       - [x] Identify integration points within dataset saver.
        - [x] Determine configuration flags to toggle encryption.
     - [ ] Implement Secure pipeline data flow by integrating dataset encryption routines with CPU/GPU support.
        - [ ] Implement encryption and decryption utilities operating on CPU/GPU tensors.
            - [x] Add AES-GCM tensor encryption helpers in ``dataset_encryption.py``.
-       - [ ] Embed encryption hooks into DataLoader and cache server.
+       - [x] Embed encryption hooks into DataLoader.
+       - [x] Embed encryption hooks into dataset saver.
+       - [ ] Embed encryption hooks into dataset cache server.
        - [x] Expose `dataset.encryption_key` and related options in config files.
    - [ ] Add tests validating Secure pipeline data flow by integrating dataset encryption routines.
        - [ ] Encrypt and decrypt sample datasets verifying integrity.

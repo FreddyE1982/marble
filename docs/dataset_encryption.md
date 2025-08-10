@@ -31,3 +31,23 @@ assert torch.allclose(original, restored)
 
 The helper functions automatically move tensors to CPU for encryption and
 restore them to the requested device during decryption.
+
+## Encrypting Cached Files
+
+Dataset utilities such as :mod:`dataset_loader` can encrypt files on disk
+using the same AES-256-GCM scheme. Pass the base64-encoded key to
+``prefetch_dataset``, ``load_dataset`` or ``export_dataset`` and the resulting
+bytes will be written as encrypted blobs::
+
+```python
+from dataset_encryption import load_key_from_env
+from dataset_loader import prefetch_dataset, wait_for_prefetch, export_dataset
+
+key = load_key_from_env()
+prefetch_dataset("https://example.com/data.csv", encryption_key=key)
+wait_for_prefetch()  # cached file is now encrypted at rest
+export_dataset([(1,2)], "data.csv", encryption_key=key)
+```
+
+Files are transparently decrypted when loading the dataset as long as the same
+key is supplied.

@@ -3,15 +3,16 @@ from __future__ import annotations
 """Utilities for encrypting and decrypting datasets.
 
 This module provides AES-GCM based encryption helpers that operate on
-PyTorch tensors. Tensors are always moved to CPU for encryption and
-can be restored to their original device during decryption.
+PyTorch tensors and raw byte sequences. Tensors are always moved to CPU
+for encryption and can be restored to their original device during
+decryption.
 """
 
 import base64
 import json
 import os
 from dataclasses import dataclass
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Union
 
 import torch
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -100,3 +101,22 @@ def decrypt_tensor(enc: EncryptedTensor, key: bytes, device: Optional[torch.devi
     tensor = torch.frombuffer(buffer, dtype=dtype).clone().reshape(enc.shape)
     target_device = torch.device(device) if device is not None else torch.device(enc.device)
     return tensor.to(target_device)
+
+
+def encrypt_bytes(data: bytes, key: Union[str, bytes]) -> bytes:
+    """Encrypt arbitrary byte data using AES-256-GCM."""
+    if isinstance(key, str):
+        key = base64.urlsafe_b64decode(key)
+    aesgcm = AESGCM(key)
+    nonce = os.urandom(12)
+    ciphertext = aesgcm.encrypt(nonce, data, None)
+    return nonce + ciphertext
+
+
+def decrypt_bytes(data: bytes, key: Union[str, bytes]) -> bytes:
+    """Decrypt byte data produced by :func:`encrypt_bytes`."""
+    if isinstance(key, str):
+        key = base64.urlsafe_b64decode(key)
+    aesgcm = AESGCM(key)
+    nonce, ciphertext = data[:12], data[12:]
+    return aesgcm.decrypt(nonce, ciphertext, None)
