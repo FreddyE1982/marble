@@ -3828,3 +3828,59 @@ nb.train(pairs, epochs=5, loss_fn=squared_loss, validation_fn=clip_validation)
 ```
 
 This project demonstrates how domain-specific validation logic can directly influence plasticity during training while using a fully customised loss function.
+
+## Project 101 – Self-Distillation with DistillationTrainer
+
+**Goal:** Train a compact student brain to mimic a larger teacher brain on a real dataset.
+
+1. **Download the dataset** – the UCI Iris dataset offers numerical features and is small enough for quick experiments:
+
+   ```bash
+   wget https://raw.githubusercontent.com/uiuc-cse/data-fa14/gh-pages/data/iris.csv -O iris.csv
+   ```
+
+2. **Prepare teacher and student brains** – save the script below as `self_distill_example.py` inside the repository root:
+
+   ```python
+   import pandas as pd
+   from marble_core import Core
+   from marble_neuronenblitz import Neuronenblitz
+   from marble_brain import Brain
+   from distillation_trainer import DistillationTrainer
+   from tests.test_core_functions import minimal_params
+
+   df = pd.read_csv("iris.csv")
+   pairs = list(zip(df["sepal_length"].tolist(), df["petal_length"].tolist()))
+
+   params = minimal_params()
+   teacher_core = Core(params)
+   teacher = Brain(teacher_core)
+   teacher.train(pairs, epochs=20)
+
+   student_core = Core(params)
+   student = Brain(student_core)
+   trainer = DistillationTrainer(student, teacher, alpha=0.3)
+   trainer.train(pairs, epochs=10)
+
+   sample = pairs[0][0]
+   print("Teacher:", teacher.infer(sample))
+   print("Student:", student.infer(sample))
+   ```
+
+3. **Run the distillation example** – the script automatically selects GPU when available. Explicit commands for both devices:
+
+   ```bash
+   # CPU execution
+   CUDA_VISIBLE_DEVICES="" python self_distill_example.py
+
+   # GPU execution
+   python self_distill_example.py
+   ```
+
+4. **Troubleshooting tips**
+
+   - `ModuleNotFoundError`: ensure commands are executed from the repository root.
+   - `pandas` missing: install with `pip install pandas`.
+   - CUDA out of memory: switch to the CPU command or reduce the training epochs.
+
+This project demonstrates how a teacher network can guide a smaller student, allowing compact models to inherit behaviour from more capable ones.
