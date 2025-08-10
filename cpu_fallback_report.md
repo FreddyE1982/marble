@@ -1,5 +1,3 @@
 # Modules lacking CPU fallback tests
 
-- `benchmark_graph_precompile.py`
-- `neuronenblitz_kernel.py`
-- `run_profiler.py`
+Currently all modules have CPU fallback tests in place. No outstanding modules require additional coverage.
