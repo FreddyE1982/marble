@@ -1647,6 +1647,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [x] Integrate script into CI pipeline.
         - [ ] Implement missing parameters or prune outdated ones.
             - [ ] For each unused parameter, decide to implement or remove.
+                - [ ] neuronenblitz.attention_span_threshold
+                - [ ] neuronenblitz.max_attention_span
             - [ ] Add tests verifying newly implemented parameters on CPU and GPU.
             - [ ] Remove deprecated parameters and update defaults.
             - [ ] Update documentation in `CONFIGURABLE_PARAMETERS.md` and `yaml-manual.txt`.
@@ -1683,6 +1685,6 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [ ] Benchmark and test span behavior on CPU and GPU.
             - [x] Create unit tests for varying span lengths.
             - [ ] Measure performance impact on both devices.
-            - [ ] Add tutorial section demonstrating span tuning.
+            - [x] Add tutorial section demonstrating span tuning.
             - [ ] Profile memory usage across span settings.
             - [x] Add regression test ensuring default span matches static mode.

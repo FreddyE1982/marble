@@ -3913,3 +3913,53 @@ This project demonstrates how domain-specific validation logic can directly infl
    - CUDA out of memory: switch to the CPU command or reduce the training epochs.
 
 This project demonstrates how a teacher network can guide a smaller student, allowing compact models to inherit behaviour from more capable ones.
+
+## Project 102 – Dynamic Attention Span Tuning
+
+**Goal:** Explore how varying `max_attention_span` and `attention_span_threshold` alters Neuronenblitz's focus during training on a real dataset.
+
+1. **Download the dataset** – the Pima Indians Diabetes dataset contains medical measurements and is suitable for quick experiments:
+
+   ```bash
+   wget https://raw.githubusercontent.com/jbrownlee/Datasets/master/pima-indians-diabetes.data.csv -O diabetes.csv
+   ```
+
+2. **Prepare the training pairs** – use two of the numeric fields as inputs:
+
+   ```python
+   import pandas as pd
+   from marble_core import Core
+   from marble_neuronenblitz import Neuronenblitz
+   from tests.test_core_functions import minimal_params
+
+   df = pd.read_csv("diabetes.csv", header=None)
+   # Use glucose concentration (column 1) and age (column 7)
+   pairs = list(zip(df[1].tolist(), df[7].tolist()))
+   core = Core(minimal_params())
+   ```
+
+3. **Train with dynamic attention span** – start with a moderate threshold:
+
+   ```python
+   nb = Neuronenblitz(core, max_attention_span=5, attention_span_threshold=0.7)
+   nb.train(pairs, epochs=3)
+   ```
+
+4. **Tune the span** – lower the threshold to keep more context and observe any accuracy change:
+
+   ```python
+   nb = Neuronenblitz(core, max_attention_span=5, attention_span_threshold=0.4)
+   nb.train(pairs, epochs=3)
+   ```
+
+5. **Run on CPU or GPU** – the example automatically chooses the available device:
+
+   ```bash
+   # CPU execution
+   CUDA_VISIBLE_DEVICES="" python your_script.py
+
+   # GPU execution
+   python your_script.py
+   ```
+
+This project illustrates how span parameters influence the amount of history considered during Neuronenblitz updates. Experiment with different values to balance speed and accuracy.
