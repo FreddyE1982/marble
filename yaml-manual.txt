@@ -673,6 +673,12 @@ neuronenblitz:
   wander_history_size: How many recent path lengths are kept to compute the
     running mean and standard deviation for anomaly detection. Larger values
     smooth out short-term fluctuations.
+  plasticity_history_size: Number of recent structural plasticity events
+    retained in ``Neuronenblitz.plasticity_history``. Each event captures the
+    source and target neurons, the newly created neuron, and the synapse
+    potential that triggered the change. Increasing this value provides more
+    context for meta-learning algorithms that adapt ``plasticity_threshold``
+    but consumes additional memory. Typical range is 50–500; default ``100``.
   phase_rate: Amount added to ``global_phase`` each time ``dynamic_wander``
     runs. Higher values make the oscillator advance more quickly, altering
     the cosine gating applied to every synapse.

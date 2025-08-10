@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import math
@@ -9,12 +10,12 @@ import random
 import threading
 from collections import deque
 from datetime import datetime, timezone
-import asyncio
 
 import numpy as np
 import torch
 
 from contrastive_learning import ContrastiveLearner
+from dataset_watcher import DatasetWatcher
 from imitation_learning import ImitationLearner
 from marble_core import (
     LOSS_MODULES,
@@ -25,11 +26,10 @@ from marble_core import (
 )
 from marble_imports import *  # noqa: F401,F403
 from streaming_dataset_step import StreamingDatasetStep
-from dataset_watcher import DatasetWatcher
-from .attention_span import DynamicSpanModule
 
 from . import learning as _learning
 from . import memory as _memory
+from .attention_span import DynamicSpanModule
 
 # ruff: noqa: F405
 
@@ -195,6 +195,7 @@ class Neuronenblitz:
         concept_learning_rate=0.1,
         weight_limit=1e6,
         wander_cache_size=50,
+        plasticity_history_size=100,
         rmsprop_beta=0.99,
         grad_epsilon=1e-8,
         use_experience_replay=False,
@@ -363,6 +364,7 @@ class Neuronenblitz:
         self.last_message_passing_change = 0.0
         self.lock = threading.RLock()
         self.error_history = deque(maxlen=100)
+        self.plasticity_history = deque(maxlen=plasticity_history_size)
         self._momentum = {}
         self._eligibility_traces = {}
         self.wander_cache = {}
@@ -1408,6 +1410,21 @@ class Neuronenblitz:
                 )
                 source.synapses = [s for s in source.synapses if s != syn]
                 self.core.synapses = [s for s in self.core.synapses if s != syn]
+                event = {
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "source": source.id,
+                    "target": target.id,
+                    "new_id": new_id,
+                    "potential": float(syn.potential),
+                }
+                self.plasticity_history.append(event)
+                logging.info(
+                    "Plasticity event: source=%s target=%s new=%s potential=%.3f",
+                    source.id,
+                    target.id,
+                    new_id,
+                    float(syn.potential),
+                )
                 print(
                     f"Structural plasticity: Replaced synapse from {source.id} (tier {source.tier}) to {target.id} with new neuron {new_id} in tier {new_tier}."
                 )
@@ -1794,7 +1811,9 @@ class Neuronenblitz:
                 epoch_valid = []
                 for input_val, target_val in examples:
                     output, error, _ = self.train_example(input_val, target_val)
-                    epoch_errors.append(abs(error) if isinstance(error, (int, float)) else 0)
+                    epoch_errors.append(
+                        abs(error) if isinstance(error, (int, float)) else 0
+                    )
                     epoch_valid.append(self.validation_fn(target_val, output))
                 avg_error = sum(epoch_errors) / len(epoch_errors) if epoch_errors else 0
                 avg_valid = sum(epoch_valid) / len(epoch_valid) if epoch_valid else 0

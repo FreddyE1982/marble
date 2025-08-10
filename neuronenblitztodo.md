@@ -50,9 +50,9 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
        - [ ] Report effects on path diversity and accuracy.
 6. Use episodic memory to bias wandering toward past successes. (Completed with episodic replay bias)
 7. Apply meta-learning to adjust plasticity thresholds dynamically.
-   - [ ] Record plasticity outcomes over recent steps.
-       - [ ] Log success metrics for each plasticity event.
-       - [ ] Maintain rolling history buffer.
+   - [x] Record plasticity outcomes over recent steps.
+       - [x] Log success metrics for each plasticity event.
+       - [x] Maintain rolling history buffer.
    - [ ] Train meta-learner to propose threshold updates.
        - [ ] Choose lightweight model for meta-learning.
        - [ ] Fit model on recorded outcomes to predict new thresholds.

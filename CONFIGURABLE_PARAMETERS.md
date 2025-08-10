@@ -228,6 +228,8 @@ Each entry is listed under its section heading.
 - wander_cache_ttl
 - wander_anomaly_threshold
 - wander_history_size
+- plasticity_history_size: Number of recent structural plasticity events stored
+  in ``Neuronenblitz.plasticity_history`` for meta-learning analysis.
 - phase_rate
 - phase_adaptation_rate
 - synaptic_fatigue_enabled
