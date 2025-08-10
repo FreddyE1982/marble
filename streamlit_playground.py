@@ -1631,7 +1631,8 @@ def run_playground() -> None:
             unsafe_allow_html=True,
         )
     st.title("MARBLE Playground")
-
+    import marble_interface as _mi
+    _mi.new_marble_system = new_marble_system
     if st.button("About"):
         if hasattr(st, "dialog"):
             with st.dialog("About MARBLE"):
@@ -1658,7 +1659,7 @@ def run_playground() -> None:
     )
     cfg_text = st.sidebar.text_area("Or paste YAML", key="cfg_text")
     inst_name = st.sidebar.text_input("Instance Name", value=registry.active or "main")
-    if st.sidebar.button("Create Instance"):
+    if st.sidebar.button("Create Instance", key="create_instance"):
         yaml_data = None
         if cfg_upload is not None:
             yaml_data = cfg_upload.getvalue().decode("utf-8")
@@ -1667,12 +1668,15 @@ def run_playground() -> None:
         else:
             with open(cfg_path, "r", encoding="utf-8") as f:
                 yaml_data = f.read()
-        marble = registry.create(
-            inst_name, cfg_path if not yaml_data else None, yaml_text=yaml_data
-        )
-        st.session_state["marble"] = marble
-        st.session_state["config_yaml"] = yaml_data
-        st.sidebar.success(f"Instance '{inst_name}' created")
+        try:
+            marble = registry.create(
+                inst_name, cfg_path if not yaml_data else None, yaml_text=yaml_data
+            )
+            st.session_state["marble"] = marble
+            st.session_state["config_yaml"] = yaml_data
+            st.sidebar.success(f"Instance '{inst_name}' created")
+        except Exception as exc:  # pragma: no cover - runtime safety
+            st.sidebar.error(f"Instance creation failed: {exc}")
 
     if registry.list():
         active = st.sidebar.selectbox(

@@ -12,7 +12,6 @@ autoencoder_learning.noise_std
 autograd.enabled
 autograd.gradient_accumulation_steps
 autograd.learning_rate
-brain.auto_cluster_interval
 brain.auto_firing_enabled
 brain.auto_neurogenesis_prob
 brain.auto_offload
@@ -212,6 +211,7 @@ dataloader.tokenizer_type
 dataloader.tokenizer_vocab_size
 dataloader.track_metadata
 dataset.cache_url
+dataset.encryption_enabled
 dataset.encryption_key
 dataset.kuzu_graph
 dataset.kuzu_graph.db_path
@@ -300,10 +300,13 @@ mcp_server.port
 memory_system.consolidation_interval
 memory_system.long_term_path
 memory_system.threshold
+meta.rate
+meta.window
 meta_controller.adjustment
 meta_controller.history_length
 meta_controller.max_threshold
 meta_controller.min_threshold
+meta_learning
 meta_learning.distill_alpha
 meta_learning.enabled
 meta_learning.epochs
@@ -369,6 +372,8 @@ neuromodulatory_system.initial.reward
 neuromodulatory_system.initial.stress
 neuronenblitz.activity_gate_exponent
 neuronenblitz.alternative_connection_prob
+neuronenblitz.attention
+neuronenblitz.attention.dynamic_span
 neuronenblitz.attention_decay
 neuronenblitz.attention_span_threshold
 neuronenblitz.attention_update_scale
@@ -421,6 +426,7 @@ neuronenblitz.max_attention_span
 neuronenblitz.max_learning_rate
 neuronenblitz.max_wander_depth
 neuronenblitz.memory_gate_decay
+neuronenblitz.memory_gate_strength
 neuronenblitz.merge_tolerance
 neuronenblitz.min_learning_rate
 neuronenblitz.momentum_coefficient
@@ -431,6 +437,7 @@ neuronenblitz.parallel_update_strategy
 neuronenblitz.parallel_wanderers
 neuronenblitz.phase_adaptation_rate
 neuronenblitz.phase_rate
+neuronenblitz.plasticity_history_size
 neuronenblitz.plasticity_modulation
 neuronenblitz.plasticity_threshold
 neuronenblitz.reinforcement_learning_enabled
@@ -508,11 +515,14 @@ remote_hardware.grpc.address
 remote_hardware.grpc.backoff_factor
 remote_hardware.grpc.max_retries
 remote_hardware.tier_plugin
+sac.temperature
 scheduler.plugin
 semi_supervised_learning.batch_size
 semi_supervised_learning.enabled
 semi_supervised_learning.epochs
 semi_supervised_learning.unlabeled_weight
+serve_model.host
+serve_model.port
 synaptic_echo_learning.echo_influence
 synaptic_echo_learning.enabled
 synaptic_echo_learning.epochs

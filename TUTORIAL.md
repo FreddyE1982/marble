@@ -3963,3 +3963,32 @@ This project demonstrates how a teacher network can guide a smaller student, all
    ```
 
 This project illustrates how span parameters influence the amount of history considered during Neuronenblitz updates. Experiment with different values to balance speed and accuracy.
+
+## Project: Control clustering frequency
+
+This short project demonstrates how the ``brain.auto_cluster_interval`` setting controls how often MARBLE reorganises neurons into clusters.
+
+1. **Download a dataset** – use Fashion-MNIST for a quick test.
+
+   ```python
+   from torchvision.datasets import FashionMNIST
+   train = FashionMNIST(root="data", download=True, train=True)
+   pairs = [(img.flatten().float(), img.flatten().float()) for img, _ in train[:100]]
+   ```
+
+2. **Configure the clustering interval** – set ``auto_cluster_interval`` to ``3`` in a YAML file so clustering happens every three epochs.
+
+   ```yaml
+   brain:
+     auto_cluster_interval: 3
+   ```
+
+3. **Train and observe** – create a MARBLE instance with this configuration and train for a few epochs. Clustering will run twice during five epochs.
+
+   ```python
+   from config_loader import create_marble_from_config
+   m = create_marble_from_config("config.yaml")
+   m.get_brain().train(pairs, epochs=5)
+   ```
+
+This experiment highlights how reducing clustering frequency can speed up training while still periodically reorganising neuron topology.
