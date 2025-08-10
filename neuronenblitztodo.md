@@ -814,13 +814,13 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
            robust pruning masks while preserving network accuracy.
    - [ ] Implement gradient-based structural pruning for efficiency within Neuronenblitz.
        - [x] Compute pruning masks from gradient magnitudes.
-       - [ ] Apply masks during training cycles.
+       - [x] Apply masks during training cycles.
    - [ ] Evaluate gradient-based structural pruning for efficiency on benchmark tasks and document results.
        - [ ] Measure speed and accuracy after pruning.
        - [ ] Track sparsity over training.
    - [ ] Create tests covering gradient-based structural pruning for efficiency.
        - [x] Unit test mask generation.
-       - [ ] Integration test ensures no shape mismatches.
+       - [x] Integration test ensures no shape mismatches.
 94. Apply dynamic attention spans for context-sensitive wandering.
    - [ ] Research approaches for dynamic attention spans for context-sensitive wandering.
        - [ ] Review adaptive attention span techniques.
