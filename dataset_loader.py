@@ -14,7 +14,7 @@ import requests_cache
 import torch.distributed as dist
 from tqdm import tqdm
 
-from crypto_utils import decrypt_bytes, encrypt_bytes
+from dataset_encryption import decrypt_bytes, encrypt_bytes
 from event_bus import global_event_bus
 from kuzu_interface import KuzuGraphDatabase
 from marble import DataLoader
@@ -87,9 +87,9 @@ def prefetch_dataset(
     force_refresh:
         When ``True`` download even if the file is already cached.
     encryption_key:
-        Optional key used to XOR-encrypt the cached file. When provided the
-        downloaded bytes are encrypted on disk so subsequent loads require the
-        same key for decryption.
+        Optional key used to AES-256-GCM encrypt the cached file. When
+        provided, the downloaded bytes are encrypted on disk so subsequent
+        loads require the same key for decryption.
 
     Returns
     -------
@@ -174,8 +174,8 @@ def load_dataset(
     encoded using :class:`~marble.DataLoader`. When ``cache_server_url`` is set
     and ``source`` is remote the loader will attempt to fetch the file from the
     cache server before downloading it directly. If ``encryption_key`` is
-    provided, cached files are XOR-encrypted with the key and transparently
-    decrypted when loading. If ``memory_manager`` is provided, the estimated
+    provided, cached files are AES-256-GCM encrypted with the key and
+    transparently decrypted when loading. If ``memory_manager`` is provided, the estimated
     allocated bytes are reported after loading completes.
     """
     if metrics_visualizer:
@@ -515,8 +515,17 @@ class StreamingCSVLoader:
         self._file.close()
 
 
-def export_dataset(pairs: list[tuple[Any, Any]], path: str) -> None:
-    """Save ``pairs`` to ``path`` in CSV or JSON format."""
+def export_dataset(
+    pairs: list[tuple[Any, Any]],
+    path: str,
+    *,
+    encryption_key: str | bytes | None = None,
+) -> None:
+    """Save ``pairs`` to ``path`` in CSV or JSON format.
+
+    When ``encryption_key`` is provided the resulting file is AES-256-GCM
+    encrypted on disk and must be decrypted with the same key when loaded.
+    """
     df = pd.DataFrame(pairs, columns=["input", "target"])
     ext = os.path.splitext(path)[1].lower()
     if ext == ".csv" or not ext:
@@ -525,6 +534,11 @@ def export_dataset(pairs: list[tuple[Any, Any]], path: str) -> None:
         df.to_json(path, orient="records", lines=ext == ".jsonl")
     else:
         raise ValueError("Unsupported export format")
+    if encryption_key is not None:
+        with open(path, "rb") as f:
+            data = f.read()
+        with open(path, "wb") as f:
+            f.write(b"ENC" + encrypt_bytes(data, encryption_key))
 
 
 def clear_dataset_cache() -> None:
