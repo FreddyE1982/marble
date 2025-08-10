@@ -8,6 +8,7 @@ from marble_brain import BenchmarkManager, Brain
 from marble_core import TIER_REGISTRY, Core, DataLoader
 from marble_imports import *
 from marble_neuronenblitz import Neuronenblitz
+import torch
 
 
 class MARBLE:
@@ -285,6 +286,42 @@ class MARBLE:
             self.brain.set_autograd_layer(self.autograd_layer)
 
         self.pytorch_challenge_params = pytorch_challenge_params
+        if (
+            self.pytorch_challenge_params
+            and self.pytorch_challenge_params.get("enabled", False)
+        ):
+            self.run_pytorch_challenge()
+
+    def run_pytorch_challenge(self) -> None:
+        params = self.pytorch_challenge_params or {}
+        from pytorch_challenge import (
+            load_dataset,
+            load_pretrained_model,
+            _img_to_tensor,
+        )
+
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        data = load_dataset(100)
+        train_data = data[:80]
+        val_data = data[80:]
+        model = load_pretrained_model().to(device)
+        torch_inputs = [_img_to_tensor(img).to(device) for img, _ in train_data]
+        marble_examples = [
+            (float(img.mean()), float(lbl)) for img, lbl in train_data
+        ]
+        val_examples = [
+            (float(img.mean()), float(lbl)) for img, lbl in val_data
+        ]
+        self.brain.train_pytorch_challenge(
+            marble_examples,
+            model,
+            pytorch_inputs=torch_inputs,
+            epochs=params.get("epochs", 1),
+            validation_examples=val_examples,
+            loss_penalty=params.get("loss_penalty", 0.1),
+            speed_penalty=params.get("speed_penalty", 0.1),
+            size_penalty=params.get("size_penalty", 0.1),
+        )
 
     def get_core(self):
         return self.core
