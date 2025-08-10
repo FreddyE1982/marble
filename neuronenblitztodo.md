@@ -27,14 +27,14 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
        - [x] Introduce `sac.temperature` in configuration files.
        - [x] Explain parameter in YAML manual and tutorial.
    - [ ] Test wandering with SAC on small environment.
-       - [ ] Build minimal environment for SAC evaluation.
-           - [ ] Define state and action spaces for toy environment.
-           - [ ] Implement reward function and termination criteria.
-           - [ ] Write reset and step methods with unit tests.
-       - [ ] Compare performance against baseline wanderer.
-           - [ ] Run baseline wanderer on environment and record metrics.
-           - [ ] Execute SAC-enhanced wanderer and gather same metrics.
-           - [ ] Analyze convergence speed differences.
+      - [x] Build minimal environment for SAC evaluation.
+          - [x] Define state and action spaces for toy environment.
+          - [x] Implement reward function and termination criteria.
+          - [x] Write reset and step methods with unit tests.
+          - [ ] Compare performance against baseline wanderer.
+              - [ ] Run baseline wanderer on environment and record metrics.
+              - [ ] Execute SAC-enhanced wanderer and gather same metrics.
+              - [ ] Analyze convergence speed differences.
 5. Add memory-gated attention to modulate path selection.
    - [ ] Design gating mechanism using episodic memory cues.
        - [ ] Specify features retrieved from episodic memory.
