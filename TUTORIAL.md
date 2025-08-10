@@ -695,18 +695,12 @@ tasks.
 
 **Goal:** Use the built-in asynchronous training and evolutionary tools on an image dataset.
 
-1. **Download the dataset programmatically** so that you have the CIFAR‑10 archive locally:
-   ```python
-   import urllib.request, tarfile, os
-
-   url = "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz"
-   archive = "cifar-10-python.tar.gz"
-   if not os.path.exists(archive):
-       urllib.request.urlretrieve(url, archive)
-       with tarfile.open(archive, "r:gz") as tar:
-           tar.extractall()
+1. **Download the dataset programmatically** using the helper script:
+   ```bash
+   python scripts/download_cifar10.py --output data/cifar10
    ```
-   The extracted directory contains Python pickles for each data batch.
+   The script retrieves the CIFAR‑10 archive and extracts the training and test
+   splits under `data/cifar10`.
 2. **Create training pairs** by loading each image array from the files and pairing it with the provided label to form `(input, target)` tuples. Normalise all pixel values into the range `[0, 1]` before continuing.
 3. **Start asynchronous training** by calling:
    ```python
@@ -744,17 +738,13 @@ tasks.
 **Complete Example**
 ```python
 # project2_image_classification.py
-import urllib.request, tarfile, os, pickle
+import pickle
 import numpy as np
 from marble_main import MARBLE
 from config_loader import load_config
 
-url = "https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz"
-archive = "cifar-10-python.tar.gz"
-if not os.path.exists(archive):
-    urllib.request.urlretrieve(url, archive)
-    with tarfile.open(archive, "r:gz") as tar:
-        tar.extractall()
+# Ensure the CIFAR-10 dataset is available using:
+#   python scripts/download_cifar10.py --output data/cifar10
 
 def load_cifar_batches(path):
     data, labels = [], []
