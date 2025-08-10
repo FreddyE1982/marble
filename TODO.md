@@ -739,24 +739,24 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
    - [x] Document Connect with remote wanderers for asynchronous exploration phases in README and TUTORIAL.
        - [x] Provide configuration examples for enabling remote wanderers.
        - [x] Include troubleshooting steps for network failures.
-210. [ ] Secure pipeline data flow by integrating dataset encryption routines.
-   - [ ] Outline design for Secure pipeline data flow by integrating dataset encryption routines.
+210. [x] Secure pipeline data flow by integrating dataset encryption routines.
+   - [x] Outline design for Secure pipeline data flow by integrating dataset encryption routines.
        - [x] Choose encryption algorithm and key management strategy.
            - AES-256-GCM via the ``cryptography`` library.
            - Keys supplied as base64 strings in ``DATASET_ENCRYPTION_KEY``.
        - [x] Identify integration points within dataset loader.
        - [x] Identify integration points within dataset saver.
        - [x] Determine configuration flags to toggle encryption.
-    - [ ] Implement Secure pipeline data flow by integrating dataset encryption routines with CPU/GPU support.
-       - [ ] Implement encryption and decryption utilities operating on CPU/GPU tensors.
+    - [x] Implement Secure pipeline data flow by integrating dataset encryption routines with CPU/GPU support.
+       - [x] Implement encryption and decryption utilities operating on CPU/GPU tensors.
            - [x] Add AES-GCM tensor encryption helpers in ``dataset_encryption.py``.
        - [x] Embed encryption hooks into DataLoader.
        - [x] Embed encryption hooks into dataset saver.
        - [x] Embed encryption hooks into dataset cache server.
        - [x] Expose `dataset.encryption_key` and related options in config files.
-   - [ ] Add tests validating Secure pipeline data flow by integrating dataset encryption routines.
+   - [x] Add tests validating Secure pipeline data flow by integrating dataset encryption routines.
        - [x] Encrypt and decrypt sample datasets verifying integrity.
-       - [ ] Benchmark performance overhead on CPU and GPU.
+       - [x] Benchmark performance overhead on CPU and GPU.
        - [x] Confirm failures occur with incorrect or missing keys.
        - [x] Verify cache server decrypts encrypted files.
    - [x] Document Secure pipeline data flow by integrating dataset encryption routines in README and TUTORIAL.
