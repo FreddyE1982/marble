@@ -21,10 +21,17 @@ dataset:
   offline: When ``true`` no network access is attempted. Remote datasets must
     already exist in ``cache_dir`` or a ``FileNotFoundError`` is raised. Use
     this to run experiments on machines without internet connectivity.
+  encryption_enabled: Boolean toggle controlling dataset-at-rest encryption.
+    When ``true`` any file fetched from a remote source is stored on disk using
+    AES-256-GCM to prevent casual inspection. The key is supplied via
+    ``encryption_key``. Set to ``false`` to keep cached files in plaintext on
+    trusted systems.
   encryption_key: Optional string used to encrypt serialized dataset objects.
-    When provided all objects are encrypted before being written to disk and
-    automatically decrypted when loaded. This should be the same key on every
-    machine processing the dataset.
+    The key must be a base64 encoded 32-byte value suitable for AES-256-GCM.
+    When ``encryption_enabled`` is ``true`` this key encrypts each cached
+    dataset file and any externally referenced resources. Files are decrypted
+    transparently during loading. Use the same key on every machine that needs
+    to read the dataset.
   cache_url: Base URL of a running ``DatasetCacheServer``. When set, files are
     fetched from the cache first and only downloaded from the original source if
     missing. This keeps datasets synchronised across multiple machines.

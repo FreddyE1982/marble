@@ -9,6 +9,7 @@ dataset:
   num_shards: 1       # Total shards for distributed datasets
   shard_index: 0      # Index of this shard for multi-node setups
   offline: false      # Disable remote dataset downloads
+  encryption_enabled: false  # When true, cache files are encrypted at rest
   encryption_key: null  # Optional key for dataset encryption
   cache_url: null      # Optional URL of DatasetCacheServer
   use_kuzu_graph: false  # When true, load training data from a Kùzu graph instead of ``source``
