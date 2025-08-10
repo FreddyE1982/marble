@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 
 from attention_utils import GatingLayer, generate_causal_mask
+from episodic_memory import EpisodicMemory
 
 
 class ContextAwareAttention(nn.Module):
@@ -40,6 +41,8 @@ class ContextAwareAttention(nn.Module):
         value: torch.Tensor,
         *,
         return_weights: bool = False,
+        episodic_memory: EpisodicMemory | None = None,
+        memory_context: dict | None = None,
     ) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         """Return attention-weighted values.
 
@@ -67,7 +70,12 @@ class ContextAwareAttention(nn.Module):
             mask = generate_causal_mask(scores.size(-1), device=device)
             scores = scores.masked_fill(mask, float("-inf"))
         if self.gating is not None:
-            gate = self.gating(scores.size(-1), device=device)
+            gate = self.gating(
+                scores.size(-1),
+                device=device,
+                memory=episodic_memory,
+                context=memory_context,
+            )
             scores = scores * gate
 
         weights = torch.softmax(scores, dim=-1)
