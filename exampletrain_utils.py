@@ -60,4 +60,78 @@ def create_synthetic_dataset(
     return list(zip(inputs, targets))
 
 
-__all__ = ["create_synthetic_dataset"]
+class MockTokenizer:
+    """Deterministic tokenizer returning a fixed sequence of token IDs.
+
+    The tokenizer mirrors the interface of the Hugging Face tokenizer used
+    by the original ``exampletrain.py`` script.  Regardless of the provided
+    text, it returns the same token ID tensor so that tests can exercise the
+    downstream components without relying on external models.  The returned
+    tensor lives on the device specified at construction time, defaulting to
+    CUDA when available.
+    """
+
+    def __init__(self, device: Optional[str] = None) -> None:
+        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+
+    def __call__(self, text: str, return_tensors: str = "pt") -> dict:
+        if return_tensors != "pt":  # pragma: no cover - defensive programming
+            raise ValueError("MockTokenizer only supports return_tensors='pt'")
+        token_ids = torch.tensor([[1, 2, 3]], device=self.device)
+        return {"input_ids": token_ids}
+
+
+class MockTextEncoder(torch.nn.Module):
+    """Minimal text encoder producing deterministic embeddings.
+
+    The encoder consists of an identity linear layer so that the output
+    matches the input token IDs (cast to ``float``).  This behaviour is
+    sufficient for parity tests while remaining device‑agnostic.
+    """
+
+    def __init__(self, device: Optional[str] = None) -> None:
+        super().__init__()
+        actual_device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        self.linear = torch.nn.Linear(3, 3, bias=False)
+        with torch.no_grad():
+            self.linear.weight.copy_(torch.eye(3))
+        self.to(actual_device)
+
+    def forward(self, input_ids: torch.Tensor) -> "MockEncoderOutput":
+        embeddings = self.linear(input_ids.float())
+        return MockEncoderOutput(embeddings)
+
+
+class MockEncoderOutput:
+    """Container mimicking the output of a Hugging Face text encoder."""
+
+    def __init__(self, last_hidden_state: torch.Tensor) -> None:
+        self.last_hidden_state = last_hidden_state
+
+
+class MockStableDiffusionPipeline:
+    """Lightweight stand‑in for ``StableDiffusionPipeline`` used in tests.
+
+    The pipeline exposes a :attr:`tokenizer` and :attr:`text_encoder` that
+    operate purely in memory without external resources.  The :meth:`to`
+    method mirrors the behaviour of the real pipeline, allowing tests to
+    switch devices seamlessly.
+    """
+
+    def __init__(self, device: Optional[str] = None) -> None:
+        actual_device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        self.tokenizer = MockTokenizer(device=actual_device)
+        self.text_encoder = MockTextEncoder(device=actual_device)
+
+    def to(self, device: str) -> "MockStableDiffusionPipeline":
+        self.tokenizer.device = device
+        self.text_encoder.to(device)
+        return self
+
+
+__all__ = [
+    "create_synthetic_dataset",
+    "MockTokenizer",
+    "MockTextEncoder",
+    "MockStableDiffusionPipeline",
+]
