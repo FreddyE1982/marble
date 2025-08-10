@@ -1,4 +1,3 @@
-import os
 import yaml
 from config_loader import create_marble_from_config
 
@@ -32,3 +31,29 @@ def test_quantum_flux_learning_section(tmp_path):
     cfg_path = _write_cfg(tmp_path, cfg)
     marble = create_marble_from_config(cfg_path)
     assert hasattr(marble, "quantum_flux_learner")
+
+
+def test_synaptic_echo_learning_section(tmp_path):
+    cfg = {
+        "synaptic_echo_learning": {
+            "enabled": True,
+            "epochs": 1,
+            "echo_influence": 1.0,
+        }
+    }
+    cfg_path = _write_cfg(tmp_path, cfg)
+    marble = create_marble_from_config(cfg_path)
+    assert hasattr(marble, "synaptic_echo_learner")
+
+
+def test_fractal_dimension_learning_section(tmp_path):
+    cfg = {
+        "fractal_dimension_learning": {
+            "enabled": True,
+            "epochs": 1,
+            "target_dimension": 1.0,
+        }
+    }
+    cfg_path = _write_cfg(tmp_path, cfg)
+    marble = create_marble_from_config(cfg_path)
+    assert hasattr(marble, "fractal_dimension_learner")
