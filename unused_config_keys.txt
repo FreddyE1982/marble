@@ -513,8 +513,6 @@ semi_supervised_learning.batch_size
 semi_supervised_learning.enabled
 semi_supervised_learning.epochs
 semi_supervised_learning.unlabeled_weight
-serve_model.host
-serve_model.port
 synaptic_echo_learning.echo_influence
 synaptic_echo_learning.enabled
 synaptic_echo_learning.epochs
