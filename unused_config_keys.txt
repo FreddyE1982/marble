@@ -47,7 +47,6 @@ brain.firing_interval_ms
 brain.initial_neurogenesis_factor
 brain.lobe_decay_rate
 brain.lobe_sync_interval
-brain.log_interval
 brain.loss_growth_threshold
 brain.manual_seed
 brain.max_neurogenesis_factor

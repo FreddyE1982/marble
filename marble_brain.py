@@ -6,6 +6,7 @@ import os
 import random
 import time
 
+import logging
 import torch
 
 from backup_utils import BackupScheduler
@@ -18,6 +19,7 @@ from meta_parameter_controller import MetaParameterController
 from neuromodulatory_system import NeuromodulatorySystem
 from system_metrics import get_gpu_memory_usage, get_system_memory_usage
 from usage_profiler import UsageProfiler
+import global_workspace
 
 
 def _parse_example(sample):
@@ -304,6 +306,7 @@ class Brain:
             if profile_enabled
             else None
         )
+        self.logger = logging.getLogger("marble.brain")
         os.makedirs(self.save_dir, exist_ok=True)
         self.backup_scheduler = None
         if self.backup_enabled:
@@ -453,6 +456,27 @@ class Brain:
             self.perform_neurogenesis(use_combined_attention=True)
             return True
         return False
+
+    def _maybe_log_metrics(self, epoch: int, val_loss: float | None, epoch_time: float) -> None:
+        """Log training progress periodically based on ``log_interval``.
+
+        Metrics are emitted through the standard logging module and the global
+        workspace, if available. When ``log_interval`` is ``0`` logging is
+        disabled.
+        """
+        if self.log_interval <= 0:
+            return
+        if (epoch + 1) % self.log_interval != 0:
+            return
+        loss_str = "N/A" if val_loss is None else f"{val_loss:.4f}"
+        self.logger.info(
+            "Epoch %d - val_loss=%s - time=%.2fs", epoch + 1, loss_str, epoch_time
+        )
+        if global_workspace.workspace is not None:
+            global_workspace.workspace.publish(
+                "brain.training_log",
+                {"epoch": epoch + 1, "val_loss": val_loss, "epoch_time": epoch_time},
+            )
 
     def train(
         self,
@@ -621,6 +645,7 @@ class Brain:
                 self.benchmark_step(example)
             if self.profiler and epoch % self.profile_interval == 0:
                 self.profiler.log_epoch(epoch)
+            self._maybe_log_metrics(epoch, val_loss, epoch_time)
             if self.metrics_visualizer is not None:
                 self.metrics_visualizer.log_event(
                     "epoch_end", {"epoch": epoch, "loss": val_loss}
