@@ -573,6 +573,18 @@ pipe.execute(cache_dir="cache")  # second run loads from disk
    ```python
    marble.brain.train(train_examples, epochs=10, validation_examples=val_examples)
    ```
+   A successful run on the CPU prints output similar to:
+
+   ```
+   Epoch 1/1 - Average error: 0.6348 - Validation: 1.0000
+   Core expanded: 10 new neurons in tier 'vram' and 15 new synapses added.
+   Memory usage - VRAM: 0.00 MB, RAM: 0.00 MB, Disk: 0.00 MB
+   Memory usage - VRAM: 0.00 MB, RAM: 0.00 MB, Disk: 0.00 MB
+   trained on 100 examples
+   ```
+
+   On GPU-enabled systems the same messages appear but computations run on CUDA
+   instead of the CPU.
    Training progress is visualised with a sidebar progress bar in the Streamlit GUI.
 8. **Monitor progress** with `MetricsVisualizer` which plots loss and memory usage. Adjust the `fig_width` and `color_scheme` options under `metrics_visualizer` in `config.yaml` to change the appearance.
    The pipeline core also broadcasts ``pipeline_progress`` events containing
