@@ -19,7 +19,7 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
        - [ ] Document impact on exploration.
            - [ ] Summarize entropy metrics before and after regularization.
            - [ ] Include visualization of policy entropy over training.
-   - [ ] Add temperature parameter to config and docs.
+   - [x] Add temperature parameter to config and docs.
        - [x] Introduce `sac.temperature` in configuration files.
        - [x] Explain parameter in YAML manual and tutorial.
    - [ ] Test wandering with SAC on small environment.
