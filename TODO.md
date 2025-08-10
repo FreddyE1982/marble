@@ -1551,12 +1551,16 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [ ] Reference related examples or tutorials.
             - [x] Document `sac.temperature` with default value and tutorial link.
         - [ ] Extend `TUTORIAL.md` with projects for new features (e.g., self-distillation).
-            - [ ] Create step-by-step project showcasing feature.
-            - [ ] Link to dataset download and preparation code.
-            - [ ] Provide complete CPU and GPU execution commands.
+            - [x] Create step-by-step project showcasing feature.
+            - [x] Link to dataset download and preparation code.
+            - [x] Provide complete CPU and GPU execution commands.
             - [ ] Add expected output screenshots.
-            - [ ] Include troubleshooting tips for common errors.
+                - [ ] Capture training output screenshot.
+                - [ ] Embed screenshot in tutorial.
+            - [x] Include troubleshooting tips for common errors.
             - [ ] Verify instructions on a clean environment.
+                - [ ] Run example on CPU-only environment.
+                - [ ] Run example on CUDA-enabled environment.
 
 333. [ ] Add unit tests and verify CUDA fallbacks.
     - [ ] Write tests for quantization correctness, parallel wanderers, and prompt cache behavior.
