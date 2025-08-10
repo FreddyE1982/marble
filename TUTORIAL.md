@@ -183,10 +183,35 @@ for row in StreamingCSVLoader("data.csv", tokenizer=tok):
     print(row["input_ids"], row["target"])
 ```
 
-If you set ``dataset.encryption_key`` in ``config.yaml`` the loader encrypts all
-objects before writing them to disk and automatically decrypts them when
-loading. Use the same key on every machine that processes the dataset to handle
-them correctly.
+### Encrypting dataset caches
+
+1. **Generate a key** and store it securely:
+
+   ```python
+   from dataset_encryption import generate_key
+   print(generate_key())
+   ```
+
+2. **Expose the key** via the ``DATASET_ENCRYPTION_KEY`` environment variable.
+
+3. **Enable encryption** in ``config.yaml``:
+
+   ```yaml
+   dataset:
+     encryption_enabled: true
+     encryption_key: ${DATASET_ENCRYPTION_KEY}
+   ```
+
+4. **Run your pipeline** with the variable set so cached files are encrypted at
+   rest and transparently decrypted when the same key is supplied:
+
+   ```bash
+   export DATASET_ENCRYPTION_KEY="<base64-key>"
+   python pipeline_cli.py --config config.yaml pipeline.json
+   ```
+
+Rotate keys by re-encrypting caches with a freshly generated value and updating
+the ``DATASET_ENCRYPTION_KEY`` on every machine that accesses the dataset.
 
 #### Automatically refresh models when datasets change
 

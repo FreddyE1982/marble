@@ -759,9 +759,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
        - [ ] Benchmark performance overhead on CPU and GPU.
        - [ ] Confirm failures occur with incorrect or missing keys.
        - [x] Verify cache server decrypts encrypted files.
-   - [ ] Document Secure pipeline data flow by integrating dataset encryption routines in README and TUTORIAL.
-       - [ ] Document enabling encryption in config and CLI.
-       - [ ] Provide guidance for key management and rotation.
+   - [x] Document Secure pipeline data flow by integrating dataset encryption routines in README and TUTORIAL.
+       - [x] Document enabling encryption in config and CLI.
+       - [x] Provide guidance for key management and rotation.
 211. [x] Route memory allocations through the memory pool for every operation.
    - [x] Outline design for Route memory allocations through the memory pool for every operation.
        - Introduce an ``ArrayMemoryPool`` capable of preallocating tensor buffers
