@@ -1,5 +1,5 @@
 No failing tests.
-- tests/test_streamlit_all_buttons.py::test_click_all_buttons: RuntimeError: AppTest script run timed out after 10(s)
+- tests/test_streamlit_all_buttons.py::test_click_all_buttons: RuntimeError: AppTest script run timed out after 10(s) [resolved]
 - tests/test_multiprocessing_dataset.py::test_multiprocessing_cpu: ConnectionResetError [resolved by enforcing spawn start method]
 - tests/test_streamlit_gui.py: multiple failures (StopIteration, IndexError, ImportError)
  - tests/test_streamlit_gui.py: unexpected failures during dataset history integration
@@ -7,7 +7,7 @@ No failing tests.
 - tests/test_streamlit_gui.py::test_step_export_and_metrics_mobile: IndexError: list index out of range
 - tests/test_streamlit_progress.py::test_progress_desktop: IndexError: list index out of range
 - tests/test_streamlit_progress.py::test_progress_mobile: IndexError: list index out of range
-- tests/test_streamlit_all_buttons.py::test_click_all_buttons: IndexError: list index out of range
+- tests/test_streamlit_all_buttons.py::test_click_all_buttons: IndexError: list index out of range [resolved]
 - tests/test_streamlit_playground.py::test_initialize_marble: TypeError: Neuronenblitz.__init__() got an unexpected keyword argument 'auto_update' [resolved]
 - tests/test_streamlit_gui.py::test_pipeline_tab_add_and_run: IndexError: list index out of range
 - tests/test_streamlit_gui.py::test_pipeline_reorder_and_remove: IndexError: list index out of range
