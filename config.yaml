@@ -391,6 +391,9 @@ lobe_manager:
   attention_decrease_factor: 0.95
 formula: "log(1+T)/log(1+I)"
 formula_num_neurons: 100
+meta:
+  rate: 0.5            # Step size for meta-learning adjustments
+  window: 5            # Number of recent outcomes considered by the meta-learner
 meta_controller:
   history_length: 5
   adjustment: 0.5

@@ -2620,7 +2620,10 @@ re-executes from that point, preserving the previous computation.
 28. **Tweak adaptive controllers** on the *Adaptive Control* tab. Inspect the
     meta-controller's loss history and adjust its parameters, review super
     evolution metrics and apply dimensional search or n-dimensional topology
-    evaluations with a single click.
+    evaluations with a single click. Global defaults for the controller live in
+    the ``meta`` section of ``config.yaml`` where ``rate`` controls how strongly
+    thresholds are adjusted and ``window`` defines how many recent losses are
+    considered.
 29. **Manage hybrid memory** on the *Hybrid Memory* tab. Initialize the vector
     and symbolic stores, add new key/value pairs, query for similar entries and
     prune older items without leaving the UI.

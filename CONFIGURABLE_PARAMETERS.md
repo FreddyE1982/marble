@@ -374,6 +374,10 @@ Each entry is listed under its section heading.
 - min_threshold
 - max_threshold
 
+## meta
+- rate
+- window
+
 ## neuromodulatory_system.initial
 - arousal
 - stress

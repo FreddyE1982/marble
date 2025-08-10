@@ -1052,6 +1052,17 @@ formula: Mathematical expression used to compute initial neuron values instead
   of the Mandelbrot seed. If omitted the Mandelbrot algorithm is used.
 formula_num_neurons: Number of neurons created when ``formula`` is provided.
 
+meta:
+  # Global meta-learning settings influencing how the meta-learner adapts
+  # plasticity thresholds. These serve as defaults for ``meta_controller``
+  # unless that section overrides them.
+  rate: Step size applied whenever the meta-learner adjusts the threshold.
+    Higher values react quickly but may cause oscillations. Typical range
+    is ``0.1``–``1.0``.
+  window: Number of recent loss values considered when computing
+    adjustments. Larger windows smooth out noise but slow adaptation.
+    Values between ``3`` and ``20`` are common.
+
 meta_controller:
   # The meta-controller monitors validation losses and adjusts
   # ``neuronenblitz.plasticity_threshold`` accordingly. If losses rise the

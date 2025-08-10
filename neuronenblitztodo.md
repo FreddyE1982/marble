@@ -56,9 +56,9 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
    - [ ] Train meta-learner to propose threshold updates.
        - [ ] Choose lightweight model for meta-learning.
        - [ ] Fit model on recorded outcomes to predict new thresholds.
-   - [ ] Add config options for meta-learning rate and window size.
-       - [ ] Introduce parameters `meta.rate` and `meta.window`.
-       - [ ] Document recommended ranges and defaults.
+   - [x] Add config options for meta-learning rate and window size.
+       - [x] Introduce parameters `meta.rate` and `meta.window`.
+       - [x] Document recommended ranges and defaults.
    - [ ] Add tests verifying threshold adapts.
        - [ ] Simulate scenarios where thresholds should change.
        - [ ] Assert meta-learner adjusts values accordingly.
