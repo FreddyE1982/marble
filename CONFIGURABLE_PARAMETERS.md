@@ -71,9 +71,11 @@ Each entry is listed under its section heading.
 ## mcp_server
 - host
 - port
-- auth.token: Bearer token clients must present.
-- auth.username: Basic auth username.
-- auth.password: Basic auth password.
+- auth.token: Bearer token clients must present. Missing or incorrect tokens
+  produce ``401 Unauthorized`` responses.
+- auth.username: Basic auth username required when ``auth.password`` is set.
+- auth.password: Basic auth password. Requests with wrong credentials result in
+  ``401 Unauthorized``.
 ## sync
 - interval_ms: Interval in milliseconds between cross-device tensor
   synchronisation cycles. Recommended 100–10_000 depending on network speed.

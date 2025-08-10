@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import base64
 import threading
 from typing import Any
 
@@ -27,6 +28,10 @@ class MCPServer:
         port: int = 8765,
         prompt_memory: PromptMemory | None = None,
         prompt_path: str | None = None,
+        *,
+        auth_token: str | None = None,
+        auth_username: str | None = None,
+        auth_password: str | None = None,
     ) -> None:
         self.brain = brain
         self.host = host
@@ -38,6 +43,10 @@ class MCPServer:
             self.prompt_memory = PromptMemory.load(prompt_path)
         else:
             self.prompt_memory = None
+
+        self.auth_token = auth_token
+        self.auth_username = auth_username
+        self.auth_password = auth_password
 
         self.app = web.Application()
         self.app.router.add_post("/mcp/infer", self._handle_infer)
@@ -55,7 +64,29 @@ class MCPServer:
         out, _ = self.brain.neuronenblitz.dynamic_wander(float(tensor.item()))
         return out, device
 
+    def _check_auth(self, request: web.Request) -> None:
+        """Validate request authentication headers."""
+        if self.auth_token:
+            auth = request.headers.get("Authorization")
+            if auth != f"Bearer {self.auth_token}":
+                raise web.HTTPUnauthorized()
+        elif self.auth_username is not None:
+            auth = request.headers.get("Authorization", "")
+            if not auth.startswith("Basic "):
+                raise web.HTTPUnauthorized()
+            try:
+                decoded = base64.b64decode(auth.split(" ", 1)[1]).decode()
+            except Exception:
+                raise web.HTTPUnauthorized()
+            username, _, password = decoded.partition(":")
+            if (
+                username != self.auth_username
+                or password != (self.auth_password or "")
+            ):
+                raise web.HTTPUnauthorized()
+
     async def _handle_infer(self, request: web.Request) -> web.Response:
+        self._check_auth(request)
         data: dict[str, Any] = await request.json() if request.can_read_body else {}
         if "text" in data:
             text = str(data.get("text", ""))
@@ -77,6 +108,7 @@ class MCPServer:
         return web.json_response({"output": output})
 
     async def _handle_context(self, request: web.Request) -> web.Response:
+        self._check_auth(request)
         data: dict[str, Any] = await request.json() if request.can_read_body else {}
         text = str(data.get("text", ""))
         composite = (

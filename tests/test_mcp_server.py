@@ -56,3 +56,65 @@ def test_mcp_server_context(tmp_path):
         assert memory.get_pairs()[0][0] == "hello"
     finally:
         server.stop()
+
+
+def test_mcp_server_token_auth():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    brain = Brain(core, nb, DataLoader())
+    server = MCPServer(brain, host="localhost", port=5082, auth_token="secret")
+    server.start()
+    time.sleep(0.5)
+    try:
+        async def _request(headers=None):
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    "http://localhost:5082/mcp/infer",
+                    json={"input": 0.2},
+                    headers=headers,
+                ) as resp:
+                    return resp.status
+
+        # Missing token should fail
+        assert asyncio.run(_request()) == 401
+        # Correct token succeeds
+        assert (
+            asyncio.run(_request({"Authorization": "Bearer secret"})) == 200
+        )
+    finally:
+        server.stop()
+
+
+def test_mcp_server_basic_auth():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    brain = Brain(core, nb, DataLoader())
+    server = MCPServer(
+        brain,
+        host="localhost",
+        port=5083,
+        auth_username="user",
+        auth_password="pass",
+    )
+    server.start()
+    time.sleep(0.5)
+    try:
+        async def _request(headers=None):
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    "http://localhost:5083/mcp/infer",
+                    json={"input": 0.3},
+                    headers=headers,
+                ) as resp:
+                    return resp.status
+
+        import base64
+
+        creds = base64.b64encode(b"user:pass").decode()
+        auth_header = {"Authorization": f"Basic {creds}"}
+        assert asyncio.run(_request(auth_header)) == 200
+        assert asyncio.run(_request()) == 401
+    finally:
+        server.stop()

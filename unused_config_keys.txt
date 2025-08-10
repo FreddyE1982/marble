@@ -282,12 +282,6 @@ logging.max_bytes
 logging.propagate
 logging.rotate
 logging.structured
-mcp_server.auth
-mcp_server.auth.password
-mcp_server.auth.token
-mcp_server.auth.username
-mcp_server.host
-mcp_server.port
 memory_system.consolidation_interval
 memory_system.long_term_path
 memory_system.threshold

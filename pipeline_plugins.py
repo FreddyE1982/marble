@@ -232,16 +232,33 @@ class MCPServeModelPlugin(PipelinePlugin):
     returns connection information for clients.
     """
 
-    def __init__(self, host: str | None = None, port: int | None = None) -> None:
+    def __init__(
+        self,
+        host: str | None = None,
+        port: int | None = None,
+        *,
+        token: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+    ) -> None:
         from config_loader import load_config
 
         cfg = load_config()
         defaults = cfg.get("mcp_server", {})
+        auth_cfg = defaults.get("auth", {})
         host = host if host is not None else defaults.get("host", "localhost")
         port = port if port is not None else defaults.get("port", 5080)
-        super().__init__(host=host, port=port)
+        token = token if token is not None else auth_cfg.get("token")
+        username = username if username is not None else auth_cfg.get("username")
+        password = password if password is not None else auth_cfg.get("password")
+        super().__init__(
+            host=host, port=port, token=token, username=username, password=password
+        )
         self.host = host
         self.port = port
+        self.token = token
+        self.username = username
+        self.password = password
         self.server = None
 
     def initialise(self, device: torch.device, marble=None) -> None:
@@ -256,7 +273,14 @@ class MCPServeModelPlugin(PipelinePlugin):
         )
         if hasattr(brain, "neuronenblitz") and hasattr(brain.neuronenblitz, "device"):
             brain.neuronenblitz.device = device
-        self.server = MCPServer(brain, host=self.host, port=self.port)
+        self.server = MCPServer(
+            brain,
+            host=self.host,
+            port=self.port,
+            auth_token=self.token,
+            auth_username=self.username,
+            auth_password=self.password,
+        )
         self.server.start()
 
     def execute(self, device: torch.device, marble=None):
