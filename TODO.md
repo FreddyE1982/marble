@@ -1674,10 +1674,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [ ] Prototype span scoring on synthetic data.
             - [ ] Optimize span selection for batched inputs.
         - [ ] Expose span configuration in YAML and documentation.
-            - [ ] Add `attention.dynamic_span` parameter to `config.yaml`.
-            - [ ] Describe parameter in `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
-            - [ ] Provide example YAML snippet enabling the feature.
-            - [ ] Validate config loader handles missing values gracefully.
+            - [x] Add `attention.dynamic_span` parameter to `config.yaml`.
+            - [x] Describe parameter in `yaml-manual.txt` and `CONFIGURABLE_PARAMETERS.md`.
+            - [x] Provide example YAML snippet enabling the feature.
+            - [x] Validate config loader handles missing values gracefully.
         - [ ] Benchmark and test span behavior on CPU and GPU.
             - [ ] Create unit tests for varying span lengths.
             - [ ] Measure performance impact on both devices.

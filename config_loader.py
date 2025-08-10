@@ -39,6 +39,8 @@ def load_config(path: str | None = None) -> dict:
                 overrides = yaml.safe_load(f) or {}
             _deep_update(data, overrides)
     validate_config_schema(data)
+    nb = data.setdefault("neuronenblitz", {})
+    nb.setdefault("attention", {}).setdefault("dynamic_span", False)
     return data
 
 

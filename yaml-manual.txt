@@ -586,6 +586,18 @@ neuronenblitz:
   max_attention_span: Optional hard limit on the number of elements retained
     after applying ``attention_span_threshold``. ``null`` disables the cap.
     Use this to bound memory usage for very long sequences.
+  attention.dynamic_span: Enables an adaptive mechanism that selects the
+    number of attention elements based on recent context quality. When ``true``
+    the span is computed on the GPU when available and transparently falls
+    back to the CPU otherwise. Set to ``false`` to keep the span static. Typical
+    usage enables this feature only for tasks with highly variable sequence
+    lengths.
+    Example enabling the feature:
+    ```yaml
+    neuronenblitz:
+      attention:
+        dynamic_span: true
+    ```
   remote_fallback: When true, neurons attempting remote execution fall back to
     local processing if the remote call fails.
   noise_injection_std: Standard deviation of Gaussian noise injected into neuron
