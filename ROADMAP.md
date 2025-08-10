@@ -30,7 +30,7 @@ This document outlines upcoming milestones for future Marble releases.
   - [ ] Write step-by-step guides with full code listings.
   - [ ] Provide expected results for CPU and GPU runs.
     - [x] Project 2 – Image Classification.
-    - [ ] Project 1 – Numeric Regression.
+    - [x] Project 1 – Numeric Regression.
 - Extended hardware plugin catalog
   - [ ] Research upcoming accelerators (e.g., TPU, custom ASICs).
   - [ ] Prototype plugin interface for each device with CPU fallback.
