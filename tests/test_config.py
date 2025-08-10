@@ -40,6 +40,8 @@ def test_load_config_defaults():
     assert cfg["core"]["interconnection_prob"] == 0.05
     assert cfg["brain"]["save_threshold"] == 0.05
     assert cfg["meta_controller"]["history_length"] == 5
+    assert cfg["meta"]["rate"] == 0.5
+    assert cfg["meta"]["window"] == 5
     assert cfg["neuromodulatory_system"]["initial"]["emotion"] == "neutral"
     assert cfg["network"]["remote_client"]["url"] == "http://localhost:8001"
     assert cfg["network"]["remote_client"]["timeout"] == 5.0
@@ -120,6 +122,7 @@ def test_create_marble_from_config():
     marble = create_marble_from_config()
     assert isinstance(marble, MARBLE)
     assert marble.brain.meta_controller.history_length == 5
+    assert marble.brain.meta_controller.adjustment == 0.5
     assert isinstance(marble.brain.remote_client, RemoteBrainClient)
     assert isinstance(marble.brain.torrent_client, BrainTorrentClient)
     assert marble.brain.neurogenesis_factor == 1.0
@@ -220,6 +223,18 @@ def test_new_nb_parameters_configurable(tmp_path):
     assert marble.neuronenblitz._cache_max_size == 7
     assert marble.neuronenblitz._rmsprop_beta == 0.8
     assert marble.neuronenblitz._grad_epsilon == 1e-6
+
+
+def test_meta_section_overrides_meta_controller(tmp_path):
+    cfg = load_config()
+    cfg.setdefault("meta", {})["rate"] = 0.2
+    cfg["meta"]["window"] = 7
+    cfg_path = tmp_path / "meta.yaml"
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(cfg, f)
+    marble = create_marble_from_config(str(cfg_path))
+    assert marble.brain.meta_controller.adjustment == 0.2
+    assert marble.brain.meta_controller.history_length == 7
 
 
 def test_global_workspace_config(tmp_path):

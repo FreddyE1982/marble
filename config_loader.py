@@ -41,6 +41,9 @@ def load_config(path: str | None = None) -> dict:
     validate_config_schema(data)
     nb = data.setdefault("neuronenblitz", {})
     nb.setdefault("attention", {}).setdefault("dynamic_span", False)
+    meta = data.setdefault("meta", {})
+    meta.setdefault("rate", 0.5)
+    meta.setdefault("window", 5)
     return data
 
 
@@ -122,10 +125,11 @@ def create_marble_from_config(
     formula_num_neurons = cfg.get("formula_num_neurons", 100)
 
     # Meta-parameter controller
+    meta_defaults = cfg.get("meta", {})
     mc_cfg = cfg.get("meta_controller", {})
     meta_controller = MetaParameterController(
-        history_length=mc_cfg.get("history_length", 5),
-        adjustment=mc_cfg.get("adjustment", 0.5),
+        history_length=mc_cfg.get("history_length", meta_defaults.get("window", 5)),
+        adjustment=mc_cfg.get("adjustment", meta_defaults.get("rate", 0.5)),
         min_threshold=mc_cfg.get("min_threshold", 1.0),
         max_threshold=mc_cfg.get("max_threshold", 20.0),
     )
