@@ -177,6 +177,7 @@ def create_marble_from_config(
     autograd_params = cfg.get("autograd", {})
     gw_cfg = cfg.get("global_workspace", {})
     ac_cfg = cfg.get("attention_codelets", {})
+    ul_cfg = cfg.get("unified_learning", {})
     pytorch_challenge_params = cfg.get("pytorch_challenge", {})
     gpt_cfg = cfg.get("gpt", {})
 
@@ -314,6 +315,18 @@ def create_marble_from_config(
 
         marble.tensor_sync_service = TensorSyncService(
             interval_ms=int(sync_cfg.get("interval_ms", 1000))
+        )
+    if ul_cfg.get("enabled"):
+        from unified_learning import UnifiedLearner
+
+        learners = ul_cfg.get("learners", {})
+        marble.unified_learner = UnifiedLearner(
+            marble.core,
+            marble.neuronenblitz if hasattr(marble, "neuronenblitz") else marble,
+            learners,
+            gating_hidden=ul_cfg.get("gating_hidden", 8),
+            log_path=ul_cfg.get("log_path"),
+            plugin_dirs=ul_cfg.get("plugin_dirs"),
         )
     if gw_cfg.get("enabled", False):
         from global_workspace import activate as activate_global_workspace

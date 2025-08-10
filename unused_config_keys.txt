@@ -534,6 +534,3 @@ transfer_learning.batch_size
 transfer_learning.enabled
 transfer_learning.epochs
 transfer_learning.freeze_fraction
-unified_learning.enabled
-unified_learning.gating_hidden
-unified_learning.log_path

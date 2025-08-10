@@ -51,6 +51,20 @@ def main() -> None:
         help="Milliseconds between cross-device tensor synchronizations (100-10000 recommended)",
     )
     parser.add_argument(
+        "--unified-learning",
+        action="store_true",
+        help="Enable UnifiedLearner meta-controller",
+    )
+    parser.add_argument(
+        "--unified-learning-gating-hidden",
+        type=int,
+        help="Hidden units for UnifiedLearner gating network",
+    )
+    parser.add_argument(
+        "--unified-learning-log-path",
+        help="Path to UnifiedLearner decision log",
+    )
+    parser.add_argument(
         "--pipeline",
         help="Path to a pipeline JSON file to execute after initialization",
     )
@@ -127,6 +141,7 @@ def main() -> None:
         "neuronenblitz": {},
         "brain": {},
         "sync": {},
+        "unified_learning": {},
         "network": {"remote_client": {}},
         "core": {},
         "cross_validation": {},
@@ -151,6 +166,12 @@ def main() -> None:
         overrides["brain"]["early_stopping_patience"] = args.early_stopping_patience
     if args.early_stopping_delta is not None:
         overrides["brain"]["early_stopping_delta"] = args.early_stopping_delta
+    if args.unified_learning:
+        overrides["unified_learning"]["enabled"] = True
+    if args.unified_learning_gating_hidden is not None:
+        overrides["unified_learning"]["gating_hidden"] = args.unified_learning_gating_hidden
+    if args.unified_learning_log_path is not None:
+        overrides["unified_learning"]["log_path"] = args.unified_learning_log_path
     if args.remote_retries is not None:
         overrides["network"]["remote_client"]["max_retries"] = args.remote_retries
     if args.remote_backoff is not None:
