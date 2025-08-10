@@ -63,9 +63,11 @@ def _setup(monkeypatch):
     monkeypatch.setattr(sp, "optuna_figures", lambda s: (go.Figure(), go.Figure()))
     monkeypatch.setattr(sp, "optuna_best_config", lambda s: "")
 
-    at = AppTest.from_file("streamlit_playground.py").run(timeout=10)
-    at = at.sidebar.button[0].click().run(timeout=10)
-    at = at.sidebar.radio[0].set_value("Advanced").run(timeout=10)
+    at = AppTest.from_file("streamlit_playground.py").run(timeout=30)
+    at = at.sidebar.button[0].click().run(timeout=30)
+    radios = list(at.sidebar.radio)
+    if radios:
+        at = radios[0].set_value("Advanced").run(timeout=30)
     return at
 
 

@@ -533,14 +533,6 @@ theory_of_mind.memory_slots
 theory_of_mind.mismatch_threshold
 theory_of_mind.num_layers
 theory_of_mind.prediction_horizon
-tool_manager.agent_id
-tool_manager.enabled
-tool_manager.mode
-tool_manager.policy
-tool_manager.tools
-tool_manager.tools.database_query
-tool_manager.tools.database_query.db_path
-tool_manager.tools.web_search
 transfer_learning.batch_size
 transfer_learning.enabled
 transfer_learning.epochs

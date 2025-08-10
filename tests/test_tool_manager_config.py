@@ -10,6 +10,8 @@ def test_tool_manager_loaded_from_config(tmp_path, monkeypatch):
     cfg["tool_manager"] = {
         "enabled": True,
         "policy": "heuristic",
+        "mode": "direct",
+        "agent_id": "tm_test",
         "tools": {
             "web_search": {},
             "database_query": {"db_path": str(tmp_path / "db.kuzu")},
@@ -32,6 +34,8 @@ def test_tool_manager_loaded_from_config(tmp_path, monkeypatch):
     monkeypatch.setattr("database_query_tool.DatabaseQueryTool.execute", fake_db)
 
     marble = create_marble_from_config(str(cfg_path))
+    assert marble.tool_manager.mode == "direct"
+    assert marble.tool_manager.agent_id == "tm_test"
     res1 = marble.tool_manager.execute(torch.device("cpu"), query="search the web")
     assert res1["tool"] == "web_search"
     assert called["web"]

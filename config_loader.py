@@ -300,6 +300,8 @@ def create_marble_from_config(
         manager = ToolManagerPlugin(
             tools=tool_cfg.get("tools", {}),
             policy=tool_cfg.get("policy", "heuristic"),
+            mode=tool_cfg.get("mode", "direct"),
+            agent_id=tool_cfg.get("agent_id", "tool_manager"),
         )
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         manager.initialise(device, marble)
