@@ -983,6 +983,20 @@ a minimal web API.
    pytorch_challenge.run_challenge(digits, pretrained_model=pretrained, cfg=cfg)
    ```
    This trains MARBLE and the PyTorch model side by side while increasing neuromodulatory stress whenever MARBLE performs worse.
+   You can also activate the comparison directly via configuration:
+
+   ```yaml
+   pytorch_challenge:
+     enabled: true
+     loss_penalty: 0.1
+     speed_penalty: 0.1
+     size_penalty: 0.1
+   ```
+
+   With `pytorch_challenge.enabled` set to true, `MARBLE` automatically
+   launches the challenge at startup and adjusts neuromodulatory stress after
+   each example when its loss, inference speed or model size trail the
+   pretrained baseline.
 4. **Direct autograd integration** is possible by wrapping the brain with `MarbleAutogradLayer` so PyTorch optimizers can be applied directly:
    ```python
    from marble_autograd import MarbleAutogradLayer

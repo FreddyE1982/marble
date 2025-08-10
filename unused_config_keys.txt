@@ -485,10 +485,6 @@ predictive_coding.latent_dim
 predictive_coding.learning_rate
 predictive_coding.num_layers
 preprocessing.workers
-pytorch_challenge.enabled
-pytorch_challenge.loss_penalty
-pytorch_challenge.size_penalty
-pytorch_challenge.speed_penalty
 quantum_flux_learning.enabled
 quantum_flux_learning.epochs
 quantum_flux_learning.phase_rate
