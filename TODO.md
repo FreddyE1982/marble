@@ -1545,8 +1545,10 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
         - [ ] Add entries to `CONFIGURABLE_PARAMETERS.md`.
             - [ ] List default values and descriptions.
             - [ ] Cross-reference related parameters.
-            - [ ] Validate entries against current `config.yaml`.
+            - [x] Validate entries against current `config.yaml`.
             - [ ] Keep parameter list sorted alphabetically.
+                - [ ] Add checker script enforcing alphabetical order.
+                - [ ] Sort existing entries in `CONFIGURABLE_PARAMETERS.md`.
             - [ ] Reference related examples or tutorials.
             - [x] Document `sac.temperature` with default value and tutorial link.
         - [ ] Extend `TUTORIAL.md` with projects for new features (e.g., self-distillation).
