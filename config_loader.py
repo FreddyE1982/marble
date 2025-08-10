@@ -429,4 +429,44 @@ def create_marble_from_config(
             learner.train(examples, epochs=int(qf_cfg.get("epochs", 1)))
         marble.quantum_flux_learner = learner
 
+    se_cfg = cfg.get("synaptic_echo_learning", {})
+    if se_cfg.get("enabled", False):
+        from dataset_loader import load_dataset
+        from synaptic_echo_learning import SynapticEchoLearner
+
+        examples = []
+        if dataset_path:
+            try:
+                examples = load_dataset(dataset_path)
+            except Exception:  # pragma: no cover - best effort loading
+                examples = []
+        learner = SynapticEchoLearner(
+            marble.core,
+            marble.neuronenblitz,
+            echo_influence=se_cfg.get("echo_influence", 1.0),
+        )
+        if examples:
+            learner.train(examples, epochs=int(se_cfg.get("epochs", 1)))
+        marble.synaptic_echo_learner = learner
+
+    fd_cfg = cfg.get("fractal_dimension_learning", {})
+    if fd_cfg.get("enabled", False):
+        from dataset_loader import load_dataset
+        from fractal_dimension_learning import FractalDimensionLearner
+
+        examples = []
+        if dataset_path:
+            try:
+                examples = load_dataset(dataset_path)
+            except Exception:  # pragma: no cover - best effort loading
+                examples = []
+        learner = FractalDimensionLearner(
+            marble.core,
+            marble.neuronenblitz,
+            target_dimension=fd_cfg.get("target_dimension", 4.0),
+        )
+        if examples:
+            learner.train(examples, epochs=int(fd_cfg.get("epochs", 1)))
+        marble.fractal_dimension_learner = learner
+
     return marble
