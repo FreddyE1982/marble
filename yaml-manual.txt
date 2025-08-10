@@ -899,7 +899,10 @@ brain:
     disk tiers.
   manual_seed: Random seed applied during initialization for reproducible
     experiments.
-  log_interval: Number of batches between status log messages during training.
+  log_interval: Integer number of epochs between status log messages during
+    training. Logging reports validation loss and epoch duration so long runs
+    can be monitored. Set ``0`` to disable periodic logging. Typical values are
+    ``1`` to ``10`` for verbose feedback or higher for quieter training runs.
   evaluation_interval: Number of epochs between validation runs.
   early_stopping_patience: Number of sequential epochs allowed without a
     sufficient decrease in validation loss. Once this count is exceeded the
