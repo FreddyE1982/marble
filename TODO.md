@@ -741,11 +741,14 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
        - [x] Include troubleshooting steps for network failures.
 210. [ ] Secure pipeline data flow by integrating dataset encryption routines.
    - [ ] Outline design for Secure pipeline data flow by integrating dataset encryption routines.
-       - [ ] Choose encryption algorithm and key management strategy.
+       - [x] Choose encryption algorithm and key management strategy.
+           - AES-256-GCM via the ``cryptography`` library.
+           - Keys supplied as base64 strings in ``DATASET_ENCRYPTION_KEY``.
        - [ ] Identify integration points within dataset loader and saver.
        - [ ] Determine configuration flags to toggle encryption.
    - [ ] Implement Secure pipeline data flow by integrating dataset encryption routines with CPU/GPU support.
        - [ ] Implement encryption and decryption utilities operating on CPU/GPU tensors.
+           - [x] Add AES-GCM tensor encryption helpers in ``dataset_encryption.py``.
        - [ ] Embed encryption hooks into DataLoader and cache server.
        - [ ] Expose `dataset.encryption_key` and related options in config files.
    - [ ] Add tests validating Secure pipeline data flow by integrating dataset encryption routines.

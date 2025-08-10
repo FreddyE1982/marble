@@ -18,3 +18,8 @@ PyTorch Conversion
 ------------------
 
 .. include:: pytorch_conversion.md
+
+Data Security
+-------------
+
+.. include:: dataset_encryption.md
