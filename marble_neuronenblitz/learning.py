@@ -62,9 +62,13 @@ def enable_sac(
     """
 
     actor, critic = create_sac_networks(state_dim, action_dim, device=device)
+    actor_device = next(actor.parameters()).device
     nb.sac_actor = actor
     nb.sac_critic = critic
-    nb.sac_device = actor.device
+    nb.sac_device = actor_device
+    # expose ``device`` attribute on networks for compatibility
+    actor.device = actor_device
+    critic.device = actor_device
     nb.sac_actor_opt = torch.optim.Adam(actor.parameters(), lr=actor_lr)
     nb.sac_critic_opt = torch.optim.Adam(critic.parameters(), lr=critic_lr)
     nb.sac_auto_temperature = tune_entropy
