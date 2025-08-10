@@ -211,7 +211,6 @@ dataset.kuzu_graph.limit
 dataset.kuzu_graph.query
 dataset.kuzu_graph.target_column
 dataset.num_shards
-dataset.offline
 dataset.shard_index
 dataset.source
 dataset.use_kuzu_graph

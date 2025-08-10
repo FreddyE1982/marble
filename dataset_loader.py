@@ -75,6 +75,7 @@ def prefetch_dataset(
     cache_dir: str = "dataset_cache",
     force_refresh: bool = False,
     encryption_key: str | bytes | None = None,
+    offline: bool = False,
 ) -> threading.Thread:
     """Prefetch ``source`` to the cache in a background thread.
 
@@ -90,6 +91,9 @@ def prefetch_dataset(
         Optional key used to AES-256-GCM encrypt the cached file. When
         provided, the downloaded bytes are encrypted on disk so subsequent
         loads require the same key for decryption.
+    offline:
+        When ``True`` remote URLs are not downloaded. If the file is absent in
+        ``cache_dir`` a :class:`FileNotFoundError` is raised.
 
     Returns
     -------
@@ -109,6 +113,14 @@ def prefetch_dataset(
     if not name:
         name = hashlib.md5(source.encode("utf-8")).hexdigest() + ".dat"
     path = os.path.join(cache_dir, name)
+
+    if offline:
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"{path} not available in offline mode")
+        t = threading.Thread(target=_noop, daemon=True)
+        t.start()
+        return t
+
     if not force_refresh and os.path.exists(path):
         t = threading.Thread(target=_noop, daemon=True)
         t.start()
