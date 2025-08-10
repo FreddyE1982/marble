@@ -14,6 +14,7 @@ from .learning import (
     rl_update,
     sac_select_action,
     sac_update,
+    plot_sac_entropy,
 )
 from .memory import decay_memory_gates
 from .attention_span import DynamicSpanModule
@@ -31,6 +32,7 @@ __all__ = [
     "rl_update",
     "sac_select_action",
     "sac_update",
+    "plot_sac_entropy",
     "decay_memory_gates",
     "ContextAwareAttention",
     "DynamicSpanModule",

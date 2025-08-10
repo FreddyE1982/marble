@@ -7,6 +7,7 @@ in a separate module to keep :mod:`core` focused on graph dynamics.
 from __future__ import annotations
 
 import random
+from pathlib import Path
 from typing import TYPE_CHECKING, Tuple
 
 if TYPE_CHECKING:  # pragma: no cover - for type checkers only
@@ -67,6 +68,7 @@ def enable_sac(
     nb.sac_actor_opt = torch.optim.Adam(actor.parameters(), lr=actor_lr)
     nb.sac_critic_opt = torch.optim.Adam(critic.parameters(), lr=critic_lr)
     nb.sac_auto_temperature = tune_entropy
+    nb.sac_entropy_history = []
     if tune_entropy:
         nb.sac_target_entropy = -action_dim
         nb.sac_log_alpha = torch.tensor(
@@ -170,6 +172,8 @@ def sac_update(
     actor_opt.zero_grad()
     actor_loss.backward()
     actor_opt.step()
+    entropy = (-log_prob).mean().detach().cpu().item()
+    nb.sac_entropy_history.append(entropy)
 
     if nb.sac_auto_temperature:
         alpha_loss = -(nb.sac_log_alpha * (log_prob + nb.sac_target_entropy).detach()).mean()
@@ -177,3 +181,27 @@ def sac_update(
         alpha_loss.backward()
         nb.sac_alpha_opt.step()
         nb.sac_alpha = nb.sac_log_alpha.exp().detach()
+
+
+def plot_sac_entropy(nb: "Neuronenblitz", file_path: str | Path) -> None:
+    """Plot recorded policy entropy and save to ``file_path``.
+
+    Parameters
+    ----------
+    nb:
+        Target ``Neuronenblitz`` instance with SAC enabled.
+    file_path:
+        Destination path for the saved plot image.
+    """
+    if not hasattr(nb, "sac_entropy_history"):
+        raise RuntimeError("soft actor-critic not enabled")
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots()
+    ax.plot(nb.sac_entropy_history)
+    ax.set_xlabel("Update step")
+    ax.set_ylabel("Policy entropy")
+    ax.set_title("SAC Policy Entropy")
+    fig.tight_layout()
+    fig.savefig(file_path)
+    plt.close(fig)
