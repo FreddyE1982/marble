@@ -1621,8 +1621,9 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [x] Configure workflow to force CPU execution.
             - [x] Add job to the CI pipeline definition.
             - [ ] Verify sample run completes without CUDA.
-                - [ ] Run the CI job without CUDA and ensure all tests pass.
-                - [ ] Record results in cpu_fallback_report.md.
+                - [x] Implement standalone script `scripts/run_cpu_fallback_tests.py` to run each test with CUDA disabled.
+                - [ ] Execute the script locally and ensure all tests pass.
+                - [ ] Record results in `cpu_fallback_report.md`.
         - [x] Summarize fallback strategy in developer docs.
             - [x] Draft section describing fallback approach.
             - [x] Enumerate modules with verified fallbacks.
