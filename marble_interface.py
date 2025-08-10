@@ -582,11 +582,22 @@ def count_marble_synapses(marble: MARBLE) -> int:
 def train_autoencoder(
     marble: MARBLE,
     values: Iterable[float],
-    epochs: int = 1,
-    noise_std: float = 0.1,
-    noise_decay: float = 0.99,
+    epochs: int | None = None,
+    noise_std: float | None = None,
+    noise_decay: float | None = None,
+    batch_size: int | None = None,
 ) -> float:
     """Train a denoising autoencoder and return the final loss."""
+    cfg = load_config()
+    defaults = cfg.get("autoencoder_learning", {})
+    if not defaults.get("enabled", False):
+        return 0.0
+    epochs = epochs if epochs is not None else defaults.get("epochs", 1)
+    noise_std = noise_std if noise_std is not None else defaults.get("noise_std", 0.1)
+    noise_decay = (
+        noise_decay if noise_decay is not None else defaults.get("noise_decay", 0.99)
+    )
+    batch_size = batch_size if batch_size is not None else defaults.get("batch_size", 1)
 
     learner = AutoencoderLearner(
         marble.get_core(),
@@ -594,7 +605,9 @@ def train_autoencoder(
         noise_std=float(noise_std),
         noise_decay=float(noise_decay),
     )
-    learner.train(list(map(float, values)), epochs=int(epochs))
+    learner.train(
+        list(map(float, values)), epochs=int(epochs), batch_size=int(batch_size)
+    )
     return float(learner.history[-1]["loss"]) if learner.history else 0.0
 
 

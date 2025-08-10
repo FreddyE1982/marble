@@ -32,8 +32,29 @@ class AutoencoderLearner:
         self.history.append({"input": value, "reconstructed": out, "loss": loss})
         return loss
 
-    def train(self, values: list[float], epochs: int = 1) -> None:
+    def train(
+        self, values: list[float], epochs: int = 1, batch_size: int = 1
+    ) -> None:
+        """Train the autoencoder over ``values``.
+
+        Parameters
+        ----------
+        values:
+            Sequence of numeric training examples.
+        epochs:
+            Number of passes over ``values``.
+        batch_size:
+            Quantity of samples processed before advancing to the next batch.
+            Each sample in the batch is processed sequentially as Neuronenblitz
+            currently operates on scalar inputs, but batching enables future
+            optimisations and exposes a consistent interface with other
+            learners.
+        """
+
+        bs = max(1, int(batch_size))
         for _ in range(int(epochs)):
-            for v in values:
-                self.train_step(float(v))
+            for i in range(0, len(values), bs):
+                batch = values[i : i + bs]
+                for v in batch:
+                    self.train_step(float(v))
             self.noise_std *= self.noise_decay
