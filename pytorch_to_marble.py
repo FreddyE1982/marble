@@ -22,6 +22,9 @@ from marble_utils import core_to_json, restore_hidden_states
 
 logger = logging.getLogger(__name__)
 
+# Standardised error message used for unsupported components
+UNSUPPORTED_MSG = "{} is not supported for conversion"
+
 
 class UnsupportedLayerError(Exception):
     """Raised when a layer type is not supported for conversion."""
@@ -110,6 +113,24 @@ def register_method_converter(name: str) -> Callable[[LayerConverter], LayerConv
     return decorator
 
 
+def unsupported_layer(layer_type: Type[torch.nn.Module]) -> None:
+    """Register a stub for an unsupported layer type.
+
+    Parameters
+    ----------
+    layer_type:
+        The PyTorch layer class to mark as unsupported.
+
+    The registered stub raises :class:`UnsupportedLayerError` with a
+    standardised message. This helper allows contributors to explicitly
+    document missing conversions while providing clear guidance to users.
+    """
+
+    def _stub(*args, **kwargs) -> List[int]:  # pragma: no cover - simple error path
+        raise UnsupportedLayerError(UNSUPPORTED_MSG.format(layer_type.__name__))
+
+    LAYER_CONVERTERS[layer_type] = _stub
+
 @register_function_converter(__import__("operator").getitem)
 def _convert_getitem(
     func: Callable, core: Core, inputs: List[int], idx, *args, **kwargs
@@ -117,7 +138,7 @@ def _convert_getitem(
     """Support tuple indexing by returning the input unchanged for idx 0."""
     if isinstance(idx, int) and idx == 0:
         return inputs
-    raise UnsupportedLayerError("getitem is not supported for conversion")
+    raise UnsupportedLayerError(UNSUPPORTED_MSG.format("getitem"))
 
 
 def _add_fully_connected_layer(
@@ -141,13 +162,9 @@ def _add_conv2d_layer(
 ) -> List[int]:
     """Add a Conv2d layer supporting multiple channels."""
     if layer.groups != 1:
-        raise UnsupportedLayerError(
-            f"{layer.__class__.__name__} is not supported for conversion"
-        )
+        raise UnsupportedLayerError(UNSUPPORTED_MSG.format(layer.__class__.__name__))
     if len(input_ids) != layer.in_channels:
-        raise UnsupportedLayerError(
-            f"{layer.__class__.__name__} is not supported for conversion"
-        )
+        raise UnsupportedLayerError(UNSUPPORTED_MSG.format(layer.__class__.__name__))
 
     out_ids: List[int] = []
     weight, w_device = _extract_tensor(layer.weight)
@@ -192,9 +209,7 @@ def _add_pool2d_layer(
     pool_type: str,
 ) -> List[int]:
     if len(input_ids) != 1:
-        raise UnsupportedLayerError(
-            f"{layer.__class__.__name__} is not supported for conversion"
-        )
+        raise UnsupportedLayerError(UNSUPPORTED_MSG.format(layer.__class__.__name__))
     inp = input_ids[0]
     nid = len(core.neurons)
     neuron = Neuron(nid, value=0.0, tier="vram", neuron_type=pool_type)
@@ -222,9 +237,7 @@ def _add_adaptive_pool2d_layer(
     pool_type: str,
 ) -> List[int]:
     if len(input_ids) != 1:
-        raise UnsupportedLayerError(
-            f"{layer.__class__.__name__} is not supported for conversion"
-        )
+        raise UnsupportedLayerError(UNSUPPORTED_MSG.format(layer.__class__.__name__))
     inp = input_ids[0]
     nid = len(core.neurons)
     neuron = Neuron(nid, value=0.0, tier="vram", neuron_type=pool_type)
@@ -245,9 +258,7 @@ def _add_embedding_layer(
 ) -> List[int]:
     """Add an Embedding or EmbeddingBag layer."""
     if len(input_ids) != 1:
-        raise UnsupportedLayerError(
-            f"{layer.__class__.__name__} is not supported for conversion"
-        )
+        raise UnsupportedLayerError(UNSUPPORTED_MSG.format(layer.__class__.__name__))
     inp = input_ids[0]
     nid = len(core.neurons)
     neuron = Neuron(nid, value=0.0, tier="vram", neuron_type="embedding")
@@ -707,21 +718,19 @@ def _get_converter(layer: torch.nn.Module) -> LayerConverter:
     for cls in LAYER_CONVERTERS:
         if isinstance(layer, cls):
             return LAYER_CONVERTERS[cls]
-    raise UnsupportedLayerError(
-        f"{layer.__class__.__name__} is not supported for conversion"
-    )
+    raise UnsupportedLayerError(UNSUPPORTED_MSG.format(layer.__class__.__name__))
 
 
 def _get_function_converter(func: Callable) -> LayerConverter:
     if func in FUNCTION_CONVERTERS:
         return FUNCTION_CONVERTERS[func]
-    raise UnsupportedLayerError(f"{func.__name__} is not supported for conversion")
+    raise UnsupportedLayerError(UNSUPPORTED_MSG.format(func.__name__))
 
 
 def _get_method_converter(name: str) -> LayerConverter:
     if name in METHOD_CONVERTERS:
         return METHOD_CONVERTERS[name]
-    raise UnsupportedLayerError(f"{name} is not supported for conversion")
+    raise UnsupportedLayerError(UNSUPPORTED_MSG.format(name))
 
 
 def _print_dry_run_summary(

@@ -18,6 +18,7 @@ from pytorch_to_marble import (
     _add_fully_connected_layer,
     convert_model,
     register_converter,
+    unsupported_layer,
 )
 from tests.test_core_functions import minimal_params
 
@@ -312,6 +313,16 @@ def test_basic_conversion():
 
 
 def test_unsupported_layer():
+    model = torch.nn.Sequential(torch.nn.MaxPool3d(2))
+    model.input_size = (1, 1, 4, 4, 4)
+    params = minimal_params()
+    with pytest.raises(UnsupportedLayerError) as exc:
+        convert_model(model, core_params=params)
+    assert str(exc.value) == "MaxPool3d is not supported for conversion"
+
+
+def test_unsupported_layer_helper():
+    unsupported_layer(torch.nn.MaxPool3d)
     model = torch.nn.Sequential(torch.nn.MaxPool3d(2))
     model.input_size = (1, 1, 4, 4, 4)
     params = minimal_params()
