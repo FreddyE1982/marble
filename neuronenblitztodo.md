@@ -36,12 +36,12 @@ This document lists 100 concrete ideas for enhancing the `Neuronenblitz` algorit
               - [x] Execute SAC-enhanced wanderer and gather same metrics.
               - [x] Analyze convergence speed differences.
 5. Add memory-gated attention to modulate path selection.
-   - [ ] Design gating mechanism using episodic memory cues.
-       - [ ] Specify features retrieved from episodic memory.
-       - [ ] Formulate gating equation blending memory and context.
-   - [ ] Inject gating weights into attention calculations.
-       - [ ] Modify attention module to accept gate values.
-       - [ ] Ensure gradients propagate through gating path.
+   - [x] Design gating mechanism using episodic memory cues.
+       - [x] Specify features retrieved from episodic memory (reward values).
+       - [x] Formulate gating equation blending memory and context via tanh-normalised reward.
+   - [x] Inject gating weights into attention calculations.
+       - [x] Modify attention module to accept gate values.
+       - [x] Ensure gradients propagate through gating path.
     - [x] Expose gate strength hyperparameter in config.
         - [x] Add `memory.gate_strength` to configs and docs.
         - [x] Provide reasonable default and tuning guidance.

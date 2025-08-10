@@ -1,19 +1,21 @@
 """Utilities for attention mechanisms including causal masking and gating.
 
 Provides functions to generate causal masks that block access to future
-positions, gating layers that modulate attention scores using sine or chaotic
-sequences, benchmarking helpers and plotting utilities for visualisation in
-Streamlit.
+positions, gating layers that modulate attention scores using sine, chaotic or
+episodic-memory-driven sequences, benchmarking helpers and plotting utilities
+for visualisation in Streamlit.
 """
 
 from __future__ import annotations
 
 import time
-from typing import Literal
+from typing import Any, Dict, Literal
 
 import numpy as np
 import plotly.graph_objs as go
 import torch
+
+from episodic_memory import EpisodicMemory
 
 
 def generate_causal_mask(seq_len: int, device: torch.device | None = None) -> torch.Tensor:
@@ -42,7 +44,7 @@ class GatingLayer(torch.nn.Module):
     """Deterministic gating modulation for attention scores.
 
     The layer produces a 1D gating vector that is multiplied element-wise with
-    attention logits before softmax. Two modes are available:
+    attention logits before softmax. Three modes are available:
 
     ``"sine"``
         Produces a sinusoidal waveform with values in ``[-1, 1]``. The
@@ -51,11 +53,16 @@ class GatingLayer(torch.nn.Module):
     ``"chaos"``
         Generates a chaotic sequence using the logistic map ``x_{n+1} = r*x_n*(1-x_n)``
         with ``r`` specified by ``chaos``. Outputs lie in ``(0, 1)``.
+    ``"memory"``
+        Derives a constant gate from the reward of the most similar episode in
+        :class:`episodic_memory.EpisodicMemory`. The reward is passed through
+        ``tanh`` to obtain a value in ``[-1, 1]`` and broadcast to the desired
+        length.
     """
 
     def __init__(
         self,
-        mode: Literal["sine", "chaos"] = "sine",
+        mode: Literal["sine", "chaos", "memory"] = "sine",
         *,
         frequency: float = 1.0,
         chaos: float = 3.7,
@@ -65,7 +72,14 @@ class GatingLayer(torch.nn.Module):
         self.frequency = frequency
         self.chaos = chaos
 
-    def forward(self, length: int, device: torch.device | None = None) -> torch.Tensor:
+    def forward(
+        self,
+        length: int,
+        device: torch.device | None = None,
+        *,
+        memory: EpisodicMemory | None = None,
+        context: Dict[str, Any] | None = None,
+    ) -> torch.Tensor:
         t = torch.arange(length, device=device, dtype=torch.float32)
         if self.mode == "sine":
             # Scale index so ``frequency`` represents complete waves over the sequence.
@@ -77,6 +91,15 @@ class GatingLayer(torch.nn.Module):
                 x = self.chaos * x * (1.0 - x)
                 out[i] = x
             return out
+        if self.mode == "memory":
+            if memory is None or context is None:
+                return torch.ones(length, device=device, dtype=torch.float32)
+            episodes = memory.query(context, k=1)
+            if not episodes:
+                return torch.zeros(length, device=device, dtype=torch.float32)
+            reward = torch.tensor(episodes[0].reward, device=device, dtype=torch.float32)
+            gate = torch.tanh(reward)
+            return torch.full((length,), gate, device=device, dtype=torch.float32)
         return torch.ones(length, device=device, dtype=torch.float32)
 
 
