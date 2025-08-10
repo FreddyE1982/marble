@@ -1682,8 +1682,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
             - [x] Provide example YAML snippet enabling the feature.
             - [x] Validate config loader handles missing values gracefully.
         - [ ] Benchmark and test span behavior on CPU and GPU.
-            - [ ] Create unit tests for varying span lengths.
+            - [x] Create unit tests for varying span lengths.
             - [ ] Measure performance impact on both devices.
             - [ ] Add tutorial section demonstrating span tuning.
             - [ ] Profile memory usage across span settings.
-            - [ ] Add regression test ensuring default span matches static mode.
+            - [x] Add regression test ensuring default span matches static mode.

@@ -1,4 +1,5 @@
 import torch
+
 from marble_core import Core, Neuron
 from marble_neuronenblitz import Neuronenblitz, DynamicSpanModule
 from tests.test_core_functions import minimal_params
@@ -9,9 +10,10 @@ def test_span_module_selects_threshold():
     scores = torch.tensor([[0.1, 0.2, 0.3, 0.4]])
     mask = module(scores)
     assert mask.shape == scores.shape
-    # cumulative softmax results keep first three elements under 0.6
+    # cumulative softmax keeps only the first two elements below the threshold
     assert mask[0, 0] and mask[0, 1]
-    assert not mask[0, -1]
+    assert not mask[0, 2]
+    assert not mask[0, 3]
 
 
 def test_span_module_device_fallback():
@@ -20,6 +22,30 @@ def test_span_module_device_fallback():
         assert module.device.type == "cuda"
     else:
         assert module.device.type == "cpu"
+
+
+def test_span_module_varies_with_threshold():
+    scores = torch.tensor([[0.1, 0.2, 0.3, 0.4]])
+    short = DynamicSpanModule(threshold=0.5)
+    long = DynamicSpanModule(threshold=0.95)
+    mask_short = short(scores)
+    mask_long = long(scores)
+    assert mask_short.sum().item() == 2
+    assert mask_long.sum().item() == 3
+
+
+def test_span_module_respects_max_span():
+    scores = torch.tensor([[0.1, 0.2, 0.3, 0.4]])
+    module = DynamicSpanModule(max_span=2, threshold=0.95)
+    mask = module(scores)
+    assert mask.sum().item() == 2
+
+
+def test_span_module_default_matches_static():
+    scores = torch.tensor([[0.1, 0.2, 0.3, 0.4]])
+    module = DynamicSpanModule(threshold=1.0)
+    mask = module(scores)
+    assert mask.all()
 
 
 def test_neuronenblitz_applies_span():
