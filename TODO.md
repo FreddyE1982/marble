@@ -1618,8 +1618,8 @@ This TODO list outlines 100 enhancements spanning the Marble framework, the unde
                 - [x] Write parity tests verifying CPU and GPU execution.
                 - [x] Integrate new tests into existing suites.
         - [ ] Create CI job that runs full suite with CUDA disabled.
-            - [ ] Configure workflow to force CPU execution.
-            - [ ] Add job to the CI pipeline definition.
+            - [x] Configure workflow to force CPU execution.
+            - [x] Add job to the CI pipeline definition.
             - [ ] Verify sample run completes without CUDA.
         - [x] Summarize fallback strategy in developer docs.
             - [x] Draft section describing fallback approach.
