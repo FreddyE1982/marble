@@ -1,6 +1,6 @@
 # MARBLE Redevelopment Plan
 
-This document enumerates every step required to rebuild MARBLE from scratch with full feature and algorithmic parity. All modules must be reimplemented without simplification and every configuration key must be exercised. No GUI components are to be created.
+This document enumerates every step required to rebuild MARBLE from scratch with full feature and algorithmic parity. All modules must be reimplemented without simplification and every configuration key must be exercised. No GUI components are to be created. **Every step and substep must be executed strictly in the order presented—skipping or reordering is forbidden.**
 
 ## 1. Repository Bootstrap
 ### 1.1 Initialize new Git repository
@@ -271,7 +271,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
     synchronization.
 
 
-### 3.7 Diffusion-based generation
+### 3.9 Diffusion-based generation
 - Implement `DiffusionCore` with configurable diffusion_steps and linear or cosine noise schedules.
 - Support hybrid memory retrieval, schema induction, predictive coding, continuous weight field learning, harmonic resonance and fractal dimension learners.
 - Provide optional workspace broadcast, remote offloading when VRAM exceeds thresholds and activation heatmap logging.
@@ -499,16 +499,14 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - FGSMDataset wraps datasets to generate \(x_{adv}\) on-the-fly; training loop updates discriminator and generator via Neuronenblitz `dynamic_wander`.
 - Adversarial training loop for PyTorch models perturbs inputs and trains on \((x_{adv}, y)\).
 - Hebbian learning update: \(\Delta w_{ij} = \eta\, x_i\, y_j\) with optional normalization \(w \leftarrow w / \|w\|\) or decay \(w_{ij} \leftarrow (1-\lambda)w_{ij} + \Delta w_{ij}\); `HebbianPipeline` streams activations and applies this rule.
-- Fractal dimension learning estimates correlation sum \(C(r)= \tfrac{2}{N(N-1)} \sum_{i<j} \mathbf{1}[\|x_i-x_j\| < r]\) and computes \(D_2 = \lim_{r\to 0} \tfrac{\log C(r)}{\log r}\).
+- Fractal dimension learner stacks current neuron representations, computes pairwise distances and sets \(\varepsilon\) to their median. With counts \(c=|\{d_{ij}<\varepsilon\}|\) it estimates dimension \(D=\log c/\log \varepsilon\); when \(D\) exceeds the target it increases `core.rep_size` and resets the target to `0.8 * rep_size`.
 ### 5.8 Harmonic Resonance and Quantum Flux
-- Harmonic resonance loss compares Fourier magnitudes: \(L_{HR}= \sum_k (|F_x[k]|-|F_{target}[k]|)^2\) where \(F=\mathrm{FFT}\); phase alignment uses cross-correlation \(C_{xy}(\tau)=\sum_t x_t y_{t+\tau}\) and selects \(\tau\) maximizing \(|C_{xy}|\).
-- Quantum flux learning evolves complex amplitudes \(\psi\) via unitary matrices; parameterise \(U=\exp(-iA)\) with skew-Hermitian \(A\) and update \(A \leftarrow A - \eta \nabla_A L\) so that \(U^\dagger U = I\) is maintained.
+- Harmonic resonance encodes scalar inputs as `[sin(f v), cos(f v)]` using a base frequency `f` that decays each step by `decay`. Training computes `error = target - output`, applies weight updates and then sets `f <- f * decay`.
+- Quantum flux learner maintains a phase \(\phi_s\) for each synapse. During `train_step` it sets amplitude `a = sin(\phi_s)`, computes `\Delta = weight_update_fn(source\_value, error * a, path\_len)`, clips `\Delta` to `synapse_update_cap`, updates weight `w <- w + lr * \Delta` and advances the phase `\phi_s <- \phi_s + phase\_rate * error` before running `perform_message_passing`.
 - `QuantumFluxPairsPipeline` trains on numeric or textual pairs, accepts optional tokenizers via `DataLoader`, supports `BitTensorDataset` inputs and can auto-build vocabularies when `use_vocab` is true.
 
 ### 5.9 Synaptic Echo Learning
-- Implement echo-based weight consolidation where echo signal e_t is a decayed trace of past activations:
-  e_{t+1} = echo_decay * e_t + activation_t.
-- Weight update couples current gradient g_t with echo: \Delta w = echo_strength * e_t * g_t.
+- Enable Neuronenblitz echo modulation (`use_echo_modulation=True`). For each pair \((value, target)\), run `dynamic_wander`, compute `error = target - output`, scale it by `echo_influence`, call `apply_weight_updates_and_attention` with the scaled error and finish with `perform_message_passing`.
 
 ### 5.10 Continuous Weight Field Learning
 - Represent weight field as radial basis functions
