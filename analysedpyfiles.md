@@ -447,14 +447,14 @@ tests/test_memory_management.py: lines=34, functions=3, classes=0, lines_read=0,
 tests/test_memory_manager_integration.py: lines=11, functions=1, classes=0, lines_read=0, lines_remaining=11
 tests/test_memory_module.py: lines=35, functions=2, classes=0, lines_read=0, lines_remaining=35
 tests/test_memory_pool.py: lines=24, functions=2, classes=1, lines_read=0, lines_remaining=24
-tests/test_multimodal_pairs.py: lines=56, functions=2, classes=0, lines_read=0, lines_remaining=56
-tests/test_multiprocessing_dataset.py: lines=33, functions=4, classes=0, lines_read=0, lines_remaining=33
-tests/test_n_dimensional_topology.py: lines=38, functions=2, classes=0, lines_read=0, lines_remaining=38
-tests/test_n_plugin.py: lines=38, functions=2, classes=0, lines_read=0, lines_remaining=38
-tests/test_nan_checks.py: lines=26, functions=2, classes=0, lines_read=0, lines_remaining=26
-tests/test_nb_streaming_shards.py: lines=26, functions=3, classes=0, lines_read=0, lines_remaining=26
-tests/test_networkx_interop.py: lines=93, functions=3, classes=0, lines_read=0, lines_remaining=93
-tests/test_neural_pathway_inspector.py: lines=44, functions=4, classes=0, lines_read=0, lines_remaining=44
+tests/test_multimodal_pairs.py: lines=56, functions=2, classes=0, lines_read=56
+tests/test_multiprocessing_dataset.py: lines=33, functions=4, classes=0, lines_read=33
+tests/test_n_dimensional_topology.py: lines=38, functions=2, classes=0, lines_read=38
+tests/test_n_plugin.py: lines=38, functions=2, classes=0, lines_read=38
+tests/test_nan_checks.py: lines=26, functions=2, classes=0, lines_read=26
+tests/test_nb_streaming_shards.py: lines=26, functions=3, classes=0, lines_read=26
+tests/test_networkx_interop.py: lines=93, functions=3, classes=0, lines_read=93
+tests/test_neural_pathway_inspector.py: lines=44, functions=4, classes=0, lines_read=44
 tests/test_neural_schema_induction.py: lines=18, functions=1, classes=0, lines_read=18, lines_remaining=0
 tests/test_neurogenesis_plasticity.py: lines=133, functions=9, classes=0, lines_read=0, lines_remaining=133
 tests/test_neuromodulatory.py: lines=27, functions=2, classes=0, lines_read=0, lines_remaining=27
