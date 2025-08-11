@@ -114,6 +114,21 @@ This document enumerates every step required to rebuild MARBLE from scratch with
     nearest-neighbour search with Annoy (`build_ann_index`, `nearest_neighbors`).
 
 - Dataset loader handles URL caching, prefetch threads, AES-encrypted downloads, sharding, dependency tracking, filter expressions and optional Kùzu graph queries.
+- Implement `prefetch_dataset` spawning daemon threads, `wait_for_prefetch`
+  barrier, and `load_dataset` which
+  downloads remote inputs/targets, encrypts cache files, shuffles shards and
+  applies `DataLoader.encode`/`decode` to arbitrary binary or textual data.
+  Support `filter_expr` evaluated with decoded values, distributed sharding
+  and optional memory tracking via `MemoryManager`.
+- Provide `load_kuzu_graph` executing Cypher queries and
+  `load_training_data_from_config` that forwards configuration keys and applies
+  dataset versioning.
+- Offer `StreamingCSVLoader` with resumable offsets and per-line tokenization
+  through `tokenize_line`, plus `export_dataset` and
+  `clear_dataset_cache` utilities.
+- Dataset encryption helpers deliver AES-256-GCM key generation,
+  `encrypt_tensor`/`decrypt_tensor` for tensors and
+  `encrypt_bytes`/`decrypt_bytes` for arbitrary data.
 - Provide dataset_cache_server for HTTP sharing with transparent decryption.
 - Include dataset_history_cli supporting undo/redo/revert operations.
 - Implement dataset_watcher computing SHA256 snapshots for change detection.
@@ -261,6 +276,8 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
 4. Accumulate updates for gradient_accumulation_steps then apply and optionally weight_decay.
 5. Store paths with error below episodic_memory_threshold into episodic_memory.
 6. GPU path uses kernel nb_apply_launcher implementing the same operations in parallel.
+7. After each training step decay memory gates:
+   gate_s <- gate_s * memory_gate_decay; remove gates when gate_s < 1e-6.
 
 ### 4.6 Structural plasticity
 - For each traversed synapse with potential ≥ plasticity_threshold and dropout check passed:
@@ -325,13 +342,19 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
   \(\mathcal{N}(0, \text{representation\_noise\_std})\) and weight range
   \([\text{weight\_init\_min}, \text{weight\_init\_max}]\).
 
-### 4.13 Reinforcement learning integration
-- Q-learning weight update for state-action pair (s,a):
-  Q(s,a) <- Q(s,a) + alpha * (r + gamma * max_a' Q(s',a') - Q(s,a)).
-- Epsilon scheduling:
-  eps_{t+1} = max(rl_min_epsilon, eps_t * rl_epsilon_decay).
-- Discounted return for policy gradients:
-  G_t = sum_{k=0}^inf gamma^k * r_{t+k+1}.
+### 4.13 Reinforcement learning interface
+ - `enable_rl` and `disable_rl` toggle intrinsic Q-learning which encodes
+   state-action pairs via `q_encoding(s,a)`.
+ - `rl_select_action` implements ε-greedy policy:
+   \(a = \begin{cases} \text{rand}(A) & \text{if } r<\epsilon \\ \arg\max_a Q(s,a) & \text{otherwise} \end{cases}\).
+ - `rl_update` performs Q-learning target
+   \(Q(s,a) \leftarrow Q(s,a) + \alpha [r + \gamma \max_{a'} Q(s',a') - Q(s,a)]\)
+   via `train` on the encoded pair and decays ε.
+ - `enable_sac` attaches actor/critic networks with optional entropy tuning;
+   `sac_select_action` samples from the actor and `sac_update` minimises
+   \(L_Q = \|Q(s,a) - (r + \gamma (\min(Q_1',Q_2') - \alpha \log π(a'|s')))\|^2\)
+   and \(L_π = (\alpha \log π(a|s) - Q(s,a))\), tracking policy entropy.
+ - `plot_sac_entropy` writes entropy curves to disk for diagnostics.
 
 ### 4.14 Optimization and scheduling
 - RMSProp accumulator for gradient g:
