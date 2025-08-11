@@ -35,7 +35,9 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - DataCompressor settings: `compression_level`, `compression_enabled`, `sparse_threshold`, `quantization_bits` and optional delta encoding.
 - DataLoader parameters: tensor dtype, metadata tracking, automatic
   encode/decode/tokenization with round-trip verification/penalty and
-  tokenizer type/json/vocab_size.
+  - tokenizer type/json/vocab_size.
+- DataLoader parameters: tensor dtype, metadata tracking, automatic encode/decode/tokenization with round-trip verification/penalty and tokenizer type/json/vocab_size.
+- Autograd layer configuration with `autograd_params` (`enabled`, `learning_rate`, `gradient_accumulation_steps`, optional `scheduler`) controlling gradient accumulation and learning-rate scheduling.
 - Autoencoder learning section with `enabled`, `epochs`, `batch_size`, `noise_std`,
   and `noise_decay` controls default denoising behaviour.
 - `core.salience_weight` scales attention proposal saliences when forming coalitions.
@@ -66,6 +68,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - `DynamicSpanModule` applies cumulative-softmax masking with configurable `threshold` and `max_span` to cap traversal length and integrates into Neuronenblitz `dynamic_wander`.
 - `attention_codelets` let codelets emit `AttentionProposal(score, content)`; `form_coalition` selects top proposals using optional salience scores weighted by `core.salience_weight`, `broadcast_coalition` forwards winners to `global_workspace`, and workspace gating adjusts future scores based on published events.
 - `interconnect_cores` merges multiple cores and optionally creates cross-core synapses based on interconnection probability.
+- Ensure backend equivalence where Mandelbrot seed generation and message passing yield identical results on NumPy and JAX backends.
 ### 3.3 Memory systems
 - Implement `HybridMemory` combining vector similarity search, symbolic key-value store and optional Kùzu-backed tier with temporal forgetting.
 - Implement memory_pool, memory_manager, episodic memory, hybrid memory, prompt memory and Kuzu-backed tiers.
@@ -105,20 +108,18 @@ This document enumerates every step required to rebuild MARBLE from scratch with
   enable vocabulary mining.
 
 #### 3.5.3 BitTensorDataset
-- Implement `DatasetPair` container and `augment_bit_tensor` for
-  \(x' = x \oplus f_p + n_p\).
-- `build_vocab` counts bit patterns and assigns token IDs starting at \(256\);
-  encoding uses `encode_with_vocab` while decoding uses `decode_with_vocab`.
-- Support optional compression, encryption, SHA256 indexing, history snapshots,
-  dataset transforms, deterministic `split`/`merge`, persistence helpers and
-  Annoy-based nearest-neighbour search via `build_ann_index` and `nearest_neighbors` queries.
-
+- Implement `DatasetPair` container and `augment_bit_tensor` for (x' = x \oplus f_p + n_p).
+- `build_vocab` counts bit patterns and assigns token IDs starting at 256; encoding uses `encode_with_vocab` and decoding uses `decode_with_vocab`.
+- Vocabulary controls: `use_vocab`, `max_vocab_size`, `min_occurrence`, `max_word_length`, configurable `start_id`, reuse or persist vocab files and `adapt_vocab`/`rebuild_vocab` when appending pairs.
+- Dataset features include optional compression, AES-GCM encryption with required key, SHA256 indexing, history snapshots, deterministic `split`/`merge`, `split_deterministic` with salt, `shuffle`, `hash`/`hash_pair` lookup and Annoy-based `build_ann_index`/`nearest_neighbors`.
+- Pair operations support `add_pair`, `extend`, `append_pairs`, synchronous or asynchronous `add_stream_pair`, `map_pairs`, `filter_pairs`, `deduplicate`, `patch_pairs`, `prune_invalid`, `augment_bits` and `release_memory`.
+- Persistence and iteration provide `save`/`load` (memory-mapped or cached), `save_async`, `to_json`/`from_json`, `save_vocab`/`load_vocab`, dataset `summary`, `iter_decoded`, `collate_fn` batching and checksum verification on load.
 #### 3.5.4 Streaming datasets
-- Implement `BitTensorStreamingDataset` with seekable HuggingFace dataset
-  access, random seek, virtual batching and on-the-fly encoding.
-- Implement `StreamingDatasetStep` asynchronously prefetching batches to
-  CPU/GPU via an `asyncio.Queue` and yielding `{"inputs": tensor,
-  "targets": tensor}` dictionaries.
+- Implement `BitTensorStreamingDataset` providing `seek_to`, `seek_forward` and `seek_backward` to navigate underlying streams.
+- `get_virtual_batch` supports cached or streaming retrieval with configurable `virtual_batch_size` and re-access of previously fetched batches.
+- Streaming remains lazy: accessing items triggers selection tracking in datasets supporting `select`, `skip` or `take` interfaces.
+- Integrate HuggingFace `IterableDataset` and custom generators with on-the-fly encoding to tensors.
+- Implement `StreamingDatasetStep` asynchronously prefetching batches to CPU/GPU via an `asyncio.Queue` and yielding `{"inputs": tensor, "targets": tensor}` dictionaries.
 
 #### 3.5.5 Dataset loaders and preprocessing
 - `load_dataset` handles URL caching, prefetch threads, AES-encrypted downloads,
@@ -602,20 +603,21 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - async_transform dispatches data tasks via scheduler plugins on CPU/GPU.
 - Scheduler plugins include thread-based and asyncio implementations selectable via `configure_scheduler` and retrievable with `get_scheduler`.
 - AsyncGradientAccumulator schedules backward passes with `asyncio.to_thread` and applies optimizer steps every `accumulation_steps`, matching synchronous SGD on CPU or GPU.
+- BranchContainer executes step sequences concurrently while enforcing `max_gpu_concurrency` based on available GPU memory.
 - `Brain.start_training` launches a background thread controlled by `training_active` and `wait_for_training`, while `train_async` exposes an awaitable API.
 - `Pipeline._dataset_step_indices` detects dataset-producing steps to drive automatic training loops.
 ### 8.8 Visualization helpers
 - activation_visualization.plot_activation_heatmap stacks neuron representations and saves heatmaps.
 - Attention utilities provide `GatingLayer` (modes `sine` and `chaos`), `generate_causal_mask`, `benchmark_mask_overhead`, and Plotly `mask_figure`/`gate_figure` that accept tensors from CPU or GPU.
+- BackupScheduler periodically mirrors source directories to timestamped backups.
+- MetricsVisualizer streams metrics to TensorBoard, CSV and JSON logs while triggering scheduled backups.
 
 ### 8.9 Command-line interface
 - Add `highlevel_pipeline_cli` for checkpoint/resume operations with device selection and dataset version metadata.
 - Build `cli.py` supporting configuration overrides, dataset loading, training,
-  evaluation, pipeline execution, hyperparameter grid search and config
-  synchronization.
-- Expose options for learning-rate schedulers, parallel wanderers,
-  cross-validation, quantization, unified learning, remote retry/backoff and
-  message-passing benchmarks.
+  evaluation, pipeline execution, hyperparameter grid search via YAML files, core export, learning-rate scheduler overrides and configuration synchronization.
+- Expose options for learning-rate schedulers (with `--lr-scheduler` and `--scheduler-gamma`), parallel wanderers, cross-validation, quantization, unified learning, remote retry/backoff, message-passing benchmarks and sync interval overrides (`--sync-interval-ms`).
+- `--help` output must describe all commands and print "MARBLE command line interface" header.
 
 
 ### 8.10 Model conversion and compression
@@ -625,6 +627,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - model_refresh provides full_retrain, incremental_update and auto_refresh routines triggered by DatasetWatcher.
 - `DataCompressor` and crypto utilities provide constant-time XOR encryption, AES-GCM tensor/byte encryption, delta encoding, quantization and sparse-aware compression.
 - `DatabaseQueryTool` executes Cypher queries on Kùzu databases.
+- `core_from_json` accepts legacy snapshots lacking `synapse_type` or `potential` fields to maintain backward compatibility.
 
 ### 8.11 Training utilities
 - Adversarial toolkit includes `fgsm_generate` for perturbations, `FGSMDataset` wrapping datasets to emit adversarial examples, and `AdversarialLearner` training generator/discriminator Neuronenblitz pairs while recording loss history.
@@ -632,7 +635,8 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - `DistributedTrainer` uses PyTorch DDP to average synapse weights across processes.
 - `EvolutionTrainer` explores configuration space via mutation, parallel fitness evaluation and lineage graph export.
 - ReinforcementLearning module offers GridWorld env, `MarbleQLearningAgent` with epsilon decay/Double-Q and `MarblePolicyGradientAgent` integrating Neuronenblitz outputs.
-- Interface helpers: `curriculum_train` sequencing tasks with schedule strategies, `set_dreaming` toggling dream simulation, `set_autograd` attaching `MarbleAutogradLayer`, `convert_pytorch_model` importing PyTorch weights with prediction map, `load_hf_dataset` retrieving HuggingFace samples (optionally encoding via DataLoader), and `streaming_dataset_step` yielding prefetching iterators.
+- Interface helpers: `curriculum_train` sequencing tasks with schedule strategies, `set_dreaming` toggling dream simulation, `set_autograd` attaching `MarbleAutogradLayer` (supports gradient accumulation, schedulers and N-dimensional tensors on CPU/GPU), `convert_pytorch_model` importing PyTorch weights with prediction map, `load_hf_dataset` retrieving HuggingFace samples (optionally encoding via DataLoader), and `streaming_dataset_step` yielding prefetching iterators.
+- Brain utilities persist dream buffers and neuromodulatory context via `save_model`/`load_model`, migrate legacy checkpoints with `save_checkpoint`/`load_checkpoint`, log metrics (loss, VRAM usage, neuromod signals, plasticity threshold, message passing change, compression ratio) through `MetricsVisualizer`, expose `benchmark_step` returning marble/autograd losses and times, `generate_chain_of_thought` tracing synapse paths, and respect `log_interval` during training.
 ### 8.12 Python compatibility utilities
 - `pycompat.removeprefix` and `pycompat.cached` supply Python 3.8 helpers.
 ### 8.13 Tensor backend and synchronization
@@ -665,13 +669,13 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 
 ### 9.3 Performance and stress tests
 - Recreate benchmarks to verify parity:
-  - `benchmark_autograd_vs_marble` compares pure MARBLE vs autograd layer.
-  - `benchmark_dream_consolidation` measures impact of dream cycles.
-  - `benchmark_graph_precompile` times graph caching.
+  - `benchmark_autograd_vs_marble` compares pure MARBLE vs autograd layer and reports `{"marble": {"loss", "time"}, "autograd": {"loss", "time"}}`.
+  - `benchmark_dream_consolidation` measures impact of dream cycles, returning `{"with_dream": {"avg_error", "duration"}, "without_dream": {"avg_error", "duration"}}`.
+  - `benchmark_graph_precompile` times graph caching and yields `{"no_precompile", "precompiled", "speedup"}` for each device.
   - `benchmark_parallel_wanderers` evaluates multi-process wandering speed.
   - `benchmark_remote_wanderer_latency` simulates network delays.
   - `benchmark_sac_vs_baseline` tests SAC-enabled wanderer vs random.
-  - `benchmark_super_evolution` profiles SuperEvolutionController dynamics.
+  - `benchmark_super_evolution` profiles SuperEvolutionController dynamics, producing runs of 20 entries each containing `{"loss", "changes"}` where at least one change list is non-empty.
 
 - `pytorch_challenge` contrasts Marble vs SqueezeNet on the Digits dataset, measuring loss, runtime and model size.
 ### 9.4 Config coverage
@@ -687,6 +691,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Provide `exampletrain` advanced training demo integrating Stable Diffusion, auto-firing, dreaming, benchmarking and synthetic dataset utilities (`exampletrain_utils`).
 - Document dataset download helpers (`download_cifar10.py`, `download_imdb.py`, `download_iris.py`) and shared vocabulary construction for reproducible data preparation.
 - Regenerate README, ARCHITECTURE_OVERVIEW, ML_PARADIGMS_HANDBOOK and a new multi-project TUTORIAL without GUI references.
+- README must list exactly ten backcronyms headed by "Mandelbrot Adaptive Reasoning Brain-Like Engine".
 - Maintain ROADMAP, TROUBLESHOOTING, HIGHLEVEL_PIPELINE_TUTORIAL and configuration manuals.
 
 ## 11. Release and Maintenance
