@@ -44,6 +44,18 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 ### 3.5 Dataset infrastructure
 - Implement dataset loader, replication, watcher, streaming datasets, encryption and versioning.
 - Provide dataset cache server and history CLI.
+- Rebuild `BitTensorDataset` with
+  - `DatasetPair` container and `augment_bit_tensor` for random bit flips and noise
+    \(x' = x \oplus f_p + n_p\).
+  - Serialization utilities `object_to_bytes`/`bytes_to_object` and bit-level
+    conversions `bytes_to_tensors` and `tensors_to_bytes`.
+  - Vocabulary mining `build_vocab` counting bit-patterns with minimum
+    occurrence and token IDs starting at \(256\).
+  - Optional AES encryption using `crypto_utils` and compression via
+    `DataCompressor`.
+- Implement `BitTensorStreamingDataset` providing seekable streaming access to
+  HuggingFace datasets, virtual batching and random access through
+  `select`/`skip`/`take`.
 
 ### 3.6 Brain coordination and neurogenesis
 - Implement `MarbleBrain` to supervise Neuronenblitz and global learning state.
@@ -66,6 +78,13 @@ This document enumerates every step required to rebuild MARBLE from scratch with
   \) when it drops.
 - Add autonomous trigger:
   \(P(\text{growth}) = \text{auto\_neurogenesis\_prob} \cdot \min(1, \text{val\_loss})\).
+- Implement resource-aware tier selection `choose_growth_tier` considering
+  VRAM/RAM usage and average neuron age; prefer VRAM unless usage exceeds
+  thresholds or neurons age beyond limits.
+- Compute dream-induced decay
+  \(d = \text{dream\_synapse\_decay} (1 + s_a \cdot \text{arousal})(1 - s_s \cdot \text{stress})\).
+- Expose `maybe_autonomous_neurogenesis` triggering growth with probability
+  \(p = \text{auto\_neurogenesis\_prob} \cdot \min(1, \text{val\_loss})\).
 
 ## 4. Neuronenblitz Algorithm
 ### 4.1 Overview
@@ -84,9 +103,17 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
 4. Track depth and terminate when d >= max_wander_depth or target reached.
 5. With probability backtrack_probability and depth < backtrack_depth_limit, backtrack one step and retry.
 6. Apply dropout by removing each candidate synapse with probability dropout_probability.
-7. Bias initial path via episodic memory replay for up to episodic_sim_length steps.
-8. Optionally perform beam search of width b to keep top-b paths scored by cumulative potential and novelty.
-9. Cache explored subpaths with resulting neuron values for reuse in later wanders.
+7. If target neuron resides on a remote tier, invoke `remote_client.process` with
+   timeout; optionally fall back to local processing or torrent shard via
+   `torrent_client`.
+8. Bias initial path via episodic memory replay for up to
+   `episodic_sim_length` steps.
+9. Optionally perform beam search of width b to keep top-b paths scored by
+   cumulative potential and novelty.
+10. Cache explored subpaths with resulting neuron values in a wander cache with
+    TTL and LRU eviction; reuse cached paths when `apply_plasticity` is False.
+11. After each wander decay route potentials and prune low-potential synapses at
+    configured intervals.
 
 ### 4.4 Output computation
 - Each neuron's output is computed by applying combine_fn over inputs x and weights w:
@@ -133,7 +160,17 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
 - Context-aware attention layer computes
   \(\text{softmax}(((Q+ctx)(K+ctx)^T)/\sqrt{d})\) with optional chaotic gating and causal masks.
 
-### 4.8 Neurogenesis coupling
+### 4.8 Caching and parallel wandering
+- `dynamic_wander_parallel` spawns multiple processes using `mp.Pool` with
+  seeds; main process replays each path to apply updates.
+- `chaotic_memory_replay` perturbs inputs via logistic map
+  \(x_{n+1} = r x_n (1-x_n)\) and concatenates resulting paths.
+- Wander cache stores tuples `(output, path, timestamp)` and expires entries
+  after `wander_cache_ttl`, evicting LRU when exceeding `_cache_max_size`.
+- Exploration bonus decays each activation:
+  `exploration_bonus <- exploration_bonus * exploration_decay`.
+
+### 4.9 Neurogenesis coupling
 - Neuronenblitz exposes neuron type preferences to `MarbleBrain` for growth decisions.
 - During neurogenesis, the brain queries either
   \(t^* = \text{get\_preferred\_neuron\_type}()\) or
@@ -142,7 +179,7 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
   \(\mathcal{N}(0, \text{representation\_noise\_std})\) and weight range
   \([\text{weight\_init\_min}, \text{weight\_init\_max}]\).
 
-### 4.9 Reinforcement learning integration
+### 4.10 Reinforcement learning integration
 - Q-learning weight update for state-action pair (s,a):
   Q(s,a) <- Q(s,a) + alpha * (r + gamma * max_a' Q(s',a') - Q(s,a)).
 - Epsilon scheduling:
@@ -150,7 +187,7 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
 - Discounted return for policy gradients:
   G_t = sum_{k=0}^inf gamma^k * r_{t+k+1}.
 
-### 4.10 Optimization and scheduling
+### 4.11 Optimization and scheduling
 - RMSProp accumulator for gradient g:
   v' = beta * v + (1-beta) * g^2;
   g_adj = g / sqrt(v' + grad_epsilon).
@@ -158,13 +195,13 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
   lr_{t+1} = clip(lr_t * scheduler_gamma, min_learning_rate, max_learning_rate).
 - Epsilon scheduler analogous to learning rate scheduler.
 
-### 4.11 Chaotic gating and phase adaptation
+### 4.12 Chaotic gating and phase adaptation
 - Chaotic gate using logistic map:
   c_{t+1} = chaotic_gating_param * c_t * (1 - c_t).
 - Phase update:
   phi_{t+1} = phi_t + phase_rate + phase_adaptation_rate * e.
 
-### 4.12 Experience replay and memory gating
+### 4.13 Experience replay and memory gating
 - Prioritized replay probability:
   P_i = (p_i^replay_alpha) / sum_j (p_j^replay_alpha).
 - Importance weight:
@@ -174,7 +211,7 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
 - Episodic path replay occurs with probability `episodic_memory_prob` for up to `episodic_sim_length` steps, applying the same
   synapse side effects as normal wandering.
 
-### 4.13 Parameter inventory
+### 4.14 Parameter inventory
 All parameters of Neuronenblitz must be exposed and exercised:
 backtrack_probability, consolidation_probability, consolidation_strength, route_potential_increase, route_potential_decay, route_visit_decay_interval, alternative_connection_prob, split_probability, merge_tolerance, combine_fn, loss_fn, loss_module, weight_update_fn, validation_fn, plasticity_threshold, continue_decay_rate, struct_weight_multiplier1, struct_weight_multiplier2, attention_decay, max_wander_depth, learning_rate, weight_decay, dropout_probability, dropout_decay_rate, exploration_decay, reward_scale, stress_scale, auto_update, dataset_path, remote_fallback, noise_injection_std, dynamic_attention_enabled, backtrack_depth_limit, synapse_update_cap, structural_plasticity_enabled, backtrack_enabled, loss_scale, exploration_bonus, synapse_potential_cap, attention_update_scale, attention_span_threshold, max_attention_span, span_module, plasticity_modulation, wander_depth_noise, reward_decay, synapse_prune_interval, gradient_prune_ratio, structural_learning_rate, remote_timeout, gradient_noise_std, min_learning_rate, max_learning_rate, top_k_paths, parallel_wanderers, parallel_update_strategy, beam_width, synaptic_fatigue_enabled, fatigue_increase, fatigue_decay, lr_adjustment_factor, lr_scheduler, scheduler_steps, scheduler_gamma, epsilon_scheduler, epsilon_scheduler_steps, epsilon_scheduler_gamma, momentum_coefficient, reinforcement_learning_enabled, rl_discount, rl_epsilon, rl_epsilon_decay, rl_min_epsilon, entropy_epsilon_enabled, shortcut_creation_threshold, use_echo_modulation, wander_cache_ttl, phase_rate, phase_adaptation_rate, chaotic_gating_enabled, chaotic_gating_param, chaotic_gate_init, context_history_size, context_embedding_decay, emergent_connection_prob, concept_association_threshold, concept_learning_rate, weight_limit, wander_cache_size, plasticity_history_size, rmsprop_beta, grad_epsilon, use_experience_replay, replay_buffer_size, replay_alpha, replay_beta, replay_batch_size, exploration_entropy_scale, exploration_entropy_shift, gradient_score_scale, memory_gate_decay, memory_gate_strength, episodic_memory_size, episodic_memory_threshold, episodic_memory_prob, curiosity_strength, depth_clip_scaling, forgetting_rate, structural_dropout_prob, gradient_path_score_scale, use_gradient_path_scoring, rms_gradient_path_scoring, activity_gate_exponent, subpath_cache_size, gradient_accumulation_steps, wander_anomaly_threshold, wander_history_size, subpath_cache_ttl, monitor_wander_factor, monitor_epsilon_factor, episodic_sim_length, use_mixed_precision, remote_client, torrent_client, torrent_map, metrics_visualizer.
 
@@ -194,6 +231,13 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 5.3 Autoencoder Learning
 - Reconstruction loss \(L_{rec} = \|x - \hat{x}\|_2^2\).
 - Variational regularisation \(L_{KL} = -\tfrac{1}{2}\sum_j(1 + \log\sigma_j^2 - \mu_j^2 - \sigma_j^2)\).
+- Denoising input perturbation: \(\tilde{x} = x + \mathcal{N}(0, \sigma^2)\)
+  with \(\sigma_{t+1} = \sigma_t \cdot \text{noise\_decay}\).
+- Training step: `dynamic_wander` on noisy input, compute error `e = x - \hat{x}`,
+  apply `apply_weight_updates_and_attention`, then `perform_message_passing`.
+- `AutoencoderPipeline` converts arbitrary objects to floats via
+  `DataLoader` and optional `Tokenizer`, collects values and persists
+  `{core, neuronenblitz}` using pickle.
 
 ### 5.4 Reinforcement Learning
 - Q-learning update: \(Q(s,a) \leftarrow Q(s,a) + \alpha (r + \gamma \max_{a'}Q(s',a') - Q(s,a))\).
@@ -255,6 +299,8 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 6.1 Pipeline framework
 - Implement pipeline, pipeline_cli, pipeline_schema, highlevel_pipeline and examples.
 - Provide step registration, DAG validation and execution engine.
+- Incorporate `BranchContainer` to execute sub-pipelines concurrently with
+  device-aware scheduling, GPU memory checks and optional concurrency limits.
 
 ### 6.2 Scheduler plugins
 - Implement plugin interface for custom schedulers such as dream_scheduler and remote_worker_pool.
@@ -297,7 +343,9 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 
 ### 8.4 Configuration tooling
 - Provide command-line and GUI-free tools: config_generator, config_editor and config_sync_service.
-- Implement backup_utils for snapshotting configurations.
+- Implement `backup_utils` with `BackupScheduler` periodically copying
+  configuration directories (interval \(T\)) to timestamped destinations and
+  graceful start/stop handling.
 
 ### 8.5 Security and data integrity
 - Implement dataset_encryption, crypto_utils and dataset_replication with integrity checks.
@@ -312,6 +360,14 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 8.8 Visualization helpers
 - activation_visualization.plot_activation_heatmap stacks neuron representations and saves heatmaps.
 
+### 8.9 Command-line interface
+- Build `cli.py` supporting configuration overrides, dataset loading, training,
+  evaluation, pipeline execution, hyperparameter grid search and config
+  synchronization.
+- Expose options for learning-rate schedulers, parallel wanderers,
+  cross-validation, quantization, unified learning, remote retry/backoff and
+  message-passing benchmarks.
+
 ## 9. Testing and Validation
 ### 9.1 Unit tests
 - Write pytest suites for every module and parameter combination.
@@ -321,7 +377,14 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Simulate end-to-end pipelines verifying data flow from datasets through learners and Neuronenblitz.
 
 ### 9.3 Performance and stress tests
-- Recreate benchmarks (benchmark_* scripts) to verify parity.
+- Recreate benchmarks to verify parity:
+  - `benchmark_autograd_vs_marble` compares pure MARBLE vs autograd layer.
+  - `benchmark_dream_consolidation` measures impact of dream cycles.
+  - `benchmark_graph_precompile` times graph caching.
+  - `benchmark_parallel_wanderers` evaluates multi-process wandering speed.
+  - `benchmark_remote_wanderer_latency` simulates network delays.
+  - `benchmark_sac_vs_baseline` tests SAC-enabled wanderer vs random.
+  - `benchmark_super_evolution` profiles SuperEvolutionController dynamics.
 
 ### 9.4 Config coverage
 - Add tests asserting no orphaned configuration keys.
