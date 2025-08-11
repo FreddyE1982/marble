@@ -487,6 +487,30 @@ def create_marble_from_config(
             )
         marble.transfer_learner = learner
 
+    ss_cfg = cfg.get("semi_supervised_learning", {})
+    if ss_cfg.get("enabled", False):
+        from dataset_loader import load_dataset
+        from semi_supervised_learning import SemiSupervisedLearner
+
+        examples = []
+        if dataset_path:
+            try:
+                examples = load_dataset(dataset_path)
+            except Exception:  # pragma: no cover - best effort loading
+                examples = []
+        learner = SemiSupervisedLearner(
+            marble.core,
+            marble.neuronenblitz,
+            unlabeled_weight=ss_cfg.get("unlabeled_weight", 0.5),
+        )
+        if examples:
+            learner.train(
+                examples,
+                epochs=int(ss_cfg.get("epochs", 1)),
+                batch_size=int(ss_cfg.get("batch_size", 1)),
+            )
+        marble.semi_supervised_learner = learner
+
     qf_cfg = cfg.get("quantum_flux_learning", {})
     if qf_cfg.get("enabled", False):
         from dataset_loader import load_dataset

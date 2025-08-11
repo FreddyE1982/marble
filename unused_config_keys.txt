@@ -477,12 +477,7 @@ remote_hardware.grpc.address
 remote_hardware.grpc.backoff_factor
 remote_hardware.grpc.max_retries
 remote_hardware.tier_plugin
-sac.temperature
 scheduler.plugin
-semi_supervised_learning.batch_size
-semi_supervised_learning.enabled
-semi_supervised_learning.epochs
-semi_supervised_learning.unlabeled_weight
 serve_model.host
 serve_model.port
 synaptic_echo_learning.echo_influence

@@ -21,6 +21,20 @@ def test_reinforcement_learning_section(tmp_path):
     assert hasattr(marble, "rl_agent")
 
 
+def test_semi_supervised_learning_section(tmp_path):
+    cfg = {
+        "semi_supervised_learning": {
+            "enabled": True,
+            "epochs": 1,
+            "batch_size": 1,
+            "unlabeled_weight": 0.5,
+        }
+    }
+    cfg_path = _write_cfg(tmp_path, cfg)
+    marble = create_marble_from_config(cfg_path)
+    assert hasattr(marble, "semi_supervised_learner")
+
+
 def test_quantum_flux_learning_section(tmp_path):
     cfg = {
         "quantum_flux_learning": {
