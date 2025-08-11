@@ -4,11 +4,7 @@ adversarial_learning.epochs
 adversarial_learning.noise_dim
 attention_codelets.coalition_size
 attention_codelets.enabled
-brain.auto_firing_enabled
 brain.auto_neurogenesis_prob
-brain.auto_offload
-brain.auto_save_enabled
-brain.auto_save_interval
 brain.backup_dir
 brain.backup_enabled
 brain.backup_interval

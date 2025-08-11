@@ -2,13 +2,14 @@
 
 # ruff: noqa: F401, F403, F405
 import asyncio
+import logging
 import os
 import random
 import time
 
-import logging
 import torch
 
+import global_workspace
 from backup_utils import BackupScheduler
 from dream_replay_buffer import DreamReplayBuffer
 from dream_scheduler import DreamScheduler
@@ -19,7 +20,6 @@ from meta_parameter_controller import MetaParameterController
 from neuromodulatory_system import NeuromodulatorySystem
 from system_metrics import get_gpu_memory_usage, get_system_memory_usage
 from usage_profiler import UsageProfiler
-import global_workspace
 
 
 def _parse_example(sample):
@@ -314,6 +314,8 @@ class Brain:
                 self.save_dir, self.backup_dir, self.backup_interval
             )
             self.backup_scheduler.start()
+        if self.auto_firing_enabled:
+            self.start_auto_firing()
         self.metrics_visualizer = metrics_visualizer
         self.dim_search = None
         if dimensional_search_params is not None and dimensional_search_params.get(
@@ -457,7 +459,9 @@ class Brain:
             return True
         return False
 
-    def _maybe_log_metrics(self, epoch: int, val_loss: float | None, epoch_time: float) -> None:
+    def _maybe_log_metrics(
+        self, epoch: int, val_loss: float | None, epoch_time: float
+    ) -> None:
         """Log training progress periodically based on ``log_interval``.
 
         Metrics are emitted through the standard logging module and the global
@@ -619,7 +623,10 @@ class Brain:
                     target_tier=new_tier,
                 )
                 self.perform_neurogenesis(use_combined_attention=True)
-            if self.auto_cluster_interval > 0 and (epoch + 1) % self.auto_cluster_interval == 0:
+            if (
+                self.auto_cluster_interval > 0
+                and (epoch + 1) % self.auto_cluster_interval == 0
+            ):
                 min_k = int(self.core.params.get("min_cluster_k", 1))
                 self.core.cluster_neurons(k=max(self.cluster_k, min_k))
                 self.core.relocate_clusters(
@@ -628,10 +635,11 @@ class Brain:
                 )
             self.lobe_manager.organize()
             self.lobe_manager.self_attention(val_loss)
-            if self.offload_enabled:
-                self.offload_high_attention(self.offload_threshold)
-            if self.torrent_offload_enabled:
-                self.offload_high_attention_torrent(self.torrent_offload_threshold)
+            if self.auto_offload:
+                if self.offload_enabled:
+                    self.offload_high_attention(self.offload_threshold)
+                if self.torrent_offload_enabled:
+                    self.offload_high_attention_torrent(self.torrent_offload_threshold)
             self.consolidate_memory()
             self.evolve()
             self._benchmark_counter += 1
@@ -646,6 +654,12 @@ class Brain:
             if self.profiler and epoch % self.profile_interval == 0:
                 self.profiler.log_epoch(epoch)
             self._maybe_log_metrics(epoch, val_loss, epoch_time)
+            if (
+                self.auto_save_enabled
+                and self.auto_save_interval > 0
+                and (epoch + 1) % self.auto_save_interval == 0
+            ):
+                self.save_model()
             if self.metrics_visualizer is not None:
                 self.metrics_visualizer.log_event(
                     "epoch_end", {"epoch": epoch, "loss": val_loss}
