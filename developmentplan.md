@@ -60,6 +60,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 ### 3.3 Memory systems
 - Implement `HybridMemory` combining vector similarity search, symbolic key-value store and optional Kùzu-backed tier with temporal forgetting.
 - Implement memory_pool, memory_manager, episodic memory, hybrid memory, prompt memory and Kuzu-backed tiers.
+  - `PromptMemory` caches input/output pairs, builds composite prompts within a character limit and supports JSON `serialize`/`load`.
 - Implement KuzuMemoryTier using KùzuGraphDatabase with MERGE-based inserts, cosine-similarity query over stored vectors and timestamp-driven `forget_old` trimming.
 - Include forgetfulness and consolidation algorithms.
 
@@ -69,9 +70,13 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Provide LearningModule base with `register_learning_module`, `get_learning_module` and `load_learning_plugins` discovering entry points or plugin directories.
 - Build ToolPlugin base and ToolManagerPlugin with heuristic selection policy and optional MCP/MessageBus integration.
 
+- Provide `register_neuron_type`, `register_synapse_type` and `register_loss_module` to extend `marble_core` type registries.
+- Implement `load_plugins` scanning directories for modules defining `register` with neuron/synapse and optional loss callbacks.
 ### 3.5 Dataset infrastructure
 - Implement dataset loader, replication, watcher, streaming datasets, encryption and versioning.
 - Provide dataset cache server and history CLI.
+- PreprocessingPipeline applies sequential preprocessing steps, caches by dataset hash and can tokenize via DataLoader.
+- RemoteWorkerPool executes preprocessing functions in daemon processes via Pipes, retries failed jobs and restarts dead workers.
 - Rebuild `BitTensorDataset` with
   - `DatasetPair` container and `augment_bit_tensor` for random bit flips and noise
     \(x' = x \oplus f_p + n_p\).
@@ -472,22 +477,29 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Implement theory_of_mind for agent modeling using probabilistic belief updates.
 - Recreate neural_pathway and neural_schema_induction for structured knowledge extraction.
 
+- PredictiveCodingPlugin minimises reconstruction error through iterative latent updates and logs to global workspace.
+- QuantumFluxLearner updates synapses via sine-modulated phase shifts and trains through QuantumFluxPairsPipeline.
 ## 8. Utilities and Interop
 ### 8.1 External framework interop
 - Implement PyTorch and TensorFlow interop layers (pytorch_to_marble, torch_interop, tensorflow_interop).
 - Provide model import/export (convert_model, marble_to_pytorch, torch_model_io).
 - Autograd integration via MarbleAutogradLayer and TransparentMarbleLayer supporting gradient accumulation and scheduler callbacks.
 
+- `pytorch_to_marble` traces PyTorch models with converter registries (`register_converter`, `register_function_converter`, `register_method_converter`) and provides layer converters for Linear and Conv2d, raising `UnsupportedLayerError` for unhandled modules.
 ### 8.2 Remote and distributed execution
 - Implement remote_offload, remote_worker_pool, distributed_training and torrent-based model exchange.
 - Include networkx graph export, web API and database query tools.
 - networkx_interop converts cores and pipelines to NetworkX graphs, provides diff utilities and pipeline expansion.
 - neural_pathway performs tensor-based BFS path finding and Plotly visualisation of highlighted routes.
 
+- Remote hardware plugins implement `RemoteTier` base with `connect`, `offload_core`, `run_step` and `close`; include gRPC tier with retry/backoff and mock tier for local execution, loaded via `load_remote_tier_plugin`.
+- RemoteBrainServer exposes `/offload`, `/process` and `/ping` HTTP endpoints with optional compression and bearer authentication; RemoteBrainClient manages retries, latency statistics, bandwidth and route optimisation.
+- RemoteWandererClient and RemoteWandererServer exchange `ExplorationRequest` and `ExplorationResult` messages over `MessageBus` to coordinate distributed wandering with optional latency simulation.
 ### 8.3 Experiment tracking and logging
 - `UsageProfiler` and experiment trackers must be wired to training loops and pipeline events.
 - Integrate experiment_tracker, logging_utils and usage_profiler with configurable backends.
 
+- RunProfiler records start/end timestamps and device for each pipeline step and writes ordered JSON traces.
 ### 8.4 Configuration tooling
 - Offer `workflow_template_generator` producing pipeline boilerplates for classification and preprocessing examples.
 - Provide command-line and GUI-free tools:
@@ -514,8 +526,10 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Provide web_api endpoints and database_query_tool for external control.
 ### 8.7 Asynchronous training utilities
 - Include federated averaging trainer `FederatedAveragingTrainer` aggregating synapse weights across clients.
+- ProcessManager distributes tensor tasks across processes using shared memory and multiprocessing with spawn start method, falling back to threads on failure.
 - Provide hyperparameter search utilities (`grid_search`, `random_search`).
 - async_transform dispatches data tasks via scheduler plugins on CPU/GPU.
+- Scheduler plugins include thread-based and asyncio implementations selectable via `configure_scheduler` and retrievable with `get_scheduler`.
 - AsyncGradientAccumulator schedules backward passes with asyncio.to_thread and applies optimizer steps every accumulation_steps.
 ### 8.8 Visualization helpers
 - activation_visualization.plot_activation_heatmap stacks neuron representations and saves heatmaps.
@@ -533,6 +547,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 8.10 Model conversion and compression
 - Incorporate `generate_repo_md` script to snapshot repository contents into single Markdown for reproducibility.
 - `convert_model` CLI transforms PyTorch checkpoints to MARBLE JSON or `.marble` snapshots and offers summary output, plots, CSV, tables and graph rendering.
+- `QuantizedTensor` enables uniform n-bit quantization with bit packing/unpacking, `state_dict` serialization and device-aware `to` transfers.
 - model_refresh provides full_retrain, incremental_update and auto_refresh routines triggered by DatasetWatcher.
 - `DataCompressor` and crypto utilities provide constant-time XOR encryption, AES-GCM tensor/byte encryption, delta encoding, quantization and sparse-aware compression.
 - `DatabaseQueryTool` executes Cypher queries on Kùzu databases.
@@ -541,6 +556,9 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - `DistillationTrainer` blends teacher predictions with targets for student brains.
 - `DistributedTrainer` uses PyTorch DDP to average synapse weights across processes.
 - `EvolutionTrainer` explores configuration space via mutation, parallel fitness evaluation and lineage graph export.
+- ReinforcementLearning module offers GridWorld env, `MarbleQLearningAgent` with epsilon decay/Double-Q and `MarblePolicyGradientAgent` integrating Neuronenblitz outputs.
+### 8.12 Python compatibility utilities
+- `pycompat.removeprefix` and `pycompat.cached` supply Python 3.8 helpers.
 ## 9. Testing and Validation
 ### 9.1 Unit tests
 - Write pytest suites for every module and parameter combination.
@@ -559,6 +577,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
   - `benchmark_sac_vs_baseline` tests SAC-enabled wanderer vs random.
   - `benchmark_super_evolution` profiles SuperEvolutionController dynamics.
 
+- `pytorch_challenge` contrasts Marble vs SqueezeNet on the Digits dataset, measuring loss, runtime and model size.
 ### 9.4 Config coverage
 - Add tests asserting no orphaned configuration keys.
 
@@ -567,6 +586,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Integrate hyperparameter_search to sweep configuration spaces and record metrics.
 
 ## 10. Documentation and Tutorials
+- Provide `project_template/main.py` as a minimal entry point loading config, dataset and training routine.
 - Recreate comprehensive example suite covering numeric regression, image classification, remote offloading, GPT training, RNN sequence modelling, reinforcement learning variants, contrastive, attention codelets, Hebbian, adversarial, autoencoder, sklearn integration, iris classification, semi-supervised, federated, curriculum, meta, transfer, continual, imitation, harmonic resonance, synaptic echo, fractal dimension, quantum flux, dream reinforcement and text-to-music pipelines.
 - Provide `exampletrain` advanced training demo integrating Stable Diffusion, auto-firing, dreaming, benchmarking and synthetic dataset utilities (`exampletrain_utils`).
 - Regenerate README, ARCHITECTURE_OVERVIEW, ML_PARADIGMS_HANDBOOK and a new multi-project TUTORIAL without GUI references.

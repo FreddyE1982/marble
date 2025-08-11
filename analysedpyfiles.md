@@ -183,30 +183,30 @@ omni_learning.py: lines=84, functions=0, classes=1, lines_read=84
 pipeline.py: lines=1040, functions=0, classes=4, lines_read=200, lines_remaining=840
 pipeline_cli.py: lines=27, functions=1, classes=0, lines_read=27
 pipeline_plugins.py: lines=357, functions=3, classes=5, lines_read=357
-pipeline_schema.py: lines=55, functions=1, classes=0
-plugin_system.py: lines=66, functions=4, classes=0
-predictive_coding.py: lines=88, functions=3, classes=3
-preprocessing_pipeline.py: lines=67, functions=0, classes=1
-process_manager.py: lines=135, functions=1, classes=2
-project_template/main.py: lines=15, functions=1, classes=0
-prompt_memory.py: lines=91, functions=0, classes=1
-pycompat.py: lines=28, functions=2, classes=0
-pytorch_challenge.py: lines=120, functions=5, classes=0
-pytorch_to_marble.py: lines=907, functions=52, classes=5
-quantized_tensor.py: lines=149, functions=0, classes=1
-quantum_flux_learning.py: lines=41, functions=0, classes=1
-quantum_flux_pairs_pipeline.py: lines=65, functions=0, classes=1
-reinforcement_learning.py: lines=267, functions=2, classes=4
-remote_hardware/__init__.py: lines=8, functions=0, classes=0
-remote_hardware/base.py: lines=42, functions=0, classes=1
-remote_hardware/grpc_tier.py: lines=81, functions=1, classes=1
-remote_hardware/mock_tier.py: lines=55, functions=1, classes=1
-remote_hardware/plugin_loader.py: lines=18, functions=1, classes=0
-remote_offload.py: lines=363, functions=0, classes=2
-remote_wanderer.py: lines=241, functions=5, classes=2
-remote_worker_pool.py: lines=128, functions=0, classes=2
-run_profiler.py: lines=50, functions=0, classes=2
-scheduler_plugins.py: lines=109, functions=4, classes=3
+pipeline_schema.py: lines=55, functions=1, classes=0, lines_read=55
+plugin_system.py: lines=66, functions=4, classes=0, lines_read=66
+predictive_coding.py: lines=88, functions=3, classes=3, lines_read=88
+preprocessing_pipeline.py: lines=67, functions=0, classes=1, lines_read=67
+process_manager.py: lines=135, functions=1, classes=2, lines_read=135
+project_template/main.py: lines=15, functions=1, classes=0, lines_read=15
+prompt_memory.py: lines=91, functions=0, classes=1, lines_read=91
+pycompat.py: lines=28, functions=2, classes=0, lines_read=28
+pytorch_challenge.py: lines=120, functions=5, classes=0, lines_read=120
+pytorch_to_marble.py: lines=907, functions=52, classes=5, lines_read=200, lines_remaining=707
+quantized_tensor.py: lines=149, functions=0, classes=1, lines_read=149
+quantum_flux_learning.py: lines=41, functions=0, classes=1, lines_read=41
+quantum_flux_pairs_pipeline.py: lines=65, functions=0, classes=1, lines_read=65
+reinforcement_learning.py: lines=267, functions=2, classes=4, lines_read=267
+remote_hardware/__init__.py: lines=8, functions=0, classes=0, lines_read=8
+remote_hardware/base.py: lines=42, functions=0, classes=1, lines_read=42
+remote_hardware/grpc_tier.py: lines=81, functions=1, classes=1, lines_read=81
+remote_hardware/mock_tier.py: lines=55, functions=1, classes=1, lines_read=55
+remote_hardware/plugin_loader.py: lines=18, functions=1, classes=0, lines_read=18
+remote_offload.py: lines=363, functions=0, classes=2, lines_read=363
+remote_wanderer.py: lines=241, functions=5, classes=2, lines_read=241
+remote_worker_pool.py: lines=128, functions=0, classes=2, lines_read=128
+run_profiler.py: lines=50, functions=0, classes=2, lines_read=50
+scheduler_plugins.py: lines=109, functions=4, classes=3, lines_read=109
 scripts/catalog_cpu_fallback_tests.py: lines=41, functions=2, classes=0
 scripts/convert_to_py38.py: lines=40, functions=2, classes=0
 scripts/download_cifar10.py: lines=39, functions=2, classes=0
