@@ -406,9 +406,9 @@ def create_marble_from_config(
     rl_cfg = cfg.get("reinforcement_learning", {})
     if rl_cfg.get("enabled", False):
         from reinforcement_learning import (
-            MarbleQLearningAgent,
-            MarblePolicyGradientAgent,
             GridWorld,
+            MarblePolicyGradientAgent,
+            MarbleQLearningAgent,
             train_gridworld,
             train_policy_gradient,
         )
@@ -419,7 +419,12 @@ def create_marble_from_config(
         max_steps = int(rl_cfg.get("max_steps", 50))
         seed = rl_cfg.get("seed", 0)
         if algorithm == "policy_gradient":
-            agent = MarblePolicyGradientAgent(marble.core, marble.neuronenblitz)
+            agent = MarblePolicyGradientAgent(
+                marble.core,
+                marble.neuronenblitz,
+                hidden_dim=int(rl_cfg.get("policy_hidden_dim", 16)),
+                lr=rl_cfg.get("policy_lr", 0.01),
+            )
             train_policy_gradient(agent, env, episodes, max_steps=max_steps, seed=seed)
         else:
             agent = MarbleQLearningAgent(
@@ -430,14 +435,15 @@ def create_marble_from_config(
                 epsilon_decay=rl_cfg.get("epsilon_decay", 0.95),
                 min_epsilon=rl_cfg.get("epsilon_min", 0.1),
                 double_q=rl_cfg.get("double_q", False),
+                learning_rate=rl_cfg.get("learning_rate", 0.1),
             )
             train_gridworld(agent, env, episodes, max_steps=max_steps, seed=seed)
         marble.rl_agent = agent
 
     adv_cfg = cfg.get("adversarial_learning", {})
     if adv_cfg.get("enabled", False):
-        from dataset_loader import load_dataset
         from adversarial_learning import AdversarialLearner
+        from dataset_loader import load_dataset
         from marble_neuronenblitz import Neuronenblitz
 
         examples = []
