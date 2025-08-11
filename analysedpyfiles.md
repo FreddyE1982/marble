@@ -246,25 +246,25 @@ tests/dummy_pipeline_module.py: lines=10, functions=2, classes=0, lines_read=10
 tests/helpers.py: lines=8, functions=1, classes=0, lines_read=8
 tests/test_activation_utils.py: lines=15, functions=1, classes=0, lines_read=15
 tests/test_advanced_gpt.py: lines=55, functions=3, classes=0, lines_read=55
-tests/test_adversarial_dataset.py: lines=38, functions=1, classes=2
-tests/test_adversarial_generator.py: lines=23, functions=1, classes=1
-tests/test_adversarial_learning.py: lines=17, functions=1, classes=0
-tests/test_ann_search.py: lines=10, functions=1, classes=0
-tests/test_async_dispatcher.py: lines=25, functions=1, classes=0
-tests/test_async_gradient_accumulator.py: lines=83, functions=4, classes=0
-tests/test_async_training.py: lines=69, functions=3, classes=0
-tests/test_async_utils.py: lines=11, functions=1, classes=0
-tests/test_attention_codelets.py: lines=26, functions=1, classes=0
-tests/test_attention_module.py: lines=28, functions=2, classes=0
-tests/test_attention_salience.py: lines=38, functions=2, classes=0
-tests/test_attention_span_module.py: lines=70, functions=6, classes=0
-tests/test_attention_utils_cpu_fallback.py: lines=58, functions=5, classes=0
-tests/test_attention_viz_streamlit.py: lines=17, functions=1, classes=0
-tests/test_attention_workspace_gating.py: lines=26, functions=1, classes=0
-tests/test_auto_nb_training_loop.py: lines=57, functions=4, classes=0
-tests/test_autoencoder_config.py: lines=56, functions=3, classes=0
-tests/test_autoencoder_learning.py: lines=24, functions=2, classes=0
-tests/test_autoencoder_pipeline.py: lines=67, functions=5, classes=0
+tests/test_adversarial_dataset.py: lines=38, functions=1, classes=2, lines_read=38
+tests/test_adversarial_generator.py: lines=23, functions=1, classes=1, lines_read=23
+tests/test_adversarial_learning.py: lines=17, functions=1, classes=0, lines_read=17
+tests/test_ann_search.py: lines=10, functions=1, classes=0, lines_read=10
+tests/test_async_dispatcher.py: lines=25, functions=1, classes=0, lines_read=25
+tests/test_async_gradient_accumulator.py: lines=83, functions=4, classes=0, lines_read=83
+tests/test_async_training.py: lines=69, functions=3, classes=0, lines_read=69
+tests/test_async_utils.py: lines=11, functions=1, classes=0, lines_read=11
+tests/test_attention_codelets.py: lines=26, functions=1, classes=0, lines_read=26
+tests/test_attention_module.py: lines=28, functions=2, classes=0, lines_read=28
+tests/test_attention_salience.py: lines=38, functions=2, classes=0, lines_read=38
+tests/test_attention_span_module.py: lines=70, functions=6, classes=0, lines_read=70
+tests/test_attention_utils_cpu_fallback.py: lines=58, functions=5, classes=0, lines_read=58
+tests/test_attention_viz_streamlit.py: lines=17, functions=1, classes=0, lines_read=17
+tests/test_attention_workspace_gating.py: lines=26, functions=1, classes=0, lines_read=26
+tests/test_auto_nb_training_loop.py: lines=57, functions=4, classes=0, lines_read=57
+tests/test_autoencoder_config.py: lines=56, functions=3, classes=0, lines_read=56
+tests/test_autoencoder_learning.py: lines=24, functions=2, classes=0, lines_read=24
+tests/test_autoencoder_pipeline.py: lines=67, functions=5, classes=0, lines_read=67
 tests/test_autograd_config.py: lines=18, functions=1, classes=0
 tests/test_autograd_layer.py: lines=89, functions=4, classes=0
 tests/test_backcronym.py: lines=15, functions=1, classes=0

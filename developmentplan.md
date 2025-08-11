@@ -36,6 +36,9 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - DataLoader parameters: tensor dtype, metadata tracking, automatic
   encode/decode/tokenization with round-trip verification/penalty and
   tokenizer type/json/vocab_size.
+- Autoencoder learning section with `enabled`, `epochs`, `batch_size`, `noise_std`,
+  and `noise_decay` controls default denoising behaviour.
+- `core.salience_weight` scales attention proposal saliences when forming coalitions.
 - Network components: `RemoteBrainClient`, `RemoteBrainServer`, torrent client/tracker and remote tier plugins.
 - Metrics visualizer and optional Kùzu experiment/topology trackers.
 - Optional modules activated through config: predictive_coding, tool_manager, tensor_sync_service, unified_learning, global_workspace, attention_codelets, conceptual_integration, theory_of_mind and weight quantization.
@@ -45,7 +48,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 ## 3. Core Architecture
 ### 3.1 Event and message infrastructure
 - Implement event_bus and message_bus with asynchronous queues.
-- MessageBus supports direct, broadcast and reply communication, logs history for NetworkX influence graphs and offers AsyncDispatcher background delivery.
+- MessageBus supports direct, broadcast and reply communication, logs history for NetworkX influence graphs and offers `AsyncDispatcher` background delivery with configurable poll_interval.
 - Provide publish/subscribe API and serialization hooks.
 - EventBus supports event filtering, rate limiting and unified `ProgressEvent` schema.
 
@@ -60,6 +63,8 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 
 - Initial neuron representations seeded via Mandelbrot fractals with optional Gaussian noise.
 - Message passing employs `AttentionModule` with temperature scaling, sine or chaotic gating, dropout and mixed-precision layer-normalised MLP updates.
+- `DynamicSpanModule` applies cumulative-softmax masking with configurable `threshold` and `max_span` to cap traversal length and integrates into Neuronenblitz `dynamic_wander`.
+- `attention_codelets` let codelets emit `AttentionProposal(score, content)`; `form_coalition` selects top proposals using optional salience scores weighted by `core.salience_weight`, `broadcast_coalition` forwards winners to `global_workspace`, and workspace gating adjusts future scores based on published events.
 - `interconnect_cores` merges multiple cores and optionally creates cross-core synapses based on interconnection probability.
 ### 3.3 Memory systems
 - Implement `HybridMemory` combining vector similarity search, symbolic key-value store and optional Kùzu-backed tier with temporal forgetting.
@@ -106,7 +111,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
   encoding uses `encode_with_vocab` while decoding uses `decode_with_vocab`.
 - Support optional compression, encryption, SHA256 indexing, history snapshots,
   dataset transforms, deterministic `split`/`merge`, persistence helpers and
-  Annoy-based nearest-neighbour search.
+  Annoy-based nearest-neighbour search via `build_ann_index` and `nearest_neighbors` queries.
 
 #### 3.5.4 Streaming datasets
 - Implement `BitTensorStreamingDataset` with seekable HuggingFace dataset
@@ -405,9 +410,10 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
   with \(\sigma_{t+1} = \sigma_t \cdot \text{noise\_decay}\).
 - Training step: `dynamic_wander` on noisy input, compute error `e = x - \hat{x}`,
   apply `apply_weight_updates_and_attention`, then `perform_message_passing`.
+- Config section exposes `enabled`, `epochs`, `batch_size`, `noise_std` and `noise_decay`; training is skipped when disabled and defaults are applied when not provided.
 - `AutoencoderPipeline` converts arbitrary objects to floats via
   `DataLoader` and optional `Tokenizer`, collects values and persists
-  `{core, neuronenblitz}` using pickle.
+  `{core, neuronenblitz}` using pickle, handling numeric arrays, text with trained tokenizers, existing `BitTensorDataset` instances or auto-generated vocabularies when `use_vocab=True`.
 
 ### 5.4 Reinforcement Learning
 - Q-learning update: \(Q(s,a) \leftarrow Q(s,a) + \alpha (r + \gamma \max_{a'}Q(s',a') - Q(s,a))\).
@@ -595,9 +601,12 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Provide hyperparameter search utilities (`grid_search`, `random_search`).
 - async_transform dispatches data tasks via scheduler plugins on CPU/GPU.
 - Scheduler plugins include thread-based and asyncio implementations selectable via `configure_scheduler` and retrievable with `get_scheduler`.
-- AsyncGradientAccumulator schedules backward passes with asyncio.to_thread and applies optimizer steps every accumulation_steps.
+- AsyncGradientAccumulator schedules backward passes with `asyncio.to_thread` and applies optimizer steps every `accumulation_steps`, matching synchronous SGD on CPU or GPU.
+- `Brain.start_training` launches a background thread controlled by `training_active` and `wait_for_training`, while `train_async` exposes an awaitable API.
+- `Pipeline._dataset_step_indices` detects dataset-producing steps to drive automatic training loops.
 ### 8.8 Visualization helpers
 - activation_visualization.plot_activation_heatmap stacks neuron representations and saves heatmaps.
+- Attention utilities provide `GatingLayer` (modes `sine` and `chaos`), `generate_causal_mask`, `benchmark_mask_overhead`, and Plotly `mask_figure`/`gate_figure` that accept tensors from CPU or GPU.
 
 ### 8.9 Command-line interface
 - Add `highlevel_pipeline_cli` for checkpoint/resume operations with device selection and dataset version metadata.
@@ -618,6 +627,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - `DatabaseQueryTool` executes Cypher queries on Kùzu databases.
 
 ### 8.11 Training utilities
+- Adversarial toolkit includes `fgsm_generate` for perturbations, `FGSMDataset` wrapping datasets to emit adversarial examples, and `AdversarialLearner` training generator/discriminator Neuronenblitz pairs while recording loss history.
 - `DistillationTrainer` blends teacher predictions with targets for student brains.
 - `DistributedTrainer` uses PyTorch DDP to average synapse weights across processes.
 - `EvolutionTrainer` explores configuration space via mutation, parallel fitness evaluation and lineage graph export.
