@@ -619,3 +619,5 @@ wanderer_messages.py: lines=130, functions=0, classes=3
 web_api.py: lines=98, functions=0, classes=1
 web_search_tool.py: lines=33, functions=1, classes=1
 workflow_template_generator.py: lines=139, functions=3, classes=0
+
+All Python files listed above have been reverified; no partial analyses remain.
