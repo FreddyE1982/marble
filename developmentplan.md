@@ -220,6 +220,17 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Implement federated averaging: w_{t+1} = \sum_k (n_k / N) * w_k where n_k are client sample counts.
 - Integrate distributed_training with gradient synchronization across nodes.
 
+### 5.12 Diffusion Models
+- Forward process: \(x_t = \sqrt{1-\beta_t}\, x_{t-1} + \sqrt{\beta_t}\, \epsilon\) with \(\epsilon \sim \mathcal{N}(0, I)\).
+- Reverse denoising: learn score function \(s_\theta(x_t, t) \approx \nabla_{x_t} \log p_t(x_t)\) and integrate \(x_{t-1} = x_t + \beta_t s_\theta(x_t,t) + \sqrt{\beta_t} z\).
+- Integrate diffusion_core, diffusion_pairs_pipeline and scheduler into training pipeline.
+
+### 5.13 Conceptual and Schema Induction
+- Neural schema induction mines frequent relational triples using support threshold and max schema size; expand schemas until frequency < threshold.
+- Conceptual integration blends concept vectors: \(c_{blend} = \lambda c_1 + (1-\lambda) c_2\) with blend probability and similarity gating.
+- N-dimensional topology learner embeds neurons in \(d\)-dimensional space and optimises attention threshold \(\alpha\) s.t. loss decreases by > loss_improve_threshold within stagnation_epochs.
+- Unified learning combines gated learners with log mixture objective: \(L = \log\sum_i g_i e^{-L_i}\) where gating weights \(g_i\) are softmax outputs.
+
 ## 6. Pipelines and Orchestration
 ### 6.1 Pipeline framework
 - Implement pipeline, pipeline_cli, pipeline_schema, highlevel_pipeline and examples.
