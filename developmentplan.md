@@ -36,16 +36,20 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - DataLoader parameters: tensor dtype, metadata tracking, automatic
   encode/decode/tokenization with round-trip verification/penalty and
   - tokenizer type/json/vocab_size.
-- DataLoader parameters: tensor dtype, metadata tracking, automatic encode/decode/tokenization with round-trip verification/penalty and tokenizer type/json/vocab_size.
+- DataLoader parameters: tensor dtype, metadata tracking, automatic encode/decode/tokenization with round-trip verification/penalty and tokenizer type/json/vocab_size. `tokenizer_to_json`/`tokenizer_from_json` persist tokenizers, `tokenize_line` and `tokenize_lines` stream text and checkpoints must restore tokenizer state.
 - Autograd layer configuration with `autograd_params` (`enabled`, `learning_rate`, `gradient_accumulation_steps`, optional `scheduler`) controlling gradient accumulation and learning-rate scheduling.
 - Autoencoder learning section with `enabled`, `epochs`, `batch_size`, `noise_std`,
   and `noise_decay` controls default denoising behaviour.
 - `core.salience_weight` scales attention proposal saliences when forming coalitions.
 - Network components: `RemoteBrainClient`, `RemoteBrainServer`, torrent client/tracker and remote tier plugins.
+  - Client parameters include `connect_retry_interval`, `heartbeat_timeout`, `ssl_verify`, latency/bandwidth tracking and `optimize_route` for multi-endpoint selection.
+  - Server supports SSL via `ssl_cert_file`/`ssl_key_file` and bearer-token authentication for `/offload`, `/process` and `/ping`.
+  - `RemoteWorkerPool` maps functions across worker processes with retry and automatic recovery.
 - Metrics visualizer and optional Kùzu experiment/topology trackers.
 - Optional modules activated through config: predictive_coding, tool_manager, tensor_sync_service, unified_learning, global_workspace, attention_codelets, conceptual_integration, theory_of_mind and weight quantization. `predictive_coding.activate(num_layers, latent_dim, learning_rate)` returns an object whose repeated `step(x)` calls should monotonically reduce squared error.
 - Conditional training helpers: advanced GPT training, reinforcement learning (policy gradient or Q-learning), dream reinforcement, adversarial, transfer, semi‑supervised, federated, curriculum, imitation, harmonic resonance, quantum flux, synaptic echo and fractal dimension learners.
 - UnifiedLearner coordinates multiple paradigms via a gating network; UnifiedPairsPipeline and TransferPairsPipeline feed pair datasets.
+  - `UnifiedLearner` exposes `explain(neuron_id, with_gradients)` returning per-learner gradients and supports configuration of `gating_hidden` size and `log_path`.
 - OmniLearner sequences all learners including continuous weight field, neural schema induction and conceptual integration in one step.
 ## 3. Core Architecture
 ### 3.1 Event and message infrastructure
@@ -58,9 +62,11 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Include `GraphCache` for torch.jit precompilation keyed by tensor shape/dtype, streaming utilities `stream_graph_chunks` and `identify_memory_hotspots`, and `graph_viz.sankey_figure` for interactive topology exploration.
 - Recreate marble_core with Neuron, Synapse, and perform_message_passing.
 - Include structural plasticity operations, neuron/synapse type registries and weight limiting.
+- Synapse types encompass `dropout` (probability from configuration), `batchnorm` with momentum, `mirror` side-effects and excitatory/inhibitory/modulatory dynamics.
 - Implement MarbleBrain, MarbleLobes, MarbleGraphBuilder and GraphCache for topology management.
 - Implement tiered memory system using `TierMeta` registry with default tiers: `VramTier`, `RamTier`, `DiskTier`, `FileTier` (writes modified data to disk) and `RemoteTier` for HTTP offload.
 - Neuron parameter validation must enforce positive stride, dropout probability \(0\le p\le 1\), appropriate kernel dimensionality, non-negative padding/output_padding, non-negative `negative_slope`, positive `alpha`, and momentum \(0<m<1\).
+- Weight initialization supports `xavier_normal` (|w|<4*sqrt(2/(fan_in+fan_out))) and `kaiming_uniform` (|w|≤sqrt(6/fan_in)) with `weight_init_min`/`weight_init_max` bounds.
 
 
 - Initial neuron representations seeded via Mandelbrot fractals with optional Gaussian noise.
@@ -72,6 +78,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 ### 3.3 Memory systems
 - Implement `HybridMemory` combining vector similarity search, symbolic key-value store and optional Kùzu-backed tier with temporal forgetting.
 - Implement memory_pool, memory_manager, episodic memory, hybrid memory, prompt memory and Kuzu-backed tiers.
+- `MemoryManager` estimates tensor allocations and provides `total_reserved()` for pipeline resource checks.
   - `PromptMemory` caches input/output pairs, builds composite prompts within a character limit and supports JSON `serialize`/`load`. It evicts oldest pairs FIFO, preserves timestamps during serialization, enforces `max_chars` when composing, inserts 5000 entries in under 10ms each and maintains comparable CPU/GPU insertion performance.
 - Implement KuzuMemoryTier using KùzuGraphDatabase with MERGE-based inserts, cosine-similarity query over stored vectors and timestamp-driven `forget_old` trimming.
 - Include forgetfulness and consolidation algorithms.
@@ -90,6 +97,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
   - Provide graph builders `pipeline_to_networkx` and `pipeline_to_core` verifying directed acyclic graphs with matching node counts.
 - Provide LearningModule base with `register_learning_module`, `get_learning_module` and `load_learning_plugins` discovering entry points or plugin directories.
 - Build ToolPlugin base and ToolManagerPlugin with heuristic selection policy and optional MCP/MessageBus integration.
+  - YAML configuration sets `policy`, `mode`, `agent_id` and tool parameters; tools like `web_search` and `database_query` are registered via `register_tool` and selected by query heuristics.
 
 - Provide `register_neuron_type`, `register_synapse_type` and `register_loss_module` to extend `marble_core` type registries.
 - Implement `load_plugins` scanning directories for modules defining `register` with neuron/synapse and optional loss callbacks.
@@ -128,7 +136,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - `get_virtual_batch` supports cached or streaming retrieval with configurable `virtual_batch_size` and re-access of previously fetched batches.
 - Streaming remains lazy: accessing items triggers selection tracking in datasets supporting `select`, `skip` or `take` interfaces.
 - Integrate HuggingFace `IterableDataset` and custom generators with on-the-fly encoding to tensors.
-- Implement `StreamingDatasetStep` asynchronously prefetching batches to CPU/GPU via an `asyncio.Queue` and yielding `{"inputs": tensor, "targets": tensor}` dictionaries.
+- Implement `StreamingDatasetStep` asynchronously prefetching batches to CPU/GPU via an `asyncio.Queue` and yielding `{"inputs": tensor, "targets": tensor}` dictionaries, handling variable producer/consumer rates and auto-consumption within pipelines.
 
 #### 3.5.5 Dataset loaders and preprocessing
 - `load_dataset` handles URL caching, prefetch threads, AES-encrypted downloads,
@@ -137,8 +145,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
   binary or textual data.
 - `prefetch_dataset` spawns daemon threads and `wait_for_prefetch` acts as a
   barrier.
-- Provide `StreamingCSVLoader` with resumable offsets and per-line
-  tokenisation via `tokenize_line`, plus `export_dataset` and
+- Provide `StreamingCSVLoader` with resumable offsets, optional `built_in_tokenizer` training, persistence after `.close()` and per-line tokenisation via `tokenize_line`, plus `export_dataset` and
   `clear_dataset_cache` utilities.
 - Support `load_kuzu_graph` for Cypher queries and
   `load_training_data_from_config` that forwards configuration keys and applies
@@ -554,7 +561,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 
 ### 7.4 Cognitive modules
 - Reconstruct global_workspace for broadcasting salient signals across subsystems.
-- Implement theory_of_mind for agent modeling using probabilistic belief updates.
+- Implement theory_of_mind for agent modeling using probabilistic belief updates; `activate(hidden_size, num_layers, prediction_horizon, memory_slots, attention_hops, mismatch_threshold)` creates modules whose `observe` publishes predictions to `global_workspace` and whose memory supports `attend(agent_id, key, hops)` retrieval.
 - Recreate neural_pathway and neural_schema_induction for structured knowledge extraction.
 
 - PredictiveCodingPlugin minimises reconstruction error through iterative latent updates and logs to global workspace.
@@ -564,7 +571,8 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Implement PyTorch and TensorFlow interop layers (pytorch_to_marble, torch_interop, tensorflow_interop).
   - `tensorflow_interop` provides `MarbleKerasLayer` mirroring the message-passing MLP and `tf_to_core` which copies weights back to Marble and resizes neuron representations.
 - Provide model import/export (convert_model, marble_to_pytorch, torch_model_io).
-- Autograd integration via MarbleAutogradLayer and TransparentMarbleLayer supporting gradient accumulation and scheduler callbacks.
+- Autograd integration via MarbleAutogradLayer and TransparentMarbleLayer supporting gradient accumulation and scheduler callbacks. `attach_marble_layer` can wrap existing `torch.nn` modules or files, and `TransparentMarbleLayer` mixes outputs with `mix_weight` while running Neuronenblitz.
+ - RNN hidden-state serialization: `convert_model` records `hidden_state_version=1` entries (`layer_index`, `direction`, `shape`, `dtype`, `device`, `tensor`); `restore_hidden_states` rehydrates them and JSON round-trips must preserve values with <0.01 s serialize/deserialise overhead.
 
 - `pytorch_to_marble` traces PyTorch models with converter registries (`register_converter`, `register_function_converter`, `register_method_converter`) and provides layer converters for Linear and Conv2d, raising `UnsupportedLayerError` for unhandled modules.
 ### 8.2 Remote and distributed execution
@@ -575,14 +583,20 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 
 - Remote hardware plugins implement `RemoteTier` base with `connect`, `offload_core`, `run_step` and `close`; include gRPC tier with retry/backoff and mock tier for local execution, loaded via `load_remote_tier_plugin`.
 - RemoteBrainServer exposes `/offload`, `/process` and `/ping` HTTP endpoints with optional compression and bearer authentication; RemoteBrainClient manages retries, latency statistics, bandwidth and route optimisation.
-- RemoteWandererClient and RemoteWandererServer exchange `ExplorationRequest` and `ExplorationResult` messages over `MessageBus` to coordinate distributed wandering with optional latency simulation.
+- RemoteWandererClient and RemoteWandererServer exchange `ExplorationRequest` and `ExplorationResult` messages over `MessageBus` to coordinate distributed wandering with optional latency simulation; messages preserve `device` information and recover queued requests after reconnects.
+- Pipeline steps may specify a `tier` to execute functions on remote hardware with CPU/GPU parity.
+- `RemoteBrainClient` handles `max_retries` and `connect_retry_interval`, uses `heartbeat_timeout` and `ssl_verify` in `ping`, collects per-call latency and bandwidth to compute averages and `optimize_route`, and supports SSL and uncompressed or chained offloading.
+- `RemoteWorkerPool` executes map-style jobs with `max_retries` and restarts crashed workers automatically.
+- `BrainTorrentTracker` and `BrainTorrentClient` distribute core parts, allow asynchronous `process_async` with bounded buffers and enable `dynamic_wander` across peers.
+- `ServeModelPlugin` starts an HTTP inference server from pipeline configuration, drawing default `host` and `port` from YAML.
+- `SessionManager` generates, renews and revokes wanderer tokens with expiry enforcement.
 ### 8.3 Experiment tracking and logging
-- `UsageProfiler` and experiment trackers must be wired to training loops and pipeline events.
+- `UsageProfiler` (activated with `profile_enabled`, `profile_log_path` and `profile_interval`) and experiment trackers must be wired to training loops and pipeline events.
 - Integrate experiment_tracker, logging_utils and usage_profiler with configurable backends.
 
 - RunProfiler records start/end timestamps and device for each pipeline step and writes ordered JSON traces.
 ### 8.4 Configuration tooling
-- Offer `workflow_template_generator` producing pipeline boilerplates for classification and preprocessing examples.
+- Offer `workflow_template_generator` producing pipeline boilerplates for classification and preprocessing examples runnable on CPU or GPU.
 - Provide command-line and GUI-free tools:
   - `config_generator` parses `yaml-manual.txt` and produces commented configs
     by mapping section keys to descriptions.
@@ -604,7 +618,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 8.6 Remote interaction modules
 - Implement `wanderer_auth` HMAC tokens and `SessionManager` for remote wanderer authentication.
 - Serialize exploration commands via `wanderer_messages` dataclasses (`ExplorationRequest`, `PathUpdate`, `ExplorationResult`).
-- Expose `web_api.InferenceServer` with `/infer`, `/graph`, and `/shutdown` endpoints plus optional PromptMemory and bearer-token auth.
+- Expose `web_api.InferenceServer` with `/infer`, `/graph`, and `/shutdown` endpoints plus optional PromptMemory and bearer-token auth; `/infer` returns numeric outputs for values or text, `/graph` serves nodes/edges JSON and prompt memories persist on shutdown.
 - Implement remote_wanderer, remote_offload, remote_hardware interface and mcp_server/tool_bridge.
 - MCPServer exposes `/mcp/infer` and `/mcp/context` endpoints with optional token or basic auth and PromptMemory support; MCPToolBridge forwards `/mcp/tool` requests to MessageBus agents.
 - Provide web_api endpoints and database_query_tool for external control.
@@ -649,6 +663,12 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - `DistributedTrainer` uses PyTorch DDP to average synapse weights across processes.
 - `EvolutionTrainer` explores configuration space via mutation, parallel fitness evaluation and lineage graph export.
 - ReinforcementLearning module offers GridWorld env, `MarbleQLearningAgent` with epsilon decay/Double-Q and `MarblePolicyGradientAgent` integrating Neuronenblitz outputs. Agents expose `enable_rl`, `rl_select_action` and `rl_update` with learning-rate control; training loops must improve cumulative reward and support configurable hidden dimensions.
+- Advanced GPT self-distillation stores previous logits to `logits.pkl`, computes `kl_divergence` between epochs and blends with `distill_alpha`.
+- `self_monitoring.activate(nb, history_size)` records context history and `log_error` appends mean_error markers.
+- `SemiSupervisedLearner` trains with `unlabeled_weight` and keeps loss history; `SemiSupervisedPairsPipeline` accepts labeled and unlabeled data, optional tokenizers, `BitTensorDataset` inputs and automatic vocabulary via `use_vocab`.
+- `TransferLearner` freezes a configurable fraction of synapses and logs losses; `TransferPairsPipeline` mirrors dataset handling features.
+- Soft Actor Critic utilities create networks on CPU/GPU (`create_sac_networks`), support `sac_select_action`, `sac_update` and maintain `sac_entropy_history` with plotting.
+- Wandering anomaly detection uses `wander_anomaly_threshold` and reports metrics through `MetricsVisualizer`.
 - Interface helpers: `curriculum_train` sequencing tasks with schedule strategies, `set_dreaming` toggling dream simulation, `set_autograd` attaching `MarbleAutogradLayer` (supports gradient accumulation, schedulers and N-dimensional tensors on CPU/GPU), `convert_pytorch_model` importing PyTorch weights with prediction map, `load_hf_dataset` retrieving HuggingFace samples (optionally encoding via DataLoader), and `streaming_dataset_step` yielding prefetching iterators.
 - Brain utilities persist dream buffers and neuromodulatory context via `save_model`/`load_model`, migrate legacy checkpoints with `save_checkpoint`/`load_checkpoint`, log metrics (loss, VRAM usage, neuromod signals, plasticity threshold, message passing change, compression ratio) through `MetricsVisualizer`, expose `benchmark_step` returning marble/autograd losses and times, `generate_chain_of_thought` tracing synapse paths, and respect `log_interval` during training. Training exposes `progress_callback` emitting fractional completion after each epoch.
 - `SelfMonitoring` plugin tracks gradient norms, memory usage and configuration drift, publishing anomalies to `MessageBus` and triggering `SystemMetrics` logging.
@@ -657,10 +677,10 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 8.13 Tensor backend and synchronization
 - `_Backend` abstraction offers NumPy and JAX implementations supporting `matmul`, `sigmoid`, `relu`, `seed`, `rand` and `randn`.
 - `to_numpy` and `_copy_to` convert between NumPy, JAX and torch tensors.
-- `TensorSyncService` launches per-device threads computing XOR/subtraction deltas, broadcasting them and tracking `bytes_sent`, `syncs` and `stale_resyncs` with automatic resynchronisation.
+- `TensorSyncService` launches per-device threads computing XOR/subtraction deltas (`compute_delta`/`apply_delta`), broadcasting them at `interval_ms` intervals, tracking `bytes_sent`, `syncs` and `stale_resyncs` and reducing latency and transfer volume versus naive copies.
 ### 8.14 Sparse utilities and shared vocabulary
 - `sparse_utils` converts dense arrays to CSR/CSC/COO matrices, computes byte usage and benchmarks memory savings.
-- `shared_vocab.build_shared_vocab` aggregates bitstreams from multiple datasets with parameters `(min_len, max_len, max_size, start_id, min_occurrence)`.
+- `shared_vocab.build_shared_vocab` aggregates bitstreams from multiple datasets with parameters `(min_len, max_len, max_size, start_id, min_occurrence)` and `bytes_to_tensors`/`tensors_to_bytes` must yield identical data on CPU and GPU.
 ### 8.15 Hyperparameter optimisation and synthetic datasets
 - `optimize.py` runs Optuna on a tiny `FakeData` dataset, trains a small network and saves best parameters to YAML.
 - `synthetic_dataset` supplies `generate_sine_wave_dataset` and `generate_linear_dataset` for quick experiments.
