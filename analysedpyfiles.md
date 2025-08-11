@@ -207,45 +207,45 @@ remote_wanderer.py: lines=241, functions=5, classes=2, lines_read=241
 remote_worker_pool.py: lines=128, functions=0, classes=2, lines_read=128
 run_profiler.py: lines=50, functions=0, classes=2, lines_read=50
 scheduler_plugins.py: lines=109, functions=4, classes=3, lines_read=109
-scripts/catalog_cpu_fallback_tests.py: lines=41, functions=2, classes=0
-scripts/convert_to_py38.py: lines=40, functions=2, classes=0
-scripts/download_cifar10.py: lines=39, functions=2, classes=0
-scripts/download_imdb.py: lines=37, functions=2, classes=0
-scripts/download_iris.py: lines=36, functions=2, classes=0
-scripts/find_unimplemented_params.py: lines=66, functions=4, classes=0
-scripts/list_config_keys.py: lines=132, functions=4, classes=0
-scripts/optimize.py: lines=137, functions=5, classes=0
-scripts/run_cpu_fallback_tests.py: lines=43, functions=3, classes=0
-scripts/scan_cuda_modules.py: lines=26, functions=1, classes=0
-scripts/validate_config_docs.py: lines=77, functions=3, classes=0
-self_monitoring.py: lines=56, functions=3, classes=2
-semi_supervised_learning.py: lines=40, functions=0, classes=1
-semi_supervised_pairs_pipeline.py: lines=83, functions=0, classes=1
-setup.py: lines=14, functions=0, classes=0
-shared_vocab.py: lines=48, functions=1, classes=0
-soft_actor_critic.py: lines=99, functions=2, classes=2
-sparse_utils.py: lines=49, functions=4, classes=0
+scripts/catalog_cpu_fallback_tests.py: lines=41, functions=2, classes=0, lines_read=41
+scripts/convert_to_py38.py: lines=40, functions=2, classes=0, lines_read=40
+scripts/download_cifar10.py: lines=39, functions=2, classes=0, lines_read=39
+scripts/download_imdb.py: lines=37, functions=2, classes=0, lines_read=37
+scripts/download_iris.py: lines=36, functions=2, classes=0, lines_read=36
+scripts/find_unimplemented_params.py: lines=66, functions=4, classes=0, lines_read=66
+scripts/list_config_keys.py: lines=132, functions=4, classes=0, lines_read=132
+scripts/optimize.py: lines=137, functions=5, classes=0, lines_read=137
+scripts/run_cpu_fallback_tests.py: lines=43, functions=3, classes=0, lines_read=43
+scripts/scan_cuda_modules.py: lines=26, functions=1, classes=0, lines_read=26
+scripts/validate_config_docs.py: lines=77, functions=3, classes=0, lines_read=77
+self_monitoring.py: lines=56, functions=3, classes=2, lines_read=56
+semi_supervised_learning.py: lines=40, functions=0, classes=1, lines_read=40
+semi_supervised_pairs_pipeline.py: lines=83, functions=0, classes=1, lines_read=83
+setup.py: lines=14, functions=0, classes=0, lines_read=14
+shared_vocab.py: lines=48, functions=1, classes=0, lines_read=48
+soft_actor_critic.py: lines=99, functions=2, classes=2, lines_read=99
+sparse_utils.py: lines=49, functions=4, classes=0, lines_read=49
 streaming_dataset_step.py: lines=120, functions=0, classes=1, lines_read=120
-streamlit_playground.py: lines=3246, functions=104, classes=0
-super_evolution_controller.py: lines=158, functions=0, classes=1
-synaptic_echo_learning.py: lines=26, functions=0, classes=1
-synthetic_dataset.py: lines=31, functions=2, classes=0
-system_metrics.py: lines=28, functions=4, classes=0
-templates/gating_synapse_template.py: lines=14, functions=0, classes=1
-templates/neuron_template.py: lines=11, functions=1, classes=0
-templates/rnn_neuron_template.py: lines=15, functions=0, classes=1
-templates/synapse_template.py: lines=10, functions=1, classes=0
-tensor_backend.py: lines=225, functions=10, classes=3
-tensor_sync_service.py: lines=120, functions=2, classes=2
-tensorflow_interop.py: lines=42, functions=2, classes=1
-tests/__init__.py: lines=0, functions=0, classes=0
-tests/branching_steps.py: lines=19, functions=4, classes=0
-tests/dataset_harness.py: lines=19, functions=0, classes=1
-tests/dependency_steps.py: lines=13, functions=3, classes=0
-tests/dummy_pipeline_module.py: lines=10, functions=2, classes=0
-tests/helpers.py: lines=8, functions=1, classes=0
-tests/test_activation_utils.py: lines=15, functions=1, classes=0
-tests/test_advanced_gpt.py: lines=55, functions=3, classes=0
+streamlit_playground.py: lines=3246, functions=104, classes=0, lines_read=120, lines_remaining=3126
+super_evolution_controller.py: lines=158, functions=0, classes=1, lines_read=158
+synaptic_echo_learning.py: lines=26, functions=0, classes=1, lines_read=26
+synthetic_dataset.py: lines=31, functions=2, classes=0, lines_read=31
+system_metrics.py: lines=28, functions=4, classes=0, lines_read=28
+templates/gating_synapse_template.py: lines=14, functions=0, classes=1, lines_read=14
+templates/neuron_template.py: lines=11, functions=1, classes=0, lines_read=11
+templates/rnn_neuron_template.py: lines=15, functions=0, classes=1, lines_read=15
+templates/synapse_template.py: lines=10, functions=1, classes=0, lines_read=10
+tensor_backend.py: lines=225, functions=10, classes=3, lines_read=225
+tensor_sync_service.py: lines=120, functions=2, classes=2, lines_read=120
+tensorflow_interop.py: lines=42, functions=2, classes=1, lines_read=42
+tests/__init__.py: lines=0, functions=0, classes=0, lines_read=0
+tests/branching_steps.py: lines=19, functions=4, classes=0, lines_read=19
+tests/dataset_harness.py: lines=19, functions=0, classes=1, lines_read=19
+tests/dependency_steps.py: lines=13, functions=3, classes=0, lines_read=13
+tests/dummy_pipeline_module.py: lines=10, functions=2, classes=0, lines_read=10
+tests/helpers.py: lines=8, functions=1, classes=0, lines_read=8
+tests/test_activation_utils.py: lines=15, functions=1, classes=0, lines_read=15
+tests/test_advanced_gpt.py: lines=55, functions=3, classes=0, lines_read=55
 tests/test_adversarial_dataset.py: lines=38, functions=1, classes=2
 tests/test_adversarial_generator.py: lines=23, functions=1, classes=1
 tests/test_adversarial_learning.py: lines=17, functions=1, classes=0
