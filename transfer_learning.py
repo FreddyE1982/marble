@@ -28,10 +28,14 @@ class TransferLearner:
         self.history.append({"loss": loss})
         return loss
 
-    def train(self, examples: list[tuple[float, float]], epochs: int = 1) -> None:
+    def train(
+        self, examples: list[tuple[float, float]], epochs: int = 1, batch_size: int = 1
+    ) -> None:
         for _ in range(int(epochs)):
-            for inp, tgt in examples:
-                self.train_step(float(inp), float(tgt))
+            for i in range(0, len(examples), int(batch_size)):
+                batch = examples[i : i + int(batch_size)]
+                for inp, tgt in batch:
+                    self.train_step(float(inp), float(tgt))
 
 
 def transfer_dataset_knowledge(

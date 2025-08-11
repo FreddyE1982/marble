@@ -1,7 +1,3 @@
-adversarial_learning.batch_size
-adversarial_learning.enabled
-adversarial_learning.epochs
-adversarial_learning.noise_dim
 attention_codelets.coalition_size
 attention_codelets.enabled
 brain.auto_neurogenesis_prob
@@ -497,7 +493,3 @@ synaptic_echo_learning.echo_influence
 synaptic_echo_learning.enabled
 synaptic_echo_learning.epochs
 sync.interval_ms
-transfer_learning.batch_size
-transfer_learning.enabled
-transfer_learning.epochs
-transfer_learning.freeze_fraction
