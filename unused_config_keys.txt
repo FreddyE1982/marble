@@ -1,9 +1,6 @@
 attention_codelets.coalition_size
 attention_codelets.enabled
 brain.auto_neurogenesis_prob
-brain.backup_dir
-brain.backup_enabled
-brain.backup_interval
 brain.benchmark_enabled
 brain.benchmark_interval
 brain.checkpoint_compress
@@ -57,9 +54,6 @@ brain.neuron_reservoir_size
 brain.offload_enabled
 brain.offload_threshold
 brain.precompile_graphs
-brain.profile_enabled
-brain.profile_interval
-brain.profile_log_path
 brain.prune_frequency
 brain.prune_threshold
 brain.remote_sync_enabled
