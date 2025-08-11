@@ -26,50 +26,50 @@ conceptual_integration.py: lines=65, functions=0, classes=1, lines_read=65
 conceptual_integration_pipeline.py: lines=62, functions=0, classes=1, lines_read=62
 config_editor.py: lines=51, functions=2, classes=0, lines_read=51
 config_generator.py: lines=67, functions=3, classes=0, lines_read=67
-config_loader.py: lines=720, functions=4, classes=0, lines_read=200, lines_remaining=520
+config_loader.py: lines=720, functions=4, classes=0, lines_read=720
 config_schema.py: lines=300, functions=1, classes=0, lines_read=300
 config_sync_service.py: lines=59, functions=1, classes=2, lines_read=59
 continual_learning.py: lines=45, functions=0, classes=1, lines_read=45
 continuous_weight_field_learning.py: lines=63, functions=0, classes=1, lines_read=63
 contrastive_learning.py: lines=64, functions=0, classes=1, lines_read=64
 contrastive_pipeline.py: lines=63, functions=0, classes=1, lines_read=63
-convert_model.py: lines=261, functions=6, classes=0
+convert_model.py: lines=261, functions=6, classes=0, lines_read=261
 core/__init__.py: lines=0, functions=0, classes=0
-core/init_seed.py: lines=72, functions=2, classes=0
-core/message_passing.py: lines=170, functions=1, classes=1
-core_benchmark.py: lines=30, functions=1, classes=0
-core_interconnect.py: lines=75, functions=1, classes=0
-cross_validation.py: lines=92, functions=4, classes=0
-crypto_profile.py: lines=22, functions=1, classes=0
-crypto_utils.py: lines=46, functions=5, classes=0
-curriculum_learning.py: lines=92, functions=1, classes=1
-curriculum_pairs_pipeline.py: lines=70, functions=0, classes=1
-data_compressor.py: lines=189, functions=1, classes=1
-database_query_tool.py: lines=38, functions=1, classes=1
-dataset_cache_server.py: lines=86, functions=0, classes=1
-dataset_encryption.py: lines=122, functions=6, classes=1
-dataset_history_cli.py: lines=77, functions=7, classes=0
-dataset_loader.py: lines=561, functions=10, classes=1
-dataset_replication.py: lines=24, functions=1, classes=0
-dataset_sync_service.py: lines=43, functions=2, classes=0
-dataset_version_cli.py: lines=90, functions=5, classes=0
-dataset_versioning.py: lines=118, functions=7, classes=0
-dataset_watcher.py: lines=88, functions=0, classes=1
-diffusion_core.py: lines=228, functions=0, classes=1
-diffusion_pairs_pipeline.py: lines=79, functions=0, classes=1
-dimensional_search.py: lines=36, functions=0, classes=1
-distillation_trainer.py: lines=42, functions=0, classes=1
-distributed_training.py: lines=35, functions=0, classes=1
-docs/conf.py: lines=7, functions=0, classes=0
-docs/examples/minimal_training.py: lines=9, functions=0, classes=0
+core/init_seed.py: lines=72, functions=2, classes=0, lines_read=72
+core/message_passing.py: lines=170, functions=1, classes=1, lines_read=170
+core_benchmark.py: lines=30, functions=1, classes=0, lines_read=30
+core_interconnect.py: lines=75, functions=1, classes=0, lines_read=75
+cross_validation.py: lines=92, functions=4, classes=0, lines_read=92
+crypto_profile.py: lines=22, functions=1, classes=0, lines_read=22
+crypto_utils.py: lines=46, functions=5, classes=0, lines_read=46
+curriculum_learning.py: lines=92, functions=1, classes=1, lines_read=92
+curriculum_pairs_pipeline.py: lines=70, functions=0, classes=1, lines_read=70
+data_compressor.py: lines=189, functions=1, classes=1, lines_read=189
+database_query_tool.py: lines=38, functions=1, classes=1, lines_read=38
+dataset_cache_server.py: lines=86, functions=0, classes=1, lines_read=86
+dataset_encryption.py: lines=122, functions=6, classes=1, lines_read=122
+dataset_history_cli.py: lines=77, functions=7, classes=0, lines_read=77
+dataset_loader.py: lines=561, functions=10, classes=1, lines_read=561
+dataset_replication.py: lines=24, functions=1, classes=0, lines_read=24
+dataset_sync_service.py: lines=43, functions=2, classes=0, lines_read=43
+dataset_version_cli.py: lines=90, functions=5, classes=0, lines_read=90
+dataset_versioning.py: lines=118, functions=7, classes=0, lines_read=118
+dataset_watcher.py: lines=88, functions=0, classes=1, lines_read=88
+diffusion_core.py: lines=228, functions=0, classes=1, lines_read=228
+diffusion_pairs_pipeline.py: lines=79, functions=0, classes=1, lines_read=79
+dimensional_search.py: lines=36, functions=0, classes=1, lines_read=36
+distillation_trainer.py: lines=42, functions=0, classes=1, lines_read=42
+distributed_training.py: lines=35, functions=0, classes=1, lines_read=35
+docs/conf.py: lines=7, functions=0, classes=0, lines_read=7
+docs/examples/minimal_training.py: lines=9, functions=0, classes=0, lines_read=9
 dotdict.py: lines=45, functions=0, classes=1
-dream_reinforcement_learning.py: lines=56, functions=0, classes=1
-dream_replay_buffer.py: lines=132, functions=0, classes=2
-dream_scheduler.py: lines=59, functions=0, classes=1
-episodic_memory.py: lines=91, functions=1, classes=2
-episodic_simulation.py: lines=29, functions=2, classes=0
-event_bus.py: lines=123, functions=2, classes=3
-evolution_trainer.py: lines=229, functions=1, classes=2
+dream_reinforcement_learning.py: lines=56, functions=0, classes=1, lines_read=56
+dream_replay_buffer.py: lines=132, functions=0, classes=2, lines_read=132
+dream_scheduler.py: lines=59, functions=0, classes=1, lines_read=59
+episodic_memory.py: lines=91, functions=1, classes=2, lines_read=91
+episodic_simulation.py: lines=29, functions=2, classes=0, lines_read=29
+event_bus.py: lines=123, functions=2, classes=3, lines_read=123
+evolution_trainer.py: lines=229, functions=1, classes=2, lines_read=229
 examples/__init__.py: lines=6, functions=0, classes=0
 examples/custom_converter_example.py: lines=55, functions=2, classes=2
 examples/dynamic_message_passing_example.py: lines=92, functions=2, classes=0

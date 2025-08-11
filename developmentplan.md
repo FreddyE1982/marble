@@ -23,16 +23,34 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Implement validation ensuring no unused keys.
 - Add unit tests verifying that every parameter is exercised at least once.
 
+
+### 2.3 Configuration-driven module instantiation
+- Implement `config_loader` that materializes every configuration section into runtime objects.
+- Structured logging options: enable/disable structured format, log file path, level, message format, datefmt, propagation, log rotation with `max_bytes`, `backup_count` and `encoding`.
+- Scheduler selection via `configure_scheduler` and plugin directories loaded through `load_plugins`.
+- Instantiate MetaParameterController (history_length, adjustment, min_threshold, max_threshold) and NeuromodulatorySystem with initial context values.
+- Build MemorySystem with `long_term_path`, consolidation `threshold`, `consolidation_interval` and optional hybrid memory parameters.
+- DataCompressor settings: `compression_level`, `compression_enabled`, `sparse_threshold`, `quantization_bits` and optional delta encoding.
+- DataLoader parameters: tensor dtype, metadata tracking, round-trip verification/penalty and tokenizer type/json/vocab_size.
+- Network components: `RemoteBrainClient`, `RemoteBrainServer`, torrent client/tracker and remote tier plugins.
+- Metrics visualizer and optional Kùzu experiment/topology trackers.
+- Optional modules activated through config: predictive_coding, tool_manager, tensor_sync_service, unified_learning, global_workspace, attention_codelets, conceptual_integration, theory_of_mind and weight quantization.
+- Conditional training helpers: advanced GPT training, reinforcement learning (policy gradient or Q-learning), dream reinforcement, adversarial, transfer, semi‑supervised, federated, curriculum, imitation, harmonic resonance, quantum flux, synaptic echo and fractal dimension learners.
 ## 3. Core Architecture
 ### 3.1 Event and message infrastructure
 - Implement event_bus and message_bus with asynchronous queues.
 - Provide publish/subscribe API and serialization hooks.
+- EventBus supports event filtering, rate limiting and unified `ProgressEvent` schema.
 
 ### 3.2 Core neural substrate
 - Recreate marble_core with Neuron, Synapse, and perform_message_passing.
 - Include structural plasticity operations, neuron/synapse type registries and weight limiting.
 - Implement MarbleBrain, MarbleLobes, MarbleGraphBuilder and GraphCache for topology management.
 
+
+- Initial neuron representations seeded via Mandelbrot fractals with optional Gaussian noise.
+- Message passing employs `AttentionModule` with temperature scaling, sine or chaotic gating, dropout and mixed-precision layer-normalised MLP updates.
+- `interconnect_cores` merges multiple cores and optionally creates cross-core synapses based on interconnection probability.
 ### 3.3 Memory systems
 - Implement memory_pool, memory_manager, episodic memory, hybrid memory, prompt memory and Kuzu-backed tiers.
 - Include forgetfulness and consolidation algorithms.
@@ -69,6 +87,13 @@ This document enumerates every step required to rebuild MARBLE from scratch with
     `to_dict`/`from_dict`, and vocabulary save/load helpers.
   - Dataset summary statistics, deterministic `shuffle`, and approximate
     nearest-neighbour search with Annoy (`build_ann_index`, `nearest_neighbors`).
+
+- Dataset loader handles URL caching, prefetch threads, AES-encrypted downloads, sharding, dependency tracking, filter expressions and optional Kùzu graph queries.
+- Provide dataset_cache_server for HTTP sharing with transparent decryption.
+- Include dataset_history_cli supporting undo/redo/revert operations.
+- Implement dataset_watcher computing SHA256 snapshots for change detection.
+- Offer dataset_versioning and dataset_version_cli for diff, apply, switch and revert of dataset versions.
+- Support dataset_replication and dataset_sync_service to synchronize datasets across hosts using incremental diffs.
 
 ### 3.6 Brain coordination and neurogenesis
 - Implement `MarbleBrain` to supervise Neuronenblitz and global learning state.
@@ -111,6 +136,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
     weights during sleep.
   - Auto-firing mode generating random inputs at interval
     `firing_interval_ms` in a background thread.
+  - DimensionalitySearch expands representation size when validation loss plateaus.
   - Mutation and pruning utilities `mutate_synapses` and `prune_weak_synapses`
     with evolutionary wrapper `evolve`.
   - High-attention offloading to remote or torrent clients and memory cleanup
@@ -118,6 +144,12 @@ This document enumerates every step required to rebuild MARBLE from scratch with
   - Asynchronous `start_training`/`train_async` threads and `wait_for_training`
     synchronization.
 
+
+### 3.7 Diffusion-based generation
+- Implement `DiffusionCore` with configurable diffusion_steps and linear or cosine noise schedules.
+- Support hybrid memory retrieval, schema induction, predictive coding, continuous weight field learning, harmonic resonance and fractal dimension learners.
+- Provide optional workspace broadcast, remote offloading when VRAM exceeds thresholds and activation heatmap logging.
+- Train via `DiffusionPairsPipeline` wrapping `DiffusionCore` with `DataLoader`, `Brain` and `Neuronenblitz` components.
 ## 4. Neuronenblitz Algorithm
 ### 4.1 Overview
 Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It performs stochastic wandering over the neural graph while adjusting synaptic weights and structure.
@@ -380,7 +412,8 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 
 ## 7. Memory and Simulation Systems
 ### 7.1 Episodic simulation and dream modules
-- Implement episodic_simulation, dream_replay_buffer, dream_scheduler and reinforcement consolidation.
+- Implement episodic_simulation, `DreamReplayBuffer` and `DreamScheduler` for salience-weighted replay with instant and long-term buffers and housekeeping.
+- `DreamReinforcementLearner` mixes real and dreamed experiences controlled by dream_cycles, strength and interval.
 
 ### 7.2 Prompt and attention codelets
 - Implement prompt_memory, attention_codelets and attention_utils:
@@ -443,6 +476,16 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
   cross-validation, quantization, unified learning, remote retry/backoff and
   message-passing benchmarks.
 
+
+### 8.10 Model conversion and compression
+- `convert_model` CLI transforms PyTorch checkpoints to MARBLE JSON or `.marble` snapshots and offers summary output, plots, CSV, tables and graph rendering.
+- `DataCompressor` and crypto utilities provide constant-time XOR encryption, AES-GCM tensor/byte encryption, delta encoding, quantization and sparse-aware compression.
+- `DatabaseQueryTool` executes Cypher queries on Kùzu databases.
+
+### 8.11 Training utilities
+- `DistillationTrainer` blends teacher predictions with targets for student brains.
+- `DistributedTrainer` uses PyTorch DDP to average synapse weights across processes.
+- `EvolutionTrainer` explores configuration space via mutation, parallel fitness evaluation and lineage graph export.
 ## 9. Testing and Validation
 ### 9.1 Unit tests
 - Write pytest suites for every module and parameter combination.
@@ -465,7 +508,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Add tests asserting no orphaned configuration keys.
 
 ### 9.5 Cross-validation and hyperparameter search
-- Implement k-fold cross-validation wrappers (cross_validation module).
+- Implement k-fold cross-validation wrappers (cross_validation module) with deterministic splits and automatic tensor device movement.
 - Integrate hyperparameter_search to sweep configuration spaces and record metrics.
 
 ## 10. Documentation and Tutorials
