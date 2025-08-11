@@ -620,6 +620,6 @@ web_api.py: lines=98, functions=0, classes=1, lines_read=98
 web_search_tool.py: lines=33, functions=1, classes=1, lines_read=33
 workflow_template_generator.py: lines=139, functions=3, classes=0, lines_read=139
 
-Partial analyses remain for files with lines_remaining.
+No partial analyses remain.
 
-Reverified on 2025-08-11 17:55 UTC run; partial analyses remain.
+Reverified on 2025-08-11 18:11 UTC run; all python files fully analysed.
