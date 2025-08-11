@@ -34,7 +34,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Instantiate MetaParameterController (history_length, adjustment, min_threshold, max_threshold) and NeuromodulatorySystem with initial context values.
 - Build MemorySystem with `long_term_path`, consolidation `threshold`, `consolidation_interval` and optional hybrid memory parameters.
 - DataCompressor settings: `compression_level`, `compression_enabled`, `sparse_threshold`, `quantization_bits` and optional delta encoding.
-- DataLoader parameters: tensor dtype, metadata tracking and automatic encode/decode/tokenization with round-trip verification/penalty; configure tokenizer type/json/vocab_size and persist via `tokenizer_to_json`/`tokenizer_from_json`. `tokenize_line` and `tokenize_lines` stream text and checkpoints must restore tokenizer state.
+- DataLoader parameters: tensor dtype, metadata tracking and automatic encode/decode/tokenization with round-trip verification/penalty; configure tokenizer type/json/vocab_size and persist via `tokenizer_to_json`/`tokenizer_from_json`. `tokenize_line` and `tokenize_lines` stream text and checkpoints must restore tokenizer state, while `encode_array`/`decode_array` guarantee NumPy arrays round-trip exactly.
 - Multimodal pair encoding supports text, image, audio and binary blob inputs, ensuring decoded types match originals and arrays/images round-trip exactly.
 - Autograd layer configuration with `autograd_params` (`enabled`, `learning_rate`, `gradient_accumulation_steps`, optional `scheduler`) controlling gradient accumulation and learning-rate scheduling.
 - `DataLoader.register_plugin(typ, encoder, decoder)` maintains encoder/decoder maps for custom types and enforces round-trip validation with optional `round_trip_penalty` and metrics tracking.
@@ -65,13 +65,13 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Include structural plasticity operations, neuron/synapse type registries and weight limiting.
 - Synapse objects track fatigue, echo buffers and phases; `effective_weight` mixes cosine-phase gating with context reward/stress, applies `dropout_prob`, batchnorm via `momentum`, and supports side effects for `mirror`, `multi_neuron`, `recurrent` and `interconnection` types.
 - Implement MarbleBrain, MarbleLobes, MarbleGraphBuilder and GraphCache for topology management.
-- Implement tiered memory system using `TierMeta` registry with default tiers: `VramTier`, `RamTier`, `DiskTier`, `FileTier` (writes modified data to disk) and `RemoteTier` for HTTP offload.
+- Implement tiered memory system using `TierMeta` registry with default tiers: `VramTier`, `RamTier`, `DiskTier`, `FileTier` (writes modified data to disk) and `RemoteTier` for HTTP offload. The file tier location is configurable via `file_tier_path`, and `core.summary()` returns neuron/synapse counts with memory per tier.
 - Neuron parameter validation must enforce positive stride, dropout probability \(0\le p\le 1\), appropriate kernel dimensionality, non-negative padding/output_padding, non-negative `negative_slope`, positive `alpha`, and momentum \(0<m<1\).
 - Neuron module provides default parameter initializers and processing routines for `linear`, `conv1d/2d/3d`, `convtranspose1d/2d/3d`, `maxpool/avgpool` variants, `dropout`, `batchnorm`, `layernorm`, `embedding`, `rnn`, `lstm`, `gru` and elementwise activations (`relu`, `sigmoid`, `tanh`, `gelu`, `prelu`, `elu`, `softmax`, `flatten`). Convolutional kernels are NumPy arrays with stride/padding, pooling layers use `size`/`stride`, recurrent units maintain hidden/cell state tensors and embeddings store weights and optional padding indices.
 - Weight initialization supports `xavier_normal` (|w|<4*sqrt(2/(fan_in+fan_out))) and `kaiming_uniform` (|w|≤sqrt(6/fan_in)) with `weight_init_min`/`weight_init_max` bounds.
 
 - `get_memory_usage_metrics` reports per-tier usage together with system and GPU memory; `check_memory_usage` forwards metrics to `MetricsVisualizer` and `autotune_tiers` migrates neurons between VRAM, RAM and disk when limits are exceeded.
-- Maintenance routines `cleanup_unused_neurons` and `prune_unused_neurons` remove isolated neurons and remap ids; `freeze_fraction_of_synapses` randomly freezes connections and `apply_weight_decay` scales weights by (1 - synapse_weight_decay).
+- Maintenance routines `cleanup_unused_neurons` and `prune_unused_neurons` remove isolated neurons and remap ids; `freeze_fraction_of_synapses` randomly freezes connections and `apply_weight_decay` scales weights by (1 - synapse_weight_decay). When `early_cleanup_enabled` and `memory_cleanup_interval=0`, unused neurons with zero energy are pruned immediately.
 - `choose_new_tier` selects an expansion tier respecting configured limits; `expand` validates counts, alternative connection probabilities and neuron types before adding neurons/synapses and rechecking memory.
 - `increase_representation_size` and `decrease_representation_size` adjust dimensionality by padding or truncation and broadcast `rep_size_changed` events.
 - Built-in Q-learning uses Q(s,a) ← Q(s,a) + α[r + γ max_{a'} Q(s',a') − Q(s,a)] with epsilon decay ε_{t+1} = max(ε_min, ε_t · ε_decay) and optional enable/disable controls.
@@ -314,7 +314,8 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
 1. Modulate plasticity based on neuromodulators: \(reward = ctx_{reward}\cdot reward\_scale\), \(stress = ctx_{stress}\cdot stress\_scale\), \(plasticity\_threshold = \max(0.5, plasticity\_threshold - (reward - stress)\cdot plasticity\_modulation)\). Append enriched context (markers, goals, tom) to `context_history` and decay reward/stress by `reward_decay`.
 2. Compute validation scale v = validation_fn(t, y).
 3. Error e = v * ell.
-4. For each synapse with source value s and path length L:
+4. Custom `loss_fn` or `validation_fn` returning 0 keeps synapse weights unchanged on CPU and GPU.
+5. For each synapse with source value s and path length L:
    - Raw gradient Δ = weight_update_fn(s, e, L) (default Δ = (e·s)/(L+1)).
    - Eligibility-modulated gradient Δ' = Δ * eligibility_trace.
    - v' = β v_prev + (1-β)Δ'^2
@@ -485,6 +486,9 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 5.5 Curriculum and Transfer Learning
 - Implement schedulers for task difficulty and transfer pipelines.
 - Gradually adjust task distribution D_t to D_{t+1} such that KL(D_{t+1} || D_t) < epsilon.
+- `CurriculumLearner` orders samples via a `difficulty_fn` and records per-epoch losses.
+- `curriculum_train` helper sequences tasks and returns loss history.
+- `CurriculumPairsPipeline` trains numeric or tokenized text pairs, auto-builds `BitTensorDataset` when `use_vocab` is true and accepts `DataLoader` tokenizers.
 
 ### 5.6 Meta and Continual Learning
 - Implement meta-parameter controller adjusting plasticity using validation losses.
@@ -582,6 +586,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 6.3 Tool and learner plugins
 - Provide `WebSearchTool` plugin invoking DuckDuckGo and expose registration hook.
 - Recreate tool_manager_plugin, tool_plugins and learning_plugins with dynamic discovery.
+- Offer `OllamaInteractiveTrainingPlugin` that pulls models via `ollama.pull`, converts with `convert_model`, registers cores, chats using `chat_with_history`, trains dialogue pairs through `UnifiedPairsPipeline`/`Neuronenblitz` and saves updated systems.
 
 ### 6.4 Process coordination
 - Implement `SharedDataset` storing tensors in shared memory for CPU or on a chosen CUDA device.
@@ -619,6 +624,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
  - RNN hidden-state serialization: `convert_model` records `hidden_state_version=1` entries (`layer_index`, `direction`, `shape`, `dtype`, `device`, `tensor`); `restore_hidden_states` rehydrates them and JSON round-trips must preserve values with <0.01 s serialize/deserialise overhead.
 
 - `pytorch_to_marble` traces PyTorch models via FX using converter registries (`register_converter`, `register_function_converter`, `register_method_converter`) covering linear, convolutional, normalization (BatchNorm, LayerNorm, GroupNorm), flatten/unflatten, reshape/view, `Sequential` and `ModuleList` containers; unsupported layers raise `UnsupportedLayerError`. Dry-run summaries report neuron/synapse counts per node and the CLI accepts `--restore-hidden` to reinstate RNN states when exporting JSON cores.
+- `ollama_interop` embeds cores into Modelfile definitions (`core_to_modelfile`), registers them with `register_core`, generates text via `generate` and maintains truncated histories through `chat_with_history` with configurable `history_limit`.
 ### 8.2 Remote and distributed execution
 - Implement remote_offload, remote_worker_pool, distributed_training and torrent-based model exchange.
 - Include networkx graph export, web API and database query tools.
@@ -661,6 +667,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 8.5 Security and data integrity
 - Implement dataset_encryption, crypto_utils and dataset_replication with integrity checks.
 - Support torrent_offload and data_compressor for secure remote transfers.
+- `crypto_utils` supplies constant-time compare/XOR primitives with <5 ms timing variance and `encrypt_bytes`/`decrypt_bytes` for symmetric byte encryption.
 
 ### 8.6 Remote interaction modules
 - Implement `wanderer_auth` HMAC tokens and `SessionManager` for remote wanderer authentication.
@@ -693,7 +700,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 
 ### 8.10 Model conversion and compression
 - Incorporate `generate_repo_md` script to snapshot repository contents into single Markdown for reproducibility.
-- `convert_model` CLI transforms PyTorch checkpoints to MARBLE JSON or `.marble` snapshots and offers summary output, plots, CSV, tables and graph rendering.
+- `convert_model` CLI transforms PyTorch checkpoints to MARBLE JSON or `.marble` snapshots and offers `--summary` dry runs, `--summary-output` JSON, `--summary-csv` files with header `layer,neurons,synapses`, `--summary-graph` HTML graphs, `--summary-plot` PNG figures, `--show-graph` using the `BROWSER` environment variable and `--config` YAML loading. Round-trips through `convert_model` and `convert_core` preserve predictions within 1e-4.
 - `convert_pytorch_model` converts pretrained PyTorch modules and verifies prediction parity on sample datasets. Conversion must cover Linear, Conv2d (multi‑channel), BatchNorm, LayerNorm, GroupNorm, Dropout, Sigmoid, Tanh, Softmax, functional ReLU/Sigmoid/Tanh/reshape/view ops, Flatten/Unflatten, Add/Mul/Residual arithmetic, MaxPool2d, AvgPool2d, Adaptive and Global pooling, Embedding and EmbeddingBag with padding and max_norm options, and RNN/LSTM/GRU including multilayer bidirectional variants. Converter registry uses `@register_converter`, `@register_function_converter` and `@register_method_converter` decorators; unsupported layers raise `UnsupportedLayerError`, weight and bias devices are recorded, bias neurons are created with value 1.0, and `core_to_json`/`core_from_json` round‑trips must preserve structure exactly.
 - `QuantizedTensor` enables uniform n-bit quantization with bit packing/unpacking, `state_dict` serialization and device-aware `to` transfers. Linear layers reconstructed from quantized weights must match dense outputs within tolerance, bit streams have expected length, round-trips preserve values across CPU and GPU.
 - `model_quantization.quantize_core_weights(bits)` reduces unique weight values by uniform quantization.
@@ -795,6 +802,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 
 ### 9.3 Performance and stress tests
 - Recreate benchmarks to verify parity:
+  - `core_benchmark` measures message passing speed and returns `(iterations, seconds)`.
   - `benchmark_autograd_vs_marble` compares pure MARBLE vs autograd layer and reports `{"marble": {"loss", "time"}, "autograd": {"loss", "time"}}`.
   - `benchmark_dream_consolidation` measures impact of dream cycles, returning `{"with_dream": {"avg_error", "duration"}, "without_dream": {"avg_error", "duration"}}`.
   - `benchmark_graph_precompile` times graph caching and yields `{"no_precompile", "precompiled", "speedup"}` for each device.
@@ -808,7 +816,8 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Add tests asserting no orphaned configuration keys.
 
 ### 9.5 Cross-validation and hyperparameter search
-- Implement k-fold cross-validation wrappers (cross_validation module) with deterministic splits and automatic tensor device movement.
+- Implement k-fold cross-validation wrappers (cross_validation module) with deterministic splits and automatic tensor device movement; `cross_validate` returns per-fold scores on CPU or GPU.
+- Default fold count and seed are read from `cross_validation` config when not provided, and metrics are averaged for final assessment.
 - Integrate hyperparameter_search to sweep configuration spaces and record metrics.
 
 ## 10. Documentation and Tutorials
