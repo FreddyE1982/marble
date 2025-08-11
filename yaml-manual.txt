@@ -1434,6 +1434,15 @@ reinforcement_learning:
   double_q: Enable Double Q-learning which maintains two separate Q-tables.
     During updates one table selects the greedy action while the other
     evaluates it. This reduces overestimation bias at the cost of extra memory.
+  learning_rate: Step size for Q-value updates. Larger values make the agent
+    adapt faster but can cause instability. Values should lie between ``0`` and
+    ``1`` with ``0.1`` being a typical choice.
+  policy_hidden_dim: Number of neurons in the hidden layer of the policy
+    gradient agent's network. Increasing this allows more expressive policies at
+    the cost of extra computation. Common values range from ``8`` to ``64``.
+  policy_lr: Learning rate for the policy gradient optimiser. Higher values
+    speed up convergence but risk divergence. Values in ``[1e-4, 1e-1]`` are
+    recommended; the default is ``0.01``.
 
 sac:
   temperature: Entropy temperature coefficient for Soft Actor-Critic. This

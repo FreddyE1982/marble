@@ -9,8 +9,6 @@ import torch.nn as nn
 from marble_core import Core
 from marble_neuronenblitz import Neuronenblitz
 
-from marble_autograd import MarbleAutogradLayer
-
 
 class RLEnvironment(ABC):
     """Abstract base class for RL environments."""
@@ -74,6 +72,7 @@ class MarbleQLearningAgent:
         epsilon_decay: float = 0.95,
         min_epsilon: float = 0.1,
         double_q: bool = False,
+        learning_rate: float = 0.1,
     ) -> None:
         self.core = core
         self.nb = nb
@@ -82,6 +81,7 @@ class MarbleQLearningAgent:
         self.epsilon_decay = epsilon_decay
         self.min_epsilon = min_epsilon
         self.double_q = double_q
+        self.lr = float(learning_rate)
         # Factors for self-monitoring integration
         self.monitor_wander_factor = getattr(nb, "monitor_wander_factor", 0.0)
         self.monitor_epsilon_factor = getattr(nb, "monitor_epsilon_factor", 0.0)
@@ -121,9 +121,7 @@ class MarbleQLearningAgent:
                 for a in range(n_actions)
             ]
         else:
-            q_values = [
-                self.q_table.get((state, a), 0.0) for a in range(n_actions)
-            ]
+            q_values = [self.q_table.get((state, a), 0.0) for a in range(n_actions)]
         return int(np.argmax(q_values))
 
     def update(
@@ -135,7 +133,10 @@ class MarbleQLearningAgent:
         done: bool,
     ) -> None:
         if self.double_q:
-            tables = [(self.q_table_a, self.q_table_b), (self.q_table_b, self.q_table_a)]
+            tables = [
+                (self.q_table_a, self.q_table_b),
+                (self.q_table_b, self.q_table_a),
+            ]
             update_table, eval_table = random.choice(tables)
             if not done:
                 best_a = max(
@@ -147,16 +148,14 @@ class MarbleQLearningAgent:
                 next_q = 0.0
             current = update_table.get((state, action), 0.0)
             target = reward + self.discount * next_q
-            update_table[(state, action)] = current + 0.1 * (target - current)
+            update_table[(state, action)] = current + self.lr * (target - current)
         else:
             next_q = 0.0
             if not done:
-                next_q = max(
-                    self.q_table.get((next_state, a), 0.0) for a in range(4)
-                )
+                next_q = max(self.q_table.get((next_state, a), 0.0) for a in range(4))
             current = self.q_table.get((state, action), 0.0)
             target = reward + self.discount * next_q
-            self.q_table[(state, action)] = current + 0.1 * (target - current)
+            self.q_table[(state, action)] = current + self.lr * (target - current)
         self.epsilon = max(self.min_epsilon, self.epsilon * self.epsilon_decay)
 
 
@@ -190,7 +189,9 @@ class MarblePolicyGradientAgent:
     def select_action(self, state: Sequence[float], n_actions: int) -> int:
         wander_inp = float(sum(state))
         wander_out, _ = self.nb.dynamic_wander(wander_inp)
-        st = torch.tensor(list(state) + [wander_out], dtype=torch.float32, device=self.device)
+        st = torch.tensor(
+            list(state) + [wander_out], dtype=torch.float32, device=self.device
+        )
         probs = self.model(st)
         dist = torch.distributions.Categorical(probs)
         action = dist.sample()

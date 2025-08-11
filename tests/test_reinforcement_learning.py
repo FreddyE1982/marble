@@ -1,19 +1,22 @@
 import os
 import sys
+
 import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+import torch.nn as nn
+
+from marble_core import Core
+from marble_neuronenblitz import Neuronenblitz
 from reinforcement_learning import (
     GridWorld,
-    MarbleQLearningAgent,
     MarblePolicyGradientAgent,
+    MarbleQLearningAgent,
     train_gridworld,
     train_policy_gradient,
 )
 from tests.test_core_functions import minimal_params
-from marble_core import Core
-from marble_neuronenblitz import Neuronenblitz
 
 
 def test_qlearning_improves_reward():
@@ -74,3 +77,28 @@ def test_policy_gradient_improves_reward():
     rewards = train_policy_gradient(agent, env, episodes=50, max_steps=20, seed=0)
     assert rewards[-1] >= rewards[0] - 1e-9
 
+
+def test_qlearning_learning_rate_parameter():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    agent = MarbleQLearningAgent(core, nb, discount=0.0, epsilon=0.0, learning_rate=0.5)
+    state = (0, 0)
+    next_state = (0, 1)
+    agent.update(state, 0, 1.0, next_state, False)
+    fast_update = agent.q_table[(state, 0)]
+    agent2 = MarbleQLearningAgent(
+        core, nb, discount=0.0, epsilon=0.0, learning_rate=0.1
+    )
+    agent2.update(state, 0, 1.0, next_state, False)
+    slow_update = agent2.q_table[(state, 0)]
+    assert fast_update - slow_update > 0.3
+
+
+def test_policy_gradient_configurable_dimensions():
+    params = minimal_params()
+    core = Core(params)
+    nb = Neuronenblitz(core)
+    agent = MarblePolicyGradientAgent(core, nb, hidden_dim=8, lr=0.02)
+    assert isinstance(agent.model[0], nn.Linear)
+    assert agent.model[0].out_features == 8

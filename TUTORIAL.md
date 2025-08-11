@@ -1198,11 +1198,14 @@ Run `python project05b_rnn_sequence_modeling.py` to train the simple RNN example
    ```
    This uses helper functions that drive the environment and update the Q-table stored inside the Neuronenblitz object.
 4. **Check rewards** in `history` after each episode to verify that the policy improves over time.
+5. **Tune the learning behaviour** by adjusting `reinforcement_learning.learning_rate` in the YAML file. Smaller values make the agent learn more cautiously while larger ones accelerate updates.
 
 To experiment with a differentiable approach set ``reinforcement_learning.algorithm``
 to ``"policy_gradient"`` and run ``project06b_policy_gradient.py``. This file
 trains ``MarblePolicyGradientAgent`` using a policy network wrapped with
-``MarbleAutogradLayer``. Rewards should steadily increase across episodes.
+``MarbleAutogradLayer``. Configure `policy_hidden_dim` to change the network size
+and `policy_lr` to control the optimiser's step size. Rewards should steadily
+increase across episodes.
 
 For entropy-regularised control, switch ``reinforcement_learning.algorithm`` to
 ``"sac"`` and adjust the ``sac.temperature`` value in ``config.yaml``. Higher

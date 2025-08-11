@@ -1,4 +1,5 @@
 import yaml
+
 from config_loader import create_marble_from_config
 
 
@@ -14,11 +15,13 @@ def test_reinforcement_learning_section(tmp_path):
             "enabled": True,
             "episodes": 1,
             "max_steps": 1,
+            "learning_rate": 0.2,
         }
     }
     cfg_path = _write_cfg(tmp_path, cfg)
     marble = create_marble_from_config(cfg_path)
     assert hasattr(marble, "rl_agent")
+    assert marble.rl_agent.lr == 0.2
 
 
 def test_semi_supervised_learning_section(tmp_path):

@@ -160,6 +160,24 @@ CONFIG_SCHEMA = {
                 "tokenizer_vocab_size": {"type": "integer", "minimum": 1},
             },
         },
+        "reinforcement_learning": {
+            "type": "object",
+            "properties": {
+                "enabled": {"type": "boolean"},
+                "algorithm": {"type": "string"},
+                "episodes": {"type": "integer", "minimum": 1},
+                "max_steps": {"type": "integer", "minimum": 1},
+                "discount_factor": {"type": "number"},
+                "epsilon_start": {"type": "number"},
+                "epsilon_decay": {"type": "number"},
+                "epsilon_min": {"type": "number"},
+                "seed": {"type": ["integer", "null"]},
+                "double_q": {"type": "boolean"},
+                "learning_rate": {"type": "number", "minimum": 0},
+                "policy_hidden_dim": {"type": "integer", "minimum": 1},
+                "policy_lr": {"type": "number", "minimum": 0},
+            },
+        },
         "sync": {
             "type": "object",
             "properties": {

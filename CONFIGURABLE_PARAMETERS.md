@@ -555,6 +555,9 @@ Each entry is listed under its section heading.
 - epsilon_min
 - seed
 - double_q
+- learning_rate: Step size applied to Q-value updates.
+- policy_hidden_dim: Width of the hidden layer in the policy gradient network.
+- policy_lr: Optimiser learning rate for the policy gradient agent.
 
 ## sac
 - temperature: Entropy temperature coefficient for Soft Actor-Critic. Default
