@@ -749,6 +749,26 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
   creation, allowing on-the-fly weight quantization.
 - Tests validate that a minimal configuration executes `count_marble_synapses`
   and that quantization flags are forwarded correctly.
+
+### 8.20 Plugin ecosystem
+- Core `plugin_system` registers discovery hooks and validates plugin metadata.
+- `pipeline_plugins`, `scheduler_plugins`, `learning_plugins`, `tool_plugins` and `tool_manager_plugin` expose standardized `activate(config, bus)` and `deactivate()` interfaces with dependency resolution.
+- Plugins may extend pipeline steps, schedulers or learners; configuration must map each plugin name to its module path and parameters.
+
+### 8.21 Dataset governance and services
+- `dataset_versioning`, `dataset_version_cli`, `dataset_history_cli` and `dataset_cache_server` maintain immutable dataset revisions, local caching and history queries.
+- `dataset_watcher` detects new files and triggers replication; `dataset_replication` synchronizes remote sources with checksum verification.
+- `dataset_encryption` and `dataset_sync_service` offer AES-CTR encryption, HMAC integrity and filesystem observers to propagate updates across nodes.
+
+### 8.22 Cognitive coordination modules
+- `prompt_memory.PromptMemory` stores and retrieves conversation-context tokens with TTL and capacity limits.
+- `goal_manager` prioritizes `Goal` instances by urgency and importance, interfacing with `global_workspace.GlobalWorkspace` to broadcast active goals.
+- `global_workspace` publishes and subscribes to blackboard-style events, integrating neuromodulatory context into decision making.
+
+### 8.23 Metrics and self monitoring
+- `metrics_dashboard` serves live charts over HTTP and subscribes to `SystemMetrics` events.
+- `self_monitoring.SelfMonitoringPlugin` tracks gradient norms, memory usage and configuration drift, escalating anomalies via `MessageBus`.
+
 ## 9. Testing and Validation
 ### 9.1 Unit tests
 - Write pytest suites for every module and parameter combination.
