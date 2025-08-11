@@ -8,7 +8,6 @@ brain.benchmark_enabled
 brain.benchmark_interval
 brain.checkpoint_compress
 brain.checkpoint_format
-brain.cleanup_batch_size
 brain.cluster_high_threshold
 brain.cluster_k
 brain.cluster_medium_threshold
@@ -44,7 +43,6 @@ brain.manual_seed
 brain.max_neurogenesis_factor
 brain.max_saved_models
 brain.max_training_epochs
-brain.memory_cleanup_enabled
 brain.metrics_history_size
 brain.min_cluster_size
 brain.model_name
@@ -64,7 +62,6 @@ brain.profile_interval
 brain.profile_log_path
 brain.prune_frequency
 brain.prune_threshold
-brain.ram_age_threshold
 brain.remote_sync_enabled
 brain.save_dir
 brain.save_threshold
@@ -75,7 +72,6 @@ brain.tier_decision_params.ram_usage_threshold
 brain.tier_decision_params.vram_usage_threshold
 brain.torrent_offload_enabled
 brain.torrent_offload_threshold
-brain.vram_age_threshold
 continual_learning.enabled
 continual_learning.epochs
 continual_learning.memory_size

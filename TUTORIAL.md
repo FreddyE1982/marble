@@ -2300,6 +2300,17 @@ Run `python project26_cip.py` to watch concepts emerge through blending.
    ```
 3. **Run the script** with `python project27_hybrid_memory.py`. The retrieved list should contain the key `'a'` showing the memory system found the correct entry.
 
+4. **Enable automatic memory cleanup** to migrate inactive neurons:
+   ```yaml
+   brain:
+     memory_cleanup_enabled: true
+     vram_age_threshold: 300    # seconds before VRAM neurons move to RAM
+     ram_age_threshold: 600     # seconds before RAM neurons move to disk
+     cleanup_batch_size: 100    # limit neurons migrated per epoch
+   ```
+   Rerun the script after adding these settings and neurons older than the
+   thresholds will be moved to slower tiers after each epoch.
+
 ## Project 28 – Convenience Interface Functions (Easy)
 
 **Goal:** Utilise the high-level helper functions in `marble_interface` for rapid experiments.

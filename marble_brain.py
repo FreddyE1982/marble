@@ -20,6 +20,7 @@ from meta_parameter_controller import MetaParameterController
 from neuromodulatory_system import NeuromodulatorySystem
 from system_metrics import get_gpu_memory_usage, get_system_memory_usage
 from usage_profiler import UsageProfiler
+from datetime import datetime
 
 
 def _parse_example(sample):
@@ -635,6 +636,7 @@ class Brain:
                 )
             self.lobe_manager.organize()
             self.lobe_manager.self_attention(val_loss)
+            self.cleanup_memory()
             if self.auto_offload:
                 if self.offload_enabled:
                     self.offload_high_attention(self.offload_threshold)
@@ -841,6 +843,23 @@ class Brain:
 
     def consolidate_memory(self):
         self.memory_system.consolidate()
+
+    def cleanup_memory(self) -> None:
+        """Migrate stale neurons to slower tiers based on age thresholds."""
+        if not self.memory_cleanup_enabled:
+            return
+        now = datetime.now()
+        moved = 0
+        for neuron in sorted(self.core.neurons, key=lambda n: n.created_at):
+            age = (now - neuron.created_at).total_seconds()
+            if neuron.tier == "vram" and age > self.vram_age_threshold:
+                neuron.tier = "ram"
+                moved += 1
+            elif neuron.tier == "ram" and age > self.ram_age_threshold:
+                neuron.tier = "disk"
+                moved += 1
+            if moved >= self.cleanup_batch_size:
+                break
 
     def start_training(self, train_examples, epochs=1, validation_examples=None):
         """Begin training in a background thread."""
