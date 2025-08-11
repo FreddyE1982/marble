@@ -226,7 +226,7 @@ shared_vocab.py: lines=48, functions=1, classes=0, lines_read=48
 soft_actor_critic.py: lines=99, functions=2, classes=2, lines_read=99
 sparse_utils.py: lines=49, functions=4, classes=0, lines_read=49
 streaming_dataset_step.py: lines=120, functions=0, classes=1, lines_read=120
-streamlit_playground.py: lines=3246, functions=104, classes=0, lines_read=640, lines_remaining=2606
+streamlit_playground.py: lines=3246, functions=104, classes=0, lines_read=740, lines_remaining=2506
 super_evolution_controller.py: lines=158, functions=0, classes=1, lines_read=158
 synaptic_echo_learning.py: lines=26, functions=0, classes=1, lines_read=26
 synthetic_dataset.py: lines=31, functions=2, classes=0, lines_read=31
@@ -285,11 +285,11 @@ tests/test_branch_container_concurrency.py: lines=43, functions=2, classes=0, li
 tests/test_chain_of_thought.py: lines=20, functions=1, classes=0, lines_read=20
 tests/test_checkpoint_migration.py: lines=53, functions=2, classes=0, lines_read=53
 tests/test_cli.py: lines=109, functions=6, classes=0, lines_read=109
-tests/test_cli_pipeline.py: lines=24, functions=1, classes=0, lines_read=0, lines_remaining=24
-tests/test_cli_quantize.py: lines=28, functions=1, classes=2, lines_read=0, lines_remaining=28
-tests/test_concept_association.py: lines=22, functions=1, classes=0, lines_read=0, lines_remaining=22
-tests/test_conceptual_integration.py: lines=18, functions=1, classes=0, lines_read=0, lines_remaining=18
-tests/test_conceptual_integration_pipeline.py: lines=67, functions=5, classes=0, lines_read=0, lines_remaining=67
+tests/test_cli_pipeline.py: lines=24, functions=1, classes=0, lines_read=24, lines_remaining=0
+tests/test_cli_quantize.py: lines=28, functions=1, classes=2, lines_read=28, lines_remaining=0
+tests/test_concept_association.py: lines=22, functions=1, classes=0, lines_read=22, lines_remaining=0
+tests/test_conceptual_integration.py: lines=18, functions=1, classes=0, lines_read=18, lines_remaining=0
+tests/test_conceptual_integration_pipeline.py: lines=67, functions=5, classes=0, lines_read=67, lines_remaining=0
 tests/test_config.py: lines=293, functions=11, classes=0, lines_read=0, lines_remaining=293
 tests/test_config_additional.py: lines=15, functions=1, classes=0, lines_read=0, lines_remaining=15
 tests/test_config_editor.py: lines=27, functions=3, classes=0, lines_read=0, lines_remaining=27
