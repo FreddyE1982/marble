@@ -487,15 +487,16 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
   - Replay buffer based learner storing at most `memory_size` samples and
     rehearsing one random example each step.
 
-### 5.7 Adversarial and Fractal Learners
-- GAN objective: \(\min_G \max_D E_{x\sim p_{data}}[\log D(x)] + E_{z\sim p_z}[\log(1 - D(G(z)))]\).
-- FGSM adversarial examples: x_adv = x + \epsilon \cdot \mathrm{sign}(\nabla_x L(model(x), y)).
-- FGSMDataset wraps datasets to generate x_adv on-the-fly; training loop updates discriminator and generator via Neuronenblitz dynamic_wander.
-- Adversarial training loop for PyTorch models perturbs inputs and trains on (x_adv, y).
-- Fractal dimension learning uses correlation dimension \(D_2 = \lim_{r\to 0} \frac{\log C(r)}{\log r}\).
+### 5.7 Adversarial, Hebbian and Fractal Learners
+- GAN objective: \(\min_G \max_D \mathbb{E}_{x\sim p_{data}}[\log D(x)] + \mathbb{E}_{z\sim p_z}[\log(1 - D(G(z)))]\).
+- FGSM adversarial examples: \(x_{adv} = x + \epsilon \cdot \mathrm{sign}(\nabla_x L(model(x), y))\).
+- FGSMDataset wraps datasets to generate \(x_{adv}\) on-the-fly; training loop updates discriminator and generator via Neuronenblitz `dynamic_wander`.
+- Adversarial training loop for PyTorch models perturbs inputs and trains on \((x_{adv}, y)\).
+- Hebbian learning update: \(\Delta w_{ij} = \eta\, x_i\, y_j\) with optional normalization \(w \leftarrow w / \|w\|\) or decay \(w_{ij} \leftarrow (1-\lambda)w_{ij} + \Delta w_{ij}\); `HebbianPipeline` streams activations and applies this rule.
+- Fractal dimension learning estimates correlation sum \(C(r)= \tfrac{2}{N(N-1)} \sum_{i<j} \mathbf{1}[\|x_i-x_j\| < r]\) and computes \(D_2 = \lim_{r\to 0} \tfrac{\log C(r)}{\log r}\).
 ### 5.8 Harmonic Resonance and Quantum Flux
-- Harmonic resonance loss using Fourier transforms to match frequency spectra.
-- Quantum flux learning uses complex-valued amplitudes with unitary constraint U^dagger U = I.
+- Harmonic resonance loss compares Fourier magnitudes: \(L_{HR}= \sum_k (|F_x[k]|-|F_{target}[k]|)^2\) where \(F=\mathrm{FFT}\); phase alignment uses cross-correlation \(C_{xy}(\tau)=\sum_t x_t y_{t+\tau}\) and selects \(\tau\) maximizing \(|C_{xy}|\).
+- Quantum flux learning evolves complex amplitudes \(\psi\) via unitary matrices; parameterise \(U=\exp(-iA)\) with skew-Hermitian \(A\) and update \(A \leftarrow A - \eta \nabla_A L\) so that \(U^\dagger U = I\) is maintained.
 - `QuantumFluxPairsPipeline` trains on numeric or textual pairs, accepts optional tokenizers via `DataLoader`, supports `BitTensorDataset` inputs and can auto-build vocabularies when `use_vocab` is true.
 
 ### 5.9 Synaptic Echo Learning
