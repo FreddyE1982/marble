@@ -494,23 +494,29 @@ class Neuronenblitz:
         if self.loss_module is not None:
             t = torch.tensor([output_value], dtype=torch.float32)
             tt = torch.tensor([target_value], dtype=torch.float32)
-            return float(self.loss_module(t, tt))
-        return self.loss_fn(target_value, output_value)
+            base = float(self.loss_module(t, tt))
+        else:
+            base = self.loss_fn(target_value, output_value)
+        return base * self.loss_scale
 
     def modulate_plasticity(self, context):
         """Adjust plasticity_threshold based on neuromodulatory context."""
-        reward = context.get("reward", 0.0)
-        stress = context.get("stress", 0.0)
-        adjustment = reward - stress
+        reward = context.get("reward", 0.0) * self.reward_scale
+        stress = context.get("stress", 0.0) * self.stress_scale
+        adjustment = (reward - stress) * self.plasticity_modulation
         self.plasticity_threshold = max(0.5, self.plasticity_threshold - adjustment)
         ctx = {
             **context,
+            "reward": reward,
+            "stress": stress,
             "markers": self.last_context.get("markers", []),
             "goals": self.current_goals.copy(),
             "tom": self.last_context.get("tom", {}),
         }
         self.last_context = ctx
-        self.context_history.append(ctx.copy())
+        self.last_context["reward"] *= self.reward_decay
+        self.last_context["stress"] *= self.reward_decay
+        self.context_history.append(self.last_context.copy())
 
     def update_context(self, **kwargs):
         """Update the stored neuromodulatory context without modifying plasticity."""
@@ -521,6 +527,10 @@ class Neuronenblitz:
             self.last_context["goals"] = self.current_goals.copy()
         if "tom" not in self.last_context:
             self.last_context["tom"] = {}
+        if "reward" in self.last_context:
+            self.last_context["reward"] *= self.reward_decay
+        if "stress" in self.last_context:
+            self.last_context["stress"] *= self.reward_decay
         self.context_history.append(self.last_context.copy())
 
     def log_hot_marker(self, marker: Any) -> None:
@@ -960,7 +970,14 @@ class Neuronenblitz:
         idx = np.random.choice(len(synapses), p=probs)
         return synapses[idx]
 
-    def _wander(self, current_neuron, path, current_continue_prob, depth_remaining):
+    def _wander(
+        self,
+        current_neuron,
+        path,
+        current_continue_prob,
+        depth_remaining,
+        backtrack_depth=0,
+    ):
         cached = self._get_cached_subpath(path)
         if cached is not None:
             cached_path, val = cached
@@ -988,6 +1005,25 @@ class Neuronenblitz:
         ):
             results.append((current_neuron, path))
             self._cache_subpaths(path, current_neuron.value)
+            if (
+                self.backtrack_enabled
+                and backtrack_depth < self.backtrack_depth_limit
+                and len(path) > 1
+                and random.random() < self.backtrack_probability
+            ):
+                last_syn = path[-1][1]
+                if last_syn is not None:
+                    last_syn.potential = 0.0
+                prev_neuron = path[-2][0]
+                results.extend(
+                    self._wander(
+                        prev_neuron,
+                        path[:-1],
+                        1.0,
+                        depth_remaining,
+                        backtrack_depth + 1,
+                    )
+                )
             return results
         if len(synapses) > 1 and random.random() < self.split_probability:
             for syn in synapses:
@@ -1016,11 +1052,29 @@ class Neuronenblitz:
                 new_path = path + [(next_neuron, syn)]
                 new_continue_prob = current_continue_prob * self.continue_decay_rate
                 if next_neuron.tier == "remote" and self.remote_client is not None:
-                    remote_out = self.remote_client.process(
-                        transmitted_value, timeout=self.remote_timeout
-                    )
-                    next_neuron.value = remote_out
-                    results.append((next_neuron, new_path))
+                    try:
+                        remote_out = self.remote_client.process(
+                            transmitted_value, timeout=self.remote_timeout
+                        )
+                        next_neuron.value = remote_out
+                        results.append((next_neuron, new_path))
+                    except Exception:
+                        if self.remote_fallback:
+                            if hasattr(next_neuron, "process"):
+                                next_neuron.value = next_neuron.process(transmitted_value)
+                            else:
+                                next_neuron.value = transmitted_value
+                            results.extend(
+                                self._wander(
+                                    next_neuron,
+                                    new_path,
+                                    new_continue_prob,
+                                    depth_remaining - 1,
+                                    backtrack_depth,
+                                )
+                            )
+                        else:
+                            raise
                 elif next_neuron.tier == "torrent" and self.torrent_client is not None:
                     part = self.torrent_map.get(next_neuron.id)
                     remote_out = self.torrent_client.process(transmitted_value, part)
@@ -1033,6 +1087,7 @@ class Neuronenblitz:
                             new_path,
                             new_continue_prob,
                             depth_remaining - 1,
+                            backtrack_depth,
                         )
                     )
         else:
@@ -1062,11 +1117,29 @@ class Neuronenblitz:
             new_path = path + [(next_neuron, syn)]
             new_continue_prob = current_continue_prob * self.continue_decay_rate
             if next_neuron.tier == "remote" and self.remote_client is not None:
-                remote_out = self.remote_client.process(
-                    transmitted_value, timeout=self.remote_timeout
-                )
-                next_neuron.value = remote_out
-                results.append((next_neuron, new_path))
+                try:
+                    remote_out = self.remote_client.process(
+                        transmitted_value, timeout=self.remote_timeout
+                    )
+                    next_neuron.value = remote_out
+                    results.append((next_neuron, new_path))
+                except Exception:
+                    if self.remote_fallback:
+                        if hasattr(next_neuron, "process"):
+                            next_neuron.value = next_neuron.process(transmitted_value)
+                        else:
+                            next_neuron.value = transmitted_value
+                        results.extend(
+                            self._wander(
+                                next_neuron,
+                                new_path,
+                                new_continue_prob,
+                                depth_remaining - 1,
+                                backtrack_depth,
+                            )
+                        )
+                    else:
+                        raise
             elif next_neuron.tier == "torrent" and self.torrent_client is not None:
                 part = self.torrent_map.get(next_neuron.id)
                 remote_out = self.torrent_client.process(transmitted_value, part)
@@ -1079,6 +1152,7 @@ class Neuronenblitz:
                         new_path,
                         new_continue_prob,
                         depth_remaining - 1,
+                        backtrack_depth,
                     )
                 )
         for n, p in results:
@@ -1195,7 +1269,10 @@ class Neuronenblitz:
             self.decay_fatigues()
             self.decay_visit_counts()
             entry_neuron = self._select_entry_neuron()
-            entry_neuron.value = input_value
+            entry_neuron.value = (
+                input_value
+                + np.random.normal(0.0, self.noise_injection_std)
+            )
             initial_path = [(entry_neuron, None)]
             depth_limit = int(
                 max(
@@ -1248,7 +1325,7 @@ class Neuronenblitz:
                     syn.potential *= self.route_potential_decay
             if self.global_activation_count % self.synapse_prune_interval == 0:
                 self.prune_low_potential_synapses()
-            if apply_plasticity:
+            if apply_plasticity and self.structural_plasticity_enabled:
                 self.apply_structural_plasticity(final_path)
                 self._record_path_usage([s for (_, s) in final_path if s is not None])
                 self.maybe_create_emergent_synapse()
@@ -1280,6 +1357,7 @@ class Neuronenblitz:
                 self._cache_order.append(input_value)
             self.detect_wandering_anomaly(len(result_path))
             self.check_finite_state()
+            self.exploration_bonus *= self.exploration_decay
             return final_neuron.value, result_path
 
     def dynamic_wander_parallel(self, input_value, num_processes=None):
@@ -1434,9 +1512,13 @@ class Neuronenblitz:
         for syn in path:
             n_type = self.core.neurons[syn.target].neuron_type
             mem_factor = 1.0 + self.memory_gates.get(syn, 0.0)
-            score = abs(error) / max(path_len, 1) * mem_factor
+            score = (
+                abs(error) / max(path_len, 1) * mem_factor * self.attention_update_scale
+            )
             self.type_attention[n_type] += score
-            speed_score = mem_factor / max(path_len, 1)
+            speed_score = (
+                mem_factor / max(path_len, 1) * self.attention_update_scale
+            )
             self.type_speed_attention[n_type] += speed_score
 
     def get_preferred_neuron_type(self):
@@ -1704,7 +1786,12 @@ class Neuronenblitz:
                         errors.append(err)
                         paths.append(path)
                     for err, path in zip(errors, paths):
-                        weighted_error = err * sample_weight / len(paths)
+                        weighted_error = (
+                            err
+                            * sample_weight
+                            / len(paths)
+                            * self.plasticity_modulation
+                        )
                         self.apply_weight_updates_and_attention(path, weighted_error)
                     output_value = sum(outputs) / len(outputs)
                     error = sum(errors) / len(errors)
@@ -1751,7 +1838,12 @@ class Neuronenblitz:
                                 input_value
                             )
                     validation_factor = self.validation_fn(target_value, output_value)
-                    weighted_error = raw_error * sample_weight * validation_factor
+                    weighted_error = (
+                        raw_error
+                        * sample_weight
+                        * validation_factor
+                        * self.plasticity_modulation
+                    )
                     path_length = self.apply_weight_updates_and_attention(
                         path, weighted_error
                     )
@@ -1768,7 +1860,12 @@ class Neuronenblitz:
                     if self.dataloader is not None:
                         raw_error += self.dataloader.round_trip_penalty_for(input_value)
                 validation_factor = self.validation_fn(target_value, output_value)
-                weighted_error = raw_error * sample_weight * validation_factor
+                weighted_error = (
+                    raw_error
+                    * sample_weight
+                    * validation_factor
+                    * self.plasticity_modulation
+                )
                 path_length = self.apply_weight_updates_and_attention(
                     path, weighted_error
                 )
