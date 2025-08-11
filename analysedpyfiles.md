@@ -34,7 +34,7 @@ continuous_weight_field_learning.py: lines=63, functions=0, classes=1, lines_rea
 contrastive_learning.py: lines=64, functions=0, classes=1, lines_read=64
 contrastive_pipeline.py: lines=63, functions=0, classes=1, lines_read=63
 convert_model.py: lines=261, functions=6, classes=0, lines_read=261
-core/__init__.py: lines=0, functions=0, classes=0
+core/__init__.py: lines=0, functions=0, classes=0, lines_read=0
 core/init_seed.py: lines=72, functions=2, classes=0, lines_read=72
 core/message_passing.py: lines=170, functions=1, classes=1, lines_read=170
 core_benchmark.py: lines=30, functions=1, classes=0, lines_read=30
@@ -62,7 +62,7 @@ distillation_trainer.py: lines=42, functions=0, classes=1, lines_read=42
 distributed_training.py: lines=35, functions=0, classes=1, lines_read=35
 docs/conf.py: lines=7, functions=0, classes=0, lines_read=7
 docs/examples/minimal_training.py: lines=9, functions=0, classes=0, lines_read=9
-dotdict.py: lines=45, functions=0, classes=1
+dotdict.py: lines=45, functions=0, classes=1, lines_read=45
 dream_reinforcement_learning.py: lines=56, functions=0, classes=1, lines_read=56
 dream_replay_buffer.py: lines=132, functions=0, classes=2, lines_read=132
 dream_scheduler.py: lines=59, functions=0, classes=1, lines_read=59
@@ -70,70 +70,70 @@ episodic_memory.py: lines=91, functions=1, classes=2, lines_read=91
 episodic_simulation.py: lines=29, functions=2, classes=0, lines_read=29
 event_bus.py: lines=123, functions=2, classes=3, lines_read=123
 evolution_trainer.py: lines=229, functions=1, classes=2, lines_read=229
-examples/__init__.py: lines=6, functions=0, classes=0
-examples/custom_converter_example.py: lines=55, functions=2, classes=2
-examples/dynamic_message_passing_example.py: lines=92, functions=2, classes=0
-examples/hf_streaming_bit_tensor.py: lines=26, functions=1, classes=0
-examples/hierarchical_rl_example.py: lines=31, functions=0, classes=0
-examples/interactive_llm_pipeline.py: lines=75, functions=5, classes=0
-examples/plugins/double_step.py: lines=30, functions=1, classes=1
-examples/project01_numeric_regression.py: lines=26, functions=1, classes=0
-examples/project02_image_classification.py: lines=26, functions=1, classes=0
-examples/project03_remote_offloading.py: lines=37, functions=1, classes=0
-examples/project04_autograd_pytorch_challenge.py: lines=14, functions=1, classes=0
-examples/project05_gpt_training.py: lines=28, functions=1, classes=0
-examples/project05b_rnn_sequence_modeling.py: lines=29, functions=1, classes=0
-examples/project06_reinforcement_learning.py: lines=23, functions=1, classes=0
-examples/project06b_policy_gradient.py: lines=25, functions=1, classes=0
-examples/project07_contrastive_learning.py: lines=22, functions=1, classes=0
-examples/project08_attention_codelets.py: lines=29, functions=3, classes=0
-examples/project08_hebbian_learning.py: lines=21, functions=1, classes=0
-examples/project09_adversarial_learning.py: lines=22, functions=1, classes=0
-examples/project10_autoencoder_learning.py: lines=21, functions=1, classes=0
-examples/project10_sklearn_integration.py: lines=28, functions=1, classes=0
-examples/project11_iris_classification.py: lines=26, functions=1, classes=0
-examples/project11_semi_supervised_learning.py: lines=29, functions=1, classes=0
-examples/project12_federated_learning.py: lines=33, functions=1, classes=0
-examples/project13_curriculum_learning.py: lines=31, functions=1, classes=0
-examples/project14_meta_learning.py: lines=28, functions=1, classes=0
-examples/project15_transfer_learning.py: lines=27, functions=1, classes=0
-examples/project16_continual_learning.py: lines=30, functions=1, classes=0
-examples/project17_imitation_learning.py: lines=29, functions=1, classes=0
-examples/project18_harmonic_resonance.py: lines=28, functions=1, classes=0
-examples/project19_synaptic_echo.py: lines=27, functions=1, classes=0
-examples/project20_fractal_dimension.py: lines=27, functions=1, classes=0
-examples/project21_quantum_flux.py: lines=27, functions=1, classes=0
-examples/project22_dream_reinforcement.py: lines=27, functions=1, classes=0
-examples/project24_text_to_music.py: lines=46, functions=2, classes=0
-examples/sac_toy_env.py: lines=57, functions=0, classes=1
-examples/tom_training.py: lines=26, functions=0, classes=0
-exampletrain.py: lines=108, functions=0, classes=0
-exampletrain_utils.py: lines=137, functions=1, classes=4
-experiment_tracker.py: lines=146, functions=1, classes=3
-federated_learning.py: lines=42, functions=0, classes=1
-fractal_dimension_learning.py: lines=44, functions=0, classes=1
-fractal_dimension_pairs_pipeline.py: lines=66, functions=0, classes=1
-generate_repo_md.py: lines=60, functions=3, classes=0
-global_workspace.py: lines=81, functions=2, classes=2
-goal_manager.py: lines=61, functions=1, classes=2
-gpt_training.py: lines=264, functions=7, classes=2
-graph_cache.py: lines=78, functions=0, classes=2
-graph_streaming.py: lines=49, functions=3, classes=0
-graph_viz.py: lines=74, functions=1, classes=0
-harmonic_resonance_learning.py: lines=35, functions=0, classes=1
-harmonic_resonance_pairs_pipeline.py: lines=72, functions=0, classes=1
-hebbian_learning.py: lines=41, functions=0, classes=1
-hebbian_pipeline.py: lines=61, functions=0, classes=1
-hierarchical_rl.py: lines=37, functions=0, classes=2
-highlevel_pipeline.py: lines=951, functions=0, classes=2
-highlevel_pipeline_cli.py: lines=66, functions=3, classes=0
-huggingface_utils.py: lines=80, functions=5, classes=0
-hybrid_memory.py: lines=160, functions=0, classes=3
-hyperparameter_search.py: lines=46, functions=2, classes=0
-imitation_learning.py: lines=40, functions=0, classes=1
-imitation_pairs_pipeline.py: lines=66, functions=0, classes=1
-install.py: lines=29, functions=1, classes=0
-kuzu_interface.py: lines=175, functions=0, classes=1
+examples/__init__.py: lines=6, functions=0, classes=0, lines_read=6
+examples/custom_converter_example.py: lines=55, functions=2, classes=2, lines_read=55
+examples/dynamic_message_passing_example.py: lines=92, functions=2, classes=0, lines_read=92
+examples/hf_streaming_bit_tensor.py: lines=26, functions=0, classes=0, lines_read=26
+examples/hierarchical_rl_example.py: lines=31, functions=0, classes=0, lines_read=31
+examples/interactive_llm_pipeline.py: lines=75, functions=5, classes=0, lines_read=75
+examples/plugins/double_step.py: lines=30, functions=1, classes=1, lines_read=30
+examples/project01_numeric_regression.py: lines=26, functions=1, classes=0, lines_read=26
+examples/project02_image_classification.py: lines=26, functions=1, classes=0, lines_read=26
+examples/project03_remote_offloading.py: lines=37, functions=1, classes=0, lines_read=37
+examples/project04_autograd_pytorch_challenge.py: lines=14, functions=1, classes=0, lines_read=14
+examples/project05_gpt_training.py: lines=28, functions=1, classes=0, lines_read=28
+examples/project05b_rnn_sequence_modeling.py: lines=29, functions=1, classes=0, lines_read=29
+examples/project06_reinforcement_learning.py: lines=23, functions=1, classes=0, lines_read=23
+examples/project06b_policy_gradient.py: lines=25, functions=1, classes=0, lines_read=25
+examples/project07_contrastive_learning.py: lines=22, functions=1, classes=0, lines_read=22
+examples/project08_attention_codelets.py: lines=29, functions=3, classes=0, lines_read=29
+examples/project08_hebbian_learning.py: lines=21, functions=1, classes=0, lines_read=21
+examples/project09_adversarial_learning.py: lines=22, functions=1, classes=0, lines_read=22
+examples/project10_autoencoder_learning.py: lines=21, functions=1, classes=0, lines_read=21
+examples/project10_sklearn_integration.py: lines=28, functions=1, classes=0, lines_read=28
+examples/project11_iris_classification.py: lines=26, functions=1, classes=0, lines_read=26
+examples/project11_semi_supervised_learning.py: lines=29, functions=1, classes=0, lines_read=29
+examples/project12_federated_learning.py: lines=33, functions=1, classes=0, lines_read=33
+examples/project13_curriculum_learning.py: lines=31, functions=1, classes=0, lines_read=31
+examples/project14_meta_learning.py: lines=28, functions=1, classes=0, lines_read=28
+examples/project15_transfer_learning.py: lines=27, functions=1, classes=0, lines_read=27
+examples/project16_continual_learning.py: lines=30, functions=1, classes=0, lines_read=30
+examples/project17_imitation_learning.py: lines=29, functions=1, classes=0, lines_read=29
+examples/project18_harmonic_resonance.py: lines=28, functions=1, classes=0, lines_read=28
+examples/project19_synaptic_echo.py: lines=27, functions=1, classes=0, lines_read=27
+examples/project20_fractal_dimension.py: lines=27, functions=1, classes=0, lines_read=27
+examples/project21_quantum_flux.py: lines=27, functions=1, classes=0, lines_read=27
+examples/project22_dream_reinforcement.py: lines=27, functions=1, classes=0, lines_read=27
+examples/project24_text_to_music.py: lines=46, functions=2, classes=0, lines_read=46
+examples/sac_toy_env.py: lines=57, functions=0, classes=1, lines_read=57
+examples/tom_training.py: lines=26, functions=0, classes=0, lines_read=26
+exampletrain.py: lines=108, functions=0, classes=0, lines_read=108
+exampletrain_utils.py: lines=137, functions=1, classes=4, lines_read=137
+experiment_tracker.py: lines=146, functions=1, classes=3, lines_read=146
+federated_learning.py: lines=42, functions=0, classes=1, lines_read=42
+fractal_dimension_learning.py: lines=44, functions=0, classes=1, lines_read=44
+fractal_dimension_pairs_pipeline.py: lines=66, functions=0, classes=1, lines_read=66
+generate_repo_md.py: lines=60, functions=3, classes=0, lines_read=60
+global_workspace.py: lines=81, functions=2, classes=2, lines_read=81
+goal_manager.py: lines=61, functions=1, classes=2, lines_read=61
+gpt_training.py: lines=264, functions=7, classes=2, lines_read=264
+graph_cache.py: lines=78, functions=0, classes=2, lines_read=78
+graph_streaming.py: lines=49, functions=3, classes=0, lines_read=49
+graph_viz.py: lines=74, functions=1, classes=0, lines_read=74
+harmonic_resonance_learning.py: lines=35, functions=0, classes=1, lines_read=35
+harmonic_resonance_pairs_pipeline.py: lines=72, functions=0, classes=1, lines_read=72
+hebbian_learning.py: lines=41, functions=0, classes=1, lines_read=41
+hebbian_pipeline.py: lines=61, functions=0, classes=1, lines_read=61
+hierarchical_rl.py: lines=37, functions=0, classes=2, lines_read=37
+highlevel_pipeline.py: lines=951, functions=0, classes=2, lines_read=80, lines_remaining=871
+highlevel_pipeline_cli.py: lines=66, functions=3, classes=0, lines_read=66
+huggingface_utils.py: lines=80, functions=5, classes=0, lines_read=80
+hybrid_memory.py: lines=160, functions=0, classes=3, lines_read=160
+hyperparameter_search.py: lines=46, functions=2, classes=0, lines_read=46
+imitation_learning.py: lines=40, functions=0, classes=1, lines_read=40
+imitation_pairs_pipeline.py: lines=66, functions=0, classes=1, lines_read=66
+install.py: lines=29, functions=1, classes=0, lines_read=29
+kuzu_interface.py: lines=175, functions=0, classes=1, lines_read=80, lines_remaining=95
 kuzu_memory_tier.py: lines=105, functions=0, classes=1
 learning_plugins.py: lines=84, functions=3, classes=1
 logging_utils.py: lines=100, functions=1, classes=1
@@ -613,12 +613,12 @@ transfer_learning.py: lines=76, functions=1, classes=1
 transfer_pairs_pipeline.py: lines=65, functions=0, classes=1
 unified_learning.py: lines=132, functions=0, classes=1
 unified_pairs_pipeline.py: lines=69, functions=0, classes=1
-usage_profiler.py: lines=54, functions=0, classes=2
-wanderer_auth.py: lines=125, functions=2, classes=1
-wanderer_messages.py: lines=130, functions=0, classes=3
-web_api.py: lines=98, functions=0, classes=1
-web_search_tool.py: lines=33, functions=1, classes=1
-workflow_template_generator.py: lines=139, functions=3, classes=0
+usage_profiler.py: lines=54, functions=0, classes=2, lines_read=54
+wanderer_auth.py: lines=125, functions=2, classes=1, lines_read=125
+wanderer_messages.py: lines=130, functions=3, classes=0, lines_read=130
+web_api.py: lines=98, functions=0, classes=1, lines_read=98
+web_search_tool.py: lines=33, functions=1, classes=1, lines_read=33
+workflow_template_generator.py: lines=139, functions=3, classes=0, lines_read=139
 
 Partial analyses remain for files with lines_remaining.
 

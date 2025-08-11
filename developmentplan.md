@@ -25,6 +25,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 
 
 ### 2.3 Configuration-driven module instantiation
+- Provide `DotDict` utility for attribute-style access to nested configuration dictionaries, ensuring recursive conversion and update semantics.
 - Implement `config_loader` that materializes every configuration section into runtime objects.
 - Structured logging options: enable/disable structured format, log file path, level, message format, datefmt, propagation, log rotation with `max_bytes`, `backup_count` and `encoding`.
 - Scheduler selection via `configure_scheduler` and plugin directories loaded through `load_plugins`.
@@ -43,6 +44,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - EventBus supports event filtering, rate limiting and unified `ProgressEvent` schema.
 
 ### 3.2 Core neural substrate
+- Include `GraphCache` for torch.jit precompilation keyed by tensor shape/dtype, streaming utilities `stream_graph_chunks` and `identify_memory_hotspots`, and `graph_viz.sankey_figure` for interactive topology exploration.
 - Recreate marble_core with Neuron, Synapse, and perform_message_passing.
 - Include structural plasticity operations, neuron/synapse type registries and weight limiting.
 - Implement MarbleBrain, MarbleLobes, MarbleGraphBuilder and GraphCache for topology management.
@@ -52,6 +54,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Message passing employs `AttentionModule` with temperature scaling, sine or chaotic gating, dropout and mixed-precision layer-normalised MLP updates.
 - `interconnect_cores` merges multiple cores and optionally creates cross-core synapses based on interconnection probability.
 ### 3.3 Memory systems
+- Implement `HybridMemory` combining vector similarity search, symbolic key-value store and optional Kùzu-backed tier with temporal forgetting.
 - Implement memory_pool, memory_manager, episodic memory, hybrid memory, prompt memory and Kuzu-backed tiers.
 - Include forgetfulness and consolidation algorithms.
 
@@ -96,6 +99,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Support dataset_replication and dataset_sync_service to synchronize datasets across hosts using incremental diffs.
 
 ### 3.6 Brain coordination and neurogenesis
+- Add `GoalManager` maintaining goal hierarchies and reward shaping; integrate global workspace via `BroadcastMessage` queue for cross-module signalling.
 - Implement `MarbleBrain` to supervise Neuronenblitz and global learning state.
 - Add neuromodulatory system providing context values (arousal, stress, reward, emotion).
 - Implement neurogenesis controller:
@@ -408,10 +412,12 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Ensure each scheduler option in config is wired to executable code.
 
 ### 6.3 Tool and learner plugins
+- Provide `WebSearchTool` plugin invoking DuckDuckGo and expose registration hook.
 - Recreate tool_manager_plugin, tool_plugins and learning_plugins with dynamic discovery.
 
 ## 7. Memory and Simulation Systems
 ### 7.1 Episodic simulation and dream modules
+- Support `exampletrain` style auto-firing and dreaming loops with synthetic dataset utilities for reproducible tests.
 - Implement episodic_simulation, `DreamReplayBuffer` and `DreamScheduler` for salience-weighted replay with instant and long-term buffers and housekeeping.
 - `DreamReinforcementLearner` mixes real and dreamed experiences controlled by dream_cycles, strength and interval.
 
@@ -424,6 +430,8 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
   - DynamicSpanModule selects attention spans where cumulative softmax ≤ threshold, enforcing max_span.
 
 ### 7.3 Self-monitoring and metrics
+- Integrate `UsageProfiler` logging epoch wall time, CPU/RAM/GPU utilisation to CSV.
+- Provide `ExperimentTracker` abstraction with Wandb and Kùzu implementations and event-bus attachment helper.
 - Integrate self_monitoring and metrics_dashboard to track errors, wander anomalies and plasticity history.
 
 ### 7.4 Cognitive modules
@@ -441,9 +449,11 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Include networkx graph export, web API and database query tools.
 
 ### 8.3 Experiment tracking and logging
+- `UsageProfiler` and experiment trackers must be wired to training loops and pipeline events.
 - Integrate experiment_tracker, logging_utils and usage_profiler with configurable backends.
 
 ### 8.4 Configuration tooling
+- Offer `workflow_template_generator` producing pipeline boilerplates for classification and preprocessing examples.
 - Provide command-line and GUI-free tools:
   - `config_generator` parses `yaml-manual.txt` and produces commented configs
     by mapping section keys to descriptions.
@@ -460,15 +470,21 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Support torrent_offload and data_compressor for secure remote transfers.
 
 ### 8.6 Remote interaction modules
+- Implement `wanderer_auth` HMAC tokens and `SessionManager` for remote wanderer authentication.
+- Serialize exploration commands via `wanderer_messages` dataclasses (`ExplorationRequest`, `PathUpdate`, `ExplorationResult`).
+- Expose `web_api.InferenceServer` with `/infer`, `/graph`, and `/shutdown` endpoints plus optional PromptMemory and bearer-token auth.
 - Implement remote_wanderer, remote_offload, remote_hardware interface and mcp_server/tool_bridge.
 - Provide web_api endpoints and database_query_tool for external control.
 ### 8.7 Asynchronous training utilities
+- Include federated averaging trainer `FederatedAveragingTrainer` aggregating synapse weights across clients.
+- Provide hyperparameter search utilities (`grid_search`, `random_search`).
 - async_transform dispatches data tasks via scheduler plugins on CPU/GPU.
 - AsyncGradientAccumulator schedules backward passes with asyncio.to_thread and applies optimizer steps every accumulation_steps.
 ### 8.8 Visualization helpers
 - activation_visualization.plot_activation_heatmap stacks neuron representations and saves heatmaps.
 
 ### 8.9 Command-line interface
+- Add `highlevel_pipeline_cli` for checkpoint/resume operations with device selection and dataset version metadata.
 - Build `cli.py` supporting configuration overrides, dataset loading, training,
   evaluation, pipeline execution, hyperparameter grid search and config
   synchronization.
@@ -478,6 +494,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 
 
 ### 8.10 Model conversion and compression
+- Incorporate `generate_repo_md` script to snapshot repository contents into single Markdown for reproducibility.
 - `convert_model` CLI transforms PyTorch checkpoints to MARBLE JSON or `.marble` snapshots and offers summary output, plots, CSV, tables and graph rendering.
 - `DataCompressor` and crypto utilities provide constant-time XOR encryption, AES-GCM tensor/byte encryption, delta encoding, quantization and sparse-aware compression.
 - `DatabaseQueryTool` executes Cypher queries on Kùzu databases.
@@ -512,6 +529,8 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Integrate hyperparameter_search to sweep configuration spaces and record metrics.
 
 ## 10. Documentation and Tutorials
+- Recreate comprehensive example suite covering numeric regression, image classification, remote offloading, GPT training, RNN sequence modelling, reinforcement learning variants, contrastive, attention codelets, Hebbian, adversarial, autoencoder, sklearn integration, iris classification, semi-supervised, federated, curriculum, meta, transfer, continual, imitation, harmonic resonance, synaptic echo, fractal dimension, quantum flux, dream reinforcement and text-to-music pipelines.
+- Provide `exampletrain` advanced training demo integrating Stable Diffusion, auto-firing, dreaming, benchmarking and synthetic dataset utilities (`exampletrain_utils`).
 - Regenerate README, ARCHITECTURE_OVERVIEW, ML_PARADIGMS_HANDBOOK and a new multi-project TUTORIAL without GUI references.
 - Maintain ROADMAP, TROUBLESHOOTING, HIGHLEVEL_PIPELINE_TUTORIAL and configuration manuals.
 
