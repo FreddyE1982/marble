@@ -897,8 +897,8 @@ brain:
     neurons during neurogenesis when defaults are used.
   max_training_epochs: Total number of epochs the training loop should run
     before stopping automatically.
-  memory_cleanup_enabled: Toggles periodic removal of stale data from RAM and
-    disk tiers.
+  memory_cleanup_enabled: Enables ``Brain.cleanup_memory`` which migrates
+    neurons from faster to slower tiers when they exceed age thresholds.
   manual_seed: Random seed applied during initialization for reproducible
     experiments.
   log_interval: Integer number of epochs between status log messages during
@@ -968,8 +968,8 @@ brain:
     ``firing_interval_ms`` milliseconds, producing a continuous stream of
     activity.
   dream_enabled: Enables background dreaming when ``start_dreaming`` is called.
-  vram_age_threshold: Age in seconds above which neurons in VRAM are considered
-    old when deciding growth tiers.
+  vram_age_threshold: Age in seconds after which VRAM neurons are migrated to
+    RAM during cleanup. This avoids inactive data occupying GPU memory.
   precompile_graphs: When ``true`` the brain traces frequently executed compute
     graphs, such as the internal message passing MLP, using ``torch.jit`` before
     training begins.  The compiled graphs are cached for the current tensor
@@ -977,7 +977,8 @@ brain:
     overhead during every training step.  Enable this when model structure and
     input shapes remain stable.  On very small models the overhead of
     precompilation may outweigh the benefit, so the default is ``false``.
-  ram_age_threshold: Equivalent threshold for neurons in RAM.
+  ram_age_threshold: Age in seconds after which RAM neurons are migrated to
+    disk during cleanup to free host memory.
   status_display_interval: If greater than zero, ``display_live_status`` is
     invoked every N epochs during training.
   neurogenesis_interval: Number of epochs between automatic neurogenesis events.
@@ -1045,7 +1046,8 @@ brain:
     validation performance.
   lobe_sync_interval: Seconds between background synchronization of lobe data
     when remote syncing is active.
-  cleanup_batch_size: Maximum number of objects removed in one cleanup pass.
+  cleanup_batch_size: Maximum number of neurons migrated during a single
+    cleanup pass.
   remote_sync_enabled: When ``true`` brain state is periodically pushed to a
     remote server.
   default_activation_function: Activation used when constructing new neurons.
