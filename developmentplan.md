@@ -159,6 +159,19 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Harmonic resonance loss using Fourier transforms to match frequency spectra.
 - Quantum flux learning uses complex-valued amplitudes with unitary constraint U^dagger U = I.
 
+### 5.9 Synaptic Echo Learning
+- Implement echo-based weight consolidation where echo signal e_t is a decayed trace of past activations:
+  e_{t+1} = echo_decay * e_t + activation_t.
+- Weight update couples current gradient g_t with echo: \Delta w = echo_strength * e_t * g_t.
+
+### 5.10 Continuous Weight Field Learning
+- Represent weights as continuous fields w(x) over topology coordinate x.
+- Update via diffusion equation \partial w / \partial t = learning_rate * (\nabla^2 w + source_term).
+
+### 5.11 Federated and Distributed Learning
+- Implement federated averaging: w_{t+1} = \sum_k (n_k / N) * w_k where n_k are client sample counts.
+- Integrate distributed_training with gradient synchronization across nodes.
+
 ## 6. Pipelines and Orchestration
 ### 6.1 Pipeline framework
 - Implement pipeline, pipeline_cli, pipeline_schema, highlevel_pipeline and examples.
@@ -181,6 +194,11 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 7.3 Self-monitoring and metrics
 - Integrate self_monitoring and metrics_dashboard to track errors, wander anomalies and plasticity history.
 
+### 7.4 Cognitive modules
+- Reconstruct global_workspace for broadcasting salient signals across subsystems.
+- Implement theory_of_mind for agent modeling using probabilistic belief updates.
+- Recreate neural_pathway and neural_schema_induction for structured knowledge extraction.
+
 ## 8. Utilities and Interop
 ### 8.1 External framework interop
 - Implement PyTorch and TensorFlow interop layers (pytorch_to_marble, torch_interop, tensorflow_interop).
@@ -192,6 +210,18 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 
 ### 8.3 Experiment tracking and logging
 - Integrate experiment_tracker, logging_utils and usage_profiler with configurable backends.
+
+### 8.4 Configuration tooling
+- Provide command-line and GUI-free tools: config_generator, config_editor and config_sync_service.
+- Implement backup_utils for snapshotting configurations.
+
+### 8.5 Security and data integrity
+- Implement dataset_encryption, crypto_utils and dataset_replication with integrity checks.
+- Support torrent_offload and data_compressor for secure remote transfers.
+
+### 8.6 Remote interaction modules
+- Implement remote_wanderer, remote_offload, remote_hardware interface and mcp_server/tool_bridge.
+- Provide web_api endpoints and database_query_tool for external control.
 
 ## 9. Testing and Validation
 ### 9.1 Unit tests
