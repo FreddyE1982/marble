@@ -1645,10 +1645,9 @@ Run `python project15_transfer.py` after enabling transfer learning.
 **Goal:** Train sequential tasks while replaying previous examples.**
 
 1. **Enable continual learning** in the configuration by setting `continual_learning.enabled: true` and provide values for `epochs` and the replay `memory_size`.
-2. **Create the learner**:
+2. **Access the learner** created automatically during configuration loading:
    ```python
-   from continual_learning import ReplayContinualLearner
-   learner = ReplayContinualLearner(core, neuronenblitz)
+   learner = marble.continual_learner
    ```
 3. **Download a sequence of datasets** such as Digits, Iris and Wine from `sklearn.datasets`:
    ```python
@@ -1677,12 +1676,11 @@ Run `python project15_transfer.py` after enabling transfer learning.
 from config_loader import load_config
 from marble_main import MARBLE
 from marble import DataLoader
-from continual_learning import ReplayContinualLearner
 
 cfg = load_config()
 dataloader = DataLoader()  # pure numeric features
 marble = MARBLE(cfg['core'])
-learner = ReplayContinualLearner(marble.core, marble.neuronenblitz)
+learner = marble.continual_learner
 from sklearn.datasets import load_digits, load_iris, load_wine
 datasets = [
     [
@@ -1961,10 +1959,9 @@ Run `python project21_quantum_flux.py` to experiment with quantum flux updates.
 **Goal:** Combine dreaming with reinforcement-like updates.**
 
 1. **Enable dream reinforcement** by setting `dream_reinforcement_learning.enabled: true` in the YAML file and configure `episodes`, `dream_cycles`, `dream_strength`, `dream_interval` and `dream_cycle_duration`.
-2. **Instantiate the learner**:
+2. **Use the learner** automatically created when loading the configuration:
    ```python
-   from dream_reinforcement_learning import DreamReinforcementLearner
-   learner = DreamReinforcementLearner(core, neuronenblitz)
+   learner = marble.dream_rl_learner
    ```
 3. **Download a demonstration dataset** using the Hugging Face `datasets` library:
    ```python
@@ -1992,12 +1989,11 @@ Run `python project21_quantum_flux.py` to experiment with quantum flux updates.
 from config_loader import load_config
 from marble_main import MARBLE
 from marble import DataLoader
-from dream_reinforcement_learning import DreamReinforcementLearner
 
 cfg = load_config()
 dataloader = DataLoader()  # numeric RL data
 marble = MARBLE(cfg['core'])
-learner = DreamReinforcementLearner(marble.core, marble.neuronenblitz)
+learner = marble.dream_rl_learner
 from datasets import load_dataset
 dream_demo = load_dataset("deep-rl-datasets", "cartpole-expert-v1")
 import gymnasium as gym

@@ -24,6 +24,20 @@ def test_reinforcement_learning_section(tmp_path):
     assert marble.rl_agent.lr == 0.2
 
 
+def test_continual_learning_section(tmp_path):
+    cfg = {
+        "continual_learning": {
+            "enabled": True,
+            "epochs": 1,
+            "memory_size": 2,
+        }
+    }
+    cfg_path = _write_cfg(tmp_path, cfg)
+    marble = create_marble_from_config(cfg_path)
+    assert hasattr(marble, "continual_learner")
+    assert marble.continual_learner.memory_size == 2
+
+
 def test_semi_supervised_learning_section(tmp_path):
     cfg = {
         "semi_supervised_learning": {
@@ -36,6 +50,20 @@ def test_semi_supervised_learning_section(tmp_path):
     cfg_path = _write_cfg(tmp_path, cfg)
     marble = create_marble_from_config(cfg_path)
     assert hasattr(marble, "semi_supervised_learner")
+
+
+def test_dream_reinforcement_learning_section(tmp_path):
+    cfg = {
+        "dream_reinforcement_learning": {
+            "enabled": True,
+            "episodes": 1,
+            "dream_cycles": 1,
+        }
+    }
+    cfg_path = _write_cfg(tmp_path, cfg)
+    marble = create_marble_from_config(cfg_path)
+    assert hasattr(marble, "dream_rl_learner")
+    assert marble.dream_rl_learner.dream_cycles == 1
 
 
 def test_quantum_flux_learning_section(tmp_path):
