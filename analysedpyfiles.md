@@ -153,7 +153,7 @@ marble_neuronenblitz.py: lines=2, functions=0, classes=0, lines_read=2
 marble_neuronenblitz/__init__.py: lines=40, functions=0, classes=0, lines_read=40
 marble_neuronenblitz/attention_span.py: lines=49, functions=0, classes=1, lines_read=49
 marble_neuronenblitz/context_attention.py: lines=86, functions=0, classes=1, lines_read=86
-marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=2465
+marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=200, lines_remaining=2265
 marble_neuronenblitz/learning.py: lines=219, functions=8, classes=0, lines_read=219
 marble_neuronenblitz/memory.py: lines=79, functions=2, classes=0, lines_read=79
 marble_registry.py: lines=88, functions=0, classes=1, lines_read=88
