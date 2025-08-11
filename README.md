@@ -1091,6 +1091,23 @@ scores = cross_validate(train, metric, dataset, folds=5, seed=42)
 print('scores', scores)
 ```
 
+## Federated Learning
+
+Synchronise multiple MARBLE clients by averaging their synapse weights after
+local updates. The ``federated_learning`` section of ``config.yaml`` enables a
+simple coordinator:
+
+```yaml
+federated_learning:
+  enabled: true
+  rounds: 3
+  local_epochs: 1
+```
+
+When enabled, :func:`config_loader.create_marble_from_config` constructs a
+``FederatedAveragingTrainer`` and performs the configured number of
+communication rounds on CPU or GPU depending on availability.
+
 ## Evolutionary Hyperparameter Search
 
 Explore configuration spaces using evolutionary strategies. The

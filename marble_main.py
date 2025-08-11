@@ -91,6 +91,7 @@ class MARBLE:
                 host=dashboard_params.get("host", "localhost"),
                 port=dashboard_params.get("port", 8050),
                 update_interval=dashboard_params.get("update_interval", 1000),
+                window_size=dashboard_params.get("window_size", 10),
             )
             self.metrics_dashboard.start()
 

@@ -517,6 +517,34 @@ def create_marble_from_config(
             )
         marble.semi_supervised_learner = learner
 
+    fl_cfg = cfg.get("federated_learning", {})
+    if fl_cfg.get("enabled", False):
+        from federated_learning import FederatedAveragingTrainer
+        from marble_core import Core
+        from marble_neuronenblitz import Neuronenblitz
+
+        clients = [(marble.core, marble.neuronenblitz)]
+        clone_core = Core(core_params)
+        clone_nb = Neuronenblitz(clone_core)
+        clients.append((clone_core, clone_nb))
+        trainer = FederatedAveragingTrainer(clients)
+
+        if dataset_path:
+            from dataset_loader import load_dataset
+
+            try:
+                data = load_dataset(dataset_path)
+            except Exception:  # pragma: no cover - best effort loading
+                data = []
+            if data:
+                split = max(1, len(data) // len(clients))
+                datasets = [data[i * split : (i + 1) * split] for i in range(len(clients))]
+                rounds = int(fl_cfg.get("rounds", 1))
+                epochs = int(fl_cfg.get("local_epochs", 1))
+                for _ in range(rounds):
+                    trainer.train_round(datasets, epochs=epochs)
+        marble.federated_trainer = trainer
+
     qf_cfg = cfg.get("quantum_flux_learning", {})
     if qf_cfg.get("enabled", False):
         from dataset_loader import load_dataset

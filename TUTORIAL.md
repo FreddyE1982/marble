@@ -1459,8 +1459,8 @@ Execute `python project11_semi_supervised.py` once the module is enabled.
 
 **Goal:** Train multiple Neuronenblitz networks on separate datasets and combine them using federated averaging.**
 
-1. **Enable federated mode** by setting `federated_learning.enabled: true` in `config.yaml`. Define the number of communication `rounds` and how many `local_epochs` each client trains before averaging.
-2. **Instantiate clients**: create a separate `Core` and `Neuronenblitz` for each participant and pass these to a `FederatedAveragingTrainer` instance.
+1. **Enable federated mode** by setting `federated_learning.enabled: true` in `config.yaml`. Define the number of communication `rounds` and how many `local_epochs` each client trains before averaging. Loading this configuration via `create_marble_from_config` automatically runs a `FederatedAveragingTrainer` across two clients split from the configured dataset.
+2. **Instantiate clients** manually when experimenting beyond the built-in two-client setup. Create a separate `Core` and `Neuronenblitz` for each participant and pass these to a `FederatedAveragingTrainer` instance.
 3. **Download a real dataset** to distribute among the clients. The MNIST digits can be fetched once and partitioned equally:
    ```python
    from datasets import load_dataset
