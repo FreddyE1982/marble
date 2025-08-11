@@ -91,6 +91,13 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - `weighted_choice` computes probabilities p_i = exp(s_i) / Σ_j exp(s_j) with scores combining fatigue (1 - f), attention (1 + attention_score), novelty penalty 1/(1+visit_count), curiosity (1 + curiosity_strength/(1+visit_count)), context similarity 1 + cos(target_rep, context_vec) and memory gating factors.
 - `_wander` recursively explores synapses with split and dropout probabilities, caches subpaths, updates echo and fatigue, increases synapse potential by `route_potential_increase` plus `exploration_bonus` when potential < 1, supports remote/torrent execution with optional fallback, and probabilistic backtracking capped by `backtrack_depth_limit`.
 - `_merge_results` groups paths by endpoint, averages neuron values, selects representative paths via gradient-path score value + gradient_path_score_scale·gradient_score or longest path, and reports pathway age.
+- `dynamic_wander` increments global phase, caches results with TTL and LRU eviction, applies active forgetting, fatigue and visit-count decay, selects entry neurons with noise and episodic memory bias, supports beam search and exploration bonus decay.
+- `apply_structural_plasticity` replaces high-potential synapses with new neurons across tiers, scales new weights by multipliers and representation similarity, logs events and updates plasticity history.
+- `apply_weight_updates_and_attention` performs RMSProp with momentum, eligibility traces, memory gates, echo modulation, gradient noise, chaotic gating and fatigue factors, accumulates gradients with optional weight decay and records episodic memory when errors are small.
+- `dynamic_wander_parallel` spawns multiple processes and replays seeds for consistent updates; `chaotic_memory_replay`, `update_chaotic_gate` and `get_current_gate` provide logistic-map perturbations and gating.
+- Synapse maintenance includes gradient pruning (`compute_gradient_prune_mask`, `apply_gradient_prune_mask`), `prune_low_potential_synapses`, `freeze_low_impact_synapses`, path-usage tracking with automatic shortcut creation, emergent synapse generation and concept association via neuron pair counts.
+- Training API supplies `train_example`, epoch-level `train`, streamed `train_streaming_shards`, self-supervised `contrastive_train` and `imitation_train` plus genetic algorithm weight evolution.
+- Dataset watchers trigger `refresh_on_dataset_change`; `training_summary` reports history length, activation count, last error and dropout probability.
 ### 3.3 Memory systems
 - Implement `HybridMemory` combining vector similarity search, symbolic key-value store and optional Kùzu-backed tier with temporal forgetting.
 - Implement memory_pool, memory_manager, episodic memory, hybrid memory, prompt memory and Kuzu-backed tiers.
@@ -104,12 +111,14 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Implement pipeline, scheduler, tool and learning plugin registries.
 - Provide pipeline execution engine:
   - Add steps with `add_step`, resolve dependencies and detect cycles across CPU/GPU devices.
-  - Support macro steps via `add_macro` and `rollback` to remove cached future results on errors.
+  - Support macro steps via `add_macro`; `rollback` loads cached outputs using SHA-256 digests and prunes later cached files to revert experiments.
   - Emit progress events through `global_event_bus` using `PROGRESS_EVENT`.
   - Allow pre and post hooks that move tensors to the active device and clean GPU memory.
   - Branching nodes accept sub-pipelines with optional merge callbacks; steps can be removed, moved, frozen or defrosted; hooks are registerable/removable; cross-validation helper `run_cross_validation` sweeps folds; interactive debugger captures inputs/outputs with optional `pdb` stops; dataset-producing steps are detected heuristically and `_train_neuronenblitz` decodes tensors before training on the target device.
-  - Validate steps against JSON schemas; `diff_config` highlights changes and `dataset_summaries` reports dataset pair counts.
+  - Validate steps against JSON schemas; `diff_config` highlights changes and `dataset_summaries` plus `benchmarks` expose post-run metadata.
+  - `hyperparameter_search` sweeps parameter grids or random samples and `_execute_function` infers default `device` and `marble` arguments.
   - `execute` accepts `log_callback` for streaming log lines.
+  - `_run_isolated_step` executes a single step in a separate process (spawn for CUDA, fork otherwise) and merges resulting summaries and benchmarks.
   - Load `PipelinePlugin` implementations from directories, initialising with devices and tearing down after execution.
   - Provide graph builders `pipeline_to_networkx` and `pipeline_to_core` verifying directed acyclic graphs with matching node counts.
 - Provide LearningModule base with `register_learning_module`, `get_learning_module` and `load_learning_plugins` discovering entry points or plugin directories.
@@ -591,7 +600,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Autograd integration via MarbleAutogradLayer and TransparentMarbleLayer supporting gradient accumulation and scheduler callbacks. `attach_marble_layer` can wrap existing `torch.nn` modules or files, and `TransparentMarbleLayer` mixes outputs with `mix_weight` while running Neuronenblitz.
  - RNN hidden-state serialization: `convert_model` records `hidden_state_version=1` entries (`layer_index`, `direction`, `shape`, `dtype`, `device`, `tensor`); `restore_hidden_states` rehydrates them and JSON round-trips must preserve values with <0.01 s serialize/deserialise overhead.
 
-- `pytorch_to_marble` traces PyTorch models with converter registries (`register_converter`, `register_function_converter`, `register_method_converter`) and provides layer converters for Linear and Conv2d, raising `UnsupportedLayerError` for unhandled modules.
+- `pytorch_to_marble` traces PyTorch models via FX using converter registries (`register_converter`, `register_function_converter`, `register_method_converter`) covering linear, convolutional, normalization (BatchNorm, LayerNorm, GroupNorm), flatten/unflatten, reshape/view, `Sequential` and `ModuleList` containers; unsupported layers raise `UnsupportedLayerError`. Dry-run summaries report neuron/synapse counts per node and the CLI accepts `--restore-hidden` to reinstate RNN states when exporting JSON cores.
 ### 8.2 Remote and distributed execution
 - Implement remote_offload, remote_worker_pool, distributed_training and torrent-based model exchange.
 - Include networkx graph export, web API and database query tools.
