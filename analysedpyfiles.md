@@ -18,21 +18,21 @@ benchmark_parallel_wanderers.py: lines=60, functions=3, classes=0, lines_read=60
 benchmark_remote_wanderer_latency.py: lines=64, functions=2, classes=0, lines_read=64
 benchmark_sac_vs_baseline.py: lines=61, functions=3, classes=0, lines_read=61
 benchmark_super_evolution.py: lines=61, functions=3, classes=0, lines_read=61
-bit_tensor_dataset.py: lines=1403, functions=12, classes=2, lines_read=200, lines_remaining=1203
+bit_tensor_dataset.py: lines=1403, functions=12, classes=2, lines_read=1403
 bit_tensor_streaming_dataset.py: lines=166, functions=0, classes=1, lines_read=166
 branch_container.py: lines=109, functions=0, classes=1, lines_read=109
 cli.py: lines=245, functions=1, classes=0, lines_read=245
-conceptual_integration.py: lines=65, functions=0, classes=1
-conceptual_integration_pipeline.py: lines=62, functions=0, classes=1
-config_editor.py: lines=51, functions=2, classes=0
-config_generator.py: lines=67, functions=3, classes=0
-config_loader.py: lines=720, functions=4, classes=0
-config_schema.py: lines=300, functions=1, classes=0
-config_sync_service.py: lines=59, functions=1, classes=2
-continual_learning.py: lines=45, functions=0, classes=1
-continuous_weight_field_learning.py: lines=63, functions=0, classes=1
-contrastive_learning.py: lines=64, functions=0, classes=1
-contrastive_pipeline.py: lines=63, functions=0, classes=1
+conceptual_integration.py: lines=65, functions=0, classes=1, lines_read=65
+conceptual_integration_pipeline.py: lines=62, functions=0, classes=1, lines_read=62
+config_editor.py: lines=51, functions=2, classes=0, lines_read=51
+config_generator.py: lines=67, functions=3, classes=0, lines_read=67
+config_loader.py: lines=720, functions=4, classes=0, lines_read=200, lines_remaining=520
+config_schema.py: lines=300, functions=1, classes=0, lines_read=300
+config_sync_service.py: lines=59, functions=1, classes=2, lines_read=59
+continual_learning.py: lines=45, functions=0, classes=1, lines_read=45
+continuous_weight_field_learning.py: lines=63, functions=0, classes=1, lines_read=63
+contrastive_learning.py: lines=64, functions=0, classes=1, lines_read=64
+contrastive_pipeline.py: lines=63, functions=0, classes=1, lines_read=63
 convert_model.py: lines=261, functions=6, classes=0
 core/__init__.py: lines=0, functions=0, classes=0
 core/init_seed.py: lines=72, functions=2, classes=0
@@ -142,7 +142,7 @@ marble_activation_kernel.py: lines=195, functions=3, classes=1
 marble_agent.py: lines=97, functions=0, classes=1
 marble_autograd.py: lines=94, functions=0, classes=3
 marble_base.py: lines=322, functions=3, classes=2
-marble_brain.py: lines=1207, functions=2, classes=2, lines_read=500, lines_remaining=707
+marble_brain.py: lines=1207, functions=2, classes=2, lines_read=1207
 marble_core.py: lines=2294, functions=14, classes=15
 marble_graph_builder.py: lines=222, functions=4, classes=0
 marble_imports.py: lines=35, functions=0, classes=0
@@ -153,7 +153,7 @@ marble_neuronenblitz.py: lines=2, functions=0, classes=0, lines_read=2
 marble_neuronenblitz/__init__.py: lines=40, functions=0, classes=0, lines_read=40
 marble_neuronenblitz/attention_span.py: lines=49, functions=0, classes=1, lines_read=49
 marble_neuronenblitz/context_attention.py: lines=86, functions=0, classes=1, lines_read=86
-marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=1600, lines_remaining=865
+marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=2465
 marble_neuronenblitz/learning.py: lines=219, functions=8, classes=0, lines_read=219
 marble_neuronenblitz/memory.py: lines=79, functions=2, classes=0, lines_read=79
 marble_registry.py: lines=88, functions=0, classes=1
@@ -620,6 +620,6 @@ web_api.py: lines=98, functions=0, classes=1
 web_search_tool.py: lines=33, functions=1, classes=1
 workflow_template_generator.py: lines=139, functions=3, classes=0
 
-All Python files listed above have been reverified; no partial analyses remain.
+Partial analyses remain for files with lines_remaining.
 
 Reverified on current run; no new Python files found.

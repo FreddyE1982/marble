@@ -56,6 +56,19 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Implement `BitTensorStreamingDataset` providing seekable streaming access to
   HuggingFace datasets, virtual batching and random access through
   `select`/`skip`/`take`.
+- Support extensive dataset management:
+  - Hash-based index `_hash_pair` with SHA256, `deduplicate`, `verify_checksums`
+    and retrieval via `get_by_hash`.
+  - Synchronous and asynchronous `add_pair`/`add_stream_pair_async` for loading
+    from URLs and streams.
+  - Dataset transforms `map_pairs`, `transform_samples` and history tracking
+    with `_snapshot`, `undo`, `redo` and `revert_to`.
+  - Splitting utilities `split`, `split_deterministic`, and `merge` resolving
+    conflicts with "self"/"other"/"raise" policies.
+  - Caching and persistence through `save`, `load`, `save_async`, `cached`,
+    `to_dict`/`from_dict`, and vocabulary save/load helpers.
+  - Dataset summary statistics, deterministic `shuffle`, and approximate
+    nearest-neighbour search with Annoy (`build_ann_index`, `nearest_neighbors`).
 
 ### 3.6 Brain coordination and neurogenesis
 - Implement `MarbleBrain` to supervise Neuronenblitz and global learning state.
@@ -85,6 +98,25 @@ This document enumerates every step required to rebuild MARBLE from scratch with
   \(d = \text{dream\_synapse\_decay} (1 + s_a \cdot \text{arousal})(1 - s_s \cdot \text{stress})\).
 - Expose `maybe_autonomous_neurogenesis` triggering growth with probability
   \(p = \text{auto\_neurogenesis\_prob} \cdot \min(1, \text{val\_loss})\).
+- Training orchestration:
+  - Optional pretraining epochs using identity targets.
+  - Graph precompilation for CUDA kernels via `precompile_simple_mlp`.
+  - Epoch loop with tqdm progress, validation hooks and early stopping when
+    validation loss fails to improve by `early_stopping_delta` for
+    `early_stopping_patience` epochs.
+  - Metrics visualizer logging loss, VRAM/RAM/GPU usage, neuromodulatory
+    context and meta-controller history.
+  - Dream-induced decay through `dream_scheduler.replay` and periodic
+    `dream`/`start_dreaming` threads; `compute_dream_decay` scales synapse
+    weights during sleep.
+  - Auto-firing mode generating random inputs at interval
+    `firing_interval_ms` in a background thread.
+  - Mutation and pruning utilities `mutate_synapses` and `prune_weak_synapses`
+    with evolutionary wrapper `evolve`.
+  - High-attention offloading to remote or torrent clients and memory cleanup
+    migrating aged neurons across VRAM→RAM→disk tiers.
+  - Asynchronous `start_training`/`train_async` threads and `wait_for_training`
+    synchronization.
 
 ## 4. Neuronenblitz Algorithm
 ### 4.1 Overview
@@ -170,7 +202,33 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
 - Exploration bonus decays each activation:
   `exploration_bonus <- exploration_bonus * exploration_decay`.
 
-### 4.9 Neurogenesis coupling
+### 4.9 Synapse-type attention and actions
+- Track cumulative loss, speed and size attention per synapse type.
+- `decide_synapse_action` creates a new synapse of the highest-loss type or
+  removes one of the highest-size type.
+- Gradient pruning:
+  - `compute_gradient_prune_mask(r)` selects the lowest \(r\) fraction of
+    gradients using `np.partition`.
+  - `apply_gradient_prune_mask` deletes flagged synapses and associated
+    optimiser state.
+
+### 4.10 Dataset-aware training modes
+- `refresh_on_dataset_change` monitors directories via `DatasetWatcher` and
+  resets learning state when files change.
+- `train_streaming_shards` iterates through `BitTensorDataset` shards using
+  `StreamingDatasetStep` with asynchronous prefetching.
+- `contrastive_train` applies InfoNCE to augmented batches; `imitation_train`
+  performs behaviour cloning on demonstration pairs.
+
+### 4.11 State management
+- `to_dict`/`from_dict` and JSON helpers serialise Neuronenblitz without the
+  core object.
+- `reset_learning_state` clears momentum, eligibility traces, caches and replay
+  buffers, ensuring fresh training runs.
+- Dynamic attention span `_apply_attention_span` masks path elements according
+  to `span_module` outputs.
+
+### 4.12 Neurogenesis coupling
 - Neuronenblitz exposes neuron type preferences to `MarbleBrain` for growth decisions.
 - During neurogenesis, the brain queries either
   \(t^* = \text{get\_preferred\_neuron\_type}()\) or
@@ -179,7 +237,7 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
   \(\mathcal{N}(0, \text{representation\_noise\_std})\) and weight range
   \([\text{weight\_init\_min}, \text{weight\_init\_max}]\).
 
-### 4.10 Reinforcement learning integration
+### 4.13 Reinforcement learning integration
 - Q-learning weight update for state-action pair (s,a):
   Q(s,a) <- Q(s,a) + alpha * (r + gamma * max_a' Q(s',a') - Q(s,a)).
 - Epsilon scheduling:
@@ -187,7 +245,7 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
 - Discounted return for policy gradients:
   G_t = sum_{k=0}^inf gamma^k * r_{t+k+1}.
 
-### 4.11 Optimization and scheduling
+### 4.14 Optimization and scheduling
 - RMSProp accumulator for gradient g:
   v' = beta * v + (1-beta) * g^2;
   g_adj = g / sqrt(v' + grad_epsilon).
@@ -195,13 +253,13 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
   lr_{t+1} = clip(lr_t * scheduler_gamma, min_learning_rate, max_learning_rate).
 - Epsilon scheduler analogous to learning rate scheduler.
 
-### 4.12 Chaotic gating and phase adaptation
+### 4.15 Chaotic gating and phase adaptation
 - Chaotic gate using logistic map:
   c_{t+1} = chaotic_gating_param * c_t * (1 - c_t).
 - Phase update:
   phi_{t+1} = phi_t + phase_rate + phase_adaptation_rate * e.
 
-### 4.13 Experience replay and memory gating
+### 4.16 Experience replay and memory gating
 - Prioritized replay probability:
   P_i = (p_i^replay_alpha) / sum_j (p_j^replay_alpha).
 - Importance weight:
@@ -211,7 +269,7 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
 - Episodic path replay occurs with probability `episodic_memory_prob` for up to `episodic_sim_length` steps, applying the same
   synapse side effects as normal wandering.
 
-### 4.14 Parameter inventory
+### 4.17 Parameter inventory
 All parameters of Neuronenblitz must be exposed and exercised:
 backtrack_probability, consolidation_probability, consolidation_strength, route_potential_increase, route_potential_decay, route_visit_decay_interval, alternative_connection_prob, split_probability, merge_tolerance, combine_fn, loss_fn, loss_module, weight_update_fn, validation_fn, plasticity_threshold, continue_decay_rate, struct_weight_multiplier1, struct_weight_multiplier2, attention_decay, max_wander_depth, learning_rate, weight_decay, dropout_probability, dropout_decay_rate, exploration_decay, reward_scale, stress_scale, auto_update, dataset_path, remote_fallback, noise_injection_std, dynamic_attention_enabled, backtrack_depth_limit, synapse_update_cap, structural_plasticity_enabled, backtrack_enabled, loss_scale, exploration_bonus, synapse_potential_cap, attention_update_scale, attention_span_threshold, max_attention_span, span_module, plasticity_modulation, wander_depth_noise, reward_decay, synapse_prune_interval, gradient_prune_ratio, structural_learning_rate, remote_timeout, gradient_noise_std, min_learning_rate, max_learning_rate, top_k_paths, parallel_wanderers, parallel_update_strategy, beam_width, synaptic_fatigue_enabled, fatigue_increase, fatigue_decay, lr_adjustment_factor, lr_scheduler, scheduler_steps, scheduler_gamma, epsilon_scheduler, epsilon_scheduler_steps, epsilon_scheduler_gamma, momentum_coefficient, reinforcement_learning_enabled, rl_discount, rl_epsilon, rl_epsilon_decay, rl_min_epsilon, entropy_epsilon_enabled, shortcut_creation_threshold, use_echo_modulation, wander_cache_ttl, phase_rate, phase_adaptation_rate, chaotic_gating_enabled, chaotic_gating_param, chaotic_gate_init, context_history_size, context_embedding_decay, emergent_connection_prob, concept_association_threshold, concept_learning_rate, weight_limit, wander_cache_size, plasticity_history_size, rmsprop_beta, grad_epsilon, use_experience_replay, replay_buffer_size, replay_alpha, replay_beta, replay_batch_size, exploration_entropy_scale, exploration_entropy_shift, gradient_score_scale, memory_gate_decay, memory_gate_strength, episodic_memory_size, episodic_memory_threshold, episodic_memory_prob, curiosity_strength, depth_clip_scaling, forgetting_rate, structural_dropout_prob, gradient_path_score_scale, use_gradient_path_scoring, rms_gradient_path_scoring, activity_gate_exponent, subpath_cache_size, gradient_accumulation_steps, wander_anomaly_threshold, wander_history_size, subpath_cache_ttl, monitor_wander_factor, monitor_epsilon_factor, episodic_sim_length, use_mixed_precision, remote_client, torrent_client, torrent_map, metrics_visualizer.
 
@@ -253,7 +311,10 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 
 ### 5.6 Meta and Continual Learning
 - Implement meta-parameter controller adjusting plasticity using validation losses.
-- Continual learning with elastic weight consolidation: penalty sum_i (lambda/2) * F_i * (theta_i - theta_i_star)^2.
+- Continual learning:
+  - Elastic weight consolidation: penalty \(\sum_i \frac{\lambda}{2} F_i (\theta_i-\theta_i^*)^2\).
+  - Replay buffer based learner storing at most `memory_size` samples and
+    rehearsing one random example each step.
 
 ### 5.7 Adversarial and Fractal Learners
 - GAN objective: \(\min_G \max_D E_{x\sim p_{data}}[\log D(x)] + E_{z\sim p_z}[\log(1 - D(G(z)))]\).
@@ -271,8 +332,12 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Weight update couples current gradient g_t with echo: \Delta w = echo_strength * e_t * g_t.
 
 ### 5.10 Continuous Weight Field Learning
-- Represent weights as continuous fields w(x) over topology coordinate x.
-- Update via diffusion equation \partial w / \partial t = learning_rate * (\nabla^2 w + source_term).
+- Represent weight field as radial basis functions
+  \(\phi_j(x) = \exp(-(x-c_j)^2/(2\sigma^2))\) with centres \(c_j\).
+- Prediction \(\hat{y} = \phi(x)^T W \phi_x\) where \(\phi_x\) is the
+  neuron's representation.
+- Gradient step for each dimension j:
+  \(w_j \leftarrow w_j + \eta\, \phi(x)\,e\,\phi_x[j] - \eta\,\lambda\, w_j\).
 
 ### 5.11 Federated and Distributed Learning
 - Implement federated averaging: w_{t+1} = \sum_k (n_k / N) * w_k where n_k are client sample counts.
@@ -285,7 +350,11 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 
 ### 5.13 Conceptual and Schema Induction
 - Neural schema induction mines frequent relational triples using support threshold and max schema size; expand schemas until frequency < threshold.
-- Conceptual integration blends concept vectors: \(c_{blend} = \lambda c_1 + (1-\lambda) c_2\) with blend probability and similarity gating.
+- Conceptual integration:
+  - When random draw < blend_probability and cosine similarity between
+    active neurons is below threshold, create blended neuron with
+    representation \(\tanh(r_i \odot r_j)\).
+  - Connect new neuron bidirectionally with its parents with unit weights.
 - N-dimensional topology learner embeds neurons in \(d\)-dimensional space and optimises attention threshold \(\alpha\) s.t. loss decreases by > loss_improve_threshold within stagnation_epochs.
 - Unified learning combines gated learners with log mixture objective: \(L = \log\sum_i g_i e^{-L_i}\) where gating weights \(g_i\) are softmax outputs.
 
@@ -342,7 +411,13 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Integrate experiment_tracker, logging_utils and usage_profiler with configurable backends.
 
 ### 8.4 Configuration tooling
-- Provide command-line and GUI-free tools: config_generator, config_editor and config_sync_service.
+- Provide command-line and GUI-free tools:
+  - `config_generator` parses `yaml-manual.txt` and produces commented configs
+    by mapping section keys to descriptions.
+  - `config_editor` validates YAML against schema and writes timestamped
+    backups before saving.
+  - `config_sync_service` watches a source config and propagates changes to
+    destination paths using filesystem observers.
 - Implement `backup_utils` with `BackupScheduler` periodically copying
   configuration directories (interval \(T\)) to timestamped destinations and
   graceful start/stop handling.
