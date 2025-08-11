@@ -118,6 +118,8 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
 - Synaptic fatigue:
   f' = f * fatigue_decay + fatigue_increase * activity.
 - Attention span threshold controls dynamic span module.
+- Context-aware attention layer computes
+  \(\text{softmax}(((Q+ctx)(K+ctx)^T)/\sqrt{d})\) with optional chaotic gating and causal masks.
 
 ### 4.8 Neurogenesis coupling
 - Neuronenblitz exposes neuron type preferences to `MarbleBrain` for growth decisions.
@@ -157,6 +159,8 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
   w_i = (1 / (N * P_i))^replay_beta.
 - Memory gate value:
   g' = g * memory_gate_decay + memory_gate_strength * abs(e).
+- Episodic path replay occurs with probability `episodic_memory_prob` for up to `episodic_sim_length` steps, applying the same
+  synapse side effects as normal wandering.
 
 ### 4.13 Parameter inventory
 All parameters of Neuronenblitz must be exposed and exercised:
@@ -171,16 +175,21 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Integrate with ContrastiveLearner and pipeline.
 
 ### 5.2 Imitation Learning
-- Behavioural cloning using cross-entropy loss.
+- Behavioural cloning with categorical cross-entropy:
+  \(L = -\sum_i y_i \log p_i\).
 - Integrate dataset loader and ImitationLearner.
 
 ### 5.3 Autoencoder Learning
-- Reconstruction loss L = ||x - x_hat||_2^2.
-- Optional KL divergence regularization for variational variants.
+- Reconstruction loss \(L_{rec} = \|x - \hat{x}\|_2^2\).
+- Variational regularisation \(L_{KL} = -\tfrac{1}{2}\sum_j(1 + \log\sigma_j^2 - \mu_j^2 - \sigma_j^2)\).
 
 ### 5.4 Reinforcement Learning
-- Implement Q-learning agents, policy gradients, SAC baseline and hierarchical RL.
-- Provide replay buffer, exploration strategies and reward scaling.
+- Q-learning update: \(Q(s,a) \leftarrow Q(s,a) + \alpha (r + \gamma \max_{a'}Q(s',a') - Q(s,a))\).
+- Policy gradient objective: \(\nabla_\theta J = \mathbb{E}[\nabla_\theta \log \pi_\theta(a|s) (G_t - b)]\).
+- Soft Actor-Critic losses:
+  - Critic: \(L_Q = \|Q_\phi(s,a) - (r + \gamma(\min_i Q_{\bar{\phi}_i}(s',a') - \alpha \log \pi_\theta(a'|s')) )\|_2^2\).
+  - Actor: \(L_\pi = \mathbb{E}[\alpha \log \pi_\theta(a|s) - Q_\phi(s,a)]\).
+- Integrate replay buffer, exploration scheduling and reward scaling.
 
 ### 5.5 Curriculum and Transfer Learning
 - Implement schedulers for task difficulty and transfer pipelines.
@@ -275,6 +284,10 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 
 ### 9.4 Config coverage
 - Add tests asserting no orphaned configuration keys.
+
+### 9.5 Cross-validation and hyperparameter search
+- Implement k-fold cross-validation wrappers (cross_validation module).
+- Integrate hyperparameter_search to sweep configuration spaces and record metrics.
 
 ## 10. Documentation and Tutorials
 - Regenerate README, ARCHITECTURE_OVERVIEW, ML_PARADIGMS_HANDBOOK and a new multi-project TUTORIAL without GUI references.
