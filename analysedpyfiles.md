@@ -447,22 +447,6 @@ tests/test_memory_management.py: lines=34, functions=3, classes=0, lines_read=0,
 tests/test_memory_manager_integration.py: lines=11, functions=1, classes=0, lines_read=0, lines_remaining=11
 tests/test_memory_module.py: lines=35, functions=2, classes=0, lines_read=0, lines_remaining=35
 tests/test_memory_pool.py: lines=24, functions=2, classes=1, lines_read=0, lines_remaining=24
-tests/test_memory_quota.py: lines=27, functions=2, classes=0, lines_read=0, lines_remaining=27
-tests/test_message_passing.py: lines=302, functions=19, classes=0, lines_read=0, lines_remaining=302
-tests/test_message_passing_benchmark.py: lines=17, functions=1, classes=0, lines_read=0, lines_remaining=17
-tests/test_meta_controller.py: lines=23, functions=1, classes=0, lines_read=0, lines_remaining=23
-tests/test_meta_learning.py: lines=35, functions=2, classes=0, lines_read=0, lines_remaining=35
-tests/test_meta_metrics.py: lines=34, functions=1, classes=0, lines_read=0, lines_remaining=34
-tests/test_metrics_dashboard.py: lines=42, functions=4, classes=0, lines_read=0, lines_remaining=42
-tests/test_metrics_dashboard_window_size.py: lines=24, functions=1, classes=0, lines_read=0, lines_remaining=24
-tests/test_metrics_disable_env.py: lines=13, functions=1, classes=0, lines_read=0, lines_remaining=13
-tests/test_metrics_logging.py: lines=11, functions=1, classes=0, lines_read=0, lines_remaining=11
-tests/test_metrics_visualizer_options.py: lines=13, functions=1, classes=0, lines_read=0, lines_remaining=13
-tests/test_mixed_precision.py: lines=11, functions=1, classes=0, lines_read=0, lines_remaining=11
-tests/test_model_auto_refresh.py: lines=74, functions=2, classes=0, lines_read=0, lines_remaining=74
-tests/test_model_quantization.py: lines=12, functions=1, classes=0, lines_read=0, lines_remaining=12
-tests/test_monitor_rl_integration.py: lines=19, functions=1, classes=0, lines_read=0, lines_remaining=19
-tests/test_multi_agent.py: lines=39, functions=3, classes=0, lines_read=0, lines_remaining=39
 tests/test_multimodal_pairs.py: lines=56, functions=2, classes=0, lines_read=0, lines_remaining=56
 tests/test_multiprocessing_dataset.py: lines=33, functions=4, classes=0, lines_read=0, lines_remaining=33
 tests/test_n_dimensional_topology.py: lines=38, functions=2, classes=0, lines_read=0, lines_remaining=38
@@ -620,6 +604,19 @@ web_api.py: lines=98, functions=0, classes=1, lines_read=98
 web_search_tool.py: lines=33, functions=1, classes=1, lines_read=33
 workflow_template_generator.py: lines=139, functions=3, classes=0, lines_read=139
 
-No partial analyses remain.
-
-Reverified on 2025-08-11 18:22 UTC run; all Python files fully analysed.
+tests/test_memory_quota.py: lines=27, functions=2, classes=0, lines_read=27
+tests/test_message_passing.py: lines=302, functions=19, classes=0, lines_read=302
+tests/test_message_passing_benchmark.py: lines=17, functions=1, classes=0, lines_read=17
+tests/test_meta_controller.py: lines=23, functions=1, classes=0, lines_read=23
+tests/test_meta_learning.py: lines=34, functions=2, classes=0, lines_read=34
+tests/test_meta_metrics.py: lines=34, functions=1, classes=0, lines_read=34
+tests/test_metrics_dashboard.py: lines=42, functions=4, classes=0, lines_read=42
+tests/test_metrics_dashboard_window_size.py: lines=24, functions=1, classes=0, lines_read=24
+tests/test_metrics_disable_env.py: lines=13, functions=1, classes=0, lines_read=13
+tests/test_metrics_logging.py: lines=11, functions=1, classes=0, lines_read=11
+tests/test_metrics_visualizer_options.py: lines=13, functions=1, classes=0, lines_read=13
+tests/test_mixed_precision.py: lines=11, functions=1, classes=0, lines_read=11
+tests/test_model_auto_refresh.py: lines=74, functions=2, classes=0, lines_read=74
+tests/test_model_quantization.py: lines=12, functions=1, classes=0, lines_read=12
+tests/test_monitor_rl_integration.py: lines=19, functions=1, classes=0, lines_read=19
+tests/test_multi_agent.py: lines=39, functions=3, classes=0, lines_read=39
