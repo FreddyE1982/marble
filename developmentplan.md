@@ -43,7 +43,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - `core.salience_weight` scales attention proposal saliences when forming coalitions.
 - Network components: `RemoteBrainClient`, `RemoteBrainServer`, torrent client/tracker and remote tier plugins.
 - Metrics visualizer and optional Kùzu experiment/topology trackers.
-- Optional modules activated through config: predictive_coding, tool_manager, tensor_sync_service, unified_learning, global_workspace, attention_codelets, conceptual_integration, theory_of_mind and weight quantization.
+- Optional modules activated through config: predictive_coding, tool_manager, tensor_sync_service, unified_learning, global_workspace, attention_codelets, conceptual_integration, theory_of_mind and weight quantization. `predictive_coding.activate(num_layers, latent_dim, learning_rate)` returns an object whose repeated `step(x)` calls should monotonically reduce squared error.
 - Conditional training helpers: advanced GPT training, reinforcement learning (policy gradient or Q-learning), dream reinforcement, adversarial, transfer, semi‑supervised, federated, curriculum, imitation, harmonic resonance, quantum flux, synaptic echo and fractal dimension learners.
 - UnifiedLearner coordinates multiple paradigms via a gating network; UnifiedPairsPipeline and TransferPairsPipeline feed pair datasets.
 - OmniLearner sequences all learners including continuous weight field, neural schema induction and conceptual integration in one step.
@@ -72,13 +72,22 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 ### 3.3 Memory systems
 - Implement `HybridMemory` combining vector similarity search, symbolic key-value store and optional Kùzu-backed tier with temporal forgetting.
 - Implement memory_pool, memory_manager, episodic memory, hybrid memory, prompt memory and Kuzu-backed tiers.
-  - `PromptMemory` caches input/output pairs, builds composite prompts within a character limit and supports JSON `serialize`/`load`.
+  - `PromptMemory` caches input/output pairs, builds composite prompts within a character limit and supports JSON `serialize`/`load`. It evicts oldest pairs FIFO, preserves timestamps during serialization, enforces `max_chars` when composing, inserts 5000 entries in under 10ms each and maintains comparable CPU/GPU insertion performance.
 - Implement KuzuMemoryTier using KùzuGraphDatabase with MERGE-based inserts, cosine-similarity query over stored vectors and timestamp-driven `forget_old` trimming.
 - Include forgetfulness and consolidation algorithms.
 
 ### 3.4 Plugin system
 - Recreate plugin_system with dynamic loading and registration of neuron, synapse and loss modules.
 - Implement pipeline, scheduler, tool and learning plugin registries.
+- Provide pipeline execution engine:
+  - Add steps with `add_step`, resolve dependencies and detect cycles across CPU/GPU devices.
+  - Support macro steps via `add_macro` and `rollback` to remove cached future results on errors.
+  - Emit progress events through `global_event_bus` using `PROGRESS_EVENT`.
+  - Allow pre and post hooks that move tensors to the active device and clean GPU memory.
+  - Validate steps against JSON schemas; `diff_config` highlights changes and `dataset_summaries` reports dataset pair counts.
+  - `execute` accepts `log_callback` for streaming log lines.
+  - Load `PipelinePlugin` implementations from directories, initialising with devices and tearing down after execution.
+  - Provide graph builders `pipeline_to_networkx` and `pipeline_to_core` verifying directed acyclic graphs with matching node counts.
 - Provide LearningModule base with `register_learning_module`, `get_learning_module` and `load_learning_plugins` discovering entry points or plugin directories.
 - Build ToolPlugin base and ToolManagerPlugin with heuristic selection policy and optional MCP/MessageBus integration.
 
@@ -136,6 +145,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
   dataset versioning.
 - `RemoteWorkerPool` executes preprocessing functions in daemon processes via
   pipes, retries failed jobs and restarts dead workers.
+- `PreprocessingPipeline` caches step outputs by `dataset_id`, applies sequential transformations and reuses cache on repeated calls; optional `DataLoader` tokenizes text datasets.
 
 #### 3.5.6 Dataset management tools
 - Include dataset cache server, history CLI, watcher, versioning CLI and
@@ -153,6 +163,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - MetaParameterController adjusts plasticity threshold based on validation loss trends.
 - NDimensionalTopologyManager dynamically increases or decreases representation size driven by attention and loss stagnation.
 - LobeManager groups neurons into lobes and performs self-attention based on cluster IDs.
+- Brain training runs pretraining for `pretraining_epochs` once before standard epochs, enforces `min_cluster_k` during neuron clustering and triggers clustering every `auto_cluster_interval` epochs.
 - Implement neurogenesis controller:
   1. Compute growth factor
      \(f = (1+\max(\text{arousal},\text{reward})) \cdot \text{neurogenesis\_factor}\).
@@ -444,6 +455,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 5.8 Harmonic Resonance and Quantum Flux
 - Harmonic resonance loss using Fourier transforms to match frequency spectra.
 - Quantum flux learning uses complex-valued amplitudes with unitary constraint U^dagger U = I.
+- `QuantumFluxPairsPipeline` trains on numeric or textual pairs, accepts optional tokenizers via `DataLoader`, supports `BitTensorDataset` inputs and can auto-build vocabularies when `use_vocab` is true.
 
 ### 5.9 Synaptic Echo Learning
 - Implement echo-based weight consolidation where echo signal e_t is a decayed trace of past activations:
@@ -614,6 +626,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 
 ### 8.9 Command-line interface
 - Add `highlevel_pipeline_cli` for checkpoint/resume operations with device selection and dataset version metadata.
+- Provide `pipeline_cli` that loads pipeline JSON, reads `--config` YAML and passes `cache_dir` and `default_step_memory_limit_mb` to `Pipeline.execute`, exiting with code 0.
 - Build `cli.py` supporting configuration overrides, dataset loading, training,
   evaluation, pipeline execution, hyperparameter grid search via YAML files, core export, learning-rate scheduler overrides and configuration synchronization.
 - Expose options for learning-rate schedulers (with `--lr-scheduler` and `--scheduler-gamma`), parallel wanderers, cross-validation, quantization, unified learning, remote retry/backoff, message-passing benchmarks and sync interval overrides (`--sync-interval-ms`).
@@ -623,7 +636,8 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 8.10 Model conversion and compression
 - Incorporate `generate_repo_md` script to snapshot repository contents into single Markdown for reproducibility.
 - `convert_model` CLI transforms PyTorch checkpoints to MARBLE JSON or `.marble` snapshots and offers summary output, plots, CSV, tables and graph rendering.
-- `QuantizedTensor` enables uniform n-bit quantization with bit packing/unpacking, `state_dict` serialization and device-aware `to` transfers.
+- `convert_pytorch_model` converts pretrained PyTorch modules and verifies prediction parity on sample datasets.
+- `QuantizedTensor` enables uniform n-bit quantization with bit packing/unpacking, `state_dict` serialization and device-aware `to` transfers. Linear layers reconstructed from quantized weights must match dense outputs within tolerance, bit streams have expected length, round-trips preserve values across CPU and GPU.
 - model_refresh provides full_retrain, incremental_update and auto_refresh routines triggered by DatasetWatcher.
 - `DataCompressor` and crypto utilities provide constant-time XOR encryption, AES-GCM tensor/byte encryption, delta encoding, quantization and sparse-aware compression.
 - `DatabaseQueryTool` executes Cypher queries on Kùzu databases.
@@ -634,9 +648,9 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - `DistillationTrainer` blends teacher predictions with targets for student brains.
 - `DistributedTrainer` uses PyTorch DDP to average synapse weights across processes.
 - `EvolutionTrainer` explores configuration space via mutation, parallel fitness evaluation and lineage graph export.
-- ReinforcementLearning module offers GridWorld env, `MarbleQLearningAgent` with epsilon decay/Double-Q and `MarblePolicyGradientAgent` integrating Neuronenblitz outputs.
+- ReinforcementLearning module offers GridWorld env, `MarbleQLearningAgent` with epsilon decay/Double-Q and `MarblePolicyGradientAgent` integrating Neuronenblitz outputs. Agents expose `enable_rl`, `rl_select_action` and `rl_update` with learning-rate control; training loops must improve cumulative reward and support configurable hidden dimensions.
 - Interface helpers: `curriculum_train` sequencing tasks with schedule strategies, `set_dreaming` toggling dream simulation, `set_autograd` attaching `MarbleAutogradLayer` (supports gradient accumulation, schedulers and N-dimensional tensors on CPU/GPU), `convert_pytorch_model` importing PyTorch weights with prediction map, `load_hf_dataset` retrieving HuggingFace samples (optionally encoding via DataLoader), and `streaming_dataset_step` yielding prefetching iterators.
-- Brain utilities persist dream buffers and neuromodulatory context via `save_model`/`load_model`, migrate legacy checkpoints with `save_checkpoint`/`load_checkpoint`, log metrics (loss, VRAM usage, neuromod signals, plasticity threshold, message passing change, compression ratio) through `MetricsVisualizer`, expose `benchmark_step` returning marble/autograd losses and times, `generate_chain_of_thought` tracing synapse paths, and respect `log_interval` during training.
+- Brain utilities persist dream buffers and neuromodulatory context via `save_model`/`load_model`, migrate legacy checkpoints with `save_checkpoint`/`load_checkpoint`, log metrics (loss, VRAM usage, neuromod signals, plasticity threshold, message passing change, compression ratio) through `MetricsVisualizer`, expose `benchmark_step` returning marble/autograd losses and times, `generate_chain_of_thought` tracing synapse paths, and respect `log_interval` during training. Training exposes `progress_callback` emitting fractional completion after each epoch.
 - `SelfMonitoring` plugin tracks gradient norms, memory usage and configuration drift, publishing anomalies to `MessageBus` and triggering `SystemMetrics` logging.
 ### 8.12 Python compatibility utilities
 - `pycompat.removeprefix` and `pycompat.cached` supply Python 3.8 helpers.

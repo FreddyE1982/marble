@@ -500,35 +500,35 @@ tests/test_pipeline_branching.py: lines=28, functions=2, classes=0
 tests/test_pipeline_cache.py: lines=31, functions=2, classes=0
 tests/test_pipeline_cache_stress.py: lines=39, functions=4, classes=0
 tests/test_pipeline_class.py: lines=69, functions=5, classes=0, lines_read=69
-tests/test_pipeline_cli.py: lines=24, functions=1, classes=0
-tests/test_pipeline_cli_config.py: lines=30, functions=2, classes=0
-tests/test_pipeline_dependency_integration.py: lines=36, functions=3, classes=0
-tests/test_pipeline_export.py: lines=15, functions=1, classes=0
-tests/test_pipeline_graph_builder.py: lines=38, functions=2, classes=0
-tests/test_pipeline_hooks.py: lines=88, functions=4, classes=0
-tests/test_pipeline_macro_rollback.py: lines=47, functions=2, classes=0
-tests/test_pipeline_progress_events.py: lines=32, functions=1, classes=0
-tests/test_pipeline_resume_integration.py: lines=70, functions=4, classes=0
-tests/test_pipeline_step_plugin.py: lines=45, functions=2, classes=0
-tests/test_pipeline_step_validation.py: lines=23, functions=3, classes=0
-tests/test_pipeline_summary.py: lines=19, functions=1, classes=0
-tests/test_pipeline_utils.py: lines=23, functions=2, classes=0
-tests/test_plugin_system.py: lines=41, functions=1, classes=0
-tests/test_predictive_coding_plugin.py: lines=15, functions=1, classes=0
-tests/test_prefetch_integration.py: lines=47, functions=1, classes=1
-tests/test_preprocessing_pipeline.py: lines=32, functions=2, classes=0
-tests/test_pretraining_and_clustering.py: lines=88, functions=3, classes=3
-tests/test_progress_callback.py: lines=16, functions=1, classes=0
-tests/test_prompt_memory.py: lines=109, functions=6, classes=0
-tests/test_prompt_memory_cpu.py: lines=32, functions=2, classes=0
-tests/test_pytorch_challenge.py: lines=27, functions=3, classes=0
-tests/test_pytorch_conversion.py: lines=29, functions=1, classes=0
-tests/test_pytorch_to_marble.py: lines=900, functions=49, classes=39
-tests/test_quantization_forward.py: lines=13, functions=1, classes=0
-tests/test_quantized_tensor.py: lines=83, functions=7, classes=0
-tests/test_quantum_flux_learning.py: lines=18, functions=1, classes=0
-tests/test_quantum_flux_pairs_pipeline.py: lines=68, functions=5, classes=0
-tests/test_reinforcement_learning.py: lines=104, functions=7, classes=0
+tests/test_pipeline_cli.py: lines=24, functions=1, classes=0, lines_read=24
+tests/test_pipeline_cli_config.py: lines=30, functions=2, classes=0, lines_read=30
+tests/test_pipeline_dependency_integration.py: lines=36, functions=3, classes=0, lines_read=36
+tests/test_pipeline_export.py: lines=15, functions=1, classes=0, lines_read=15
+tests/test_pipeline_graph_builder.py: lines=38, functions=2, classes=0, lines_read=38
+tests/test_pipeline_hooks.py: lines=88, functions=4, classes=0, lines_read=88
+tests/test_pipeline_macro_rollback.py: lines=47, functions=2, classes=0, lines_read=47
+tests/test_pipeline_progress_events.py: lines=32, functions=3, classes=0, lines_read=32
+tests/test_pipeline_resume_integration.py: lines=70, functions=4, classes=0, lines_read=70
+tests/test_pipeline_step_plugin.py: lines=45, functions=2, classes=0, lines_read=45
+tests/test_pipeline_step_validation.py: lines=23, functions=3, classes=0, lines_read=23
+tests/test_pipeline_summary.py: lines=19, functions=1, classes=0, lines_read=19
+tests/test_pipeline_utils.py: lines=23, functions=2, classes=0, lines_read=23
+tests/test_plugin_system.py: lines=41, functions=1, classes=0, lines_read=41
+tests/test_predictive_coding_plugin.py: lines=15, functions=1, classes=0, lines_read=15
+tests/test_prefetch_integration.py: lines=47, functions=3, classes=1, lines_read=47
+tests/test_preprocessing_pipeline.py: lines=32, functions=2, classes=0, lines_read=32
+tests/test_pretraining_and_clustering.py: lines=88, functions=13, classes=3, lines_read=88
+tests/test_progress_callback.py: lines=16, functions=1, classes=0, lines_read=16
+tests/test_prompt_memory.py: lines=109, functions=6, classes=0, lines_read=109
+tests/test_prompt_memory_cpu.py: lines=32, functions=2, classes=0, lines_read=32
+tests/test_pytorch_challenge.py: lines=27, functions=3, classes=0, lines_read=27
+tests/test_pytorch_conversion.py: lines=29, functions=1, classes=0, lines_read=29
+tests/test_pytorch_to_marble.py: lines=900, functions=49, classes=39, lines_read=200
+tests/test_quantization_forward.py: lines=13, functions=1, classes=0, lines_read=13
+tests/test_quantized_tensor.py: lines=83, functions=7, classes=0, lines_read=83
+tests/test_quantum_flux_learning.py: lines=18, functions=1, classes=0, lines_read=18
+tests/test_quantum_flux_pairs_pipeline.py: lines=68, functions=5, classes=0, lines_read=68
+tests/test_reinforcement_learning.py: lines=104, functions=7, classes=0, lines_read=104
 tests/test_remote_client_params.py: lines=36, functions=2, classes=0
 tests/test_remote_hardware_plugin.py: lines=25, functions=1, classes=1
 tests/test_remote_latency.py: lines=21, functions=1, classes=0
