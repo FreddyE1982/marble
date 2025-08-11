@@ -592,6 +592,71 @@ def create_marble_from_config(
                     trainer.train_round(datasets, epochs=epochs)
         marble.federated_trainer = trainer
 
+    cl_cfg = cfg.get("curriculum_learning", {})
+    if cl_cfg.get("enabled", False):
+        from dataset_loader import load_dataset
+        from curriculum_learning import CurriculumLearner
+
+        examples = []
+        if dataset_path:
+            try:
+                examples = load_dataset(dataset_path)
+            except Exception:  # pragma: no cover - best effort loading
+                examples = []
+        learner = CurriculumLearner(
+            marble.core,
+            marble.neuronenblitz,
+            schedule=cl_cfg.get("schedule", "linear"),
+        )
+        if examples:
+            learner.train(examples, epochs=int(cl_cfg.get("epochs", 1)))
+        marble.curriculum_learner = learner
+
+    im_cfg = cfg.get("imitation_learning", {})
+    if im_cfg.get("enabled", False):
+        from dataset_loader import load_dataset
+        from imitation_learning import ImitationLearner
+
+        examples = []
+        if dataset_path:
+            try:
+                examples = load_dataset(dataset_path)
+            except Exception:  # pragma: no cover - best effort loading
+                examples = []
+        learner = ImitationLearner(
+            marble.core,
+            marble.neuronenblitz,
+            max_history=int(im_cfg.get("max_history", 100)),
+        )
+        if examples:
+            for inp, act in examples:
+                learner.record(inp, act)
+        learner.train(epochs=int(im_cfg.get("epochs", 1)))
+        marble.imitation_learner = learner
+
+    hr_cfg = cfg.get("harmonic_resonance_learning", {})
+    if hr_cfg.get("enabled", False):
+        from dataset_loader import load_dataset
+        from harmonic_resonance_learning import HarmonicResonanceLearner
+
+        examples = []
+        if dataset_path:
+            try:
+                examples = load_dataset(dataset_path)
+            except Exception:  # pragma: no cover - best effort loading
+                examples = []
+        learner = HarmonicResonanceLearner(
+            marble.core,
+            marble.neuronenblitz,
+            base_frequency=hr_cfg.get("base_frequency", 1.0),
+            decay=hr_cfg.get("decay", 0.99),
+        )
+        if examples:
+            for _ in range(int(hr_cfg.get("epochs", 1))):
+                for inp, target in examples:
+                    learner.train_step(float(inp), float(target))
+        marble.harmonic_resonance_learner = learner
+
     qf_cfg = cfg.get("quantum_flux_learning", {})
     if qf_cfg.get("enabled", False):
         from dataset_loader import load_dataset
