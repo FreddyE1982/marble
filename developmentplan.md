@@ -89,6 +89,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - `attention_codelets` let codelets emit `AttentionProposal(score, content)`; `form_coalition` selects top proposals using optional salience scores weighted by `core.salience_weight`, `broadcast_coalition` forwards winners to `global_workspace`, and workspace gating adjusts future scores based on published events.
 - `interconnect_cores` merges multiple cores and optionally creates cross-core synapses based on interconnection probability.
 - Ensure backend equivalence where Mandelbrot seed generation and message passing yield identical results on NumPy and JAX backends.
+- Expose comprehensive initialization parameters controlling exploration and plasticity, including backtrack probability, consolidation strength and decay, alternative connection probability, split probability, merge tolerance, learning rate and weight decay bounds, dropout probability with decay, exploration bonus and decay, reward and stress scaling, auto-update and remote fallback options, noise injection, dynamic attention toggles, backtrack depth limits, synapse update caps, structural plasticity flags, gradient noise, learning-rate/epsilon schedulers with min/max values, and caches for wander results and plasticity history.
 - Neuronenblitz maintains a neuromodulatory context history (`update_context`, `log_hot_marker`) with decay and forgetting, produces context embeddings, decays synaptic fatigues and visit counts, records prioritized experience replay (`add_to_replay`, `sample_replay_batch`), computes path entropy, ranks paths by RMSProp gradient scores or absolute gradients, and adjusts exploration dropout via entropy-based schedules.
 - Eligibility traces with decay guide synaptic updates; learning rate schedulers (`cosine`, `exponential`, `cyclic`) and epsilon schedulers (`cosine`, `exponential`, `linear`, `cyclic`) adjust exploration; `adjust_dropout_rate` adapts dropout probability, `_cache_subpaths` stores wander prefixes with TTL, `detect_wandering_anomaly` flags outlier path lengths, and `clip_gradient` enforces `gradient_clip_value`.
 - `weighted_choice` computes probabilities p_i = exp(s_i) / Σ_j exp(s_j) with scores combining fatigue (1 - f), attention (1 + attention_score), novelty penalty 1/(1+visit_count), curiosity (1 + curiosity_strength/(1+visit_count)), context similarity 1 + cos(target_rep, context_vec) and memory gating factors.
@@ -96,7 +97,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - `_merge_results` groups paths by endpoint, averages neuron values, selects representative paths via gradient-path score value + gradient_path_score_scale·gradient_score or longest path, and reports pathway age.
 - `dynamic_wander` increments global phase, caches results with TTL and LRU eviction, applies active forgetting, fatigue and visit-count decay, selects entry neurons with noise and episodic memory bias, supports beam search and exploration bonus decay.
 - `apply_structural_plasticity` replaces high-potential synapses with new neurons across tiers, scales new weights by multipliers and representation similarity, logs events and updates plasticity history.
-- `apply_weight_updates_and_attention` performs RMSProp with momentum, eligibility traces, memory gates, echo modulation, gradient noise, chaotic gating and fatigue factors, accumulates gradients with optional weight decay and records episodic memory when errors are small.
+- `apply_weight_updates_and_attention` performs CUDA-accelerated RMSProp with momentum and eligibility traces. For each source activation `s` and error `e` over a path of length `L` it computes `\Delta=(e\cdot s)/(L+1)` and halves `\Delta` when the previous gradient has opposite sign. The running square is `v_t=\beta v_{t-1}+(1-\beta)\Delta^2`; scaled gradient `g_t=\Delta/\sqrt{v_t+\epsilon}`; momentum `m_t=\mu m_{t-1}+g_t`; update `u=\eta(\mu m_t+g_t)` clipped to `[-\mathrm{cap}, \mathrm{cap}]`; new weight `w'` is clamped within `[-w_{\max}, w_{\max}]` and synapse potential becomes `\min(\phi_{\max},\,\phi+|g_t|\gamma)` with score `|e|\,|w'|/L\cdot(1+\mathrm{mem\_gate})`. The kernel also applies memory gates, echo modulation, gradient noise, chaotic gating and fatigue factors, accumulates gradients with optional weight decay and records episodic memory when errors are small.
 - `dynamic_wander_parallel` spawns multiple processes and replays seeds for consistent updates; `chaotic_memory_replay`, `update_chaotic_gate` and `get_current_gate` provide logistic-map perturbations and gating.
 - Synapse maintenance includes gradient pruning (`compute_gradient_prune_mask`, `apply_gradient_prune_mask`), `prune_low_potential_synapses`, `freeze_low_impact_synapses`, path-usage tracking with automatic shortcut creation, emergent synapse generation and concept association via neuron pair counts.
 - Training API supplies `train_example`, epoch-level `train`, streamed `train_streaming_shards`, self-supervised `contrastive_train` and `imitation_train` plus genetic algorithm weight evolution.
@@ -525,7 +526,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Integrate diffusion_core, diffusion_pairs_pipeline and scheduler into training pipeline.
 
 ### 5.13 Conceptual and Schema Induction
-- Neural schema induction mines frequent relational triples using support threshold and max schema size; expand schemas until frequency < threshold.
+- Neural schema induction records neuron activation sequences during `dynamic_wander` and counts all contiguous patterns of length `2..k` where `k` is the max schema size. Patterns occurring at least `support_threshold` times spawn a new schema neuron with bidirectional unit-weight synapses to each neuron in the pattern. Weight learning is disabled during induction; after each wander the learner updates pattern counts and adds schemas until no pattern meets the threshold.
 - Conceptual integration:
   - When random draw < blend_probability and cosine similarity between
     active neurons is below threshold, create blended neuron with
@@ -761,6 +762,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
   creation, allowing on-the-fly weight quantization.
 - Tests validate that a minimal configuration executes `count_marble_synapses`
   and that quantization flags are forwarded correctly.
+- The former Streamlit playground is intentionally omitted; all interaction occurs through CLI and APIs.
 
 ### 8.20 Plugin ecosystem
 - Core `plugin_system` registers discovery hooks and validates plugin metadata.
@@ -788,6 +790,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Ensure tests cover CPU and GPU execution paths.
 - Run `run_cpu_fallback_tests` with CUDA disabled to verify CPU-only behaviour for all test files.
 - Generate `cpu_fallback_report.md` via `catalog_cpu_fallback_tests` to track CUDA modules missing CPU tests.
+- Include a test that trains `NeuralSchemaInductionLearner` for several steps and asserts that new schema neurons and connections are created once patterns exceed the support threshold.
 
 ### 9.2 Integration tests
 - Simulate end-to-end pipelines verifying data flow from datasets through learners and Neuronenblitz.
