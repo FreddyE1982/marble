@@ -75,70 +75,67 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Provide `register_neuron_type`, `register_synapse_type` and `register_loss_module` to extend `marble_core` type registries.
 - Implement `load_plugins` scanning directories for modules defining `register` with neuron/synapse and optional loss callbacks.
 ### 3.5 Dataset infrastructure
-- Implement dataset loader, replication, watcher, streaming datasets, encryption and versioning.
-- Provide dataset cache server and history CLI.
-- PreprocessingPipeline applies sequential preprocessing steps, caches by dataset hash and can tokenize via DataLoader.
-- DataLoader and dataset utilities must automatically encode, decode and tokenize
-  arbitrary data. Implement symmetric conversions
-  `object_to_bytes`/`bytes_to_object` and
-  `bytes_to_tensors`/`tensors_to_bytes` with round-trip verification and
-  metadata tracking. Integrate `tokenizer_utils` so text streams are tokenized
-  using built-in or freshly trained tokenizers and ensure any iterable of
-  Python objects can be converted to bit tensors and back without information
-  loss.
-- RemoteWorkerPool executes preprocessing functions in daemon processes via Pipes, retries failed jobs and restarts dead workers.
-- Rebuild `BitTensorDataset` with
-  - `DatasetPair` container and `augment_bit_tensor` for random bit flips and noise
-    \(x' = x \oplus f_p + n_p\).
-  - Serialization utilities `object_to_bytes`/`bytes_to_object` and bit-level
-    conversions `bytes_to_tensors` and `tensors_to_bytes`.
-  - Vocabulary mining `build_vocab` counting bit-patterns with minimum
-    occurrence and token IDs starting at \(256\).
-  - Optional AES encryption using `crypto_utils` and compression via
-    `DataCompressor`.
-- Implement `BitTensorStreamingDataset` providing seekable streaming access to
-  HuggingFace datasets, virtual batching and random access through
-  `select`/`skip`/`take`.
-- Support extensive dataset management:
-  - Hash-based index `_hash_pair` with SHA256, `deduplicate`, `verify_checksums`
-    and retrieval via `get_by_hash`.
-  - Synchronous and asynchronous `add_pair`/`add_stream_pair_async` for loading
-    from URLs and streams.
-  - Dataset transforms `map_pairs`, `transform_samples` and history tracking
-    with `_snapshot`, `undo`, `redo` and `revert_to`.
-  - Splitting utilities `split`, `split_deterministic`, and `merge` resolving
-    conflicts with "self"/"other"/"raise" policies.
-  - Caching and persistence through `save`, `load`, `save_async`, `cached`,
-    `to_dict`/`from_dict`, and vocabulary save/load helpers.
-  - Dataset summary statistics, deterministic `shuffle`, and approximate
-    nearest-neighbour search with Annoy (`build_ann_index`, `nearest_neighbors`).
+#### 3.5.1 Automatic encoding and tokenization
+- Implement `DataLoader` with plugin registries for custom encoders/decoders,
+  compression via `DataCompressor`, optional tokenizers and full metadata
+  tracking.
+- Encoding transforms an object \(o\) into bytes
+  \(b = \text{compressor.compress}(\text{pickle}(o))\), converts to tensors via
+  `np.frombuffer`, and decodes by inverting these steps.
+- Round-trip verification applies penalty when
+  \(\text{decode} (\text{encode}(o)) \ne o\).
+- If a tokenizer is supplied and the value is text, tokenise using
+  `tokenizer.encode` before compression and decode with `tokenizer.decode`.
 
-- Dataset loader handles URL caching, prefetch threads, AES-encrypted downloads, sharding, dependency tracking, filter expressions and optional Kùzu graph queries.
-- Implement `prefetch_dataset` spawning daemon threads, `wait_for_prefetch`
-  barrier, and `load_dataset` which
-  downloads remote inputs/targets, encrypts cache files, shuffles shards and
-  applies `DataLoader.encode`/`decode` to arbitrary binary or textual data.
-  Support `filter_expr` evaluated with decoded values, distributed sharding
-  and optional memory tracking via `MemoryManager`.
-- Provide `load_kuzu_graph` executing Cypher queries and
+#### 3.5.2 Bit-level conversion utilities
+- Provide symmetric conversions `object_to_bytes`/`bytes_to_object` with
+  optional AES-256-GCM encryption and serializer selection
+  (pickle/json/msgpack).
+- Implement `bytes_to_tensors` converting bytes to \((n,8)\) bit tensors via bit
+  masks and `tensors_to_bytes` reversing the process with weighted sums.
+- Utilities `flatten_tensor_to_bitstream` and `unflatten_bitstream_to_tensor`
+  enable vocabulary mining.
+
+#### 3.5.3 BitTensorDataset
+- Implement `DatasetPair` container and `augment_bit_tensor` for
+  \(x' = x \oplus f_p + n_p\).
+- `build_vocab` counts bit patterns and assigns token IDs starting at \(256\);
+  encoding uses `encode_with_vocab` while decoding uses `decode_with_vocab`.
+- Support optional compression, encryption, SHA256 indexing, history snapshots,
+  dataset transforms, deterministic `split`/`merge`, persistence helpers and
+  Annoy-based nearest-neighbour search.
+
+#### 3.5.4 Streaming datasets
+- Implement `BitTensorStreamingDataset` with seekable HuggingFace dataset
+  access, random seek, virtual batching and on-the-fly encoding.
+- Implement `StreamingDatasetStep` asynchronously prefetching batches to
+  CPU/GPU via an `asyncio.Queue` and yielding `{"inputs": tensor,
+  "targets": tensor}` dictionaries.
+
+#### 3.5.5 Dataset loaders and preprocessing
+- `load_dataset` handles URL caching, prefetch threads, AES-encrypted downloads,
+  sharding, dependency tracking, filter expressions and distributed sharding;
+  all values pass through `DataLoader.encode`/`decode` enabling arbitrary
+  binary or textual data.
+- `prefetch_dataset` spawns daemon threads and `wait_for_prefetch` acts as a
+  barrier.
+- Provide `StreamingCSVLoader` with resumable offsets and per-line
+  tokenisation via `tokenize_line`, plus `export_dataset` and
+  `clear_dataset_cache` utilities.
+- Support `load_kuzu_graph` for Cypher queries and
   `load_training_data_from_config` that forwards configuration keys and applies
   dataset versioning.
-- Offer `StreamingCSVLoader` with resumable offsets and per-line tokenization
-  through `tokenize_line`, plus `export_dataset` and
-  `clear_dataset_cache` utilities.
-- Dataset encryption helpers deliver AES-256-GCM key generation,
-  `encrypt_tensor`/`decrypt_tensor` for tensors and
+- `RemoteWorkerPool` executes preprocessing functions in daemon processes via
+  pipes, retries failed jobs and restarts dead workers.
+
+#### 3.5.6 Dataset management tools
+- Include dataset cache server, history CLI, watcher, versioning CLI and
+  replication/synchronisation services.
+- Dataset encryption helpers offer AES-256-GCM key generation and
+  `encrypt_tensor`/`decrypt_tensor` for tensors plus
   `encrypt_bytes`/`decrypt_bytes` for arbitrary data.
-- Provide dataset_cache_server for HTTP sharing with transparent decryption.
-- Include dataset_history_cli supporting undo/redo/revert operations.
-- Implement dataset_watcher computing SHA256 snapshots for change detection.
-- Offer dataset_versioning and dataset_version_cli for diff, apply, switch and revert of dataset versions.
-- Support dataset_replication and dataset_sync_service to synchronize datasets across hosts using incremental diffs.
-- Implement `KuzuGraphDatabase` wrapper with context management:
-  - `create_node_table(label, columns, primary_key)` and `create_relationship_table(rel, src, dst, columns)`.
-  - CRUD helpers `add_node`, `add_relationship`, `update_node`, `delete_node`, `delete_relationship`.
-  - Generic `execute(query, parameters)` returning rows as dictionaries.
-- TopologyKuzuTracker mirrors core topology to Kùzu by listening to `neurons_added`, `synapses_added` and `rep_size_changed` events.
+- Provide `KuzuGraphDatabase` wrapper with context-managed connections and CRUD
+  helpers; `TopologyKuzuTracker` mirrors neural topology to Kùzu.
 
 ### 3.6 Brain coordination and neurogenesis
 - Add `GoalManager` maintaining goal hierarchies and reward shaping; integrate global workspace via `BroadcastMessage` queue for cross-module signalling.

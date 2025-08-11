@@ -143,7 +143,7 @@ marble_agent.py: lines=97, functions=0, classes=1, lines_read=97
 marble_autograd.py: lines=94, functions=0, classes=3, lines_read=94
 marble_base.py: lines=322, functions=3, classes=2, lines_read=322
 marble_brain.py: lines=1207, functions=2, classes=2, lines_read=1207
-marble_core.py: lines=2294, functions=14, classes=15, lines_read=200, lines_remaining=2094
+marble_core.py: lines=2294, functions=14, classes=15, lines_read=328, lines_remaining=1966
 marble_graph_builder.py: lines=222, functions=4, classes=0, lines_read=222
 marble_imports.py: lines=35, functions=0, classes=0, lines_read=35
 marble_interface.py: lines=673, functions=40, classes=0, lines_read=200, lines_remaining=473
@@ -225,7 +225,7 @@ setup.py: lines=14, functions=0, classes=0
 shared_vocab.py: lines=48, functions=1, classes=0
 soft_actor_critic.py: lines=99, functions=2, classes=2
 sparse_utils.py: lines=49, functions=4, classes=0
-streaming_dataset_step.py: lines=120, functions=0, classes=1
+streaming_dataset_step.py: lines=120, functions=0, classes=1, lines_read=120
 streamlit_playground.py: lines=3246, functions=104, classes=0
 super_evolution_controller.py: lines=158, functions=0, classes=1
 synaptic_echo_learning.py: lines=26, functions=0, classes=1
