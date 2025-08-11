@@ -318,10 +318,8 @@ neuronenblitz.activity_gate_exponent
 neuronenblitz.alternative_connection_prob
 neuronenblitz.attention
 neuronenblitz.attention.dynamic_span
-neuronenblitz.attention_decay
 neuronenblitz.attention_span_threshold
 neuronenblitz.attention_update_scale
-neuronenblitz.auto_update
 neuronenblitz.backtrack_depth_limit
 neuronenblitz.backtrack_enabled
 neuronenblitz.backtrack_probability
@@ -335,12 +333,8 @@ neuronenblitz.consolidation_probability
 neuronenblitz.consolidation_strength
 neuronenblitz.context_embedding_decay
 neuronenblitz.context_history_size
-neuronenblitz.continue_decay_rate
 neuronenblitz.curiosity_strength
 neuronenblitz.depth_clip_scaling
-neuronenblitz.dropout_decay_rate
-neuronenblitz.dropout_probability
-neuronenblitz.dynamic_attention_enabled
 neuronenblitz.emergent_connection_prob
 neuronenblitz.entropy_epsilon_enabled
 neuronenblitz.episodic_memory_prob
@@ -351,7 +345,6 @@ neuronenblitz.epsilon_scheduler
 neuronenblitz.epsilon_scheduler_gamma
 neuronenblitz.epsilon_scheduler_steps
 neuronenblitz.exploration_bonus
-neuronenblitz.exploration_decay
 neuronenblitz.exploration_entropy_scale
 neuronenblitz.exploration_entropy_shift
 neuronenblitz.fatigue_decay
@@ -361,14 +354,12 @@ neuronenblitz.grad_epsilon
 neuronenblitz.gradient_noise_std
 neuronenblitz.gradient_path_score_scale
 neuronenblitz.gradient_score_scale
-neuronenblitz.learning_rate
 neuronenblitz.loss_module
 neuronenblitz.loss_scale
 neuronenblitz.lr_adjustment_factor
 neuronenblitz.lr_scheduler
 neuronenblitz.max_attention_span
 neuronenblitz.max_learning_rate
-neuronenblitz.max_wander_depth
 neuronenblitz.memory_gate_decay
 neuronenblitz.memory_gate_strength
 neuronenblitz.merge_tolerance
@@ -376,7 +367,6 @@ neuronenblitz.min_learning_rate
 neuronenblitz.momentum_coefficient
 neuronenblitz.monitor_epsilon_factor
 neuronenblitz.monitor_wander_factor
-neuronenblitz.noise_injection_std
 neuronenblitz.parallel_update_strategy
 neuronenblitz.parallel_wanderers
 neuronenblitz.phase_adaptation_rate
@@ -385,14 +375,12 @@ neuronenblitz.plasticity_history_size
 neuronenblitz.plasticity_modulation
 neuronenblitz.plasticity_threshold
 neuronenblitz.reinforcement_learning_enabled
-neuronenblitz.remote_fallback
 neuronenblitz.remote_timeout
 neuronenblitz.replay_alpha
 neuronenblitz.replay_batch_size
 neuronenblitz.replay_beta
 neuronenblitz.replay_buffer_size
 neuronenblitz.reward_decay
-neuronenblitz.reward_scale
 neuronenblitz.rl_discount
 neuronenblitz.rl_epsilon
 neuronenblitz.rl_epsilon_decay
@@ -406,9 +394,6 @@ neuronenblitz.scheduler_gamma
 neuronenblitz.scheduler_steps
 neuronenblitz.shortcut_creation_threshold
 neuronenblitz.split_probability
-neuronenblitz.stress_scale
-neuronenblitz.struct_weight_multiplier1
-neuronenblitz.struct_weight_multiplier2
 neuronenblitz.structural_dropout_prob
 neuronenblitz.structural_learning_rate
 neuronenblitz.structural_plasticity_enabled
@@ -428,7 +413,6 @@ neuronenblitz.wander_cache_size
 neuronenblitz.wander_cache_ttl
 neuronenblitz.wander_depth_noise
 neuronenblitz.wander_history_size
-neuronenblitz.weight_decay
 neuronenblitz.weight_limit
 pipeline.async_enabled
 pipeline.cache_dir
