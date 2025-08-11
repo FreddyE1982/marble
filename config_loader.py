@@ -434,6 +434,59 @@ def create_marble_from_config(
             train_gridworld(agent, env, episodes, max_steps=max_steps, seed=seed)
         marble.rl_agent = agent
 
+    adv_cfg = cfg.get("adversarial_learning", {})
+    if adv_cfg.get("enabled", False):
+        from dataset_loader import load_dataset
+        from adversarial_learning import AdversarialLearner
+        from marble_neuronenblitz import Neuronenblitz
+
+        examples = []
+        if dataset_path:
+            try:
+                examples = load_dataset(dataset_path)
+            except Exception:  # pragma: no cover - best effort loading
+                examples = []
+        discriminator = Neuronenblitz(marble.core)
+        learner = AdversarialLearner(
+            marble.core,
+            marble.neuronenblitz,
+            discriminator,
+            noise_dim=adv_cfg.get("noise_dim", 1),
+        )
+        if examples:
+            real_vals = [float(t) for _, t in examples]
+            learner.train(
+                real_vals,
+                epochs=int(adv_cfg.get("epochs", 1)),
+                batch_size=int(adv_cfg.get("batch_size", 1)),
+            )
+        marble.adversarial_learner = learner
+
+    tl_cfg = cfg.get("transfer_learning", {})
+    if tl_cfg.get("enabled", False):
+        from dataset_loader import load_dataset
+        from transfer_learning import TransferLearner
+
+        examples = []
+        if dataset_path:
+            try:
+                examples = load_dataset(dataset_path)
+            except Exception:  # pragma: no cover - best effort loading
+                examples = []
+        learner = TransferLearner(
+            marble.core,
+            marble.neuronenblitz,
+            freeze_fraction=tl_cfg.get("freeze_fraction", 0.5),
+        )
+        if examples:
+            ex_pairs = [(float(i), float(t)) for i, t in examples]
+            learner.train(
+                ex_pairs,
+                epochs=int(tl_cfg.get("epochs", 1)),
+                batch_size=int(tl_cfg.get("batch_size", 1)),
+            )
+        marble.transfer_learner = learner
+
     qf_cfg = cfg.get("quantum_flux_learning", {})
     if qf_cfg.get("enabled", False):
         from dataset_loader import load_dataset

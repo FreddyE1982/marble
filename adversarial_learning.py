@@ -43,10 +43,12 @@ class AdversarialLearner:
         })
         return float(gen_error)
 
-    def train(self, real_values: list[float], epochs: int = 1) -> None:
+    def train(self, real_values: list[float], epochs: int = 1, batch_size: int = 1) -> None:
         for _ in range(int(epochs)):
-            for val in real_values:
-                self.train_step(float(val))
+            for i in range(0, len(real_values), int(batch_size)):
+                batch = real_values[i : i + int(batch_size)]
+                for val in batch:
+                    self.train_step(float(val))
 
 
 def train_with_adversarial_examples(
