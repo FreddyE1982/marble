@@ -22,6 +22,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Enumerate every key from config.yaml and ensure each is mapped to real code paths.
 - Implement validation ensuring no unused keys.
 - Add unit tests verifying that every parameter is exercised at least once.
+- Mirror `tests/test_config.py` to assert default values for core, neuronenblitz and network sections, and extend tests whenever new keys (e.g., `weight_limit`, `wander_cache_size`, `rmsprop_beta`, `grad_epsilon`) are introduced.
 
 
 ### 2.3 Configuration-driven module instantiation
@@ -761,6 +762,10 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - `cli.py` exposes `--config` to supply a YAML file and `--pipeline` to run a JSON function sequence created by `save_pipeline_to_json`.
 - `--quantize <bits>` overrides `core.quantization_bits` before model creation, allowing on-the-fly weight quantization.
 - Provide config utilities for headless workflows: `load_config_text`/`save_config_text` with backups, interactive `render_config_editor`, pipeline step serialization (`step_to_json`, `step_to_csv`), graph visualisation (`core_to_networkx`, `core_figure`), metrics inspectors (`metrics_dataframe`, `metrics_figure`, `system_stats`, `core_statistics`, `core_weight_matrix`).
+- Supply dataset inspection and browsing commands mirroring the former playground's "Dataset Browser"; preview CSV/JSON/zip files, inspect individual samples, render bit-level visualisations and expose dataset history operations (`list_history`, `undo_cmd`, `redo_cmd`, `revert_cmd`).
+- Provide commands to list documentation files, show README/TUTORIAL sections and display module source code.
+- Expose utilities to run example project scripts, execute arbitrary code snippets with a `marble` object in scope, construct and persist function pipelines via JSON, and start remote servers or clients with configurable compression and authentication options.
+- Offer training helpers for learners and autoencoders, evaluation against uploaded datasets, RL sandbox controls and neuron activation plotting (`activation_figure`).
 - Tests validate that a minimal configuration executes `count_marble_synapses` and that quantization flags are forwarded correctly.
 - The former Streamlit playground is intentionally omitted; all interaction occurs through CLI and APIs.
 
