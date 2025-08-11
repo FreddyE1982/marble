@@ -24,3 +24,16 @@ def test_enable_sac_instantiates_networks(device: str) -> None:
     assert log_prob.shape == (1, 1)
     assert q1.shape == (1, 1)
     assert q2.shape == (1, 1)
+
+
+def test_enable_sac_reads_temperature_from_config(tmp_path, monkeypatch):
+    cfg_path = tmp_path / "cfg.yaml"
+    cfg_path.write_text("sac:\n  temperature: 0.05\n")
+    import config_loader
+
+    monkeypatch.setattr(config_loader, "DEFAULT_CONFIG_FILE", cfg_path)
+
+    core = Core({"width": 1, "height": 1})
+    nb = Neuronenblitz(core)
+    enable_sac(nb, state_dim=3, action_dim=2, tune_entropy=False)
+    assert float(nb.sac_alpha) == pytest.approx(0.05)

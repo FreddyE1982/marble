@@ -36,7 +36,7 @@ def enable_sac(
     device: str | None = None,
     actor_lr: float = 3e-4,
     critic_lr: float = 3e-4,
-    temperature: float = 0.2,
+    temperature: float | None = None,
     tune_entropy: bool = True,
 ) -> None:
     """Attach Soft Actor-Critic networks to ``nb`` on the requested device.
@@ -54,12 +54,20 @@ def enable_sac(
     actor_lr / critic_lr:
         Optimiser learning rates for actor and critic.
     temperature:
-        Initial entropy temperature controlling exploration.
+        Initial entropy temperature controlling exploration. When ``None`` the
+        value is loaded from ``sac.temperature`` in the YAML configuration
+        (default ``0.2``).
     tune_entropy:
         If ``True`` the temperature is automatically tuned toward a target
         entropy of ``-action_dim``. When ``False`` the supplied ``temperature``
         is kept fixed.
     """
+
+    if temperature is None:
+        from config_loader import load_config
+
+        cfg = load_config()
+        temperature = cfg.get("sac", {}).get("temperature", 0.2)
 
     actor, critic = create_sac_networks(state_dim, action_dim, device=device)
     actor_device = next(actor.parameters()).device
