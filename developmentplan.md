@@ -61,7 +61,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - EventBus supports event filtering, rate limiting and unified `ProgressEvent` schema.
 
 ### 3.2 Core neural substrate
-- Include `GraphCache` for torch.jit precompilation keyed by tensor shape/dtype, streaming utilities `stream_graph_chunks` and `identify_memory_hotspots`, and `graph_viz.sankey_figure` for interactive topology exploration.
+- Include `GraphCache` for torch.jit precompilation keyed by tensor shape/dtype, `graph_streaming` utilities `stream_graph_chunks`, `identify_memory_hotspots` and `benchmark_streaming` to handle large cores under memory constraints, and `graph_viz.sankey_figure` for interactive topology exploration.
 - Recreate marble_core with Neuron, Synapse, and perform_message_passing.
 - Include structural plasticity operations, neuron/synapse type registries and weight limiting.
 - Synapse objects track fatigue, echo buffers and phases; `effective_weight` mixes cosine-phase gating with context reward/stress, applies `dropout_prob`, batchnorm via `momentum`, and supports side effects for `mirror`, `multi_neuron`, `recurrent` and `interconnection` types.
@@ -579,6 +579,12 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Provide `WebSearchTool` plugin invoking DuckDuckGo and expose registration hook.
 - Recreate tool_manager_plugin, tool_plugins and learning_plugins with dynamic discovery.
 
+### 6.4 Process coordination
+- Implement `SharedDataset` storing tensors in shared memory for CPU or on a chosen CUDA device.
+- `ProcessManager` distributes dataset indices across multiprocessing workers, selecting worker count from `num_workers` argument or `MARBLE_WORKERS` environment variable and start method from `MARBLE_MP_START` (default `spawn`).
+- Workers fetch tensors, ensure device alignment, apply a callable task and return results via queues.
+- Fallback to `ThreadPoolExecutor` executes tasks in the main process when multiprocessing fails.
+
 ## 7. Memory and Simulation Systems
 ### 7.1 Episodic simulation and dream modules
 - Support `exampletrain` style auto-firing and dreaming loops with synthetic dataset utilities for reproducible tests.
@@ -594,8 +600,8 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
   - DynamicSpanModule selects attention spans where cumulative softmax ≤ threshold, enforcing max_span.
 
 ### 7.3 Self-monitoring and metrics
-- Integrate `UsageProfiler` logging epoch wall time, CPU/RAM/GPU utilisation to CSV.
-- Provide `ExperimentTracker` abstraction with Wandb and Kùzu implementations and event-bus attachment helper.
+- Integrate `UsageProfiler` with `UsageRecord` capturing `epoch`, `wall_time`, `cpu_usage`, `ram_usage` and `gpu_usage`, writing one CSV line per epoch.
+- Provide `ExperimentTracker` abstraction with `WandbTracker` (project/entity/run_name) and `KuzuExperimentTracker` (initialises Metric and Event node tables, converts tensor metrics to floats) plus `attach_tracker_to_events` helper returning a detach callable.
 - Integrate `SelfMonitor` plugin maintaining an `error_history` deque and publishing `mean_error` markers to `global_workspace`.
 - Expose `system_metrics.profile_resource_usage` returning CPU, RAM and GPU usage for dashboards.
 
