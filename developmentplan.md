@@ -247,7 +247,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
   4. Publish predictions through `global_workspace`.
 - Provide `get_mismatches`, JSON `save_mismatches`, forward `predict` and an
   `activate` helper attaching the module to MARBLE.
-### 3.8 Training orchestration:
+### 3.8 Training orchestration
   - Each epoch: call `update_neurogenesis_factor(val_loss)` then
     `maybe_autonomous_neurogenesis(val_loss)` to adapt growth.
   - Optional pretraining epochs using identity targets.
@@ -589,7 +589,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Workers fetch tensors, ensure device alignment, apply a callable task and return results via queues.
 - Fallback to `ThreadPoolExecutor` executes tasks in the main process when multiprocessing fails.
 
-## 7. Memory and Simulation Systems
+## 7. Advanced Memory and Simulation Systems
 ### 7.1 Episodic simulation and dream modules
 - Support `exampletrain` style auto-firing and dreaming loops with synthetic dataset utilities for reproducible tests.
 - Implement episodic_simulation, `DreamReplayBuffer` and `DreamScheduler` for salience-weighted replay with instant and long-term buffers and housekeeping.
@@ -605,7 +605,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 
 ### 7.3 Cognitive modules
 - Reconstruct global_workspace for broadcasting salient signals across subsystems.
-- Implement theory_of_mind for agent modeling using probabilistic belief updates; `activate(hidden_size, num_layers, prediction_horizon, memory_slots, attention_hops, mismatch_threshold)` creates modules whose `observe` publishes predictions to `global_workspace` and whose memory supports `attend(agent_id, key, hops)` retrieval.
+- Integrate the previously implemented theory_of_mind module to provide probabilistic belief updates and multi-hop memory retrieval across agents.
 - Recreate neural_pathway and neural_schema_induction for structured knowledge extraction.
 
 - PredictiveCodingPlugin minimises reconstruction error through iterative latent updates and logs to global workspace.
