@@ -153,7 +153,7 @@ marble_neuronenblitz.py: lines=2, functions=0, classes=0, lines_read=2
 marble_neuronenblitz/__init__.py: lines=40, functions=0, classes=0, lines_read=40
 marble_neuronenblitz/attention_span.py: lines=49, functions=0, classes=1, lines_read=49
 marble_neuronenblitz/context_attention.py: lines=86, functions=0, classes=1, lines_read=86
-marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=2465
+marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=200, lines_remaining=2265
 marble_neuronenblitz/learning.py: lines=219, functions=8, classes=0, lines_read=219
 marble_neuronenblitz/memory.py: lines=79, functions=2, classes=0, lines_read=79
 marble_registry.py: lines=88, functions=0, classes=1, lines_read=88
@@ -226,7 +226,7 @@ shared_vocab.py: lines=48, functions=1, classes=0, lines_read=48
 soft_actor_critic.py: lines=99, functions=2, classes=2, lines_read=99
 sparse_utils.py: lines=49, functions=4, classes=0, lines_read=49
 streaming_dataset_step.py: lines=120, functions=0, classes=1, lines_read=120
-streamlit_playground.py: lines=3246, functions=104, classes=0, lines_read=740, lines_remaining=2506
+streamlit_playground.py: lines=3246, functions=104, classes=0, lines_read=800, lines_remaining=2446
 super_evolution_controller.py: lines=158, functions=0, classes=1, lines_read=158
 synaptic_echo_learning.py: lines=26, functions=0, classes=1, lines_read=26
 synthetic_dataset.py: lines=31, functions=2, classes=0, lines_read=31
@@ -455,7 +455,7 @@ tests/test_nan_checks.py: lines=26, functions=2, classes=0, lines_read=0, lines_
 tests/test_nb_streaming_shards.py: lines=26, functions=3, classes=0, lines_read=0, lines_remaining=26
 tests/test_networkx_interop.py: lines=93, functions=3, classes=0, lines_read=0, lines_remaining=93
 tests/test_neural_pathway_inspector.py: lines=44, functions=4, classes=0, lines_read=0, lines_remaining=44
-tests/test_neural_schema_induction.py: lines=18, functions=1, classes=0, lines_read=0, lines_remaining=18
+tests/test_neural_schema_induction.py: lines=18, functions=1, classes=0, lines_read=18, lines_remaining=0
 tests/test_neurogenesis_plasticity.py: lines=133, functions=9, classes=0, lines_read=0, lines_remaining=133
 tests/test_neuromodulatory.py: lines=27, functions=2, classes=0, lines_read=0, lines_remaining=27
 tests/test_neuron_clustering.py: lines=61, functions=5, classes=0, lines_read=0, lines_remaining=61
