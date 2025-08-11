@@ -473,6 +473,13 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Training loop computes cross-entropy and optional KL-divergence distillation:
   L = CE(logits, target) + distill_alpha * KL(softmax(logits) || prev_logits).
 - Gradient clipping: scale = max_grad_norm / (norm + 1e-6); parameters updated by p -= lr * grad.
+### 5.15 Semi-supervised Learning
+- Consistency regularisation uses labeled pair \((x_l, y_l)\) and unlabeled input \(u\).
+  - Supervised loss: \(L_{sup} = (y_l - f(x_l))^2\).
+  - Two stochastic forward passes on \(u\) produce predictions \(f(u)\) and \(f'(u)\) with consistency loss \(L_{con} = (f(u) - f'(u))^2\).
+  - Total objective: \(L = L_{sup} + \lambda L_{con}\) where \(\lambda = \text{unlabeled\_weight}\).
+- Update Neuronenblitz along paths for both labeled and unlabeled passes, performing message passing after each update.
+- `SemiSupervisedPairsPipeline` builds BitTensorDataset instances for labeled and unlabeled data, converts objects to floats and pickles `{core, neuronenblitz}`.
 ## 6. Pipelines and Orchestration
 ### 6.1 Pipeline framework
 1. Build `HighLevelPipeline` orchestration:
@@ -520,7 +527,8 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 7.3 Self-monitoring and metrics
 - Integrate `UsageProfiler` logging epoch wall time, CPU/RAM/GPU utilisation to CSV.
 - Provide `ExperimentTracker` abstraction with Wandb and Kùzu implementations and event-bus attachment helper.
-- Integrate self_monitoring and metrics_dashboard to track errors, wander anomalies and plasticity history.
+- Integrate `SelfMonitor` plugin maintaining an `error_history` deque and publishing `mean_error` markers to `global_workspace`.
+- Expose `system_metrics.profile_resource_usage` returning CPU, RAM and GPU usage for dashboards.
 
 ### 7.4 Cognitive modules
 - Reconstruct global_workspace for broadcasting salient signals across subsystems.
@@ -532,6 +540,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ## 8. Utilities and Interop
 ### 8.1 External framework interop
 - Implement PyTorch and TensorFlow interop layers (pytorch_to_marble, torch_interop, tensorflow_interop).
+  - `tensorflow_interop` provides `MarbleKerasLayer` mirroring the message-passing MLP and `tf_to_core` which copies weights back to Marble and resizes neuron representations.
 - Provide model import/export (convert_model, marble_to_pytorch, torch_model_io).
 - Autograd integration via MarbleAutogradLayer and TransparentMarbleLayer supporting gradient accumulation and scheduler callbacks.
 
@@ -559,6 +568,9 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
     backups before saving.
   - `config_sync_service` watches a source config and propagates changes to
     destination paths using filesystem observers.
+  - `list_config_keys` enumerates YAML keys and flags unused entries through ripgrep.
+  - `find_unimplemented_params` scans `CONFIGURABLE_PARAMETERS.md` for parameters absent from code.
+  - `validate_config_docs` cross-checks `config.yaml` with documentation and reports missing or extra keys.
 - Implement `backup_utils` with `BackupScheduler` periodically copying
   configuration directories (interval \(T\)) to timestamped destinations and
   graceful start/stop handling.
@@ -609,10 +621,30 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - ReinforcementLearning module offers GridWorld env, `MarbleQLearningAgent` with epsilon decay/Double-Q and `MarblePolicyGradientAgent` integrating Neuronenblitz outputs.
 ### 8.12 Python compatibility utilities
 - `pycompat.removeprefix` and `pycompat.cached` supply Python 3.8 helpers.
+### 8.13 Tensor backend and synchronization
+- `_Backend` abstraction offers NumPy and JAX implementations supporting `matmul`, `sigmoid`, `relu`, `seed`, `rand` and `randn`.
+- `to_numpy` and `_copy_to` convert between NumPy, JAX and torch tensors.
+- `TensorSyncService` launches per-device threads computing XOR/subtraction deltas, broadcasting them and tracking `bytes_sent`, `syncs` and `stale_resyncs` with automatic resynchronisation.
+### 8.14 Sparse utilities and shared vocabulary
+- `sparse_utils` converts dense arrays to CSR/CSC/COO matrices, computes byte usage and benchmarks memory savings.
+- `shared_vocab.build_shared_vocab` aggregates bitstreams from multiple datasets with parameters `(min_len, max_len, max_size, start_id, min_occurrence)`.
+### 8.15 Hyperparameter optimisation and synthetic datasets
+- `optimize.py` runs Optuna on a tiny `FakeData` dataset, trains a small network and saves best parameters to YAML.
+- `synthetic_dataset` supplies `generate_sine_wave_dataset` and `generate_linear_dataset` for quick experiments.
+### 8.16 CPU fallback validation scripts
+- `scan_cuda_modules` locates CUDA-dependent modules.
+- `catalog_cpu_fallback_tests` emits `cpu_fallback_report.md` for modules lacking CPU tests.
+- `run_cpu_fallback_tests` disables CUDA and runs each pytest file to verify CPU-only execution.
+- `validate_config_docs` and `find_unimplemented_params` ensure configuration keys are implemented and documented.
+- `convert_to_py38` rewrites postponed annotations for Python 3.8 compatibility.
+### 8.17 Template modules for custom components
+- `neuron_template`, `rnn_neuron_template`, `synapse_template` and `gating_synapse_template` illustrate how to craft custom neurons and synapses.
 ## 9. Testing and Validation
 ### 9.1 Unit tests
 - Write pytest suites for every module and parameter combination.
 - Ensure tests cover CPU and GPU execution paths.
+- Run `run_cpu_fallback_tests` with CUDA disabled to verify CPU-only behaviour for all test files.
+- Generate `cpu_fallback_report.md` via `catalog_cpu_fallback_tests` to track CUDA modules missing CPU tests.
 
 ### 9.2 Integration tests
 - Simulate end-to-end pipelines verifying data flow from datasets through learners and Neuronenblitz.
@@ -639,6 +671,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Provide `project_template/main.py` as a minimal entry point loading config, dataset and training routine.
 - Recreate comprehensive example suite covering numeric regression, image classification, remote offloading, GPT training, RNN sequence modelling, reinforcement learning variants, contrastive, attention codelets, Hebbian, adversarial, autoencoder, sklearn integration, iris classification, semi-supervised, federated, curriculum, meta, transfer, continual, imitation, harmonic resonance, synaptic echo, fractal dimension, quantum flux, dream reinforcement and text-to-music pipelines.
 - Provide `exampletrain` advanced training demo integrating Stable Diffusion, auto-firing, dreaming, benchmarking and synthetic dataset utilities (`exampletrain_utils`).
+- Document dataset download helpers (`download_cifar10.py`, `download_imdb.py`, `download_iris.py`) and shared vocabulary construction for reproducible data preparation.
 - Regenerate README, ARCHITECTURE_OVERVIEW, ML_PARADIGMS_HANDBOOK and a new multi-project TUTORIAL without GUI references.
 - Maintain ROADMAP, TROUBLESHOOTING, HIGHLEVEL_PIPELINE_TUTORIAL and configuration manuals.
 
