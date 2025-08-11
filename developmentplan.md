@@ -637,6 +637,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - ReinforcementLearning module offers GridWorld env, `MarbleQLearningAgent` with epsilon decay/Double-Q and `MarblePolicyGradientAgent` integrating Neuronenblitz outputs.
 - Interface helpers: `curriculum_train` sequencing tasks with schedule strategies, `set_dreaming` toggling dream simulation, `set_autograd` attaching `MarbleAutogradLayer` (supports gradient accumulation, schedulers and N-dimensional tensors on CPU/GPU), `convert_pytorch_model` importing PyTorch weights with prediction map, `load_hf_dataset` retrieving HuggingFace samples (optionally encoding via DataLoader), and `streaming_dataset_step` yielding prefetching iterators.
 - Brain utilities persist dream buffers and neuromodulatory context via `save_model`/`load_model`, migrate legacy checkpoints with `save_checkpoint`/`load_checkpoint`, log metrics (loss, VRAM usage, neuromod signals, plasticity threshold, message passing change, compression ratio) through `MetricsVisualizer`, expose `benchmark_step` returning marble/autograd losses and times, `generate_chain_of_thought` tracing synapse paths, and respect `log_interval` during training.
+- `SelfMonitoring` plugin tracks gradient norms, memory usage and configuration drift, publishing anomalies to `MessageBus` and triggering `SystemMetrics` logging.
 ### 8.12 Python compatibility utilities
 - `pycompat.removeprefix` and `pycompat.cached` supply Python 3.8 helpers.
 ### 8.13 Tensor backend and synchronization
@@ -657,6 +658,11 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - `convert_to_py38` rewrites postponed annotations for Python 3.8 compatibility.
 ### 8.17 Template modules for custom components
 - `neuron_template`, `rnn_neuron_template`, `synapse_template` and `gating_synapse_template` illustrate how to craft custom neurons and synapses.
+### 8.18 MCP server and web APIs
+- Implement `mcp_server` exposing Model Control Protocol endpoints for starting, stopping and inspecting pipelines via streaming JSON-RPC over WebSockets.
+- Provide `mcp_tool_bridge` translating MCP tool calls into `ToolManager` actions and relaying responses through `MessageBus`.
+- Build RESTful `web_api` offering dataset management, training control, metrics retrieval and health checks; integrate authentication and CORS.
+- Expose `web_search_tool` to query external sources and feed results back into pipelines via `ToolManagerPlugin`.
 ## 9. Testing and Validation
 ### 9.1 Unit tests
 - Write pytest suites for every module and parameter combination.
