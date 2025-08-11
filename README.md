@@ -424,6 +424,10 @@ tracked using ``memory_manager.MemoryManager`` while
 ``metrics_dashboard.MetricsDashboard`` provides live charts of loss, VRAM
 consumption and other metrics. When the Global Workspace plugin is active, the
 dashboard also visualises the workspace queue length to monitor cognitive load.
+The underlying ``MetricsVisualizer`` can be customised via the ``metrics_visualizer``
+section in ``config.yaml``. Options such as ``color_scheme`` apply any Matplotlib
+style, ``dpi`` controls rendering resolution and ``show_neuron_ids`` annotates
+each data point with its step index for detailed inspection.
 
 ### Multiprocessing Pipeline Execution
 
