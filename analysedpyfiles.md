@@ -153,7 +153,7 @@ marble_neuronenblitz.py: lines=2, functions=0, classes=0, lines_read=2
 marble_neuronenblitz/__init__.py: lines=40, functions=0, classes=0, lines_read=40
 marble_neuronenblitz/attention_span.py: lines=49, functions=0, classes=1, lines_read=49
 marble_neuronenblitz/context_attention.py: lines=86, functions=0, classes=1, lines_read=86
-marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=800, lines_remaining=1665
+marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=2465
 marble_neuronenblitz/learning.py: lines=219, functions=8, classes=0, lines_read=219
 marble_neuronenblitz/memory.py: lines=79, functions=2, classes=0, lines_read=79
 marble_registry.py: lines=88, functions=0, classes=1, lines_read=88
@@ -226,7 +226,7 @@ shared_vocab.py: lines=48, functions=1, classes=0, lines_read=48
 soft_actor_critic.py: lines=99, functions=2, classes=2, lines_read=99
 sparse_utils.py: lines=49, functions=4, classes=0, lines_read=49
 streaming_dataset_step.py: lines=120, functions=0, classes=1, lines_read=120
-streamlit_playground.py: lines=3246, functions=104, classes=0, lines_read=1000, lines_remaining=2246
+streamlit_playground.py: lines=3246, functions=104, classes=0, lines_read=3246
 super_evolution_controller.py: lines=158, functions=0, classes=1, lines_read=158
 synaptic_echo_learning.py: lines=26, functions=0, classes=1, lines_read=26
 synthetic_dataset.py: lines=31, functions=2, classes=0, lines_read=31
@@ -290,7 +290,7 @@ tests/test_cli_quantize.py: lines=28, functions=1, classes=2, lines_read=28, lin
 tests/test_concept_association.py: lines=22, functions=1, classes=0, lines_read=22, lines_remaining=0
 tests/test_conceptual_integration.py: lines=18, functions=1, classes=0, lines_read=18, lines_remaining=0
 tests/test_conceptual_integration_pipeline.py: lines=67, functions=5, classes=0, lines_read=67, lines_remaining=0
-tests/test_config.py: lines=293, functions=11, classes=0, lines_read=0, lines_remaining=293
+tests/test_config.py: lines=293, functions=11, classes=0, lines_read=293
 tests/test_config_additional.py: lines=15, functions=1, classes=0, lines_read=15, lines_remaining=0
 tests/test_config_editor.py: lines=27, functions=3, classes=0, lines_read=27, lines_remaining=0
 tests/test_config_federated_learning.py: lines=12, functions=1, classes=0, lines_read=12, lines_remaining=0
