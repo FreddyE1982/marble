@@ -134,21 +134,21 @@ imitation_learning.py: lines=40, functions=0, classes=1, lines_read=40
 imitation_pairs_pipeline.py: lines=66, functions=0, classes=1, lines_read=66
 install.py: lines=29, functions=1, classes=0, lines_read=29
 kuzu_interface.py: lines=175, functions=0, classes=1, lines_read=175
-kuzu_memory_tier.py: lines=105, functions=0, classes=1
-learning_plugins.py: lines=84, functions=3, classes=1
-logging_utils.py: lines=100, functions=1, classes=1
-marble.py: lines=1521, functions=4, classes=11
-marble_activation_kernel.py: lines=195, functions=3, classes=1
-marble_agent.py: lines=97, functions=0, classes=1
-marble_autograd.py: lines=94, functions=0, classes=3
-marble_base.py: lines=322, functions=3, classes=2
+kuzu_memory_tier.py: lines=105, functions=0, classes=1, lines_read=105
+learning_plugins.py: lines=84, functions=3, classes=1, lines_read=84
+logging_utils.py: lines=100, functions=1, classes=1, lines_read=100
+marble.py: lines=1521, functions=4, classes=11, lines_read=1521
+marble_activation_kernel.py: lines=195, functions=3, classes=1, lines_read=195
+marble_agent.py: lines=97, functions=0, classes=1, lines_read=97
+marble_autograd.py: lines=94, functions=0, classes=3, lines_read=94
+marble_base.py: lines=322, functions=3, classes=2, lines_read=322
 marble_brain.py: lines=1207, functions=2, classes=2, lines_read=1207
-marble_core.py: lines=2294, functions=14, classes=15
-marble_graph_builder.py: lines=222, functions=4, classes=0
-marble_imports.py: lines=35, functions=0, classes=0
-marble_interface.py: lines=673, functions=40, classes=0
-marble_lobes.py: lines=63, functions=0, classes=2
-marble_main.py: lines=557, functions=1, classes=1
+marble_core.py: lines=2294, functions=14, classes=15, lines_read=200, lines_remaining=2094
+marble_graph_builder.py: lines=222, functions=4, classes=0, lines_read=222
+marble_imports.py: lines=35, functions=0, classes=0, lines_read=35
+marble_interface.py: lines=673, functions=40, classes=0, lines_read=200, lines_remaining=473
+marble_lobes.py: lines=63, functions=0, classes=2, lines_read=63
+marble_main.py: lines=557, functions=1, classes=1, lines_read=200, lines_remaining=357
 marble_neuronenblitz.py: lines=2, functions=0, classes=0, lines_read=2
 marble_neuronenblitz/__init__.py: lines=40, functions=0, classes=0, lines_read=40
 marble_neuronenblitz/attention_span.py: lines=49, functions=0, classes=1, lines_read=49
@@ -156,33 +156,33 @@ marble_neuronenblitz/context_attention.py: lines=86, functions=0, classes=1, lin
 marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=2465
 marble_neuronenblitz/learning.py: lines=219, functions=8, classes=0, lines_read=219
 marble_neuronenblitz/memory.py: lines=79, functions=2, classes=0, lines_read=79
-marble_registry.py: lines=88, functions=0, classes=1
-marble_to_pytorch.py: lines=171, functions=6, classes=1
-marble_utils.py: lines=189, functions=9, classes=0
-mcp_server.py: lines=173, functions=0, classes=1
-mcp_tool_bridge.py: lines=108, functions=0, classes=1
-memory_manager.py: lines=39, functions=0, classes=1
-memory_pool.py: lines=112, functions=0, classes=2
-message_bus.py: lines=174, functions=0, classes=3
-meta_learning.py: lines=52, functions=0, classes=1
-meta_parameter_controller.py: lines=30, functions=0, classes=1
-metrics_dashboard.py: lines=135, functions=0, classes=1
-model_quantization.py: lines=27, functions=1, classes=0
-model_refresh.py: lines=174, functions=4, classes=0
-multi_agent_env.py: lines=71, functions=1, classes=3
-n_dimensional_topology.py: lines=85, functions=0, classes=1
-n_plugin.py: lines=30, functions=2, classes=0
-networkx_interop.py: lines=260, functions=7, classes=0
-neural_pathway.py: lines=94, functions=2, classes=0
-neural_schema_induction.py: lines=68, functions=0, classes=1
-neuromodulatory_system.py: lines=19, functions=0, classes=1
+marble_registry.py: lines=88, functions=0, classes=1, lines_read=88
+marble_to_pytorch.py: lines=171, functions=6, classes=1, lines_read=171
+marble_utils.py: lines=189, functions=9, classes=0, lines_read=189
+mcp_server.py: lines=173, functions=0, classes=1, lines_read=173
+mcp_tool_bridge.py: lines=108, functions=0, classes=1, lines_read=108
+memory_manager.py: lines=39, functions=0, classes=1, lines_read=39
+memory_pool.py: lines=112, functions=0, classes=2, lines_read=112
+message_bus.py: lines=174, functions=0, classes=3, lines_read=174
+meta_learning.py: lines=52, functions=0, classes=1, lines_read=52
+meta_parameter_controller.py: lines=30, functions=0, classes=1, lines_read=30
+metrics_dashboard.py: lines=135, functions=0, classes=1, lines_read=135
+model_quantization.py: lines=27, functions=1, classes=0, lines_read=27
+model_refresh.py: lines=174, functions=4, classes=0, lines_read=174
+multi_agent_env.py: lines=71, functions=1, classes=3, lines_read=71
+n_dimensional_topology.py: lines=85, functions=0, classes=1, lines_read=85
+n_plugin.py: lines=30, functions=2, classes=0, lines_read=30
+networkx_interop.py: lines=260, functions=7, classes=0, lines_read=260
+neural_pathway.py: lines=94, functions=2, classes=0, lines_read=94
+neural_schema_induction.py: lines=68, functions=0, classes=1, lines_read=68
+neuromodulatory_system.py: lines=19, functions=0, classes=1, lines_read=19
 neuronenblitz_kernel.py: lines=432, functions=2, classes=0, lines_read=432
-ollama_interop.py: lines=186, functions=5, classes=0
-ollama_pipeline.py: lines=158, functions=1, classes=1
-omni_learning.py: lines=84, functions=0, classes=1
-pipeline.py: lines=1040, functions=0, classes=4
-pipeline_cli.py: lines=27, functions=1, classes=0
-pipeline_plugins.py: lines=357, functions=3, classes=5
+ollama_interop.py: lines=186, functions=5, classes=0, lines_read=186
+ollama_pipeline.py: lines=158, functions=1, classes=1, lines_read=158
+omni_learning.py: lines=84, functions=0, classes=1, lines_read=84
+pipeline.py: lines=1040, functions=0, classes=4, lines_read=200, lines_remaining=840
+pipeline_cli.py: lines=27, functions=1, classes=0, lines_read=27
+pipeline_plugins.py: lines=357, functions=3, classes=5, lines_read=357
 pipeline_schema.py: lines=55, functions=1, classes=0
 plugin_system.py: lines=66, functions=4, classes=0
 predictive_coding.py: lines=88, functions=3, classes=3
@@ -603,16 +603,16 @@ tests/test_weight_init_strategies.py: lines=26, functions=3, classes=0
 tests/test_workflow_template_generator.py: lines=33, functions=4, classes=0
 theory_of_mind.py: lines=285, functions=4, classes=4
 tokenizer_utils.py: lines=84, functions=7, classes=0
-tool_manager_plugin.py: lines=135, functions=1, classes=2
-tool_plugins.py: lines=84, functions=3, classes=1
-topology_kuzu.py: lines=113, functions=0, classes=1
-torch_interop.py: lines=161, functions=6, classes=3
-torch_model_io.py: lines=144, functions=14, classes=0
-torrent_offload.py: lines=167, functions=0, classes=2
-transfer_learning.py: lines=76, functions=1, classes=1
-transfer_pairs_pipeline.py: lines=65, functions=0, classes=1
-unified_learning.py: lines=132, functions=0, classes=1
-unified_pairs_pipeline.py: lines=69, functions=0, classes=1
+tool_manager_plugin.py: lines=135, functions=1, classes=2, lines_read=135
+tool_plugins.py: lines=84, functions=3, classes=1, lines_read=84
+topology_kuzu.py: lines=113, functions=0, classes=1, lines_read=113
+torch_interop.py: lines=161, functions=6, classes=3, lines_read=161
+torch_model_io.py: lines=144, functions=14, classes=0, lines_read=144
+torrent_offload.py: lines=167, functions=0, classes=2, lines_read=167
+transfer_learning.py: lines=76, functions=1, classes=1, lines_read=76
+transfer_pairs_pipeline.py: lines=65, functions=0, classes=1, lines_read=65
+unified_learning.py: lines=132, functions=0, classes=1, lines_read=132
+unified_pairs_pipeline.py: lines=69, functions=0, classes=1, lines_read=69
 usage_profiler.py: lines=54, functions=0, classes=2, lines_read=54
 wanderer_auth.py: lines=125, functions=2, classes=1, lines_read=125
 wanderer_messages.py: lines=130, functions=3, classes=0, lines_read=130
