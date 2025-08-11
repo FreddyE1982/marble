@@ -28,6 +28,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Provide `DotDict` utility for attribute-style access to nested configuration dictionaries, ensuring recursive conversion and update semantics.
 - Implement `config_loader` that materializes every configuration section into runtime objects.
 - Structured logging options: enable/disable structured format, log file path, level, message format, datefmt, propagation, log rotation with `max_bytes`, `backup_count` and `encoding`.
+- JSONFormatter writes logs as JSON with optional rotating file handler.
 - Scheduler selection via `configure_scheduler` and plugin directories loaded through `load_plugins`.
 - Instantiate MetaParameterController (history_length, adjustment, min_threshold, max_threshold) and NeuromodulatorySystem with initial context values.
 - Build MemorySystem with `long_term_path`, consolidation `threshold`, `consolidation_interval` and optional hybrid memory parameters.
@@ -37,9 +38,12 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Metrics visualizer and optional Kùzu experiment/topology trackers.
 - Optional modules activated through config: predictive_coding, tool_manager, tensor_sync_service, unified_learning, global_workspace, attention_codelets, conceptual_integration, theory_of_mind and weight quantization.
 - Conditional training helpers: advanced GPT training, reinforcement learning (policy gradient or Q-learning), dream reinforcement, adversarial, transfer, semi‑supervised, federated, curriculum, imitation, harmonic resonance, quantum flux, synaptic echo and fractal dimension learners.
+- UnifiedLearner coordinates multiple paradigms via a gating network; UnifiedPairsPipeline and TransferPairsPipeline feed pair datasets.
+- OmniLearner sequences all learners including continuous weight field, neural schema induction and conceptual integration in one step.
 ## 3. Core Architecture
 ### 3.1 Event and message infrastructure
 - Implement event_bus and message_bus with asynchronous queues.
+- MessageBus supports direct, broadcast and reply communication, logs history for NetworkX influence graphs and offers AsyncDispatcher background delivery.
 - Provide publish/subscribe API and serialization hooks.
 - EventBus supports event filtering, rate limiting and unified `ProgressEvent` schema.
 
@@ -56,11 +60,14 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 ### 3.3 Memory systems
 - Implement `HybridMemory` combining vector similarity search, symbolic key-value store and optional Kùzu-backed tier with temporal forgetting.
 - Implement memory_pool, memory_manager, episodic memory, hybrid memory, prompt memory and Kuzu-backed tiers.
+- Implement KuzuMemoryTier using KùzuGraphDatabase with MERGE-based inserts, cosine-similarity query over stored vectors and timestamp-driven `forget_old` trimming.
 - Include forgetfulness and consolidation algorithms.
 
 ### 3.4 Plugin system
 - Recreate plugin_system with dynamic loading and registration of neuron, synapse and loss modules.
 - Implement pipeline, scheduler, tool and learning plugin registries.
+- Provide LearningModule base with `register_learning_module`, `get_learning_module` and `load_learning_plugins` discovering entry points or plugin directories.
+- Build ToolPlugin base and ToolManagerPlugin with heuristic selection policy and optional MCP/MessageBus integration.
 
 ### 3.5 Dataset infrastructure
 - Implement dataset loader, replication, watcher, streaming datasets, encryption and versioning.
@@ -101,11 +108,15 @@ This document enumerates every step required to rebuild MARBLE from scratch with
   - `create_node_table(label, columns, primary_key)` and `create_relationship_table(rel, src, dst, columns)`.
   - CRUD helpers `add_node`, `add_relationship`, `update_node`, `delete_node`, `delete_relationship`.
   - Generic `execute(query, parameters)` returning rows as dictionaries.
+- TopologyKuzuTracker mirrors core topology to Kùzu by listening to `neurons_added`, `synapses_added` and `rep_size_changed` events.
 
 ### 3.6 Brain coordination and neurogenesis
 - Add `GoalManager` maintaining goal hierarchies and reward shaping; integrate global workspace via `BroadcastMessage` queue for cross-module signalling.
 - Implement `MarbleBrain` to supervise Neuronenblitz and global learning state.
 - Add neuromodulatory system providing context values (arousal, stress, reward, emotion).
+- MetaParameterController adjusts plasticity threshold based on validation loss trends.
+- NDimensionalTopologyManager dynamically increases or decreases representation size driven by attention and loss stagnation.
+- LobeManager groups neurons into lobes and performs self-attention based on cluster IDs.
 - Implement neurogenesis controller:
   1. Compute growth factor
      \(f = (1+\max(\text{arousal},\text{reward})) \cdot \text{neurogenesis\_factor}\).
@@ -465,10 +476,13 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 8.1 External framework interop
 - Implement PyTorch and TensorFlow interop layers (pytorch_to_marble, torch_interop, tensorflow_interop).
 - Provide model import/export (convert_model, marble_to_pytorch, torch_model_io).
+- Autograd integration via MarbleAutogradLayer and TransparentMarbleLayer supporting gradient accumulation and scheduler callbacks.
 
 ### 8.2 Remote and distributed execution
 - Implement remote_offload, remote_worker_pool, distributed_training and torrent-based model exchange.
 - Include networkx graph export, web API and database query tools.
+- networkx_interop converts cores and pipelines to NetworkX graphs, provides diff utilities and pipeline expansion.
+- neural_pathway performs tensor-based BFS path finding and Plotly visualisation of highlighted routes.
 
 ### 8.3 Experiment tracking and logging
 - `UsageProfiler` and experiment trackers must be wired to training loops and pipeline events.
@@ -496,6 +510,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Serialize exploration commands via `wanderer_messages` dataclasses (`ExplorationRequest`, `PathUpdate`, `ExplorationResult`).
 - Expose `web_api.InferenceServer` with `/infer`, `/graph`, and `/shutdown` endpoints plus optional PromptMemory and bearer-token auth.
 - Implement remote_wanderer, remote_offload, remote_hardware interface and mcp_server/tool_bridge.
+- MCPServer exposes `/mcp/infer` and `/mcp/context` endpoints with optional token or basic auth and PromptMemory support; MCPToolBridge forwards `/mcp/tool` requests to MessageBus agents.
 - Provide web_api endpoints and database_query_tool for external control.
 ### 8.7 Asynchronous training utilities
 - Include federated averaging trainer `FederatedAveragingTrainer` aggregating synapse weights across clients.
@@ -518,6 +533,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 8.10 Model conversion and compression
 - Incorporate `generate_repo_md` script to snapshot repository contents into single Markdown for reproducibility.
 - `convert_model` CLI transforms PyTorch checkpoints to MARBLE JSON or `.marble` snapshots and offers summary output, plots, CSV, tables and graph rendering.
+- model_refresh provides full_retrain, incremental_update and auto_refresh routines triggered by DatasetWatcher.
 - `DataCompressor` and crypto utilities provide constant-time XOR encryption, AES-GCM tensor/byte encryption, delta encoding, quantization and sparse-aware compression.
 - `DatabaseQueryTool` executes Cypher queries on Kùzu databases.
 
@@ -561,4 +577,3 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Establish code-style guidelines and contribution templates.
 
 Following this sequence will rebuild MARBLE with complete feature parity and precise parameter utilization without introducing a GUI.
-
