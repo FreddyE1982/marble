@@ -153,7 +153,7 @@ marble_neuronenblitz.py: lines=2, functions=0, classes=0, lines_read=2
 marble_neuronenblitz/__init__.py: lines=40, functions=0, classes=0, lines_read=40
 marble_neuronenblitz/attention_span.py: lines=49, functions=0, classes=1, lines_read=49
 marble_neuronenblitz/context_attention.py: lines=86, functions=0, classes=1, lines_read=86
-marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=1200, lines_remaining=1265
+marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=2465
 marble_neuronenblitz/learning.py: lines=219, functions=8, classes=0, lines_read=219
 marble_neuronenblitz/memory.py: lines=79, functions=2, classes=0, lines_read=79
 marble_registry.py: lines=88, functions=0, classes=1, lines_read=88
@@ -180,7 +180,7 @@ neuronenblitz_kernel.py: lines=432, functions=2, classes=0, lines_read=432
 ollama_interop.py: lines=186, functions=5, classes=0, lines_read=186
 ollama_pipeline.py: lines=158, functions=1, classes=1, lines_read=158
 omni_learning.py: lines=84, functions=0, classes=1, lines_read=84
-pipeline.py: lines=1040, functions=0, classes=4, lines_read=800, lines_remaining=240
+pipeline.py: lines=1040, functions=0, classes=4, lines_read=1040
 pipeline_cli.py: lines=27, functions=1, classes=0, lines_read=27
 pipeline_plugins.py: lines=357, functions=3, classes=5, lines_read=357
 pipeline_schema.py: lines=55, functions=1, classes=0, lines_read=55
@@ -192,7 +192,7 @@ project_template/main.py: lines=15, functions=1, classes=0, lines_read=15
 prompt_memory.py: lines=91, functions=0, classes=1, lines_read=91
 pycompat.py: lines=28, functions=2, classes=0, lines_read=28
 pytorch_challenge.py: lines=120, functions=5, classes=0, lines_read=120
-pytorch_to_marble.py: lines=907, functions=52, classes=5, lines_read=600, lines_remaining=307
+pytorch_to_marble.py: lines=907, functions=52, classes=5, lines_read=907
 quantized_tensor.py: lines=149, functions=0, classes=1, lines_read=149
 quantum_flux_learning.py: lines=41, functions=0, classes=1, lines_read=41
 quantum_flux_pairs_pipeline.py: lines=65, functions=0, classes=1, lines_read=65
@@ -226,7 +226,7 @@ shared_vocab.py: lines=48, functions=1, classes=0, lines_read=48
 soft_actor_critic.py: lines=99, functions=2, classes=2, lines_read=99
 sparse_utils.py: lines=49, functions=4, classes=0, lines_read=49
 streaming_dataset_step.py: lines=120, functions=0, classes=1, lines_read=120
-streamlit_playground.py: lines=3246, functions=104, classes=0, lines_read=340, lines_remaining=2906
+streamlit_playground.py: lines=3246, functions=104, classes=0, lines_read=640, lines_remaining=2606
 super_evolution_controller.py: lines=158, functions=0, classes=1, lines_read=158
 synaptic_echo_learning.py: lines=26, functions=0, classes=1, lines_read=26
 synthetic_dataset.py: lines=31, functions=2, classes=0, lines_read=31
@@ -560,8 +560,8 @@ tests/test_streamed_training.py: lines=22, functions=1, classes=0, lines_read=22
 tests/test_streaming_csv_loader.py: lines=25, functions=1, classes=0, lines_read=25
 tests/test_streaming_dataset_step.py: lines=97, functions=5, classes=0, lines_read=97
 tests/test_streamlit_all_buttons.py: lines=81, functions=2, classes=0, lines_read=81
-tests/test_streamlit_gui.py: lines=1158, functions=69, classes=0, lines_read=800, lines_remaining=358
-tests/test_streamlit_playground.py: lines=791, functions=46, classes=0, lines_read=700, lines_remaining=91
+tests/test_streamlit_gui.py: lines=1158, functions=69, classes=0, lines_read=1158
+tests/test_streamlit_playground.py: lines=791, functions=46, classes=0, lines_read=791
 tests/test_streamlit_progress.py: lines=53, functions=4, classes=0, lines_read=53
 tests/test_super_evolution.py: lines=120, functions=3, classes=0, lines_read=120
 tests/test_synapse_dropout_batchnorm.py: lines=40, functions=4, classes=0, lines_read=40
@@ -622,4 +622,4 @@ workflow_template_generator.py: lines=139, functions=3, classes=0, lines_read=13
 
 Partial analyses remain for files with lines_remaining.
 
-Reverified on 2025-08-11 17:39 UTC run; partial analyses remain.
+Reverified on 2025-08-11 17:55 UTC run; partial analyses remain.
