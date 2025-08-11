@@ -7,21 +7,21 @@ async_gradient_accumulator.py: lines=93, functions=0, classes=1, lines_read=93
 async_utils.py: lines=29, functions=1, classes=0, lines_read=29
 attention_codelets.py: lines=155, functions=8, classes=1, lines_read=155
 attention_utils.py: lines=139, functions=4, classes=1, lines_read=139
-autoencoder_learning.py: lines=60, functions=0, classes=1
-autoencoder_pipeline.py: lines=85, functions=0, classes=1
-backup_utils.py: lines=41, functions=0, classes=1
-benchmark_autograd_vs_marble.py: lines=100, functions=5, classes=0
-benchmark_config_training.py: lines=79, functions=1, classes=0
-benchmark_dream_consolidation.py: lines=67, functions=3, classes=0
-benchmark_graph_precompile.py: lines=48, functions=1, classes=0
-benchmark_parallel_wanderers.py: lines=60, functions=3, classes=0
-benchmark_remote_wanderer_latency.py: lines=64, functions=2, classes=0
-benchmark_sac_vs_baseline.py: lines=61, functions=3, classes=0
-benchmark_super_evolution.py: lines=61, functions=3, classes=0
-bit_tensor_dataset.py: lines=1403, functions=12, classes=2
-bit_tensor_streaming_dataset.py: lines=166, functions=0, classes=1
-branch_container.py: lines=109, functions=0, classes=1
-cli.py: lines=245, functions=1, classes=0
+autoencoder_learning.py: lines=60, functions=0, classes=1, lines_read=60
+autoencoder_pipeline.py: lines=85, functions=0, classes=1, lines_read=85
+backup_utils.py: lines=41, functions=0, classes=1, lines_read=41
+benchmark_autograd_vs_marble.py: lines=100, functions=5, classes=0, lines_read=100
+benchmark_config_training.py: lines=79, functions=1, classes=0, lines_read=79
+benchmark_dream_consolidation.py: lines=67, functions=3, classes=0, lines_read=67
+benchmark_graph_precompile.py: lines=48, functions=1, classes=0, lines_read=48
+benchmark_parallel_wanderers.py: lines=60, functions=3, classes=0, lines_read=60
+benchmark_remote_wanderer_latency.py: lines=64, functions=2, classes=0, lines_read=64
+benchmark_sac_vs_baseline.py: lines=61, functions=3, classes=0, lines_read=61
+benchmark_super_evolution.py: lines=61, functions=3, classes=0, lines_read=61
+bit_tensor_dataset.py: lines=1403, functions=12, classes=2, lines_read=200, lines_remaining=1203
+bit_tensor_streaming_dataset.py: lines=166, functions=0, classes=1, lines_read=166
+branch_container.py: lines=109, functions=0, classes=1, lines_read=109
+cli.py: lines=245, functions=1, classes=0, lines_read=245
 conceptual_integration.py: lines=65, functions=0, classes=1
 conceptual_integration_pipeline.py: lines=62, functions=0, classes=1
 config_editor.py: lines=51, functions=2, classes=0
@@ -142,7 +142,7 @@ marble_activation_kernel.py: lines=195, functions=3, classes=1
 marble_agent.py: lines=97, functions=0, classes=1
 marble_autograd.py: lines=94, functions=0, classes=3
 marble_base.py: lines=322, functions=3, classes=2
-marble_brain.py: lines=1207, functions=2, classes=2, lines_read=283, lines_remaining=924
+marble_brain.py: lines=1207, functions=2, classes=2, lines_read=500, lines_remaining=707
 marble_core.py: lines=2294, functions=14, classes=15
 marble_graph_builder.py: lines=222, functions=4, classes=0
 marble_imports.py: lines=35, functions=0, classes=0
@@ -153,7 +153,7 @@ marble_neuronenblitz.py: lines=2, functions=0, classes=0, lines_read=2
 marble_neuronenblitz/__init__.py: lines=40, functions=0, classes=0, lines_read=40
 marble_neuronenblitz/attention_span.py: lines=49, functions=0, classes=1, lines_read=49
 marble_neuronenblitz/context_attention.py: lines=86, functions=0, classes=1, lines_read=86
-marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=1033, lines_remaining=1432
+marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=1600, lines_remaining=865
 marble_neuronenblitz/learning.py: lines=219, functions=8, classes=0, lines_read=219
 marble_neuronenblitz/memory.py: lines=79, functions=2, classes=0, lines_read=79
 marble_registry.py: lines=88, functions=0, classes=1
