@@ -34,10 +34,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Instantiate MetaParameterController (history_length, adjustment, min_threshold, max_threshold) and NeuromodulatorySystem with initial context values.
 - Build MemorySystem with `long_term_path`, consolidation `threshold`, `consolidation_interval` and optional hybrid memory parameters.
 - DataCompressor settings: `compression_level`, `compression_enabled`, `sparse_threshold`, `quantization_bits` and optional delta encoding.
-- DataLoader parameters: tensor dtype, metadata tracking, automatic
-  encode/decode/tokenization with round-trip verification/penalty and
-  - tokenizer type/json/vocab_size.
-- DataLoader parameters: tensor dtype, metadata tracking, automatic encode/decode/tokenization with round-trip verification/penalty and tokenizer type/json/vocab_size. `tokenizer_to_json`/`tokenizer_from_json` persist tokenizers, `tokenize_line` and `tokenize_lines` stream text and checkpoints must restore tokenizer state.
+- DataLoader parameters: tensor dtype, metadata tracking and automatic encode/decode/tokenization with round-trip verification/penalty; configure tokenizer type/json/vocab_size and persist via `tokenizer_to_json`/`tokenizer_from_json`. `tokenize_line` and `tokenize_lines` stream text and checkpoints must restore tokenizer state.
 - Autograd layer configuration with `autograd_params` (`enabled`, `learning_rate`, `gradient_accumulation_steps`, optional `scheduler`) controlling gradient accumulation and learning-rate scheduling.
 - `DataLoader.register_plugin(typ, encoder, decoder)` maintains encoder/decoder maps for custom types and enforces round-trip validation with optional `round_trip_penalty` and metrics tracking.
 - Autoencoder learning section with `enabled`, `epochs`, `batch_size`, `noise_std`,
@@ -606,13 +603,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
   - GatingLayer modulates attention weights using sine, chaotic logistic map x_{n+1}=r x_n(1-x_n) or episodic memory reward.
   - DynamicSpanModule selects attention spans where cumulative softmax ≤ threshold, enforcing max_span.
 
-### 7.3 Self-monitoring and metrics
-- Integrate `UsageProfiler` with `UsageRecord` capturing `epoch`, `wall_time`, `cpu_usage`, `ram_usage` and `gpu_usage`, writing one CSV line per epoch.
-- Provide `ExperimentTracker` abstraction with `WandbTracker` (project/entity/run_name) and `KuzuExperimentTracker` (initialises Metric and Event node tables, converts tensor metrics to floats) plus `attach_tracker_to_events` helper returning a detach callable.
-- Integrate `SelfMonitor` plugin maintaining an `error_history` deque and publishing `mean_error` markers to `global_workspace`.
-- Expose `system_metrics.profile_resource_usage` returning CPU, RAM and GPU usage for dashboards.
-
-### 7.4 Cognitive modules
+### 7.3 Cognitive modules
 - Reconstruct global_workspace for broadcasting salient signals across subsystems.
 - Implement theory_of_mind for agent modeling using probabilistic belief updates; `activate(hidden_size, num_layers, prediction_horizon, memory_slots, attention_hops, mismatch_threshold)` creates modules whose `observe` publishes predictions to `global_workspace` and whose memory supports `attend(agent_id, key, hops)` retrieval.
 - Recreate neural_pathway and neural_schema_induction for structured knowledge extraction.
@@ -640,9 +631,12 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Pipeline steps may specify a `tier` to execute functions on remote hardware with CPU/GPU parity.
 - `RemoteBrainClient` handles `max_retries` and `connect_retry_interval`, uses `heartbeat_timeout` and `ssl_verify` in `ping`, collects per-call latency and bandwidth to compute averages and `optimize_route`, and supports SSL and uncompressed or chained offloading.
 - `RemoteWorkerPool` executes map-style jobs with `max_retries` and restarts crashed workers automatically.
+- `ProcessManager` shares tensors across workers and coordinates callable execution using multiprocessing with configurable start methods.
 - `BrainTorrentTracker` and `BrainTorrentClient` distribute core parts, allow asynchronous `process_async` with bounded buffers and enable `dynamic_wander` across peers.
 - `ServeModelPlugin` starts an HTTP inference server from pipeline configuration, drawing default `host` and `port` from YAML.
 - `SessionManager` generates, renews and revokes wanderer tokens with expiry enforcement.
+- `MCPServer` exposes asynchronous `/mcp/infer` and `/mcp/context` routes translating requests to Neuronenblitz `dynamic_wander` with optional prompt memory and authentication.
+- `MCPToolBridge` publishes `/mcp/tool` requests to `MessageBus` targets and waits for responses, enabling external MCP clients to access MARBLE tools.
 ### 8.3 Experiment tracking and logging
 - `UsageProfiler` (activated with `profile_enabled`, `profile_log_path` and `profile_interval`) and experiment trackers must be wired to training loops and pipeline events.
 - Integrate experiment_tracker, logging_utils and usage_profiler with configurable backends.
@@ -787,6 +781,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 
 ### 8.23 Metrics and self monitoring
 - `metrics_dashboard` serves live charts over HTTP and subscribes to `SystemMetrics` events, supports configurable `window_size` smoothing and `_build_figure` caching for selected metrics, and can be disabled via `MARBLE_DISABLE_METRICS`.
+- `UsageProfiler` records `UsageRecord(epoch, wall_time, cpu_usage, ram_usage, gpu_usage)` to CSV, `ExperimentTracker` provides `WandbTracker` and `KuzuExperimentTracker` implementations with `attach_tracker_to_events` helper, and `system_metrics.profile_resource_usage` exposes CPU/RAM/GPU statistics for dashboards.
 - `self_monitoring.SelfMonitoringPlugin` tracks gradient norms, memory usage and configuration drift, escalating anomalies via `MessageBus`.
 
 ## 9. Testing and Validation
