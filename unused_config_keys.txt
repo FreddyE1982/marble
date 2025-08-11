@@ -80,9 +80,6 @@ brain.tier_decision_params.vram_usage_threshold
 brain.torrent_offload_enabled
 brain.torrent_offload_threshold
 brain.vram_age_threshold
-conceptual_integration.blend_probability
-conceptual_integration.enabled
-conceptual_integration.similarity_threshold
 continual_learning.enabled
 continual_learning.epochs
 continual_learning.memory_size
@@ -500,12 +497,6 @@ synaptic_echo_learning.echo_influence
 synaptic_echo_learning.enabled
 synaptic_echo_learning.epochs
 sync.interval_ms
-theory_of_mind.attention_hops
-theory_of_mind.hidden_size
-theory_of_mind.memory_slots
-theory_of_mind.mismatch_threshold
-theory_of_mind.num_layers
-theory_of_mind.prediction_horizon
 transfer_learning.batch_size
 transfer_learning.enabled
 transfer_learning.epochs
