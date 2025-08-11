@@ -35,6 +35,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Build MemorySystem with `long_term_path`, consolidation `threshold`, `consolidation_interval` and optional hybrid memory parameters.
 - DataCompressor settings: `compression_level`, `compression_enabled`, `sparse_threshold`, `quantization_bits` and optional delta encoding.
 - DataLoader parameters: tensor dtype, metadata tracking and automatic encode/decode/tokenization with round-trip verification/penalty; configure tokenizer type/json/vocab_size and persist via `tokenizer_to_json`/`tokenizer_from_json`. `tokenize_line` and `tokenize_lines` stream text and checkpoints must restore tokenizer state.
+- Multimodal pair encoding supports text, image, audio and binary blob inputs, ensuring decoded types match originals and arrays/images round-trip exactly.
 - Autograd layer configuration with `autograd_params` (`enabled`, `learning_rate`, `gradient_accumulation_steps`, optional `scheduler`) controlling gradient accumulation and learning-rate scheduling.
 - `DataLoader.register_plugin(typ, encoder, decoder)` maintains encoder/decoder maps for custom types and enforces round-trip validation with optional `round_trip_penalty` and metrics tracking.
 - Autoencoder learning section with `enabled`, `epochs`, `batch_size`, `noise_std`,
@@ -59,7 +60,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - EventBus supports event filtering, rate limiting and unified `ProgressEvent` schema.
 
 ### 3.2 Core neural substrate
-- Include `GraphCache` for torch.jit precompilation keyed by tensor shape/dtype, `graph_streaming` utilities `stream_graph_chunks`, `identify_memory_hotspots` and `benchmark_streaming` to handle large cores under memory constraints, and `graph_viz.sankey_figure` for interactive topology exploration.
+- Include `GraphCache` with `GraphKey(name, shape, dtype, device, extras)` and `precompile` tracing callables via `torch.jit.trace` when caching is enabled; `graph_streaming.stream_graph_chunks` yields neuron and synapse slices of configurable size, `identify_memory_hotspots` estimates bytes used by neurons and synapses, `benchmark_streaming` reports chunks per second, and `graph_viz.sankey_figure` builds Plotly Sankey diagrams filtered by edge weight and node degree.
 - Recreate marble_core with Neuron, Synapse, and perform_message_passing.
 - Include structural plasticity operations, neuron/synapse type registries and weight limiting.
 - Synapse objects track fatigue, echo buffers and phases; `effective_weight` mixes cosine-phase gating with context reward/stress, applies `dropout_prob`, batchnorm via `momentum`, and supports side effects for `mirror`, `multi_neuron`, `recurrent` and `interconnection` types.
@@ -76,6 +77,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Built-in Q-learning uses Q(s,a) ← Q(s,a) + α[r + γ max_{a'} Q(s',a') − Q(s,a)] with epsilon decay ε_{t+1} = max(ε_min, ε_t · ε_decay) and optional enable/disable controls.
 - `cluster_neurons` performs k-means++ initialisation and centroid updates; `relocate_clusters` moves neurons to VRAM/RAM/disk tiers based on aggregated attention scores.
 - `extract_subcore(neuron_ids)` copies selected neurons and synapses into a new Core; `check_finite_state` raises errors on any NaN or Inf.
+- `dynamic_wander` aborts with `ValueError` when encountering NaN synapse weights, preventing invalid propagation.
 - `run_message_passing(iterations)` calls `perform_message_passing` repeatedly, advances global phase via `global_phase_rate` (φ_{t+1}=(φ_t+ω) mod 2π), returns average representation change, honors `show_message_progress`, updates `representation_variance` metrics and `benchmark_message_passing` yields `(iterations, seconds)` tuples.
 
 - Initial neuron representations seeded via Mandelbrot fractals with optional Gaussian noise.
@@ -526,7 +528,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Integrate diffusion_core, diffusion_pairs_pipeline and scheduler into training pipeline.
 
 ### 5.13 Conceptual and Schema Induction
-- Neural schema induction records neuron activation sequences during `dynamic_wander` and counts all contiguous patterns of length `2..k` where `k` is the max schema size. Patterns occurring at least `support_threshold` times spawn a new schema neuron with bidirectional unit-weight synapses to each neuron in the pattern. Weight learning is disabled during induction; after each wander the learner updates pattern counts and adds schemas until no pattern meets the threshold.
+- Neural schema induction records neuron activation sequences during `dynamic_wander` and counts all contiguous patterns of length `2..k` where `k` is the max schema size. Patterns occurring at least `support_threshold` times spawn a new schema neuron using the next available id and a tier chosen via `core.choose_new_tier`, connecting bidirectionally with unit-weight synapses to each neuron in the pattern. Weight learning is disabled during induction (`learning_rate=0`, `weight_decay=0`); after each wander the learner updates pattern counts and adds schemas until no pattern meets the threshold.
 - Conceptual integration:
   - When random draw < blend_probability and cosine similarity between
     active neurons is below threshold, create blended neuron with
@@ -622,8 +624,8 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 8.2 Remote and distributed execution
 - Implement remote_offload, remote_worker_pool, distributed_training and torrent-based model exchange.
 - Include networkx graph export, web API and database query tools.
-- networkx_interop converts cores and pipelines to NetworkX graphs, provides diff utilities and pipeline expansion.
-- neural_pathway performs tensor-based BFS path finding and Plotly visualisation of highlighted routes.
+- `networkx_interop` offers `core_to_networkx`, `networkx_to_core`, `core_to_dict`, `dict_to_core`, `core_diff` for incremental updates, and `pipeline_to_networkx`/`pipeline_to_core` expanding macros and branches.
+- `neural_pathway.find_neural_pathway` builds adjacency tensors on the selected device and runs BFS to return neuron id paths; `pathway_figure` uses spring or circular layouts to highlight routes with Plotly.
 
 - Remote hardware plugins implement `RemoteTier` base with `connect`, `offload_core`, `run_step` and `close`; include gRPC tier with retry/backoff and mock tier for local execution, loaded via `load_remote_tier_plugin`.
 - RemoteBrainServer exposes `/offload`, `/process` and `/ping` HTTP endpoints with optional compression and bearer authentication; RemoteBrainClient manages retries, latency statistics, bandwidth and route optimisation.
@@ -671,7 +673,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Provide web_api endpoints and database_query_tool for external control.
 ### 8.7 Asynchronous training utilities
 - Include federated averaging trainer `FederatedAveragingTrainer` aggregating synapse weights across clients.
-- ProcessManager distributes tensor tasks across processes using shared memory and multiprocessing with spawn start method, falling back to threads on failure.
+- ProcessManager and `SharedDataset` distribute tensor tasks across processes using shared memory, wrapping tensors on CPU or GPU, and multiprocessing with spawn start method, falling back to threads on failure.
 - Provide hyperparameter search utilities (`grid_search`, `random_search`).
 - async_transform dispatches data tasks via scheduler plugins on CPU/GPU.
 - Scheduler plugins include thread-based and asyncio implementations selectable via `configure_scheduler` and retrievable with `get_scheduler`.
@@ -680,9 +682,8 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - `Brain.start_training` launches a background thread controlled by `training_active` and `wait_for_training`, while `train_async` exposes an awaitable API.
 - `Pipeline._dataset_step_indices` detects dataset-producing steps to drive automatic training loops.
 ### 8.8 Visualization helpers
-- activation_visualization.plot_activation_heatmap stacks neuron representations and saves heatmaps.
+- activation_visualization.plot_activation_heatmap stacks neuron representations, renders Matplotlib heatmaps with configurable colormaps and writes them to disk.
 - Attention utilities provide `GatingLayer` (modes `sine` and `chaos`), `generate_causal_mask`, `benchmark_mask_overhead`, and Plotly `mask_figure`/`gate_figure` that accept tensors from CPU or GPU.
-- BackupScheduler periodically mirrors source directories to timestamped backups.
 - MetricsVisualizer streams metrics to TensorBoard, CSV and JSON logs, supports `color_scheme`, custom `dpi`, optional neuron-id annotations (`show_neuron_ids`), records metrics such as `meta_loss_avg` and triggers scheduled backups. Setting `MARBLE_DISABLE_METRICS=1` disables MetricsVisualizer.
 
 ### 8.9 Command-line interface
