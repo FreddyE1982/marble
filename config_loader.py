@@ -440,6 +440,53 @@ def create_marble_from_config(
             train_gridworld(agent, env, episodes, max_steps=max_steps, seed=seed)
         marble.rl_agent = agent
 
+    cl_cfg = cfg.get("continual_learning", {})
+    if cl_cfg.get("enabled", False):
+        from dataset_loader import load_dataset
+        from continual_learning import ReplayContinualLearner
+
+        examples = []
+        if dataset_path:
+            try:
+                examples = load_dataset(dataset_path)
+            except Exception:  # pragma: no cover - best effort loading
+                examples = []
+        learner = ReplayContinualLearner(
+            marble.core,
+            marble.neuronenblitz
+            if hasattr(marble, "neuronenblitz")
+            else marble,
+            memory_size=cl_cfg.get("memory_size", 10),
+        )
+        if examples:
+            learner.train(examples, epochs=int(cl_cfg.get("epochs", 1)))
+        marble.continual_learner = learner
+
+    drl_cfg = cfg.get("dream_reinforcement_learning", {})
+    if drl_cfg.get("enabled", False):
+        from dataset_loader import load_dataset
+        from dream_reinforcement_learning import DreamReinforcementLearner
+
+        episodes = []
+        if dataset_path:
+            try:
+                episodes = load_dataset(dataset_path)
+            except Exception:  # pragma: no cover - best effort loading
+                episodes = []
+        learner = DreamReinforcementLearner(
+            marble.core,
+            marble.neuronenblitz
+            if hasattr(marble, "neuronenblitz")
+            else marble,
+            dream_cycles=drl_cfg.get("dream_cycles", 1),
+            dream_strength=drl_cfg.get("dream_strength", 0.5),
+            dream_interval=drl_cfg.get("dream_interval", 1),
+            dream_cycle_duration=drl_cfg.get("dream_cycle_duration"),
+        )
+        if episodes:
+            learner.train(episodes, repeat=int(drl_cfg.get("episodes", 1)))
+        marble.dream_rl_learner = learner
+
     adv_cfg = cfg.get("adversarial_learning", {})
     if adv_cfg.get("enabled", False):
         from adversarial_learning import AdversarialLearner

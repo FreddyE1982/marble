@@ -66,9 +66,6 @@ brain.tier_decision_params.ram_usage_threshold
 brain.tier_decision_params.vram_usage_threshold
 brain.torrent_offload_enabled
 brain.torrent_offload_threshold
-continual_learning.enabled
-continual_learning.epochs
-continual_learning.memory_size
 continuous_weight_field_learning.bandwidth
 continuous_weight_field_learning.enabled
 continuous_weight_field_learning.epochs
@@ -198,12 +195,6 @@ dataset.version_registry
 distillation.alpha
 distillation.enabled
 distillation.teacher_model
-dream_reinforcement_learning.dream_cycle_duration
-dream_reinforcement_learning.dream_cycles
-dream_reinforcement_learning.dream_interval
-dream_reinforcement_learning.dream_strength
-dream_reinforcement_learning.enabled
-dream_reinforcement_learning.episodes
 evolution.generations
 evolution.mutation_rate
 evolution.parallelism
