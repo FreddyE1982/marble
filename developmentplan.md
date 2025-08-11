@@ -78,7 +78,8 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 #### 3.5.1 Automatic encoding and tokenization
 - Implement `DataLoader` with plugin registries for custom encoders/decoders,
   compression via `DataCompressor`, optional tokenizers and full metadata
-  tracking.
+   tracking.
+- For unregistered types, pickle the object and store its module and class metadata so arbitrary Python objects can be restored.
 - Encoding transforms an object \(o\) into bytes
   \(b = \text{compressor.compress}(\text{pickle}(o))\), converts to tensors via
   `np.frombuffer`, and decodes by inverting these steps.
