@@ -684,13 +684,11 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Attention utilities provide `GatingLayer` (modes `sine` and `chaos`), `generate_causal_mask`, `benchmark_mask_overhead`, and Plotly `mask_figure`/`gate_figure` that accept tensors from CPU or GPU.
 - MetricsVisualizer streams metrics to TensorBoard, CSV and JSON logs, supports `color_scheme`, custom `dpi`, optional neuron-id annotations (`show_neuron_ids`), records metrics such as `meta_loss_avg` and triggers scheduled backups. Setting `MARBLE_DISABLE_METRICS=1` disables MetricsVisualizer.
 
-### 8.9 Command-line interface
-- Add `highlevel_pipeline_cli` for checkpoint/resume operations with device selection and dataset version metadata.
-- Provide `pipeline_cli` that loads pipeline JSON, reads `--config` YAML and passes `cache_dir` and `default_step_memory_limit_mb` to `Pipeline.execute`, exiting with code 0.
-- Build `cli.py` supporting configuration overrides, dataset loading, training,
-  evaluation, pipeline execution, hyperparameter grid search via YAML files, core export, learning-rate scheduler overrides and configuration synchronization.
-- Expose options for learning-rate schedulers (with `--lr-scheduler` and `--scheduler-gamma`), parallel wanderers, cross-validation, quantization, unified learning, remote retry/backoff, message-passing benchmarks and sync interval overrides (`--sync-interval-ms`).
-- `--help` output must describe all commands and print "MARBLE command line interface" header.
+### 8.9 Pipeline command-line tools
+- Build light-weight interfaces (`highlevel_pipeline_cli`, `pipeline_cli`) that wrap the pipeline framework from §6.1, enabling checkpoint/resume operations with device selection, dataset version metadata and graceful exit codes.
+- Ensure `cli.py` can invoke these tools with configuration overrides, dataset loading, training and evaluation hooks, hyperparameter grid search via YAML files and core export. It must support learning-rate scheduler overrides and configuration synchronization.
+- Provide flags for learning-rate schedulers (`--lr-scheduler`, `--scheduler-gamma`), parallel wanderers, cross-validation, quantization, unified learning, remote retry/backoff, message‑passing benchmarks and sync interval overrides (`--sync-interval-ms`).
+- The `--help` output must enumerate all commands under a "MARBLE command line interface" header.
 
 
 ### 8.10 Model conversion and compression
@@ -751,8 +749,8 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Build RESTful `web_api` offering dataset management, training control, metrics retrieval and health checks; integrate authentication and CORS.
 - Expose `web_search_tool` to query external sources and feed results back into pipelines via `ToolManagerPlugin`.
 
-### 8.19 Command-line interface
-- `cli.py` exposes `--config` to supply a YAML file and `--pipeline` to run a JSON function sequence created by `save_pipeline_to_json`.
+### 8.19 Comprehensive command-line interface
+- Extend the pipeline tools from §8.9 into a full-featured CLI: `cli.py` exposes `--config` to supply a YAML file and `--pipeline` to run JSON function sequences created by `save_pipeline_to_json`.
 - `--quantize <bits>` overrides `core.quantization_bits` before model creation, allowing on-the-fly weight quantization.
 - Provide config utilities for headless workflows: `load_config_text`/`save_config_text` with backups, interactive `render_config_editor`, pipeline step serialization (`step_to_json`, `step_to_csv`), graph visualisation (`core_to_networkx`, `core_figure`), metrics inspectors (`metrics_dataframe`, `metrics_figure`, `system_stats`, `core_statistics`, `core_weight_matrix`).
 - Supply dataset inspection and browsing commands mirroring the former playground's "Dataset Browser"; preview CSV/JSON/zip files, inspect individual samples, render bit-level visualisations and expose dataset history operations (`list_history`, `undo_cmd`, `redo_cmd`, `revert_cmd`).
