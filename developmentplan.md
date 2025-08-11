@@ -33,7 +33,9 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Instantiate MetaParameterController (history_length, adjustment, min_threshold, max_threshold) and NeuromodulatorySystem with initial context values.
 - Build MemorySystem with `long_term_path`, consolidation `threshold`, `consolidation_interval` and optional hybrid memory parameters.
 - DataCompressor settings: `compression_level`, `compression_enabled`, `sparse_threshold`, `quantization_bits` and optional delta encoding.
-- DataLoader parameters: tensor dtype, metadata tracking, round-trip verification/penalty and tokenizer type/json/vocab_size.
+- DataLoader parameters: tensor dtype, metadata tracking, automatic
+  encode/decode/tokenization with round-trip verification/penalty and
+  tokenizer type/json/vocab_size.
 - Network components: `RemoteBrainClient`, `RemoteBrainServer`, torrent client/tracker and remote tier plugins.
 - Metrics visualizer and optional Kùzu experiment/topology trackers.
 - Optional modules activated through config: predictive_coding, tool_manager, tensor_sync_service, unified_learning, global_workspace, attention_codelets, conceptual_integration, theory_of_mind and weight quantization.
@@ -76,6 +78,14 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Implement dataset loader, replication, watcher, streaming datasets, encryption and versioning.
 - Provide dataset cache server and history CLI.
 - PreprocessingPipeline applies sequential preprocessing steps, caches by dataset hash and can tokenize via DataLoader.
+- DataLoader and dataset utilities must automatically encode, decode and tokenize
+  arbitrary data. Implement symmetric conversions
+  `object_to_bytes`/`bytes_to_object` and
+  `bytes_to_tensors`/`tensors_to_bytes` with round-trip verification and
+  metadata tracking. Integrate `tokenizer_utils` so text streams are tokenized
+  using built-in or freshly trained tokenizers and ensure any iterable of
+  Python objects can be converted to bit tensors and back without information
+  loss.
 - RemoteWorkerPool executes preprocessing functions in daemon processes via Pipes, retries failed jobs and restarts dead workers.
 - Rebuild `BitTensorDataset` with
   - `DatasetPair` container and `augment_bit_tensor` for random bit flips and noise
@@ -151,7 +161,23 @@ This document enumerates every step required to rebuild MARBLE from scratch with
   \(d = \text{dream\_synapse\_decay} (1 + s_a \cdot \text{arousal})(1 - s_s \cdot \text{stress})\).
 - Expose `maybe_autonomous_neurogenesis` triggering growth with probability
   \(p = \text{auto\_neurogenesis\_prob} \cdot \min(1, \text{val\_loss})\).
--- Training orchestration:
+### 3.7 Theory of Mind module
+- Define `ToMInput` dataclass carrying agent id, character id, observation
+  sequences and belief-state tensors with validation helpers.
+- Implement `ToMModule` belief memory with key and value slots and multi-hop
+  attention \(q_{t+1}=q_t + \text{softmax}(K q_t)V\).
+- Provide `CharacterModel` LSTM and `TheoryOfMind` container managing
+  per-character models and mismatch records.
+- Observation processing:
+  1. Write beliefs to memory.
+  2. Retrieve beliefs, compute mismatch \(m = \mathrm{mean}[(r-v)^2]\) and
+     store cases above `mismatch_threshold`.
+  3. Predict next observation and log error
+     \(e = \mathrm{mean}[(\hat{o} - o_{-1})^2]\) to Neuronenblitz.
+  4. Publish predictions through `global_workspace`.
+- Provide `get_mismatches`, JSON `save_mismatches`, forward `predict` and an
+  `activate` helper attaching the module to MARBLE.
+### 3.8 Training orchestration:
   - Each epoch: call `update_neurogenesis_factor(val_loss)` then
     `maybe_autonomous_neurogenesis(val_loss)` to adapt growth.
   - Optional pretraining epochs using identity targets.
@@ -442,6 +468,9 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
    8. Extract MARBLE instances and decode training pairs using `_extract_marble` and `_train_neuronenblitz`.
    9. Provide public interfaces `execute`, `execute_async`, `execute_stream`, `run_step`, `run_step_async`, `execute_until`, `execute_until_async`, `execute_from`, `execute_from_async`, `execute_range`, `execute_range_async` and `summary`.
    10. Serialise pipelines with `save_json`, `to_json`, `load_json`, `from_json` and checkpoint via `save_checkpoint`/`load_checkpoint`.
+   11. Enable step freezing/unfreezing (`freeze_step`/`defrost_step`),
+       per-step benchmarking with `MetricsVisualizer`, neuron/synapse
+       preallocation and progress broadcast through `global_workspace`.
 2. Implement `pipeline_cli`, `pipeline_schema` and example workflows.
 3. Incorporate `BranchContainer` to execute sub-pipelines concurrently with device-aware scheduling, GPU memory checks and optional concurrency limits.
 

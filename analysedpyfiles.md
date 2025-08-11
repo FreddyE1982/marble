@@ -499,7 +499,7 @@ tests/test_performance.py: lines=12, functions=1, classes=0
 tests/test_pipeline_branching.py: lines=28, functions=2, classes=0
 tests/test_pipeline_cache.py: lines=31, functions=2, classes=0
 tests/test_pipeline_cache_stress.py: lines=39, functions=4, classes=0
-tests/test_pipeline_class.py: lines=69, functions=5, classes=0
+tests/test_pipeline_class.py: lines=69, functions=5, classes=0, lines_read=69
 tests/test_pipeline_cli.py: lines=24, functions=1, classes=0
 tests/test_pipeline_cli_config.py: lines=30, functions=2, classes=0
 tests/test_pipeline_dependency_integration.py: lines=36, functions=3, classes=0
@@ -601,8 +601,8 @@ tests/test_web_api.py: lines=113, functions=5, classes=0
 tests/test_web_search_tool.py: lines=26, functions=2, classes=0
 tests/test_weight_init_strategies.py: lines=26, functions=3, classes=0
 tests/test_workflow_template_generator.py: lines=33, functions=4, classes=0
-theory_of_mind.py: lines=285, functions=4, classes=4
-tokenizer_utils.py: lines=84, functions=7, classes=0
+theory_of_mind.py: lines=285, functions=4, classes=4, lines_read=285
+tokenizer_utils.py: lines=84, functions=7, classes=0, lines_read=84
 tool_manager_plugin.py: lines=135, functions=1, classes=2, lines_read=135
 tool_plugins.py: lines=84, functions=3, classes=1, lines_read=84
 topology_kuzu.py: lines=113, functions=0, classes=1, lines_read=113
