@@ -54,6 +54,8 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Recreate marble_core with Neuron, Synapse, and perform_message_passing.
 - Include structural plasticity operations, neuron/synapse type registries and weight limiting.
 - Implement MarbleBrain, MarbleLobes, MarbleGraphBuilder and GraphCache for topology management.
+- Implement tiered memory system using `TierMeta` registry with default tiers: `VramTier`, `RamTier`, `DiskTier`, `FileTier` (writes modified data to disk) and `RemoteTier` for HTTP offload.
+- Neuron parameter validation must enforce positive stride, dropout probability \(0\le p\le 1\), appropriate kernel dimensionality, non-negative padding/output_padding, non-negative `negative_slope`, positive `alpha`, and momentum \(0<m<1\).
 
 
 - Initial neuron representations seeded via Mandelbrot fractals with optional Gaussian noise.
@@ -254,9 +256,10 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
 - Loss is computed as ell = loss_fn(t, y) or via loss_module.
 
 ### 4.5 Validation and learning
-1. Compute validation scale v = validation_fn(t, y).
-2. Error e = v * ell.
-3. For each synapse with source value s and path length L:
+1. Modulate plasticity based on neuromodulators: \(reward = ctx_{reward}\cdot reward\_scale\), \(stress = ctx_{stress}\cdot stress\_scale\), \(plasticity\_threshold = \max(0.5, plasticity\_threshold - (reward - stress)\cdot plasticity\_modulation)\). Append enriched context (markers, goals, tom) to `context_history` and decay reward/stress by `reward_decay`.
+2. Compute validation scale v = validation_fn(t, y).
+3. Error e = v * ell.
+4. For each synapse with source value s and path length L:
    - Raw gradient Δ = weight_update_fn(s, e, L) (default Δ = (e·s)/(L+1)).
    - Eligibility-modulated gradient Δ' = Δ * eligibility_trace.
    - v' = β v_prev + (1-β)Δ'^2
@@ -619,6 +622,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - `DistributedTrainer` uses PyTorch DDP to average synapse weights across processes.
 - `EvolutionTrainer` explores configuration space via mutation, parallel fitness evaluation and lineage graph export.
 - ReinforcementLearning module offers GridWorld env, `MarbleQLearningAgent` with epsilon decay/Double-Q and `MarblePolicyGradientAgent` integrating Neuronenblitz outputs.
+- Interface helpers: `curriculum_train` sequencing tasks with schedule strategies, `set_dreaming` toggling dream simulation, `set_autograd` attaching `MarbleAutogradLayer`, `convert_pytorch_model` importing PyTorch weights with prediction map, `load_hf_dataset` retrieving HuggingFace samples (optionally encoding via DataLoader), and `streaming_dataset_step` yielding prefetching iterators.
 ### 8.12 Python compatibility utilities
 - `pycompat.removeprefix` and `pycompat.cached` supply Python 3.8 helpers.
 ### 8.13 Tensor backend and synchronization

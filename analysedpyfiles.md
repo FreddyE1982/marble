@@ -143,17 +143,17 @@ marble_agent.py: lines=97, functions=0, classes=1, lines_read=97
 marble_autograd.py: lines=94, functions=0, classes=3, lines_read=94
 marble_base.py: lines=322, functions=3, classes=2, lines_read=322
 marble_brain.py: lines=1207, functions=2, classes=2, lines_read=1207
-marble_core.py: lines=2294, functions=14, classes=15, lines_read=328, lines_remaining=1966
+marble_core.py: lines=2294, functions=14, classes=15, lines_read=500, lines_remaining=1794
 marble_graph_builder.py: lines=222, functions=4, classes=0, lines_read=222
 marble_imports.py: lines=35, functions=0, classes=0, lines_read=35
-marble_interface.py: lines=673, functions=40, classes=0, lines_read=200, lines_remaining=473
+marble_interface.py: lines=673, functions=40, classes=0, lines_read=350, lines_remaining=323
 marble_lobes.py: lines=63, functions=0, classes=2, lines_read=63
 marble_main.py: lines=557, functions=1, classes=1, lines_read=200, lines_remaining=357
 marble_neuronenblitz.py: lines=2, functions=0, classes=0, lines_read=2
 marble_neuronenblitz/__init__.py: lines=40, functions=0, classes=0, lines_read=40
 marble_neuronenblitz/attention_span.py: lines=49, functions=0, classes=1, lines_read=49
 marble_neuronenblitz/context_attention.py: lines=86, functions=0, classes=1, lines_read=86
-marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=200, lines_remaining=2265
+marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=520, lines_remaining=1945
 marble_neuronenblitz/learning.py: lines=219, functions=8, classes=0, lines_read=219
 marble_neuronenblitz/memory.py: lines=79, functions=2, classes=0, lines_read=79
 marble_registry.py: lines=88, functions=0, classes=1, lines_read=88
