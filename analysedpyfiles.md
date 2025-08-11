@@ -523,7 +523,7 @@ tests/test_prompt_memory.py: lines=109, functions=6, classes=0, lines_read=109
 tests/test_prompt_memory_cpu.py: lines=32, functions=2, classes=0, lines_read=32
 tests/test_pytorch_challenge.py: lines=27, functions=3, classes=0, lines_read=27
 tests/test_pytorch_conversion.py: lines=29, functions=1, classes=0, lines_read=29
-tests/test_pytorch_to_marble.py: lines=900, functions=49, classes=39, lines_read=200, lines_remaining=700
+tests/test_pytorch_to_marble.py: lines=900, functions=49, classes=39, lines_read=900
 tests/test_quantization_forward.py: lines=13, functions=1, classes=0, lines_read=13
 tests/test_quantized_tensor.py: lines=83, functions=7, classes=0, lines_read=83
 tests/test_quantum_flux_learning.py: lines=18, functions=1, classes=0, lines_read=18
@@ -560,8 +560,8 @@ tests/test_streamed_training.py: lines=22, functions=1, classes=0, lines_read=22
 tests/test_streaming_csv_loader.py: lines=25, functions=1, classes=0, lines_read=25
 tests/test_streaming_dataset_step.py: lines=97, functions=5, classes=0, lines_read=97
 tests/test_streamlit_all_buttons.py: lines=81, functions=2, classes=0, lines_read=81
-tests/test_streamlit_gui.py: lines=1158, functions=69, classes=0, lines_read=200, lines_remaining=958
-tests/test_streamlit_playground.py: lines=791, functions=46, classes=0, lines_read=120, lines_remaining=671
+tests/test_streamlit_gui.py: lines=1158, functions=69, classes=0, lines_read=400, lines_remaining=758
+tests/test_streamlit_playground.py: lines=791, functions=46, classes=0, lines_read=300, lines_remaining=491
 tests/test_streamlit_progress.py: lines=53, functions=4, classes=0, lines_read=53
 tests/test_super_evolution.py: lines=120, functions=3, classes=0, lines_read=120
 tests/test_synapse_dropout_batchnorm.py: lines=40, functions=4, classes=0, lines_read=40
@@ -622,4 +622,4 @@ workflow_template_generator.py: lines=139, functions=3, classes=0, lines_read=13
 
 Partial analyses remain for files with lines_remaining.
 
-Reverified on 2025-08-11 16:41 UTC run; no new Python files found.
+Reverified on 2025-08-11 17:17 UTC run; partial analyses remain.
