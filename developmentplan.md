@@ -45,6 +45,28 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Implement dataset loader, replication, watcher, streaming datasets, encryption and versioning.
 - Provide dataset cache server and history CLI.
 
+### 3.6 Brain coordination and neurogenesis
+- Implement `MarbleBrain` to supervise Neuronenblitz and global learning state.
+- Add neuromodulatory system providing context values (arousal, stress, reward, emotion).
+- Implement neurogenesis controller:
+  1. Compute growth factor
+     \(f = (1+\max(\text{arousal},\text{reward})) \cdot \text{neurogenesis\_factor}\).
+  2. Create \(N = \lfloor \text{base\_neurons} \cdot f \rfloor\) neurons and
+     \(S = \lfloor \text{base\_synapses} \cdot f \rfloor\) synapses.
+  3. Choose neuron types via Neuronenblitz preferred or combined attention.
+  4. Invoke `core.expand` with \(N,S\) and selected types.
+- Implement adaptive factor update:
+  \(
+  \text{neurogenesis\_factor} \leftarrow
+  \min(\text{max\_factor}, \text{factor} + \text{increase\_step})
+  \) when validation loss rises and
+  \(
+  \text{neurogenesis\_factor} \leftarrow
+  \max(1.0, \text{factor} - \text{decrease\_step})
+  \) when it drops.
+- Add autonomous trigger:
+  \(P(\text{growth}) = \text{auto\_neurogenesis\_prob} \cdot \min(1, \text{val\_loss})\).
+
 ## 4. Neuronenblitz Algorithm
 ### 4.1 Overview
 Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It performs stochastic wandering over the neural graph while adjusting synaptic weights and structure.
@@ -77,6 +99,14 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
 5. Update weight with decay and clipping:
    w' = clip(w + delta_w - weight_decay * w, -weight_limit, weight_limit).
 
+6. GPU path uses CUDA kernel:
+   \(\delta = (e \cdot s) / (L+1)\),
+   accumulated via RMSProp and momentum
+   \(v' = \beta v + (1-\beta)\delta^2\),
+   \(m' = \mu m + \delta / \sqrt{v'+\epsilon}\),
+   \(w' = \mathrm{clip}(w + lr \cdot (\mu m' + \delta / \sqrt{v'+\epsilon}), \pm \text{cap})\),
+   \(p' = \min(\text{synapse\_potential\_cap}, p + |\delta| \cdot \text{gradient\_score\_scale})\).
+
 ### 4.6 Structural plasticity
 - For each visited synapse, with probability split_probability create alternative connection; with probability consolidation_probability increase weight by consolidation_strength.
 - Merge similar synapses if weight difference < merge_tolerance.
@@ -89,7 +119,16 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
   f' = f * fatigue_decay + fatigue_increase * activity.
 - Attention span threshold controls dynamic span module.
 
-### 4.8 Reinforcement learning integration
+### 4.8 Neurogenesis coupling
+- Neuronenblitz exposes neuron type preferences to `MarbleBrain` for growth decisions.
+- During neurogenesis, the brain queries either
+  \(t^* = \text{get\_preferred\_neuron\_type}()\) or
+  combined attention \(t^*_{comb}\) when using multiple spans.
+- Newly created neurons and synapses are initialized with representation noise
+  \(\mathcal{N}(0, \text{representation\_noise\_std})\) and weight range
+  \([\text{weight\_init\_min}, \text{weight\_init\_max}]\).
+
+### 4.9 Reinforcement learning integration
 - Q-learning weight update for state-action pair (s,a):
   Q(s,a) <- Q(s,a) + alpha * (r + gamma * max_a' Q(s',a') - Q(s,a)).
 - Epsilon scheduling:
@@ -97,7 +136,7 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
 - Discounted return for policy gradients:
   G_t = sum_{k=0}^inf gamma^k * r_{t+k+1}.
 
-### 4.9 Optimization and scheduling
+### 4.10 Optimization and scheduling
 - RMSProp accumulator for gradient g:
   v' = beta * v + (1-beta) * g^2;
   g_adj = g / sqrt(v' + grad_epsilon).
@@ -105,13 +144,13 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
   lr_{t+1} = clip(lr_t * scheduler_gamma, min_learning_rate, max_learning_rate).
 - Epsilon scheduler analogous to learning rate scheduler.
 
-### 4.10 Chaotic gating and phase adaptation
+### 4.11 Chaotic gating and phase adaptation
 - Chaotic gate using logistic map:
   c_{t+1} = chaotic_gating_param * c_t * (1 - c_t).
 - Phase update:
   phi_{t+1} = phi_t + phase_rate + phase_adaptation_rate * e.
 
-### 4.11 Experience replay and memory gating
+### 4.12 Experience replay and memory gating
 - Prioritized replay probability:
   P_i = (p_i^replay_alpha) / sum_j (p_j^replay_alpha).
 - Importance weight:
@@ -119,7 +158,7 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
 - Memory gate value:
   g' = g * memory_gate_decay + memory_gate_strength * abs(e).
 
-### 4.12 Parameter inventory
+### 4.13 Parameter inventory
 All parameters of Neuronenblitz must be exposed and exercised:
 backtrack_probability, consolidation_probability, consolidation_strength, route_potential_increase, route_potential_decay, route_visit_decay_interval, alternative_connection_prob, split_probability, merge_tolerance, combine_fn, loss_fn, loss_module, weight_update_fn, validation_fn, plasticity_threshold, continue_decay_rate, struct_weight_multiplier1, struct_weight_multiplier2, attention_decay, max_wander_depth, learning_rate, weight_decay, dropout_probability, dropout_decay_rate, exploration_decay, reward_scale, stress_scale, auto_update, dataset_path, remote_fallback, noise_injection_std, dynamic_attention_enabled, backtrack_depth_limit, synapse_update_cap, structural_plasticity_enabled, backtrack_enabled, loss_scale, exploration_bonus, synapse_potential_cap, attention_update_scale, attention_span_threshold, max_attention_span, span_module, plasticity_modulation, wander_depth_noise, reward_decay, synapse_prune_interval, gradient_prune_ratio, structural_learning_rate, remote_timeout, gradient_noise_std, min_learning_rate, max_learning_rate, top_k_paths, parallel_wanderers, parallel_update_strategy, beam_width, synaptic_fatigue_enabled, fatigue_increase, fatigue_decay, lr_adjustment_factor, lr_scheduler, scheduler_steps, scheduler_gamma, epsilon_scheduler, epsilon_scheduler_steps, epsilon_scheduler_gamma, momentum_coefficient, reinforcement_learning_enabled, rl_discount, rl_epsilon, rl_epsilon_decay, rl_min_epsilon, entropy_epsilon_enabled, shortcut_creation_threshold, use_echo_modulation, wander_cache_ttl, phase_rate, phase_adaptation_rate, chaotic_gating_enabled, chaotic_gating_param, chaotic_gate_init, context_history_size, context_embedding_decay, emergent_connection_prob, concept_association_threshold, concept_learning_rate, weight_limit, wander_cache_size, plasticity_history_size, rmsprop_beta, grad_epsilon, use_experience_replay, replay_buffer_size, replay_alpha, replay_beta, replay_batch_size, exploration_entropy_scale, exploration_entropy_shift, gradient_score_scale, memory_gate_decay, memory_gate_strength, episodic_memory_size, episodic_memory_threshold, episodic_memory_prob, curiosity_strength, depth_clip_scaling, forgetting_rate, structural_dropout_prob, gradient_path_score_scale, use_gradient_path_scoring, rms_gradient_path_scoring, activity_gate_exponent, subpath_cache_size, gradient_accumulation_steps, wander_anomaly_threshold, wander_history_size, subpath_cache_ttl, monitor_wander_factor, monitor_epsilon_factor, episodic_sim_length, use_mixed_precision, remote_client, torrent_client, torrent_map, metrics_visualizer.
 
