@@ -921,7 +921,11 @@ brain:
     entirely.
   cluster_method: Algorithm used for clustering; ``"kmeans"`` is provided but
     others may be added in future.
-  auto_save_enabled: Enables periodic saves controlled by ``auto_save_interval``.
+  auto_save_enabled: When set to ``true`` the brain persistently calls
+    ``save_model`` after a configurable number of epochs so that training
+    progress is preserved without manual intervention.  Saved models are
+    written to ``save_dir`` and the oldest files are pruned once
+    ``max_saved_models`` is exceeded.
   offload_threshold: Minimum lobe attention required before ``offload_high_attention``
     sends a subcore to the remote brain. Increasing this reduces how frequently
     offloading occurs.
@@ -947,8 +951,9 @@ brain:
     exceed, regardless of adjustments.
   cluster_k: Number of clusters created when ``cluster_neurons`` is invoked
     during training.
-  auto_save_interval: Number of epochs between automatic calls to
-    ``save_model``. ``0`` disables periodic saving.
+  auto_save_interval: Number of training epochs between automatic invocations
+    of ``save_model``.  A value of ``1`` saves after every epoch whereas ``0``
+    disables the mechanism entirely.
   backup_enabled: When true a background thread periodically copies files from
     ``save_dir`` into ``backup_dir`` so that checkpoints and logs survive
     unexpected crashes.
@@ -957,8 +962,11 @@ brain:
     may increase disk usage.
   backup_dir: Directory where backup copies are stored. Each run creates a
     timestamped subfolder inside this directory.
-  auto_firing_enabled: If true the brain starts an auto-firing thread
-    immediately after construction.
+  auto_firing_enabled: If ``true`` the brain spawns a background thread
+    immediately after construction that repeatedly feeds inputs to the network.
+    Inputs are generated randomly (or via a provided generator) every
+    ``firing_interval_ms`` milliseconds, producing a continuous stream of
+    activity.
   dream_enabled: Enables background dreaming when ``start_dreaming`` is called.
   vram_age_threshold: Age in seconds above which neurons in VRAM are considered
     old when deciding growth tiers.
@@ -975,8 +983,10 @@ brain:
   neurogenesis_interval: Number of epochs between automatic neurogenesis events.
   min_cluster_size: Minimum number of neurons required to form a cluster.
   prune_frequency: Number of epochs between automatic pruning operations.
-  auto_offload: When true, ``offload_high_attention`` runs automatically after
-    each training epoch.
+  auto_offload: Enables automatic invocation of offloading routines at the end
+    of each training epoch.  When combined with ``offload_enabled`` or
+    ``torrent_offload_enabled`` this migrates high-attention lobes to remote
+    peers without requiring manual calls.
   benchmark_enabled: Enables evaluation through ``BenchmarkManager`` at the end
     of each epoch.
   benchmark_interval: Number of epochs between automatic benchmark comparisons
