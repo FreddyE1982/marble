@@ -265,26 +265,26 @@ tests/test_auto_nb_training_loop.py: lines=57, functions=4, classes=0, lines_rea
 tests/test_autoencoder_config.py: lines=56, functions=3, classes=0, lines_read=56
 tests/test_autoencoder_learning.py: lines=24, functions=2, classes=0, lines_read=24
 tests/test_autoencoder_pipeline.py: lines=67, functions=5, classes=0, lines_read=67
-tests/test_autograd_config.py: lines=18, functions=1, classes=0
-tests/test_autograd_layer.py: lines=89, functions=4, classes=0
-tests/test_backcronym.py: lines=15, functions=1, classes=0
-tests/test_backend_equivalence.py: lines=48, functions=2, classes=0
-tests/test_backup_utils.py: lines=30, functions=2, classes=0
-tests/test_backward_compatibility.py: lines=23, functions=1, classes=0
-tests/test_benchmark_autograd_vs_marble.py: lines=50, functions=5, classes=0
-tests/test_benchmark_dream_consolidation.py: lines=18, functions=1, classes=0
-tests/test_benchmark_graph_precompile_cpu_gpu.py: lines=20, functions=1, classes=0
-tests/test_benchmark_super_evolution.py: lines=18, functions=1, classes=0
-tests/test_bit_tensor_dataset.py: lines=416, functions=37, classes=0
-tests/test_bit_tensor_streaming_dataset.py: lines=137, functions=7, classes=3
-tests/test_bit_tensor_streaming_hf_integration.py: lines=13, functions=1, classes=0
-tests/test_brain_benchmark.py: lines=25, functions=1, classes=0
-tests/test_brain_io.py: lines=147, functions=9, classes=0
-tests/test_brain_log_interval.py: lines=19, functions=1, classes=0
-tests/test_branch_container_concurrency.py: lines=43, functions=2, classes=0
-tests/test_chain_of_thought.py: lines=20, functions=1, classes=0
-tests/test_checkpoint_migration.py: lines=53, functions=2, classes=0
-tests/test_cli.py: lines=109, functions=6, classes=0
+tests/test_autograd_config.py: lines=18, functions=1, classes=0, lines_read=18
+tests/test_autograd_layer.py: lines=89, functions=4, classes=0, lines_read=89
+tests/test_backcronym.py: lines=15, functions=1, classes=0, lines_read=15
+tests/test_backend_equivalence.py: lines=48, functions=2, classes=0, lines_read=48
+tests/test_backup_utils.py: lines=30, functions=2, classes=0, lines_read=30
+tests/test_backward_compatibility.py: lines=23, functions=1, classes=0, lines_read=23
+tests/test_benchmark_autograd_vs_marble.py: lines=50, functions=5, classes=0, lines_read=50
+tests/test_benchmark_dream_consolidation.py: lines=18, functions=1, classes=0, lines_read=18
+tests/test_benchmark_graph_precompile_cpu_gpu.py: lines=20, functions=1, classes=0, lines_read=20
+tests/test_benchmark_super_evolution.py: lines=18, functions=1, classes=0, lines_read=18
+tests/test_bit_tensor_dataset.py: lines=416, functions=37, classes=0, lines_read=416
+tests/test_bit_tensor_streaming_dataset.py: lines=137, functions=7, classes=3, lines_read=137
+tests/test_bit_tensor_streaming_hf_integration.py: lines=13, functions=1, classes=0, lines_read=13
+tests/test_brain_benchmark.py: lines=25, functions=1, classes=0, lines_read=25
+tests/test_brain_io.py: lines=147, functions=9, classes=0, lines_read=147
+tests/test_brain_log_interval.py: lines=19, functions=1, classes=0, lines_read=19
+tests/test_branch_container_concurrency.py: lines=43, functions=2, classes=0, lines_read=43
+tests/test_chain_of_thought.py: lines=20, functions=1, classes=0, lines_read=20
+tests/test_checkpoint_migration.py: lines=53, functions=2, classes=0, lines_read=53
+tests/test_cli.py: lines=109, functions=6, classes=0, lines_read=109
 tests/test_cli_pipeline.py: lines=24, functions=1, classes=0
 tests/test_cli_quantize.py: lines=28, functions=1, classes=2
 tests/test_concept_association.py: lines=22, functions=1, classes=0
