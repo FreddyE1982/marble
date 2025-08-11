@@ -97,6 +97,10 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Implement dataset_watcher computing SHA256 snapshots for change detection.
 - Offer dataset_versioning and dataset_version_cli for diff, apply, switch and revert of dataset versions.
 - Support dataset_replication and dataset_sync_service to synchronize datasets across hosts using incremental diffs.
+- Implement `KuzuGraphDatabase` wrapper with context management:
+  - `create_node_table(label, columns, primary_key)` and `create_relationship_table(rel, src, dst, columns)`.
+  - CRUD helpers `add_node`, `add_relationship`, `update_node`, `delete_node`, `delete_relationship`.
+  - Generic `execute(query, parameters)` returning rows as dictionaries.
 
 ### 3.6 Brain coordination and neurogenesis
 - Add `GoalManager` maintaining goal hierarchies and reward shaping; integrate global workspace via `BroadcastMessage` queue for cross-module signalling.
@@ -120,14 +124,20 @@ This document enumerates every step required to rebuild MARBLE from scratch with
   \) when it drops.
 - Add autonomous trigger:
   \(P(\text{growth}) = \text{auto\_neurogenesis\_prob} \cdot \min(1, \text{val\_loss})\).
-- Implement resource-aware tier selection `choose_growth_tier` considering
-  VRAM/RAM usage and average neuron age; prefer VRAM unless usage exceeds
-  thresholds or neurons age beyond limits.
+- Implement resource-aware tier selection `choose_growth_tier`:
+  1. If VRAM usage ≥ `vram_limit * vram_usage_threshold` or average VRAM neuron
+     age > 300 s then
+     1. If RAM usage ≥ `ram_limit * ram_usage_threshold` or average RAM neuron
+        age > 600 s choose tier `file` (fallback `disk`).
+     2. Else choose tier `ram`.
+  2. Otherwise pick configured `default_growth_tier` (falling back to `vram`).
 - Compute dream-induced decay
   \(d = \text{dream\_synapse\_decay} (1 + s_a \cdot \text{arousal})(1 - s_s \cdot \text{stress})\).
 - Expose `maybe_autonomous_neurogenesis` triggering growth with probability
   \(p = \text{auto\_neurogenesis\_prob} \cdot \min(1, \text{val\_loss})\).
-- Training orchestration:
+-- Training orchestration:
+  - Each epoch: call `update_neurogenesis_factor(val_loss)` then
+    `maybe_autonomous_neurogenesis(val_loss)` to adapt growth.
   - Optional pretraining epochs using identity targets.
   - Graph precompilation for CUDA kernels via `precompile_simple_mlp`.
   - Epoch loop with tqdm progress, validation hooks and early stopping when
@@ -402,10 +412,22 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Gradient clipping: scale = max_grad_norm / (norm + 1e-6); parameters updated by p -= lr * grad.
 ## 6. Pipelines and Orchestration
 ### 6.1 Pipeline framework
-- Implement pipeline, pipeline_cli, pipeline_schema, highlevel_pipeline and examples.
-- Provide step registration, DAG validation and execution engine.
-- Incorporate `BranchContainer` to execute sub-pipelines concurrently with
-  device-aware scheduling, GPU memory checks and optional concurrency limits.
+1. Build `HighLevelPipeline` orchestration:
+   1. Represent each step as a dictionary storing `func`, `module` or `callable` and `params`.
+   2. Implement management operations: `add_step`, `insert_step`, `remove_step`, `move_step`, `replace_step`, `update_step_params`, `duplicate`, `get_step`, `list_steps` and `clear_steps`.
+   3. Expose module functions as pipeline steps via `_ModuleWrapper` allowing dynamic attribute access.
+   4. Register dataset argument names and default `BitTensorDataset` parameters; auto-convert iterables to `BitTensorDataset` in `_maybe_bit_dataset`.
+   5. Validate dependencies with `_build_dependency_graph` and enforce acyclic order using `_topological_sort`.
+   6. Execute steps sequentially with `_execute_steps`:
+      - handle nested `macro` pipelines and per-step caching to disk via `_cache_path`/`clear_cache`.
+      - support isolated subprocess execution and tier delegation through `TIER_REGISTRY`.
+      - automatically train `Neuronenblitz` on dataset results and enforce per-step memory limits using `psutil`.
+   7. Mirror semantics in `_execute_steps_async` leveraging `asyncio` and thread executors for synchronous and asynchronous functions.
+   8. Extract MARBLE instances and decode training pairs using `_extract_marble` and `_train_neuronenblitz`.
+   9. Provide public interfaces `execute`, `execute_async`, `execute_stream`, `run_step`, `run_step_async`, `execute_until`, `execute_until_async`, `execute_from`, `execute_from_async`, `execute_range`, `execute_range_async` and `summary`.
+   10. Serialise pipelines with `save_json`, `to_json`, `load_json`, `from_json` and checkpoint via `save_checkpoint`/`load_checkpoint`.
+2. Implement `pipeline_cli`, `pipeline_schema` and example workflows.
+3. Incorporate `BranchContainer` to execute sub-pipelines concurrently with device-aware scheduling, GPU memory checks and optional concurrency limits.
 
 ### 6.2 Scheduler plugins
 - Implement plugin interface for custom schedulers such as dream_scheduler and remote_worker_pool.

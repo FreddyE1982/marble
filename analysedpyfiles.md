@@ -125,7 +125,7 @@ harmonic_resonance_pairs_pipeline.py: lines=72, functions=0, classes=1, lines_re
 hebbian_learning.py: lines=41, functions=0, classes=1, lines_read=41
 hebbian_pipeline.py: lines=61, functions=0, classes=1, lines_read=61
 hierarchical_rl.py: lines=37, functions=0, classes=2, lines_read=37
-highlevel_pipeline.py: lines=951, functions=0, classes=2, lines_read=80, lines_remaining=871
+highlevel_pipeline.py: lines=951, functions=0, classes=2, lines_read=951
 highlevel_pipeline_cli.py: lines=66, functions=3, classes=0, lines_read=66
 huggingface_utils.py: lines=80, functions=5, classes=0, lines_read=80
 hybrid_memory.py: lines=160, functions=0, classes=3, lines_read=160
@@ -133,7 +133,7 @@ hyperparameter_search.py: lines=46, functions=2, classes=0, lines_read=46
 imitation_learning.py: lines=40, functions=0, classes=1, lines_read=40
 imitation_pairs_pipeline.py: lines=66, functions=0, classes=1, lines_read=66
 install.py: lines=29, functions=1, classes=0, lines_read=29
-kuzu_interface.py: lines=175, functions=0, classes=1, lines_read=80, lines_remaining=95
+kuzu_interface.py: lines=175, functions=0, classes=1, lines_read=175
 kuzu_memory_tier.py: lines=105, functions=0, classes=1
 learning_plugins.py: lines=84, functions=3, classes=1
 logging_utils.py: lines=100, functions=1, classes=1
