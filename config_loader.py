@@ -177,7 +177,9 @@ def create_marble_from_config(
     autograd_params = cfg.get("autograd", {})
     gw_cfg = cfg.get("global_workspace", {})
     ac_cfg = cfg.get("attention_codelets", {})
+    ci_cfg = cfg.get("conceptual_integration", {})
     ul_cfg = cfg.get("unified_learning", {})
+    tom_cfg = cfg.get("theory_of_mind", {})
     pytorch_challenge_params = cfg.get("pytorch_challenge", {})
     gpt_cfg = cfg.get("gpt", {})
 
@@ -349,6 +351,29 @@ def create_marble_from_config(
         activate_codelets(
             coalition_size=ac_cfg.get("coalition_size", 1),
             salience_weight=core_params.get("salience_weight", 1.0),
+        )
+    if ci_cfg.get("enabled", False):
+        from conceptual_integration import ConceptualIntegrationLearner
+
+        nb_inst = marble.neuronenblitz if hasattr(marble, "neuronenblitz") else marble
+        marble.conceptual_integration = ConceptualIntegrationLearner(
+            marble.core,
+            nb_inst,
+            blend_probability=ci_cfg.get("blend_probability", 0.1),
+            similarity_threshold=ci_cfg.get("similarity_threshold", 0.3),
+        )
+    if tom_cfg:
+        from theory_of_mind import activate as activate_tom
+
+        nb_inst = marble.neuronenblitz if hasattr(marble, "neuronenblitz") else marble
+        marble.theory_of_mind = activate_tom(
+            nb_inst,
+            hidden_size=tom_cfg.get("hidden_size", 16),
+            num_layers=tom_cfg.get("num_layers", 1),
+            prediction_horizon=tom_cfg.get("prediction_horizon", 1),
+            memory_slots=tom_cfg.get("memory_slots", 16),
+            attention_hops=tom_cfg.get("attention_hops", 1),
+            mismatch_threshold=tom_cfg.get("mismatch_threshold", 0.1),
         )
     if qbits:
         from model_quantization import quantize_core_weights
