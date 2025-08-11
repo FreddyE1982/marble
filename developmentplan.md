@@ -90,7 +90,8 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - `interconnect_cores` merges multiple cores and optionally creates cross-core synapses based on interconnection probability.
 - Ensure backend equivalence where Mandelbrot seed generation and message passing yield identical results on NumPy and JAX backends.
 - Expose comprehensive initialization parameters controlling exploration and plasticity, including backtrack probability, consolidation strength and decay, alternative connection probability, split probability, merge tolerance, learning rate and weight decay bounds, dropout probability with decay, exploration bonus and decay, reward and stress scaling, auto-update and remote fallback options, noise injection, dynamic attention toggles, backtrack depth limits, synapse update caps, structural plasticity flags, gradient noise, learning-rate/epsilon schedulers with min/max values, and caches for wander results and plasticity history.
-- Neuronenblitz maintains a neuromodulatory context history (`update_context`, `log_hot_marker`) with decay and forgetting, produces context embeddings, decays synaptic fatigues and visit counts, records prioritized experience replay (`add_to_replay`, `sample_replay_batch`), computes path entropy, ranks paths by RMSProp gradient scores or absolute gradients, and adjusts exploration dropout via entropy-based schedules.
+- Neuronenblitz maintains a neuromodulatory context history (`update_context`, `log_hot_marker`) with decay and forgetting, produces context embeddings, decays synaptic fatigues and visit counts, records prioritized experience replay (`add_to_replay`, `sample_replay_batch`) with priorities p_i=|δ_i|, sampling probabilities P(i)=p_i^α/Σ_j p_j^α and importance weights w_i=((N·P(i))^{-β})/max_j((N·P(j))^{-β}), computes path entropy, ranks paths by RMSProp gradient scores or absolute gradients, and adjusts exploration dropout via entropy-based schedules.
+- Active forgetting decays stored context entries by forgetting_rate and fatigue/visit counters via syn.update_fatigue(0, fatigue_decay) and syn.visit_count *= 0.95.
 - Eligibility traces with decay guide synaptic updates; learning rate schedulers (`cosine`, `exponential`, `cyclic`) and epsilon schedulers (`cosine`, `exponential`, `linear`, `cyclic`) adjust exploration; `adjust_dropout_rate` adapts dropout probability, `_cache_subpaths` stores wander prefixes with TTL, `detect_wandering_anomaly` flags outlier path lengths, and `clip_gradient` enforces `gradient_clip_value`.
 - `weighted_choice` computes probabilities p_i = exp(s_i) / Σ_j exp(s_j) with scores combining fatigue (1 - f), attention (1 + attention_score), novelty penalty 1/(1+visit_count), curiosity (1 + curiosity_strength/(1+visit_count)), context similarity 1 + cos(target_rep, context_vec) and memory gating factors.
 - `_wander` recursively explores synapses with split and dropout probabilities, caches subpaths, updates echo and fatigue, increases synapse potential by `route_potential_increase` plus `exploration_bonus` when potential < 1, supports remote/torrent execution with optional fallback, and probabilistic backtracking capped by `backtrack_depth_limit`.
@@ -330,9 +331,10 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
    - score = |e|*|w|/max(L,1)*(1+memory_gate)
 4. Accumulate updates for gradient_accumulation_steps then apply and optionally weight_decay.
 5. Store paths with error below episodic_memory_threshold into episodic_memory.
-6. GPU path uses kernel nb_apply_launcher implementing the same operations in parallel.
-7. After each training step decay memory gates:
-   gate_s <- gate_s * memory_gate_decay; remove gates when gate_s < 1e-6.
+6. With probability episodic_memory_prob, replay up to episodic_sim_length steps from stored paths (`bias_with_episodic_memory`).
+7. GPU path uses kernel nb_apply_launcher implementing the same operations in parallel.
+8. After each training step decay memory gates:
+   gate_s <- gate_s * memory_gate_decay; remove gates when gate_s < 1e-6. Memory gates initialise at memory_gate_strength when a synapse is gated.
 
 ### 4.6 Structural plasticity
 - For each traversed synapse with potential ≥ plasticity_threshold and dropout check passed:
@@ -756,12 +758,10 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Expose `web_search_tool` to query external sources and feed results back into pipelines via `ToolManagerPlugin`.
 
 ### 8.19 Command-line interface
-- `cli.py` exposes `--config` to supply a YAML file and `--pipeline` to run a
-  JSON function sequence created by `save_pipeline_to_json`.
-- `--quantize <bits>` overrides `core.quantization_bits` before model
-  creation, allowing on-the-fly weight quantization.
-- Tests validate that a minimal configuration executes `count_marble_synapses`
-  and that quantization flags are forwarded correctly.
+- `cli.py` exposes `--config` to supply a YAML file and `--pipeline` to run a JSON function sequence created by `save_pipeline_to_json`.
+- `--quantize <bits>` overrides `core.quantization_bits` before model creation, allowing on-the-fly weight quantization.
+- Provide config utilities for headless workflows: `load_config_text`/`save_config_text` with backups, interactive `render_config_editor`, pipeline step serialization (`step_to_json`, `step_to_csv`), graph visualisation (`core_to_networkx`, `core_figure`), metrics inspectors (`metrics_dataframe`, `metrics_figure`, `system_stats`, `core_statistics`, `core_weight_matrix`).
+- Tests validate that a minimal configuration executes `count_marble_synapses` and that quantization flags are forwarded correctly.
 - The former Streamlit playground is intentionally omitted; all interaction occurs through CLI and APIs.
 
 ### 8.20 Plugin ecosystem
@@ -787,6 +787,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ## 9. Testing and Validation
 ### 9.1 Unit tests
 - Write pytest suites for every module and parameter combination.
+- Verify configuration sections enable corresponding trainers (reinforcement, continual, semi-supervised, dream reinforcement, quantum flux, synaptic echo, fractal dimension).
 - Ensure tests cover CPU and GPU execution paths.
 - Run `run_cpu_fallback_tests` with CUDA disabled to verify CPU-only behaviour for all test files.
 - Generate `cpu_fallback_report.md` via `catalog_cpu_fallback_tests` to track CUDA modules missing CPU tests.

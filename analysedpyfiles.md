@@ -153,7 +153,7 @@ marble_neuronenblitz.py: lines=2, functions=0, classes=0, lines_read=2
 marble_neuronenblitz/__init__.py: lines=40, functions=0, classes=0, lines_read=40
 marble_neuronenblitz/attention_span.py: lines=49, functions=0, classes=1, lines_read=49
 marble_neuronenblitz/context_attention.py: lines=86, functions=0, classes=1, lines_read=86
-marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=200, lines_remaining=2265
+marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=800, lines_remaining=1665
 marble_neuronenblitz/learning.py: lines=219, functions=8, classes=0, lines_read=219
 marble_neuronenblitz/memory.py: lines=79, functions=2, classes=0, lines_read=79
 marble_registry.py: lines=88, functions=0, classes=1, lines_read=88
@@ -226,7 +226,7 @@ shared_vocab.py: lines=48, functions=1, classes=0, lines_read=48
 soft_actor_critic.py: lines=99, functions=2, classes=2, lines_read=99
 sparse_utils.py: lines=49, functions=4, classes=0, lines_read=49
 streaming_dataset_step.py: lines=120, functions=0, classes=1, lines_read=120
-streamlit_playground.py: lines=3246, functions=104, classes=0, lines_read=800, lines_remaining=2446
+streamlit_playground.py: lines=3246, functions=104, classes=0, lines_read=1000, lines_remaining=2246
 super_evolution_controller.py: lines=158, functions=0, classes=1, lines_read=158
 synaptic_echo_learning.py: lines=26, functions=0, classes=1, lines_read=26
 synthetic_dataset.py: lines=31, functions=2, classes=0, lines_read=31
@@ -291,20 +291,20 @@ tests/test_concept_association.py: lines=22, functions=1, classes=0, lines_read=
 tests/test_conceptual_integration.py: lines=18, functions=1, classes=0, lines_read=18, lines_remaining=0
 tests/test_conceptual_integration_pipeline.py: lines=67, functions=5, classes=0, lines_read=67, lines_remaining=0
 tests/test_config.py: lines=293, functions=11, classes=0, lines_read=0, lines_remaining=293
-tests/test_config_additional.py: lines=15, functions=1, classes=0, lines_read=0, lines_remaining=15
-tests/test_config_editor.py: lines=27, functions=3, classes=0, lines_read=0, lines_remaining=27
-tests/test_config_federated_learning.py: lines=12, functions=1, classes=0, lines_read=0, lines_remaining=12
-tests/test_config_generator.py: lines=16, functions=1, classes=0, lines_read=0, lines_remaining=16
-tests/test_config_sync.py: lines=11, functions=1, classes=0, lines_read=0, lines_remaining=11
-tests/test_config_sync_service.py: lines=19, functions=1, classes=0, lines_read=0, lines_remaining=19
-tests/test_config_trainers.py: lines=104, functions=8, classes=0, lines_read=0, lines_remaining=104
-tests/test_config_training_benchmark.py: lines=26, functions=1, classes=0, lines_read=0, lines_remaining=26
-tests/test_context_attention.py: lines=43, functions=4, classes=0, lines_read=0, lines_remaining=43
-tests/test_continual_learning.py: lines=27, functions=2, classes=0, lines_read=0, lines_remaining=27
-tests/test_continuous_weight_field_learning.py: lines=17, functions=1, classes=0, lines_read=0, lines_remaining=17
-tests/test_contrastive_learning.py: lines=17, functions=1, classes=0, lines_read=0, lines_remaining=17
-tests/test_contrastive_pipeline.py: lines=67, functions=5, classes=0, lines_read=0, lines_remaining=67
-tests/test_convenience_functions.py: lines=194, functions=22, classes=0, lines_read=0, lines_remaining=194
+tests/test_config_additional.py: lines=15, functions=1, classes=0, lines_read=15, lines_remaining=0
+tests/test_config_editor.py: lines=27, functions=3, classes=0, lines_read=27, lines_remaining=0
+tests/test_config_federated_learning.py: lines=12, functions=1, classes=0, lines_read=12, lines_remaining=0
+tests/test_config_generator.py: lines=16, functions=1, classes=0, lines_read=16, lines_remaining=0
+tests/test_config_sync.py: lines=11, functions=1, classes=0, lines_read=11, lines_remaining=0
+tests/test_config_sync_service.py: lines=19, functions=1, classes=0, lines_read=19, lines_remaining=0
+tests/test_config_trainers.py: lines=104, functions=8, classes=0, lines_read=104, lines_remaining=0
+tests/test_config_training_benchmark.py: lines=26, functions=1, classes=0, lines_read=26, lines_remaining=0
+tests/test_context_attention.py: lines=43, functions=4, classes=0, lines_read=43, lines_remaining=0
+tests/test_continual_learning.py: lines=27, functions=2, classes=0, lines_read=27, lines_remaining=0
+tests/test_continuous_weight_field_learning.py: lines=17, functions=1, classes=0, lines_read=17, lines_remaining=0
+tests/test_contrastive_learning.py: lines=17, functions=1, classes=0, lines_read=17, lines_remaining=0
+tests/test_contrastive_pipeline.py: lines=67, functions=5, classes=0, lines_read=67, lines_remaining=0
+tests/test_convenience_functions.py: lines=194, functions=22, classes=0, lines_read=194, lines_remaining=0
 tests/test_conversion_roundtrip.py: lines=37, functions=1, classes=1, lines_read=0, lines_remaining=37
 tests/test_convert_model_cli.py: lines=121, functions=5, classes=1, lines_read=0, lines_remaining=121
 tests/test_convert_model_graph_html.py: lines=33, functions=2, classes=0, lines_read=0, lines_remaining=33
@@ -518,7 +518,7 @@ tests/test_remote_hardware_plugin.py: lines=25, functions=1, classes=1, lines_re
 tests/test_remote_latency.py: lines=21, functions=1, classes=0, lines_read=21
 tests/test_remote_offloading.py: lines=208, functions=9, classes=0, lines_read=208
 tests/test_remote_step_scheduling.py: lines=50, functions=3, classes=0, lines_read=50
-tests/test_remote_wanderer_connectivity.py: lines=50, functions=2, classes=0, lines_read=60
+tests/test_remote_wanderer_connectivity.py: lines=50, functions=2, classes=0, lines_read=50, lines_remaining=0
 tests/test_remote_wanderer_integration.py: lines=60, functions=3, classes=0, lines_read=60
 tests/test_remote_wanderer_latency.py: lines=25, functions=2, classes=0, lines_read=25
 tests/test_remote_wanderer_messages.py: lines=42, functions=2, classes=0, lines_read=42
