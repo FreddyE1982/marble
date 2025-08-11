@@ -78,11 +78,15 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
 ### 4.3 Dynamic wander algorithm
 1. Start from a given neuron; set depth d = 0.
 2. At each step choose among outgoing synapses using potential scores p_s and exploration noise:
-   P(s_i) = exp(p_s_i / tau) / sum_j exp(p_s_j / tau).
+   P(s_i) = e^{p_{s_i}/\tau} / \sum_j e^{p_{s_j}/\tau}.
 3. Update route potential for traversed synapse:
-   p' = p * route_potential_decay + route_potential_increase.
+   p' = \min(cap, p * route_potential_decay + route_potential_increase).
 4. Track depth and terminate when d >= max_wander_depth or target reached.
-5. Optionally backtrack with probability backtrack_probability up to backtrack_depth_limit.
+5. With probability backtrack_probability and depth < backtrack_depth_limit, backtrack one step and retry.
+6. Apply dropout by removing each candidate synapse with probability dropout_probability.
+7. Bias initial path via episodic memory replay for up to episodic_sim_length steps.
+8. Optionally perform beam search of width b to keep top-b paths scored by cumulative potential and novelty.
+9. Cache explored subpaths with resulting neuron values for reuse in later wanders.
 
 ### 4.4 Output computation
 - Each neuron's output is computed by applying combine_fn over inputs x and weights w:
@@ -92,26 +96,34 @@ Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It p
 ### 4.5 Validation and learning
 1. Compute validation scale v = validation_fn(t, y).
 2. Error e = v * ell.
-3. Weight update contribution for a synapse on path length L:
-   delta_w = learning_rate * weight_update_fn(s, e, L).
-   Default delta_w = learning_rate * (e * s) / (L + 1).
-4. Apply dropout with probability dropout_probability (decayed per step).
-5. Update weight with decay and clipping:
-   w' = clip(w + delta_w - weight_decay * w, -weight_limit, weight_limit).
-
-6. GPU path uses CUDA kernel:
-   \(\delta = (e \cdot s) / (L+1)\),
-   accumulated via RMSProp and momentum
-   \(v' = \beta v + (1-\beta)\delta^2\),
-   \(m' = \mu m + \delta / \sqrt{v'+\epsilon}\),
-   \(w' = \mathrm{clip}(w + lr \cdot (\mu m' + \delta / \sqrt{v'+\epsilon}), \pm \text{cap})\),
-   \(p' = \min(\text{synapse\_potential\_cap}, p + |\delta| \cdot \text{gradient\_score\_scale})\).
+3. For each synapse with source value s and path length L:
+   - Raw gradient Δ = weight_update_fn(s, e, L) (default Δ = (e·s)/(L+1)).
+   - Eligibility-modulated gradient Δ' = Δ * eligibility_trace.
+   - v' = β v_prev + (1-β)Δ'^2
+   - scaled = Δ'/√(v'+ε)
+   - m' = μ m_prev + scaled
+   - update = lr*(μ m' + scaled)
+   - phase_factor = cos(φ_syn - φ_global); if chaotic gating enabled multiply by g(t)
+   - fatigue gate = max(0, 1 - fatigue)
+   - activity gate = 1/(1 + visit_count^{activity_gate_exponent})
+   - update *= phase_factor * fatigue_gate * activity_gate
+   - cap = synapse_update_cap / (1 + depth_clip_scaling*(L/max_wander_depth))
+   - w ← clip(w + update, ±weight_limit)
+   - potential ← min(synapse_potential_cap, potential + |scaled|*gradient_score_scale)
+   - score = |e|*|w|/max(L,1)*(1+memory_gate)
+4. Accumulate updates for gradient_accumulation_steps then apply and optionally weight_decay.
+5. Store paths with error below episodic_memory_threshold into episodic_memory.
+6. GPU path uses kernel nb_apply_launcher implementing the same operations in parallel.
 
 ### 4.6 Structural plasticity
-- For each visited synapse, with probability split_probability create alternative connection; with probability consolidation_probability increase weight by consolidation_strength.
+- For each traversed synapse with potential ≥ plasticity_threshold and dropout check passed:
+  - Create new neuron with representation (source.rep + target.rep)/2 and tier promotion (vram→ram→disk).
+  - w1 = syn.weight * struct_weight_multiplier1 * mod * structural_learning_rate * (1 + rep_sim).
+  - w2 = syn.weight * struct_weight_multiplier2 * mod * structural_learning_rate * (1 + rep_sim).
+  - Add synapse source→new_id with weight w1 and new_id→target with weight w2.
+  - Remove original synapse and log event with timestamp and potential.
 - Merge similar synapses if weight difference < merge_tolerance.
 - Prune synapses every synapse_prune_interval steps when potential < synapse_potential_cap.
-
 ### 4.7 Attention and fatigue
 - Update type-specific attention:
   a' = a * attention_decay + attention_update_scale * activity.
@@ -200,9 +212,11 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Continual learning with elastic weight consolidation: penalty sum_i (lambda/2) * F_i * (theta_i - theta_i_star)^2.
 
 ### 5.7 Adversarial and Fractal Learners
-- GAN objective: min_G max_D E_{x~p_data}[log D(x)] + E_{z~p_z}[log(1 - D(G(z)))].
-- Fractal dimension learning using correlation dimension D2 = lim_{r->0} (log C(r) / log r).
-
+- GAN objective: \(\min_G \max_D E_{x\sim p_{data}}[\log D(x)] + E_{z\sim p_z}[\log(1 - D(G(z)))]\).
+- FGSM adversarial examples: x_adv = x + \epsilon \cdot \mathrm{sign}(\nabla_x L(model(x), y)).
+- FGSMDataset wraps datasets to generate x_adv on-the-fly; training loop updates discriminator and generator via Neuronenblitz dynamic_wander.
+- Adversarial training loop for PyTorch models perturbs inputs and trains on (x_adv, y).
+- Fractal dimension learning uses correlation dimension \(D_2 = \lim_{r\to 0} \frac{\log C(r)}{\log r}\).
 ### 5.8 Harmonic Resonance and Quantum Flux
 - Harmonic resonance loss using Fourier transforms to match frequency spectra.
 - Quantum flux learning uses complex-valued amplitudes with unitary constraint U^dagger U = I.
@@ -231,6 +245,12 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - N-dimensional topology learner embeds neurons in \(d\)-dimensional space and optimises attention threshold \(\alpha\) s.t. loss decreases by > loss_improve_threshold within stagnation_epochs.
 - Unified learning combines gated learners with log mixture objective: \(L = \log\sum_i g_i e^{-L_i}\) where gating weights \(g_i\) are softmax outputs.
 
+### 5.14 Advanced GPT model
+- Custom autograd Tensor class with operations (+, *, @, tanh, reshape, transpose).
+- Transformer decoder uses self-attention with mask and feed-forward layers.
+- Training loop computes cross-entropy and optional KL-divergence distillation:
+  L = CE(logits, target) + distill_alpha * KL(softmax(logits) || prev_logits).
+- Gradient clipping: scale = max_grad_norm / (norm + 1e-6); parameters updated by p -= lr * grad.
 ## 6. Pipelines and Orchestration
 ### 6.1 Pipeline framework
 - Implement pipeline, pipeline_cli, pipeline_schema, highlevel_pipeline and examples.
@@ -248,7 +268,12 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Implement episodic_simulation, dream_replay_buffer, dream_scheduler and reinforcement consolidation.
 
 ### 7.2 Prompt and attention codelets
-- Implement prompt_memory, attention_codelets, attention_utils for managing context and focus.
+- Implement prompt_memory, attention_codelets and attention_utils:
+  - Codelets return AttentionProposal(score, content).
+  - Form coalition by softmaxing scores (plus optional salience and workspace gates) and selecting top-k.
+  - Winning proposals broadcast via global workspace or direct broadcast_coalition.
+  - GatingLayer modulates attention weights using sine, chaotic logistic map x_{n+1}=r x_n(1-x_n) or episodic memory reward.
+  - DynamicSpanModule selects attention spans where cumulative softmax ≤ threshold, enforcing max_span.
 
 ### 7.3 Self-monitoring and metrics
 - Integrate self_monitoring and metrics_dashboard to track errors, wander anomalies and plasticity history.
@@ -281,6 +306,11 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 8.6 Remote interaction modules
 - Implement remote_wanderer, remote_offload, remote_hardware interface and mcp_server/tool_bridge.
 - Provide web_api endpoints and database_query_tool for external control.
+### 8.7 Asynchronous training utilities
+- async_transform dispatches data tasks via scheduler plugins on CPU/GPU.
+- AsyncGradientAccumulator schedules backward passes with asyncio.to_thread and applies optimizer steps every accumulation_steps.
+### 8.8 Visualization helpers
+- activation_visualization.plot_activation_heatmap stacks neuron representations and saves heatmaps.
 
 ## 9. Testing and Validation
 ### 9.1 Unit tests

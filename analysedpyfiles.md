@@ -1,12 +1,12 @@
-activation_visualization.py: lines=31, functions=1, classes=0
-advanced_gpt.py: lines=364, functions=9, classes=2
-adversarial_dataset.py: lines=66, functions=0, classes=1
-adversarial_generator.py: lines=48, functions=1, classes=0
-adversarial_learning.py: lines=81, functions=1, classes=1
-async_gradient_accumulator.py: lines=93, functions=0, classes=1
-async_utils.py: lines=29, functions=1, classes=0
-attention_codelets.py: lines=155, functions=8, classes=1
-attention_utils.py: lines=139, functions=4, classes=1
+activation_visualization.py: lines=31, functions=1, classes=0, lines_read=31
+advanced_gpt.py: lines=364, functions=9, classes=2, lines_read=364
+adversarial_dataset.py: lines=66, functions=0, classes=1, lines_read=66
+adversarial_generator.py: lines=48, functions=1, classes=0, lines_read=48
+adversarial_learning.py: lines=81, functions=1, classes=1, lines_read=81
+async_gradient_accumulator.py: lines=93, functions=0, classes=1, lines_read=93
+async_utils.py: lines=29, functions=1, classes=0, lines_read=29
+attention_codelets.py: lines=155, functions=8, classes=1, lines_read=155
+attention_utils.py: lines=139, functions=4, classes=1, lines_read=139
 autoencoder_learning.py: lines=60, functions=0, classes=1
 autoencoder_pipeline.py: lines=85, functions=0, classes=1
 backup_utils.py: lines=41, functions=0, classes=1
@@ -142,20 +142,20 @@ marble_activation_kernel.py: lines=195, functions=3, classes=1
 marble_agent.py: lines=97, functions=0, classes=1
 marble_autograd.py: lines=94, functions=0, classes=3
 marble_base.py: lines=322, functions=3, classes=2
-marble_brain.py: lines=1207, functions=2, classes=2
+marble_brain.py: lines=1207, functions=2, classes=2, lines_read=283, lines_remaining=924
 marble_core.py: lines=2294, functions=14, classes=15
 marble_graph_builder.py: lines=222, functions=4, classes=0
 marble_imports.py: lines=35, functions=0, classes=0
 marble_interface.py: lines=673, functions=40, classes=0
 marble_lobes.py: lines=63, functions=0, classes=2
 marble_main.py: lines=557, functions=1, classes=1
-marble_neuronenblitz.py: lines=2, functions=0, classes=0
-marble_neuronenblitz/__init__.py: lines=40, functions=0, classes=0
-marble_neuronenblitz/attention_span.py: lines=49, functions=0, classes=1
-marble_neuronenblitz/context_attention.py: lines=86, functions=0, classes=1
-marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1
-marble_neuronenblitz/learning.py: lines=219, functions=8, classes=0
-marble_neuronenblitz/memory.py: lines=79, functions=2, classes=0
+marble_neuronenblitz.py: lines=2, functions=0, classes=0, lines_read=2
+marble_neuronenblitz/__init__.py: lines=40, functions=0, classes=0, lines_read=40
+marble_neuronenblitz/attention_span.py: lines=49, functions=0, classes=1, lines_read=49
+marble_neuronenblitz/context_attention.py: lines=86, functions=0, classes=1, lines_read=86
+marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=1033, lines_remaining=1432
+marble_neuronenblitz/learning.py: lines=219, functions=8, classes=0, lines_read=219
+marble_neuronenblitz/memory.py: lines=79, functions=2, classes=0, lines_read=79
 marble_registry.py: lines=88, functions=0, classes=1
 marble_to_pytorch.py: lines=171, functions=6, classes=1
 marble_utils.py: lines=189, functions=9, classes=0
@@ -176,7 +176,7 @@ networkx_interop.py: lines=260, functions=7, classes=0
 neural_pathway.py: lines=94, functions=2, classes=0
 neural_schema_induction.py: lines=68, functions=0, classes=1
 neuromodulatory_system.py: lines=19, functions=0, classes=1
-neuronenblitz_kernel.py: lines=432, functions=2, classes=0
+neuronenblitz_kernel.py: lines=432, functions=2, classes=0, lines_read=432
 ollama_interop.py: lines=186, functions=5, classes=0
 ollama_pipeline.py: lines=158, functions=1, classes=1
 omni_learning.py: lines=84, functions=0, classes=1
