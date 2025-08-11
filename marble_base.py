@@ -182,7 +182,15 @@ class MetricsVisualizer:
         self.setup_plot()
 
     def setup_plot(self):
-        self.fig, self.ax = plt.subplots(figsize=(self.fig_width, self.fig_height))
+        """Initialise Matplotlib figure using configured style and DPI."""
+        try:
+            if self.color_scheme and self.color_scheme != "default":
+                plt.style.use(self.color_scheme)
+        except OSError:  # pragma: no cover - invalid style fallback
+            plt.style.use("default")
+        self.fig, self.ax = plt.subplots(
+            figsize=(self.fig_width, self.fig_height), dpi=self.dpi
+        )
         self.ax.set_title("MARBLE Training Metrics Live View")
         self.ax.set_xlabel("Batches")
         self.ax.set_ylabel("Loss / VRAM Usage")
@@ -257,6 +265,16 @@ class MetricsVisualizer:
         self.ax.grid(True)
         self.ax.legend(loc="upper left")
         self.ax_twin.legend(loc="upper right")
+        if self.show_neuron_ids and self.metrics["loss"]:
+            for idx, loss in enumerate(self.metrics["loss"]):
+                self.ax.annotate(
+                    str(idx),
+                    (idx, loss),
+                    textcoords="offset points",
+                    xytext=(0, 2),
+                    fontsize=6,
+                    color="gray",
+                )
         plt.tight_layout()
         plt.show()
 
