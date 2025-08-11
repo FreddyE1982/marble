@@ -143,7 +143,7 @@ marble_agent.py: lines=97, functions=0, classes=1, lines_read=97
 marble_autograd.py: lines=94, functions=0, classes=3, lines_read=94
 marble_base.py: lines=322, functions=3, classes=2, lines_read=322
 marble_brain.py: lines=1207, functions=2, classes=2, lines_read=1207
-marble_core.py: lines=2294, functions=14, classes=15, lines_read=1300, lines_remaining=994
+marble_core.py: lines=2294, functions=14, classes=15, lines_read=2294
 marble_graph_builder.py: lines=222, functions=4, classes=0, lines_read=222
 marble_imports.py: lines=35, functions=0, classes=0, lines_read=35
 marble_interface.py: lines=673, functions=40, classes=0, lines_read=673
@@ -153,7 +153,7 @@ marble_neuronenblitz.py: lines=2, functions=0, classes=0, lines_read=2
 marble_neuronenblitz/__init__.py: lines=40, functions=0, classes=0, lines_read=40
 marble_neuronenblitz/attention_span.py: lines=49, functions=0, classes=1, lines_read=49
 marble_neuronenblitz/context_attention.py: lines=86, functions=0, classes=1, lines_read=86
-marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=900, lines_remaining=1565
+marble_neuronenblitz/core.py: lines=2465, functions=8, classes=1, lines_read=1200, lines_remaining=1265
 marble_neuronenblitz/learning.py: lines=219, functions=8, classes=0, lines_read=219
 marble_neuronenblitz/memory.py: lines=79, functions=2, classes=0, lines_read=79
 marble_registry.py: lines=88, functions=0, classes=1, lines_read=88
@@ -180,7 +180,7 @@ neuronenblitz_kernel.py: lines=432, functions=2, classes=0, lines_read=432
 ollama_interop.py: lines=186, functions=5, classes=0, lines_read=186
 ollama_pipeline.py: lines=158, functions=1, classes=1, lines_read=158
 omni_learning.py: lines=84, functions=0, classes=1, lines_read=84
-pipeline.py: lines=1040, functions=0, classes=4, lines_read=600, lines_remaining=440
+pipeline.py: lines=1040, functions=0, classes=4, lines_read=800, lines_remaining=240
 pipeline_cli.py: lines=27, functions=1, classes=0, lines_read=27
 pipeline_plugins.py: lines=357, functions=3, classes=5, lines_read=357
 pipeline_schema.py: lines=55, functions=1, classes=0, lines_read=55
@@ -622,4 +622,4 @@ workflow_template_generator.py: lines=139, functions=3, classes=0, lines_read=13
 
 Partial analyses remain for files with lines_remaining.
 
-Reverified on 2025-08-11 17:22 UTC run; partial analyses remain.
+Reverified on 2025-08-11 17:39 UTC run; partial analyses remain.
