@@ -78,10 +78,13 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Built-in Q-learning uses Q(s,a) ← Q(s,a) + α[r + γ max_{a'} Q(s',a') − Q(s,a)] with epsilon decay ε_{t+1} = max(ε_min, ε_t · ε_decay) and optional enable/disable controls.
 - `cluster_neurons` performs k-means++ initialisation and centroid updates; `relocate_clusters` moves neurons to VRAM/RAM/disk tiers based on aggregated attention scores.
 - `extract_subcore(neuron_ids)` copies selected neurons and synapses into a new Core; `check_finite_state` raises errors on any NaN or Inf.
-- `run_message_passing(iterations)` calls `perform_message_passing` repeatedly, updates global phase φ_{t+1}=(φ_t+ω) mod 2π, returns average representation change, and `benchmark_message_passing` measures average seconds per iteration.
+- `run_message_passing(iterations)` calls `perform_message_passing` repeatedly, advances global phase via `global_phase_rate` (φ_{t+1}=(φ_t+ω) mod 2π), returns average representation change, honors `show_message_progress`, updates `representation_variance` metrics and `benchmark_message_passing` yields `(iterations, seconds)` tuples.
 
 - Initial neuron representations seeded via Mandelbrot fractals with optional Gaussian noise.
 - Message passing employs `AttentionModule` with temperature scaling, sine or chaotic gating, dropout and mixed-precision layer-normalised MLP updates.
+- Parameters `message_passing_alpha`/`beta` mix current and incoming representations; `representation_noise_std` injects Gaussian noise before applying `representation_activation`.
+- Dropout controls `message_passing_dropout` and `attention_dropout` can zero out updates, while `attention_causal` blocks future-directed messages and zero synapse weights halt propagation.
+- `_layer_norm` normalises to zero mean and unit variance, and per-synapse `phase` together with `global_phase_rate` modulate outputs. `_simple_mlp` supports `mixed_precision=True` producing finite outputs on CPU or GPU.
 - `DynamicSpanModule` applies cumulative-softmax masking with configurable `threshold` and `max_span` to cap traversal length and integrates into Neuronenblitz `dynamic_wander`.
 - `attention_codelets` let codelets emit `AttentionProposal(score, content)`; `form_coalition` selects top proposals using optional salience scores weighted by `core.salience_weight`, `broadcast_coalition` forwards winners to `global_workspace`, and workspace gating adjusts future scores based on published events.
 - `interconnect_cores` merges multiple cores and optionally creates cross-core synapses based on interconnection probability.
@@ -193,7 +196,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Add `GoalManager` maintaining goal hierarchies and reward shaping; integrate global workspace via `BroadcastMessage` queue for cross-module signalling.
 - Implement `MarbleBrain` to supervise Neuronenblitz and global learning state.
 - Add neuromodulatory system providing context values (arousal, stress, reward, emotion).
-- MetaParameterController adjusts plasticity threshold based on validation loss trends.
+- MetaParameterController records losses via `record_loss` and uses `adjust` to raise or lower Neuronenblitz `plasticity_threshold` within `[min_threshold, max_threshold]`.
 - NDimensionalTopologyManager dynamically increases or decreases representation size driven by attention and loss stagnation.
 - LobeManager groups neurons into lobes and performs self-attention based on cluster IDs.
 - Brain training runs pretraining for `pretraining_epochs` once before standard epochs, enforces `min_cluster_k` during neuron clustering and triggers clustering every `auto_cluster_interval` epochs.
@@ -682,7 +685,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - activation_visualization.plot_activation_heatmap stacks neuron representations and saves heatmaps.
 - Attention utilities provide `GatingLayer` (modes `sine` and `chaos`), `generate_causal_mask`, `benchmark_mask_overhead`, and Plotly `mask_figure`/`gate_figure` that accept tensors from CPU or GPU.
 - BackupScheduler periodically mirrors source directories to timestamped backups.
-- MetricsVisualizer streams metrics to TensorBoard, CSV and JSON logs while triggering scheduled backups.
+- MetricsVisualizer streams metrics to TensorBoard, CSV and JSON logs, supports `color_scheme`, custom `dpi`, optional neuron-id annotations (`show_neuron_ids`), records metrics such as `meta_loss_avg` and triggers scheduled backups. Setting `MARBLE_DISABLE_METRICS=1` disables MetricsVisualizer.
 
 ### 8.9 Command-line interface
 - Add `highlevel_pipeline_cli` for checkpoint/resume operations with device selection and dataset version metadata.
@@ -698,7 +701,8 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - `convert_model` CLI transforms PyTorch checkpoints to MARBLE JSON or `.marble` snapshots and offers summary output, plots, CSV, tables and graph rendering.
 - `convert_pytorch_model` converts pretrained PyTorch modules and verifies prediction parity on sample datasets. Conversion must cover Linear, Conv2d (multi‑channel), BatchNorm, LayerNorm, GroupNorm, Dropout, Sigmoid, Tanh, Softmax, functional ReLU/Sigmoid/Tanh/reshape/view ops, Flatten/Unflatten, Add/Mul/Residual arithmetic, MaxPool2d, AvgPool2d, Adaptive and Global pooling, Embedding and EmbeddingBag with padding and max_norm options, and RNN/LSTM/GRU including multilayer bidirectional variants. Converter registry uses `@register_converter`, `@register_function_converter` and `@register_method_converter` decorators; unsupported layers raise `UnsupportedLayerError`, weight and bias devices are recorded, bias neurons are created with value 1.0, and `core_to_json`/`core_from_json` round‑trips must preserve structure exactly.
 - `QuantizedTensor` enables uniform n-bit quantization with bit packing/unpacking, `state_dict` serialization and device-aware `to` transfers. Linear layers reconstructed from quantized weights must match dense outputs within tolerance, bit streams have expected length, round-trips preserve values across CPU and GPU.
-- model_refresh provides full_retrain, incremental_update and auto_refresh routines triggered by DatasetWatcher.
+- `model_quantization.quantize_core_weights(bits)` reduces unique weight values by uniform quantization.
+- model_refresh provides `full_retrain`, `incremental_update` and `auto_refresh` routines triggered by `DatasetWatcher`; `auto_refresh` selects strategy based on changed-file ratio and skips updates when the dataset is unchanged.
 - `DataCompressor` and crypto utilities provide constant-time XOR encryption, AES-GCM tensor/byte encryption, delta encoding, quantization and sparse-aware compression.
 - `DatabaseQueryTool` executes Cypher queries on Kùzu databases.
 - `core_from_json` accepts legacy snapshots lacking `synapse_type` or `potential` fields to maintain backward compatibility.
@@ -708,9 +712,10 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - `DistillationTrainer` blends teacher predictions with targets for student brains.
 - `DistributedTrainer` uses PyTorch DDP to average synapse weights across processes.
 - `EvolutionTrainer` explores configuration space via mutation, parallel fitness evaluation and lineage graph export.
+- `MetaLearner` performs gradient-based meta-learning with `inner_steps` and `meta_lr`, training across tasks and recording loss `history`.
 - ReinforcementLearning module offers GridWorld env, `MarbleQLearningAgent` with epsilon decay/Double-Q and `MarblePolicyGradientAgent` integrating Neuronenblitz outputs. Agents expose `enable_rl`, `rl_select_action` and `rl_update` with learning-rate control; training loops must improve cumulative reward and support configurable hidden dimensions.
 - Advanced GPT self-distillation stores previous logits to `logits.pkl`, computes `kl_divergence` between epochs and blends with `distill_alpha`.
-- `self_monitoring.activate(nb, history_size)` records context history and `log_error` appends mean_error markers.
+- `self_monitoring.activate(nb, history_size)` records context history and `log_error` appends mean_error markers; when combined with reinforcement learners, logged errors increase `wander_depth_noise` and decay agent `epsilon`.
 - `SemiSupervisedLearner` trains with `unlabeled_weight` and keeps loss history; `SemiSupervisedPairsPipeline` accepts labeled and unlabeled data, optional tokenizers, `BitTensorDataset` inputs and automatic vocabulary via `use_vocab`.
 - `TransferLearner` freezes a configurable fraction of synapses and logs losses; `TransferPairsPipeline` mirrors dataset handling features.
 - Soft Actor Critic utilities create networks on CPU/GPU (`create_sac_networks`), support `sac_select_action`, `sac_update` and maintain `sac_entropy_history` with plotting.
@@ -720,7 +725,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Core manipulation utilities expose `export_core_to_json`, `import_core_from_json`, `save_core_json_file`, `load_core_json_file`, `add_neuron_to_marble`, `add_synapse_to_marble`, `freeze_synapses_fraction`, `expand_marble_core`, `run_core_message_passing`, `increase_marble_representation`, `decrease_marble_representation`, `get_marble_status`, `reset_core_representations`, `randomize_core_representations`, `count_marble_synapses` and `train_autoencoder` for denoising autoencoders. Model integration helpers `attach_marble_layer` and `save_attached_model` insert transparent Marble layers into PyTorch graphs.
 - Dataset and repository utilities: `load_examples` ingesting CSV/Excel/JSON/ZIP datasets (including `inputs/`/`targets/` pairs), `load_value_list` reading numeric sequences from CSV/Excel/JSON/TXT/ZIP files, `preview_file_dataset` and `preview_hf_dataset` producing pandas DataFrames, `search_hf_datasets` and `search_hf_models` via the HuggingFace hub, `list_repo_modules`, `list_module_functions`, `list_module_classes`, `list_marble_functions`, `find_repository_functions`, `search_repository_functions`, `list_documentation_files`, `list_example_projects`, `list_test_files`, `load_module_source`, `load_example_code`, `load_documentation`, `load_readme` and `load_yaml_manual` for introspection.
 - Runtime control helpers: `initialize_marble` from config path or YAML text, `execute_marble_function`, `execute_module_function`, `execute_function_sequence`, pipeline editing with `save_pipeline_to_json`, `load_pipeline_from_json`, `move_pipeline_step` and `remove_pipeline_step`, lobe management via `add_lobe`, `organize_lobes`, `lobe_info` and `self_attention_lobes`, hybrid memory primitives `create_hybrid_memory`, `hybrid_memory_store`, `hybrid_memory_retrieve` and `hybrid_memory_forget`, RL utilities `create_gridworld_env` and `run_gridworld_episode`, diagnostic/visualization tools (`metrics_dataframe`, `metrics_figure`, `core_statistics`, `activation_figure`, `core_figure`, `core_heatmap_figure`, `core_to_networkx`, `core_weight_matrix`, `select_high_attention_neurons`, `pipeline_figure`, `pipeline_to_networkx`), remote/offload controls (`start_remote_server`, `create_remote_client`, `create_torrent_system`), automation hooks (`start_background_training`, `training_in_progress`, `wait_for_training`, `start_auto_firing`, `stop_auto_firing`), execution helpers (`run_custom_code`, `run_example_project`, `run_tests`, `run_dimensional_search`, `run_nd_topology`, `parallel_wander_neuronenblitz`, `wander_neuronenblitz`), metrics dashboard launch (`start_metrics_dashboard`), Optuna helpers (`optuna_best_config`, `optuna_figures`, `load_optuna_study`), and maintenance of super‑evolution state (`super_evo_changes`, `super_evo_history`, `clear_super_evo_changes`).
-- Pipeline execution engine caches step specifications via SHA-256 digests, supports isolated subprocess steps, tier-specific `run_step` execution, nested macros inheriting hooks, branching with `BranchContainer` and plugin/function-based merging, asynchronous iterator drainage, dataset-driven Neuronenblitz training with per-step epochs, per-step memory usage checks via `memory_manager.notify_step_usage`, event-based progress reporting to `global_event_bus`, metrics visualizer updates, optional `global_workspace` publication and step-level `benchmark_message_passing`.
+- Pipeline execution engine caches step specifications via SHA-256 digests, supports isolated subprocess steps, tier-specific `run_step` execution, nested macros inheriting hooks, branching with `BranchContainer` and plugin/function-based merging, asynchronous iterator drainage, dataset-driven Neuronenblitz training with per-step epochs, per-step memory usage checks via `memory_manager.notify_step_usage`, steps may set `memory_limit_mb` raising `MemoryError` while `MemoryManager.step_usage` records allocations, event-based progress reporting to `global_event_bus`, metrics visualizer updates, optional `global_workspace` publication and step-level `benchmark_message_passing`.
 - Brain utilities persist dream buffers and neuromodulatory context via `save_model`/`load_model`, migrate legacy checkpoints with `save_checkpoint`/`load_checkpoint`, log metrics (loss, VRAM usage, neuromod signals, plasticity threshold, message passing change, compression ratio) through `MetricsVisualizer`, expose `benchmark_step` returning marble/autograd losses and times, `generate_chain_of_thought` tracing synapse paths, and respect `log_interval` during training. Training exposes `progress_callback` emitting fractional completion after each epoch.
 - `SelfMonitoring` plugin tracks gradient norms, memory usage and configuration drift, publishing anomalies to `MessageBus` and triggering `SystemMetrics` logging.
 ### 8.12 Python compatibility utilities
@@ -771,9 +776,10 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - `prompt_memory.PromptMemory` stores and retrieves conversation-context tokens with TTL and capacity limits.
 - `goal_manager` prioritizes `Goal` instances by urgency and importance, interfacing with `global_workspace.GlobalWorkspace` to broadcast active goals.
 - `global_workspace` publishes and subscribes to blackboard-style events, integrating neuromodulatory context into decision making.
+- `multi_agent_env` simulates cooperative tasks via `CooperativeEnv` and `run_episode` where `MARBLEAgent` instances communicate through `MessageBus`.
 
 ### 8.23 Metrics and self monitoring
-- `metrics_dashboard` serves live charts over HTTP and subscribes to `SystemMetrics` events.
+- `metrics_dashboard` serves live charts over HTTP and subscribes to `SystemMetrics` events, supports configurable `window_size` smoothing and `_build_figure` caching for selected metrics, and can be disabled via `MARBLE_DISABLE_METRICS`.
 - `self_monitoring.SelfMonitoringPlugin` tracks gradient norms, memory usage and configuration drift, escalating anomalies via `MessageBus`.
 
 ## 9. Testing and Validation
