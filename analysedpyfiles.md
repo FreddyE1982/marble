@@ -305,24 +305,24 @@ tests/test_continuous_weight_field_learning.py: lines=17, functions=1, classes=0
 tests/test_contrastive_learning.py: lines=17, functions=1, classes=0, lines_read=17, lines_remaining=0
 tests/test_contrastive_pipeline.py: lines=67, functions=5, classes=0, lines_read=67, lines_remaining=0
 tests/test_convenience_functions.py: lines=194, functions=22, classes=0, lines_read=194, lines_remaining=0
-tests/test_conversion_roundtrip.py: lines=37, functions=1, classes=1, lines_read=0, lines_remaining=37
-tests/test_convert_model_cli.py: lines=121, functions=5, classes=1, lines_read=0, lines_remaining=121
-tests/test_convert_model_graph_html.py: lines=33, functions=2, classes=0, lines_read=0, lines_remaining=33
-tests/test_convert_model_show_graph.py: lines=34, functions=2, classes=0, lines_read=0, lines_remaining=34
-tests/test_convert_model_summary_plot.py: lines=36, functions=1, classes=1, lines_read=0, lines_remaining=36
-tests/test_core_benchmark.py: lines=10, functions=1, classes=0, lines_read=0, lines_remaining=10
-tests/test_core_cleanup.py: lines=16, functions=1, classes=0, lines_read=0, lines_remaining=16
-tests/test_core_functions.py: lines=218, functions=18, classes=0, lines_read=0, lines_remaining=218
-tests/test_core_memory.py: lines=40, functions=3, classes=1, lines_read=0, lines_remaining=40
-tests/test_core_neuronenblitz_integration.py: lines=62, functions=5, classes=0, lines_read=0, lines_remaining=62
-tests/test_core_performance.py: lines=9, functions=1, classes=0, lines_read=0, lines_remaining=9
-tests/test_core_validation.py: lines=20, functions=2, classes=0, lines_read=0, lines_remaining=20
-tests/test_cross_validation.py: lines=84, functions=7, classes=0, lines_read=0, lines_remaining=84
-tests/test_crypto_utils.py: lines=70, functions=8, classes=0, lines_read=0, lines_remaining=70
-tests/test_curriculum_helpers.py: lines=13, functions=1, classes=0, lines_read=0, lines_remaining=13
-tests/test_curriculum_learning.py: lines=15, functions=1, classes=0, lines_read=0, lines_remaining=15
-tests/test_curriculum_pairs_pipeline.py: lines=67, functions=5, classes=0, lines_read=0, lines_remaining=67
-tests/test_custom_loss_validation.py: lines=76, functions=4, classes=0, lines_read=0, lines_remaining=76
+tests/test_conversion_roundtrip.py: lines=37, functions=1, classes=1, lines_read=37
+tests/test_convert_model_cli.py: lines=121, functions=5, classes=1, lines_read=121
+tests/test_convert_model_graph_html.py: lines=33, functions=2, classes=0, lines_read=33
+tests/test_convert_model_show_graph.py: lines=34, functions=2, classes=0, lines_read=34
+tests/test_convert_model_summary_plot.py: lines=36, functions=1, classes=1, lines_read=36
+tests/test_core_benchmark.py: lines=10, functions=1, classes=0, lines_read=10
+tests/test_core_cleanup.py: lines=16, functions=1, classes=0, lines_read=16
+tests/test_core_functions.py: lines=218, functions=18, classes=0, lines_read=218
+tests/test_core_memory.py: lines=40, functions=3, classes=1, lines_read=40
+tests/test_core_neuronenblitz_integration.py: lines=62, functions=5, classes=0, lines_read=62
+tests/test_core_performance.py: lines=9, functions=1, classes=0, lines_read=9
+tests/test_core_validation.py: lines=20, functions=2, classes=0, lines_read=20
+tests/test_cross_validation.py: lines=84, functions=7, classes=0, lines_read=84
+tests/test_crypto_utils.py: lines=70, functions=8, classes=0, lines_read=70
+tests/test_curriculum_helpers.py: lines=13, functions=1, classes=0, lines_read=13
+tests/test_curriculum_learning.py: lines=15, functions=1, classes=0, lines_read=15
+tests/test_curriculum_pairs_pipeline.py: lines=67, functions=5, classes=0, lines_read=67
+tests/test_custom_loss_validation.py: lines=76, functions=4, classes=0, lines_read=76
 tests/test_data_compressor.py: lines=80, functions=9, classes=0, lines_read=0, lines_remaining=80
 tests/test_database_query_tool.py: lines=28, functions=2, classes=0, lines_read=0, lines_remaining=28
 tests/test_dataloader_plugin.py: lines=26, functions=3, classes=1, lines_read=0, lines_remaining=26
@@ -471,8 +471,8 @@ tests/test_neuronenblitz_reset.py: lines=36, functions=2, classes=0, lines_read=
 tests/test_neuronenblitz_serialization.py: lines=15, functions=1, classes=0, lines_read=0, lines_remaining=15
 tests/test_new_features.py: lines=77, functions=5, classes=0, lines_read=0, lines_remaining=77
 tests/test_new_neuron_layers.py: lines=294, functions=27, classes=0, lines_read=0, lines_remaining=294
-tests/test_ollama_interop.py: lines=61, functions=4, classes=0, lines_read=0, lines_remaining=61
-tests/test_ollama_pipeline_plugin.py: lines=72, functions=1, classes=0, lines_read=0, lines_remaining=72
+tests/test_ollama_interop.py: lines=61, functions=4, classes=0, lines_read=61
+tests/test_ollama_pipeline_plugin.py: lines=72, functions=1, classes=0, lines_read=72
 tests/test_omni_learning.py: lines=22, functions=1, classes=0, lines_read=0, lines_remaining=22
 tests/test_optimize_script.py: lines=31, functions=1, classes=0, lines_read=0, lines_remaining=31
 tests/test_parallel_dataset_shards.py: lines=38, functions=2, classes=0, lines_read=0, lines_remaining=38
