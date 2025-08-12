@@ -2,6 +2,8 @@
 
 This document enumerates every step required to rebuild MARBLE from scratch with full feature and algorithmic parity. All modules must be reimplemented without simplification and every configuration key must be exercised. No GUI components are to be created. **Every step and substep must be executed strictly in the order presented—skipping or reordering is forbidden.**
 
+This plan integrates information from all 619 Python modules enumerated in analysedpyfiles.md.
+
 ## 1. Repository Bootstrap
 ### 1.1 Initialize new Git repository
 - Create repository structure.
@@ -112,7 +114,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Implement KuzuMemoryTier using KùzuGraphDatabase with MERGE-based inserts, cosine-similarity query over stored vectors and timestamp-driven `forget_old` trimming.
 - Include forgetfulness and consolidation algorithms.
 
-### 3.4 Plugin system
+### 3.4 Core plugin infrastructure
 - Recreate plugin_system with dynamic loading and registration of neuron, synapse and loss modules.
 - Implement pipeline, scheduler, tool and learning plugin registries.
 - Provide pipeline execution engine:
