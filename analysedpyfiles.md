@@ -621,4 +621,4 @@ tests/test_model_quantization.py: lines=12, functions=1, classes=0, lines_read=1
 tests/test_monitor_rl_integration.py: lines=19, functions=1, classes=0, lines_read=19
 tests/test_multi_agent.py: lines=39, functions=3, classes=0, lines_read=39
 
-Total Python files analysed: 619
+Total Python files analysed: 621
