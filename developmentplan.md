@@ -1,6 +1,7 @@
 # MARBLE Redevelopment Plan
 
 This document enumerates every step required to rebuild MARBLE from scratch with full feature and algorithmic parity. All modules must be reimplemented without simplification and every configuration key must be exercised. No GUI components are to be created. **Every step and substep must be executed strictly in the order presented—skipping or reordering is forbidden.**
+Completed tasks or subtasks must be marked as such by writing "[complete]" after the specific task or subtask
 
 This plan integrates information from all 621 Python modules enumerated in analysedpyfiles.md.
 
