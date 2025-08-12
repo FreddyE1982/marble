@@ -2,7 +2,7 @@
 
 This document enumerates every step required to rebuild MARBLE from scratch with full feature and algorithmic parity. All modules must be reimplemented without simplification and every configuration key must be exercised. No GUI components are to be created. **Every step and substep must be executed strictly in the order presented—skipping or reordering is forbidden.**
 
-This plan integrates information from all 619 Python modules enumerated in analysedpyfiles.md.
+This plan integrates information from all 621 Python modules enumerated in analysedpyfiles.md.
 
 ## 1. Repository Bootstrap
 ### 1.1 Initialize new Git repository
@@ -650,7 +650,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - RunProfiler records start/end timestamps and device for each pipeline step and writes ordered JSON traces.
 ### 8.4 Configuration tooling
 - Offer `workflow_template_generator` producing pipeline boilerplates for classification and preprocessing examples runnable on CPU or GPU.
-- Provide command-line and GUI-free tools:
+- Provide command-line utilities only—GUI components are intentionally omitted:
   - `config_generator` parses `yaml-manual.txt` and produces commented configs
     by mapping section keys to descriptions.
   - `config_editor` validates YAML against schema and writes timestamped
