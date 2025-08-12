@@ -33,7 +33,7 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Scheduler selection via `configure_scheduler` and plugin directories loaded through `load_plugins`.
 - Instantiate MetaParameterController (history_length, adjustment, min_threshold, max_threshold) and NeuromodulatorySystem with initial context values.
 - Build MemorySystem with `long_term_path`, consolidation `threshold`, `consolidation_interval` and optional hybrid memory parameters.
-- DataCompressor settings: `compression_level`, `compression_enabled`, `sparse_threshold`, `quantization_bits` and optional delta encoding.
+- DataCompressor settings: `compression_level`, `compression_enabled`, `sparse_threshold`, `quantization_bits`, optional `delta_encoding`, selectable `algorithm` (gzip, lzma or custom) and plugin registration via `register_algorithm(name, compress_fn, decompress_fn)`.
 - DataLoader parameters: tensor dtype, metadata tracking and automatic encode/decode/tokenization with round-trip verification/penalty; configure tokenizer type/json/vocab_size and persist via `tokenizer_to_json`/`tokenizer_from_json`. `tokenize_line` and `tokenize_lines` stream text and checkpoints must restore tokenizer state, while `encode_array`/`decode_array` guarantee NumPy arrays round-trip exactly.
 - Multimodal pair encoding supports text, image, audio and binary blob inputs, ensuring decoded types match originals and arrays/images round-trip exactly.
 - Autograd layer configuration with `autograd_params` (`enabled`, `learning_rate`, `gradient_accumulation_steps`, optional `scheduler`) controlling gradient accumulation and learning-rate scheduling.
@@ -57,10 +57,11 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Implement event_bus and message_bus with asynchronous queues.
 - MessageBus supports direct, broadcast and reply communication, logs history for NetworkX influence graphs and offers `AsyncDispatcher` background delivery with configurable poll_interval.
 - Provide publish/subscribe API and serialization hooks.
-- EventBus supports event filtering, rate limiting and unified `ProgressEvent` schema.
+- EventBus supports event filtering, rate limiting and unified `ProgressEvent` schema; rate limiting drops events within 1/`rate_limit_hz` and overhead for 2000 no-op events stays under 0.05s.
 
 ### 3.2 Core neural substrate
 - Include `GraphCache` with `GraphKey(name, shape, dtype, device, extras)` and `precompile` tracing callables via `torch.jit.trace` when caching is enabled; `graph_streaming.stream_graph_chunks` yields neuron and synapse slices of configurable size, `identify_memory_hotspots` estimates bytes used by neurons and synapses, `benchmark_streaming` reports chunks per second, and `graph_viz.sankey_figure` builds Plotly Sankey diagrams filtered by edge weight and node degree.
+- `marble_graph_builder` exposes `add_neuron_group`, `add_fully_connected_layer`, `linear_layer` and `conv2d_layer` utilities with optional activations and bias weights, and `torch_interop.graph_to_module`/`module_to_graph` convert between cores and PyTorch modules preserving adjacency matrices.
 - Recreate marble_core with Neuron, Synapse, and perform_message_passing.
 - Include structural plasticity operations, neuron/synapse type registries and weight limiting.
 - Synapse objects track fatigue, echo buffers and phases; `effective_weight` mixes cosine-phase gating with context reward/stress, applies `dropout_prob`, batchnorm via `momentum`, and supports side effects for `mirror`, `multi_neuron`, `recurrent` and `interconnection` types.
@@ -170,12 +171,9 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - Implement `StreamingDatasetStep` asynchronously prefetching batches to CPU/GPU via an `asyncio.Queue` and yielding `{"inputs": tensor, "targets": tensor}` dictionaries, handling variable producer/consumer rates and auto-consumption within pipelines.
 
 #### 3.5.5 Dataset loaders and preprocessing
-- `load_dataset` handles URL caching, prefetch threads, AES-encrypted downloads,
-  sharding, dependency tracking, filter expressions and distributed sharding;
-  all values pass through `DataLoader.encode`/`decode` enabling arbitrary
-  binary or textual data.
-- `prefetch_dataset` spawns daemon threads and `wait_for_prefetch` acts as a
-  barrier.
+- `load_dataset` handles local/remote CSV or JSON, zipped archives with recovery from corrupted cache entries, download progress bars, sharding (`num_shards`, `shard_index`), offline cache mode with optional `cache_url`, dependency tracking, filter expressions and distributed sharding; all values pass through `DataLoader.encode`/`decode` enabling arbitrary binary or textual data and emit `dataset_load_start`/`dataset_load_end` events with pair counts logged to `MetricsVisualizer` and `MemoryManager`.
+- `prefetch_dataset` spawns daemon threads and `wait_for_prefetch` acts as a barrier; prefetched files allow later offline loading.
+- `load_training_data_from_config` forwards cache settings, honours `encryption_key` and `encryption_enabled` flags and integrates `DataLoader` plugins and dataset harnesses.
 - Provide `StreamingCSVLoader` with resumable offsets, optional `built_in_tokenizer` training, persistence after `.close()` and per-line tokenisation via `tokenize_line`, plus `export_dataset` and
   `clear_dataset_cache` utilities.
 - Support `load_kuzu_graph` for Cypher queries and
@@ -186,13 +184,12 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 - `PreprocessingPipeline` caches step outputs by `dataset_id`, applies sequential transformations and reuses cache on repeated calls; optional `DataLoader` tokenizes text datasets.
 
 #### 3.5.6 Dataset management tools
-- Include dataset cache server, history CLI, watcher, versioning CLI and
-  replication/synchronisation services.
+- Include dataset cache server (decrypts files with `encrypt_bytes`/`decrypt_bytes` and serves decrypted content), history CLI with `undo_cmd`/`redo_cmd`/`revert_cmd`/`list_history`, watcher tracking changed files, versioning CLI (`create_version_cmd`, `list_versions`, `switch_version`) and programmatic `create_version`/`apply_version`/`revert_version`, replication via HTTP POST and sync service (`sync_remote_dataset`, `detect_dataset_changes`) with progress bars.
+- BitTensorDataset tags support `filter_by_tag`; `transfer_dataset_knowledge` copies datasets between Neuronenblitz instances on CPU or GPU.
 - Dataset encryption helpers offer AES-256-GCM key generation and
   `encrypt_tensor`/`decrypt_tensor` for tensors plus
   `encrypt_bytes`/`decrypt_bytes` for arbitrary data.
-- Provide `KuzuGraphDatabase` wrapper with context-managed connections and CRUD
-  helpers; `TopologyKuzuTracker` mirrors neural topology to Kùzu.
+- Provide `KuzuGraphDatabase` wrapper with context-managed connections and CRUD helpers; `DatabaseQueryTool` connects to Kùzu, exposes `can_handle`/`execute` APIs and `TopologyKuzuTracker` mirrors neural topology to Kùzu.
 
 ### 3.6 Brain coordination and neurogenesis
 - Add `GoalManager` maintaining goal hierarchies and reward shaping; integrate global workspace via `BroadcastMessage` queue for cross-module signalling.
@@ -272,10 +269,10 @@ This document enumerates every step required to rebuild MARBLE from scratch with
 
 
 ### 3.9 Diffusion-based generation
-- Implement `DiffusionCore` with configurable diffusion_steps and linear or cosine noise schedules.
-- Support hybrid memory retrieval, schema induction, predictive coding, continuous weight field learning, harmonic resonance and fractal dimension learners.
-- Provide optional workspace broadcast, remote offloading when VRAM exceeds thresholds and activation heatmap logging.
-- Train via `DiffusionPairsPipeline` wrapping `DiffusionCore` with `DataLoader`, `Brain` and `Neuronenblitz` components.
+- Implement `DiffusionCore` with configurable `diffusion_steps`, linear or cosine noise schedules, activation heatmap logging (`activation_output_dir`, `activation_colormap`) and plugin directories registering custom neuron types.
+- Integrate memory system to store `diffusion_output` keys, predictive coding (`num_layers`, `latent_dim`, `learning_rate`), schema induction (`support_threshold`, `max_schema_size`), continuous weight field learning (`num_basis`), harmonic resonance (`base_frequency`, `decay`) and fractal dimension (`target_dimension`) submodules.
+- Provide optional workspace broadcast and remote offloading when VRAM exceeds thresholds.
+- Train via `DiffusionPairsPipeline` wrapping `DiffusionCore` with `DataLoader`, `Brain` and `Neuronenblitz` components, supporting tokenizers, BitTensorDataset inputs and auto-built vocabularies.
 ## 4. Neuronenblitz Algorithm
 ### 4.1 Overview
 Neuronenblitz is MARBLE's core adaptive exploration and learning mechanism. It performs stochastic wandering over the neural graph while adjusting synaptic weights and structure.
@@ -481,6 +478,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 - Soft Actor-Critic losses:
   - Critic: \(L_Q = \|Q_\phi(s,a) - (r + \gamma(\min_i Q_{\bar{\phi}_i}(s',a') - \alpha \log \pi_\theta(a'|s')) )\|_2^2\).
   - Actor: \(L_\pi = \mathbb{E}[\alpha \log \pi_\theta(a|s) - Q_\phi(s,a)]\).
+- `enable_sac(nb, state_dim, action_dim, device)` builds actor and dual critics on the chosen device, reads entropy temperature from config and returns action, log probability and Q-values.
 - Integrate replay buffer, exploration scheduling and reward scaling.
 
 ### 5.5 Curriculum and Transfer Learning
@@ -597,8 +595,8 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ## 7. Advanced Memory and Simulation Systems
 ### 7.1 Episodic simulation and dream modules
 - Support `exampletrain` style auto-firing and dreaming loops with synthetic dataset utilities for reproducible tests.
-- Implement episodic_simulation, `DreamReplayBuffer` and `DreamScheduler` for salience-weighted replay with instant and long-term buffers and housekeeping.
-- `DreamReinforcementLearner` mixes real and dreamed experiences controlled by dream_cycles, strength and interval.
+- Implement episodic_simulation, `DreamReplayBuffer` and `DreamScheduler` for salience-weighted replay with instant and long-term buffers, housekeeping and weighting modes (`linear`, `quadratic`, `sqrt`, `uniform`).
+- `DreamReinforcementLearner` mixes real and dreamed experiences controlled by `dream_cycles`, `dream_interval` and `dream_cycle_duration`; `Brain.compute_dream_decay` scales synapse decay by neuromodulatory arousal and stress signals.
 
 ### 7.2 Prompt and attention codelets
 - Implement prompt_memory, attention_codelets and attention_utils:
@@ -780,7 +778,7 @@ For each learning paradigm below, reimplement training loops, loss functions, ev
 ### 8.22 Cognitive coordination modules
 - `prompt_memory.PromptMemory` stores and retrieves conversation-context tokens with TTL and capacity limits.
 - `goal_manager` prioritizes `Goal` instances by urgency and importance, interfacing with `global_workspace.GlobalWorkspace` to broadcast active goals.
-- `global_workspace` publishes and subscribes to blackboard-style events, integrating neuromodulatory context into decision making.
+- `global_workspace` publishes and subscribes to blackboard-style events, integrates neuromodulatory context into decision making, attaches to Neuronenblitz with bounded queues evicting oldest messages at capacity and exposes `workspace_queue` metrics for dashboards.
 - `multi_agent_env` simulates cooperative tasks via `CooperativeEnv` and `run_episode` where `MARBLEAgent` instances communicate through `MessageBus`.
 
 ### 8.23 Metrics and self monitoring

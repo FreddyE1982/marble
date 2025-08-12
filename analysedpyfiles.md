@@ -323,81 +323,81 @@ tests/test_curriculum_helpers.py: lines=13, functions=1, classes=0, lines_read=1
 tests/test_curriculum_learning.py: lines=15, functions=1, classes=0, lines_read=15
 tests/test_curriculum_pairs_pipeline.py: lines=67, functions=5, classes=0, lines_read=67
 tests/test_custom_loss_validation.py: lines=76, functions=4, classes=0, lines_read=76
-tests/test_data_compressor.py: lines=80, functions=9, classes=0, lines_read=0, lines_remaining=80
-tests/test_database_query_tool.py: lines=28, functions=2, classes=0, lines_read=0, lines_remaining=28
-tests/test_dataloader_plugin.py: lines=26, functions=3, classes=1, lines_read=0, lines_remaining=26
-tests/test_dataset_cache_server.py: lines=31, functions=2, classes=0, lines_read=0, lines_remaining=31
-tests/test_dataset_encryption.py: lines=49, functions=4, classes=0, lines_read=0, lines_remaining=49
-tests/test_dataset_encryption_performance.py: lines=34, functions=2, classes=0, lines_read=0, lines_remaining=34
-tests/test_dataset_event_notifications.py: lines=31, functions=1, classes=0, lines_read=0, lines_remaining=31
-tests/test_dataset_events.py: lines=13, functions=1, classes=0, lines_read=0, lines_remaining=13
-tests/test_dataset_history_cli.py: lines=24, functions=1, classes=0, lines_read=0, lines_remaining=24
-tests/test_dataset_history_gui.py: lines=13, functions=2, classes=0, lines_read=0, lines_remaining=13
-tests/test_dataset_loader.py: lines=292, functions=18, classes=0, lines_read=0, lines_remaining=292
-tests/test_dataset_replication.py: lines=23, functions=1, classes=1, lines_read=0, lines_remaining=23
-tests/test_dataset_sync_service.py: lines=34, functions=2, classes=0, lines_read=0, lines_remaining=34
-tests/test_dataset_tags.py: lines=10, functions=1, classes=0, lines_read=0, lines_remaining=10
-tests/test_dataset_transfer.py: lines=34, functions=3, classes=0, lines_read=0, lines_remaining=34
-tests/test_dataset_version_cli.py: lines=18, functions=1, classes=0, lines_read=0, lines_remaining=18
-tests/test_dataset_versioning.py: lines=11, functions=1, classes=0, lines_read=0, lines_remaining=11
-tests/test_dataset_watcher.py: lines=23, functions=1, classes=0, lines_read=0, lines_remaining=23
-tests/test_default_growth_tier.py: lines=47, functions=3, classes=0, lines_read=0, lines_remaining=47
-tests/test_dependency_graph.py: lines=31, functions=3, classes=0, lines_read=0, lines_remaining=31
-tests/test_deterministic.py: lines=24, functions=1, classes=0, lines_read=0, lines_remaining=24
-tests/test_diffusion_core.py: lines=14, functions=1, classes=0, lines_read=0, lines_remaining=14
-tests/test_diffusion_core_additional_features.py: lines=45, functions=1, classes=0, lines_read=0, lines_remaining=45
-tests/test_diffusion_core_extra_features.py: lines=30, functions=1, classes=0, lines_read=0, lines_remaining=30
-tests/test_diffusion_core_features.py: lines=33, functions=2, classes=0, lines_read=0, lines_remaining=33
-tests/test_diffusion_pairs_pipeline.py: lines=75, functions=5, classes=0, lines_read=0, lines_remaining=75
-tests/test_dimensional_search.py: lines=35, functions=2, classes=0, lines_read=0, lines_remaining=35
-tests/test_distillation.py: lines=39, functions=3, classes=0, lines_read=0, lines_remaining=39
-tests/test_distributed_training.py: lines=11, functions=1, classes=0, lines_read=0, lines_remaining=11
-tests/test_dream_modulation.py: lines=56, functions=2, classes=0, lines_read=0, lines_remaining=56
-tests/test_dream_reinforcement_learning.py: lines=41, functions=2, classes=0, lines_read=0, lines_remaining=41
-tests/test_dream_replay_buffer.py: lines=67, functions=5, classes=0, lines_read=0, lines_remaining=67
-tests/test_dream_scheduler.py: lines=31, functions=1, classes=1, lines_read=0, lines_remaining=31
-tests/test_dynamic_message_passing_example.py: lines=10, functions=1, classes=0, lines_read=0, lines_remaining=10
-tests/test_dynamic_reorder.py: lines=23, functions=1, classes=0, lines_read=0, lines_remaining=23
-tests/test_dynamic_resize.py: lines=15, functions=1, classes=0, lines_read=0, lines_remaining=15
-tests/test_early_stopping.py: lines=28, functions=1, classes=0, lines_read=0, lines_remaining=28
-tests/test_enable_sac.py: lines=39, functions=2, classes=0, lines_read=0, lines_remaining=39
-tests/test_episodic_memory.py: lines=15, functions=1, classes=0, lines_read=0, lines_remaining=15
-tests/test_episodic_simulation.py: lines=18, functions=1, classes=0, lines_read=0, lines_remaining=18
-tests/test_event_bus.py: lines=36, functions=2, classes=0, lines_read=0, lines_remaining=36
-tests/test_event_logging.py: lines=22, functions=1, classes=0, lines_read=0, lines_remaining=22
-tests/test_event_schema.py: lines=38, functions=2, classes=0, lines_read=0, lines_remaining=38
-tests/test_evolution_config.py: lines=48, functions=2, classes=0, lines_read=0, lines_remaining=48
-tests/test_evolution_trainer.py: lines=35, functions=2, classes=0, lines_read=0, lines_remaining=35
-tests/test_evolution_trainer_integration.py: lines=42, functions=2, classes=0, lines_read=0, lines_remaining=42
-tests/test_evolutionary_mechanisms.py: lines=66, functions=4, classes=0, lines_read=0, lines_remaining=66
-tests/test_exampletrain_mock_pipeline.py: lines=23, functions=1, classes=0, lines_read=0, lines_remaining=23
-tests/test_exampletrain_utils.py: lines=22, functions=1, classes=0, lines_read=0, lines_remaining=22
-tests/test_experiment_tracker.py: lines=19, functions=1, classes=1, lines_read=0, lines_remaining=19
-tests/test_experiment_tracker_event_logging.py: lines=42, functions=2, classes=1, lines_read=0, lines_remaining=42
-tests/test_federated_learning.py: lines=36, functions=2, classes=0, lines_read=0, lines_remaining=36
-tests/test_find_unimplemented_params.py: lines=13, functions=1, classes=0, lines_read=0, lines_remaining=13
-tests/test_fractal_dimension_learning.py: lines=18, functions=1, classes=0, lines_read=0, lines_remaining=18
-tests/test_fractal_dimension_pairs_pipeline.py: lines=67, functions=5, classes=0, lines_read=0, lines_remaining=67
-tests/test_full_system.py: lines=34, functions=1, classes=0, lines_read=0, lines_remaining=34
-tests/test_generate_repo_md.py: lines=18, functions=1, classes=0, lines_read=0, lines_remaining=18
-tests/test_genetic_algorithm.py: lines=40, functions=2, classes=0, lines_read=0, lines_remaining=40
-tests/test_global_workspace_metrics.py: lines=17, functions=1, classes=0, lines_read=0, lines_remaining=17
-tests/test_global_workspace_plugin.py: lines=32, functions=2, classes=0, lines_read=0, lines_remaining=32
-tests/test_goal_manager.py: lines=14, functions=1, classes=0, lines_read=0, lines_remaining=14
-tests/test_gpt_training.py: lines=43, functions=3, classes=0, lines_read=0, lines_remaining=43
-tests/test_gpu_parity.py: lines=14, functions=1, classes=0, lines_read=0, lines_remaining=14
-tests/test_gradient_pruning.py: lines=49, functions=3, classes=0, lines_read=0, lines_remaining=49
-tests/test_graph_builder.py: lines=71, functions=5, classes=0, lines_read=0, lines_remaining=71
-tests/test_graph_module_conversion.py: lines=41, functions=2, classes=0, lines_read=0, lines_remaining=41
-tests/test_graph_precompile.py: lines=37, functions=2, classes=0, lines_read=0, lines_remaining=37
-tests/test_graph_streaming.py: lines=34, functions=3, classes=0, lines_read=0, lines_remaining=34
-tests/test_graph_viz.py: lines=15, functions=1, classes=0, lines_read=0, lines_remaining=15
-tests/test_grpc_tier_retry.py: lines=40, functions=2, classes=1, lines_read=0, lines_remaining=40
-tests/test_harmonic_resonance_learning.py: lines=15, functions=1, classes=0, lines_read=0, lines_remaining=15
-tests/test_harmonic_resonance_pairs_pipeline.py: lines=67, functions=5, classes=0, lines_read=0, lines_remaining=67
-tests/test_hebbian_learning.py: lines=33, functions=2, classes=0, lines_read=0, lines_remaining=33
-tests/test_hebbian_pipeline.py: lines=68, functions=5, classes=0, lines_read=0, lines_remaining=68
-tests/test_hierarchical_memory.py: lines=50, functions=4, classes=0, lines_read=0, lines_remaining=50
+tests/test_data_compressor.py: lines=80, functions=9, classes=0, lines_read=80
+tests/test_database_query_tool.py: lines=28, functions=2, classes=0, lines_read=28
+tests/test_dataloader_plugin.py: lines=26, functions=3, classes=1, lines_read=26
+tests/test_dataset_cache_server.py: lines=31, functions=2, classes=0, lines_read=31
+tests/test_dataset_encryption.py: lines=49, functions=4, classes=0, lines_read=49
+tests/test_dataset_encryption_performance.py: lines=34, functions=2, classes=0, lines_read=34
+tests/test_dataset_event_notifications.py: lines=31, functions=1, classes=0, lines_read=31
+tests/test_dataset_events.py: lines=13, functions=1, classes=0, lines_read=13
+tests/test_dataset_history_cli.py: lines=24, functions=1, classes=0, lines_read=24
+tests/test_dataset_history_gui.py: lines=13, functions=2, classes=0, lines_read=13
+tests/test_dataset_loader.py: lines=292, functions=18, classes=0, lines_read=292
+tests/test_dataset_replication.py: lines=23, functions=1, classes=1, lines_read=23
+tests/test_dataset_sync_service.py: lines=34, functions=2, classes=0, lines_read=34
+tests/test_dataset_tags.py: lines=10, functions=1, classes=0, lines_read=10
+tests/test_dataset_transfer.py: lines=34, functions=3, classes=0, lines_read=34
+tests/test_dataset_version_cli.py: lines=18, functions=1, classes=0, lines_read=18
+tests/test_dataset_versioning.py: lines=11, functions=1, classes=0, lines_read=11
+tests/test_dataset_watcher.py: lines=23, functions=1, classes=0, lines_read=23
+tests/test_default_growth_tier.py: lines=47, functions=3, classes=0, lines_read=47
+tests/test_dependency_graph.py: lines=31, functions=3, classes=0, lines_read=31
+tests/test_deterministic.py: lines=24, functions=1, classes=0, lines_read=24
+tests/test_diffusion_core.py: lines=14, functions=1, classes=0, lines_read=14
+tests/test_diffusion_core_additional_features.py: lines=45, functions=1, classes=0, lines_read=45
+tests/test_diffusion_core_extra_features.py: lines=30, functions=1, classes=0, lines_read=30
+tests/test_diffusion_core_features.py: lines=33, functions=2, classes=0, lines_read=33
+tests/test_diffusion_pairs_pipeline.py: lines=75, functions=5, classes=0, lines_read=75
+tests/test_dimensional_search.py: lines=35, functions=2, classes=0, lines_read=35
+tests/test_distillation.py: lines=39, functions=3, classes=0, lines_read=39
+tests/test_distributed_training.py: lines=11, functions=1, classes=0, lines_read=11
+tests/test_dream_modulation.py: lines=56, functions=2, classes=0, lines_read=56
+tests/test_dream_reinforcement_learning.py: lines=41, functions=2, classes=0, lines_read=41
+tests/test_dream_replay_buffer.py: lines=67, functions=5, classes=0, lines_read=67
+tests/test_dream_scheduler.py: lines=31, functions=1, classes=1, lines_read=31
+tests/test_dynamic_message_passing_example.py: lines=10, functions=1, classes=0, lines_read=10
+tests/test_dynamic_reorder.py: lines=23, functions=1, classes=0, lines_read=23
+tests/test_dynamic_resize.py: lines=15, functions=1, classes=0, lines_read=15
+tests/test_early_stopping.py: lines=28, functions=1, classes=0, lines_read=28
+tests/test_enable_sac.py: lines=39, functions=2, classes=0, lines_read=39
+tests/test_episodic_memory.py: lines=15, functions=1, classes=0, lines_read=15
+tests/test_episodic_simulation.py: lines=18, functions=1, classes=0, lines_read=18
+tests/test_event_bus.py: lines=36, functions=2, classes=0, lines_read=36
+tests/test_event_logging.py: lines=22, functions=1, classes=0, lines_read=22
+tests/test_event_schema.py: lines=38, functions=2, classes=0, lines_read=38
+tests/test_evolution_config.py: lines=48, functions=2, classes=0, lines_read=48
+tests/test_evolution_trainer.py: lines=35, functions=2, classes=0, lines_read=35
+tests/test_evolution_trainer_integration.py: lines=42, functions=2, classes=0, lines_read=42
+tests/test_evolutionary_mechanisms.py: lines=66, functions=4, classes=0, lines_read=66
+tests/test_exampletrain_mock_pipeline.py: lines=23, functions=1, classes=0, lines_read=23
+tests/test_exampletrain_utils.py: lines=22, functions=1, classes=0, lines_read=22
+tests/test_experiment_tracker.py: lines=19, functions=1, classes=1, lines_read=19
+tests/test_experiment_tracker_event_logging.py: lines=42, functions=2, classes=1, lines_read=42
+tests/test_federated_learning.py: lines=36, functions=2, classes=0, lines_read=36
+tests/test_find_unimplemented_params.py: lines=13, functions=1, classes=0, lines_read=13
+tests/test_fractal_dimension_learning.py: lines=18, functions=1, classes=0, lines_read=18
+tests/test_fractal_dimension_pairs_pipeline.py: lines=67, functions=5, classes=0, lines_read=67
+tests/test_full_system.py: lines=34, functions=1, classes=0, lines_read=34
+tests/test_generate_repo_md.py: lines=18, functions=1, classes=0, lines_read=18
+tests/test_genetic_algorithm.py: lines=40, functions=2, classes=0, lines_read=40
+tests/test_global_workspace_metrics.py: lines=17, functions=1, classes=0, lines_read=17
+tests/test_global_workspace_plugin.py: lines=32, functions=2, classes=0, lines_read=32
+tests/test_goal_manager.py: lines=14, functions=1, classes=0, lines_read=14
+tests/test_gpt_training.py: lines=43, functions=3, classes=0, lines_read=43
+tests/test_gpu_parity.py: lines=14, functions=1, classes=0, lines_read=14
+tests/test_gradient_pruning.py: lines=49, functions=3, classes=0, lines_read=49
+tests/test_graph_builder.py: lines=71, functions=5, classes=0, lines_read=71
+tests/test_graph_module_conversion.py: lines=41, functions=2, classes=0, lines_read=41
+tests/test_graph_precompile.py: lines=37, functions=2, classes=0, lines_read=37
+tests/test_graph_streaming.py: lines=34, functions=3, classes=0, lines_read=34
+tests/test_graph_viz.py: lines=15, functions=1, classes=0, lines_read=15
+tests/test_grpc_tier_retry.py: lines=40, functions=2, classes=1, lines_read=40
+tests/test_harmonic_resonance_learning.py: lines=15, functions=1, classes=0, lines_read=15
+tests/test_harmonic_resonance_pairs_pipeline.py: lines=67, functions=5, classes=0, lines_read=67
+tests/test_hebbian_learning.py: lines=33, functions=2, classes=0, lines_read=33
+tests/test_hebbian_pipeline.py: lines=68, functions=5, classes=0, lines_read=68
+tests/test_hierarchical_memory.py: lines=50, functions=4, classes=0, lines_read=50
 tests/test_highlevel_pipeline.py: lines=332, functions=25, classes=0, lines_read=0, lines_remaining=332
 tests/test_highlevel_pipeline_async.py: lines=18, functions=2, classes=0, lines_read=0, lines_remaining=18
 tests/test_highlevel_pipeline_async_benchmark.py: lines=51, functions=4, classes=0, lines_read=0, lines_remaining=51
