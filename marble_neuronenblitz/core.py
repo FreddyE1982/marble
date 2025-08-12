@@ -1232,13 +1232,13 @@ class Neuronenblitz:
                         next_neuron.value = val
                     new_path = path + [(next_neuron, syn)]
                     fatigue_factor = 1.0
-                if self.synaptic_fatigue_enabled:
-                    fatigue_factor -= getattr(syn, "fatigue", 0.0)
-                    fatigue_factor = max(0.0, fatigue_factor)
-                novelty_penalty = 1.0 / (1.0 + getattr(syn, "visit_count", 0))
-                new_score = score + syn.potential * fatigue_factor * novelty_penalty
-                syn.visit_count += 1
-                candidates.append((next_neuron, new_path, new_score))
+                    if self.synaptic_fatigue_enabled:
+                        fatigue_factor -= getattr(syn, "fatigue", 0.0)
+                        fatigue_factor = max(0.0, fatigue_factor)
+                    novelty_penalty = 1.0 / (1.0 + getattr(syn, "visit_count", 0))
+                    new_score = score + syn.potential * fatigue_factor * novelty_penalty
+                    syn.visit_count += 1
+                    candidates.append((next_neuron, new_path, new_score))
             if not candidates:
                 break
             candidates.sort(key=lambda x: x[2], reverse=True)
@@ -1334,6 +1334,20 @@ class Neuronenblitz:
                 )
                 self.apply_concept_associations()
             result_path = [s for (_, s) in final_path if s is not None]
+            if (
+                not result_path
+                and entry_neuron.synapses
+                and self.dropout_probability < 1.0
+            ):
+                fallback_syn = self.weighted_choice(entry_neuron.synapses)
+                result_path = [fallback_syn]
+                final_neuron = self.core.neurons[fallback_syn.target]
+                final_neuron.value = self.combine_fn(
+                    entry_neuron.value,
+                    fallback_syn.effective_weight(self.last_context, self.global_phase)
+                    if hasattr(fallback_syn, "effective_weight")
+                    else fallback_syn.weight,
+                )
             self._cache_subpaths(final_path, final_neuron.value)
             if not apply_plasticity:
                 now = datetime.now(timezone.utc)

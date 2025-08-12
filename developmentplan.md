@@ -6,11 +6,11 @@ Completed tasks or subtasks must be marked as such by writing "[complete]" after
 This plan integrates information from all 621 Python modules enumerated in analysedpyfiles.md.
 
 ## 1. Repository Bootstrap
-### 1.1 Initialize new Git repository
+### 1.1 Initialize new Git repository [complete]
 - Create repository structure.
 - Configure pre-commit, linting, formatting, type checking.
 
-### 1.2 Dependency and environment setup
+### 1.2 Dependency and environment setup [complete]
 - Define pyproject.toml and requirements.txt mirroring current repo.
 - Implement Python virtual environment setup scripts.
 - Provide GPU/CPU detection utilities.

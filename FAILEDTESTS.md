@@ -18,4 +18,4 @@ No failing tests.
 - tests/test_pretraining_and_clustering.py::test_pretraining_epochs_runs_once: AttributeError: '_DummyPbar' object has no attribute 'close' [resolved]
 - tests/test_pretraining_and_clustering.py::test_pretraining_epochs_runs_once: TypeError: DummyNB.train() got an unexpected keyword argument 'loss_fn' [resolved]
 - tests/test_marble_interface.py::test_save_and_load_marble: TypeError: cannot pickle '_thread.lock' object [resolved]
-- tests/test_neuronenblitz_enhancements.py: multiple failures (empty paths, missing shortcut)
+- tests/test_neuronenblitz_enhancements.py: multiple failures (missing shortcut, episodic memory bias)
