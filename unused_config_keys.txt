@@ -36,7 +36,6 @@ brain.initial_neurogenesis_factor
 brain.lobe_decay_rate
 brain.lobe_sync_interval
 brain.loss_growth_threshold
-brain.manual_seed
 brain.max_neurogenesis_factor
 brain.max_saved_models
 brain.max_training_epochs
